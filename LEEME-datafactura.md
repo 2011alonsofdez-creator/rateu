@@ -37,6 +37,18 @@ datafactura_datos/        ← FUERA de public_html: cuentas y créditos. No se t
 publicar/datafactura.zip  paquete listo para subir
 ```
 
+## Cuenta de prueba
+
+- Correo: `prueba@datafactura.es`
+- Contraseña: `Facturas2026`
+- Empieza en el plan Gratis con 5 créditos, para poder ver el aviso de créditos
+  agotados y la mejora de plan simulada.
+
+Recorrido recomendado: entrar → subir una factura y un ticket → repasar la tabla
+y corregir lo marcado en ámbar → marcar como revisado → exportar a Excel →
+gastar los 5 créditos → ver el aviso → mejorar de plan (pago simulado) →
+cancelar desde «Mi cuenta».
+
 ## Publicar
 
 Subir el **contenido** de `web/` a la carpeta `public_html` del dominio
