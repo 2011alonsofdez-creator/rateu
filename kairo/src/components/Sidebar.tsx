@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUi, type TKey } from "@/lib/i18n";
-import { conversations, pick, user } from "@/lib/mock";
+import { conversations, pick } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
+import { usePerfil } from "@/lib/perfil-cliente";
+import { NOMBRE_PLAN } from "@/lib/planes";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
 import { Bolt, Brain, Chat, Clock, Close, Code, Plug, Plus, Settings } from "./Icons";
@@ -27,6 +29,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const { t, lang } = useUi();
   const pathname = usePathname();
   const { credits, total } = useCredits();
+  const perfil = usePerfil();
   const pct = Math.round((credits / total) * 100);
 
   return (
@@ -130,11 +133,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             className="flex flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] transition hover:bg-panel"
           >
             <span className="brand-grad grid h-7 w-7 place-items-center rounded-full text-[12px] font-bold text-on-accent">
-              {user.name.charAt(0)}
+              {(perfil.nombre || "?").charAt(0).toUpperCase()}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-medium">{user.name}</span>
-              <span className="block text-[11.5px] text-faint">{user.plan}</span>
+              <span className="block truncate font-medium">{perfil.nombre}</span>
+              <span className="block text-[11.5px] text-faint">{NOMBRE_PLAN[perfil.plan]}</span>
             </span>
             <Settings className="h-4 w-4 shrink-0 text-faint" />
           </Link>

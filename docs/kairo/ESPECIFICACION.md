@@ -46,17 +46,22 @@ un nivel. El usuario siempre puede forzar el nivel a mano desde el botón ⚡.
 
 ### MVP (versión 1 — esto es lo que se construye ahora)
 
-- [ ] Registro y login (email + Google)
-- [ ] Chat en tiempo real con respuesta en streaming
-- [ ] **Router multi-modelo** con selector manual ⚡ Rápido / Normal / Mega-Prompt
+Estado a 21/09/2026: **Paso 1 (interfaz) y Paso 2 (cuentas y créditos) hechos.**
+
+- [x] Registro y login (email + Google)
+- [x] Rutas protegidas y sesión que se refresca sola
+- [ ] Chat en tiempo real con respuesta en streaming *(Paso 3)*
+- [x] Selector manual ⚡ Rápido / Normal / Mega-Prompt, con el coste a la vista
+- [ ] **Router multi-modelo** que elige el modelo por sí solo *(Paso 3)*
 - [ ] Subida de archivos (PDF, imagen, Word, Excel) y lectura de su contenido
 - [ ] Historial de conversaciones, renombrar y borrar
-- [ ] Sistema de créditos con descuento atómico en servidor
-- [ ] Tres planes: Free / Kairo+ / Supreme, con pasarela de pago
-- [ ] **Tres modos de edad** con filtros de moderación distintos
-- [ ] Selector de tono de la IA (lo elige el usuario en ajustes)
-- [ ] Páginas legales, precios, error y estado vacío
-- [ ] Interfaz en español e inglés
+- [x] Sistema de créditos con descuento atómico en servidor
+- [ ] Tres planes: Free / Kairo+ / Supreme, con pasarela de pago *(Paso 4)*
+- [x] Modo de edad asignado por fecha de nacimiento, imposible de cambiar después
+- [ ] Filtros de moderación distintos por modo de edad *(Paso 3)*
+- [x] Selector de tono de la IA (lo elige el usuario en ajustes)
+- [x] Páginas legales, precios, error y estado vacío
+- [x] Interfaz en español e inglés
 
 ### Versión 2 (después de los primeros usuarios que paguen)
 

@@ -70,19 +70,30 @@ export default function ChatPage() {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const cost = LEVELS[level].credits;
 
-    // El tope de créditos se comprueba ANTES de gastar. En producción
-    // esta comprobación vive en el servidor, nunca aquí.
-    if (!spend(cost)) {
+    // Comprobación rápida para no molestar al servidor si es evidente
+    // que no llega. La que decide de verdad es la de la base de datos,
+    // que descuenta y comprueba en la misma transacción.
+    if (cost > credits) {
       setNoCredits(true);
       return;
     }
 
+    const id = `u${Date.now()}`;
     const bi = { es: text, en: text };
-    setMessages((m) => [...m, { id: `u${Date.now()}`, role: "user", content: bi }]);
+    setMessages((m) => [...m, { id, role: "user", content: bi }]);
     setBusy(true);
+
+    const ok = await spend(cost, `mensaje ${level}`);
+    if (!ok) {
+      // El servidor ha dicho que no: retiramos el mensaje y avisamos.
+      setMessages((m) => m.filter((x) => x.id !== id));
+      setBusy(false);
+      setNoCredits(true);
+      return;
+    }
 
     window.setTimeout(() => {
       setMessages((m) => [

@@ -1,54 +1,24 @@
-"use client";
+import { redirect } from "next/navigation";
+import { obtenerPerfil } from "@/lib/perfil";
+import { hasSupabase } from "@/lib/supabase/config";
+import { AppShell } from "@/components/AppShell";
 
-import { useState } from "react";
-import { useUi } from "@/lib/i18n";
-import { CreditsProvider } from "@/lib/credits";
-import { Sidebar } from "@/components/Sidebar";
-import { Logo } from "@/components/Logo";
-import { Menu } from "@/components/Icons";
+/* Componente de servidor: el perfil se carga aquí, antes de pintar nada.
+   Así la barra lateral nunca parpadea con datos viejos y, sobre todo, el
+   plan y los créditos salen de la base de datos y no de lo que diga el
+   navegador. */
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const perfil = await obtenerPerfil();
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { t } = useUi();
-  const [open, setOpen] = useState(false);
+  if (!perfil) redirect("/entrar");
 
-  return (
-    <CreditsProvider>
-    <div className="flex h-dvh overflow-hidden bg-bg">
-      {/* Barra lateral fija en escritorio */}
-      <aside className="hidden lg:block">
-        <Sidebar />
-      </aside>
+  // Quien entró con Google no dio fecha de nacimiento: hay que preguntarla
+  // antes de dejarle usar nada, porque de ella depende la moderación.
+  if (hasSupabase && !perfil.modoEdad) redirect("/bienvenida");
 
-      {/* Barra lateral deslizante en móvil */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setOpen(false)}
-            aria-label={t("menu.close")}
-          />
-          <div className="absolute inset-y-0 left-0">
-            <Sidebar onClose={() => setOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Cabecera solo de móvil */}
-        <div className="flex items-center gap-3 border-b border-line px-3 py-2.5 lg:hidden">
-          <button
-            onClick={() => setOpen(true)}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted"
-            aria-label={t("menu.open")}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <Logo />
-        </div>
-
-        <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
-      </div>
-    </div>
-    </CreditsProvider>
-  );
+  return <AppShell perfil={perfil}>{children}</AppShell>;
 }
