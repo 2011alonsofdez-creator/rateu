@@ -32,3 +32,10 @@ export type Perfil = {
   /** true cuando no hay Supabase configurado y son datos de ejemplo. */
   demo: boolean;
 };
+
+/** Qué niveles del selector ⚡ puede usar cada plan. */
+export const NIVELES_POR_PLAN: Record<PlanId, ("fast" | "normal" | "mega")[]> = {
+  free: ["fast"],
+  plus: ["fast", "normal", "mega"],
+  supreme: ["fast", "normal", "mega"],
+};

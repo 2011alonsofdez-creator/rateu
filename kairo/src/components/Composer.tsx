@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level } from "@/lib/mock";
+import { NIVELES_POR_PLAN } from "@/lib/planes";
+import { usePerfil } from "@/lib/perfil-cliente";
 import { Bolt, Chevron, Clip, Mic, Send } from "./Icons";
+import Link from "next/link";
 
 const LEVEL_META: { id: Level; label: TKey; desc: TKey }[] = [
   { id: "fast", label: "app.fast", desc: "app.fastDesc" },
@@ -23,6 +26,8 @@ export function Composer({
   busy: boolean;
 }) {
   const { t } = useUi();
+  const perfil = usePerfil();
+  const permitidos = NIVELES_POR_PLAN[perfil.plan];
   const [text, setText] = useState("");
   const [menu, setMenu] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -106,30 +111,50 @@ export function Composer({
 
               {menu && (
                 <div className="absolute bottom-full right-0 z-30 mb-2 w-[290px] overflow-hidden rounded-xl border border-line bg-panel shadow-[var(--shadow)]">
-                  {LEVEL_META.map((l) => (
-                    <button
-                      key={l.id}
-                      onClick={() => {
-                        setLevel(l.id);
-                        setMenu(false);
-                      }}
-                      className={`flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-panel-hi ${
-                        level === l.id ? "bg-panel-hi" : ""
-                      }`}
-                    >
-                      <Bolt
-                        className="mt-0.5 h-4 w-4 shrink-0"
-                        style={{ color: LEVELS[l.id].color }}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13.5px] font-medium">{t(l.label)}</span>
-                        <span className="block text-[12px] text-faint">{t(l.desc)}</span>
-                      </span>
-                      <span className="shrink-0 font-mono text-[12px] text-muted">
-                        {LEVELS[l.id].credits} {t("app.cr")}
-                      </span>
-                    </button>
-                  ))}
+                  {LEVEL_META.map((l) => {
+                    // Un nivel que el plan no incluye no se ofrece como si
+                    // funcionara: se marca y se manda a la página de precios.
+                    const bloqueado = !permitidos.includes(l.id);
+
+                    const contenido = (
+                      <>
+                        <Bolt
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          style={{ color: bloqueado ? "var(--faint)" : LEVELS[l.id].color }}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[13.5px] font-medium">{t(l.label)}</span>
+                          <span className="block text-[12px] text-faint">
+                            {bloqueado ? t("app.upgrade") : t(l.desc)}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono text-[12px] text-muted">
+                          {LEVELS[l.id].credits} {t("app.cr")}
+                        </span>
+                      </>
+                    );
+
+                    const clases = `flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-panel-hi ${
+                      level === l.id ? "bg-panel-hi" : ""
+                    } ${bloqueado ? "opacity-55" : ""}`;
+
+                    return bloqueado ? (
+                      <Link key={l.id} href="/precios" className={clases} onClick={() => setMenu(false)}>
+                        {contenido}
+                      </Link>
+                    ) : (
+                      <button
+                        key={l.id}
+                        onClick={() => {
+                          setLevel(l.id);
+                          setMenu(false);
+                        }}
+                        className={clases}
+                      >
+                        {contenido}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

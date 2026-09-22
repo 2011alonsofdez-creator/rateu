@@ -149,3 +149,28 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Texto con un brillo que lo recorre, para el estado "pensando".
+   Se apaga solo si el usuario tiene reducidas las animaciones. */
+@keyframes kairo-brillo {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.texto-brillo {
+  background-image: linear-gradient(
+    90deg,
+    var(--faint) 20%,
+    var(--fg) 42%,
+    var(--faint) 64%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kairo-brillo 2.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .texto-brillo { animation: none; color: var(--muted); }
+}
