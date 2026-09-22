@@ -4,8 +4,25 @@
    La que NUNCA puede salir del servidor es la service_role, y este
    proyecto no la usa en ninguna parte. */
 
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+/* La URL se limpia antes de usarla. Al copiarla del panel es facilísimo
+   llevarse el "/rest/v1/" del final o un espacio invisible, y con eso la
+   librería lanza una excepción nada más arrancar. Como el proxy corre en
+   todas las rutas, eso tumbaba la web entera con un "Internal Server
+   Error" que no dice nada. Mejor aceptar las dos formas. */
+function limpiarUrl(valor: string | undefined): string {
+  const texto = (valor ?? "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+  if (!texto) return "";
+  try {
+    const u = new URL(texto);
+    return u.protocol === "https:" || u.protocol === "http:" ? texto : "";
+  } catch {
+    // Una URL inválida deja la app en modo demo, que es feo pero se ve.
+    return "";
+  }
+}
+
+export const SUPABASE_URL = limpiarUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+export const SUPABASE_ANON_KEY = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
 
 /* Sin variables configuradas la app sigue funcionando en modo demo, con
    los datos de ejemplo. Así el despliegue nunca se queda en blanco por
