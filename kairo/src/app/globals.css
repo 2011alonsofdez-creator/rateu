@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Kairo — sistema de diseño
+   Modo oscuro por defecto, claro opcional vía [data-theme="light"].
+   Los colores son variables CSS, así no hace falta escribir dark:
+   en cada clase: cambian solos al cambiar el tema.
+--------------------------------------------------------------- */
+
+:root,
+[data-theme="dark"] {
+  --bg: #0a0a11;
+  --bg-soft: #0f0f18;
+  --panel: #14141f;
+  --panel-hi: #1c1c2a;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-hi: rgba(255, 255, 255, 0.16);
+  --fg: #edeef4;
+  --muted: #9a9aae;
+  --faint: #6a6a80;
+  --violet: #7c6bff;
+  --cyan: #3bd7f0;
+  --gold: #f5b84e;
+  --green: #34d399;
+  --red: #fb7185;
+  --on-accent: #0a0a11;
+  --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.75);
+}
+
+[data-theme="light"] {
+  --bg: #fafafc;
+  --bg-soft: #f2f2f7;
+  --panel: #ffffff;
+  --panel-hi: #f4f4f8;
+  --line: rgba(16, 16, 32, 0.09);
+  --line-hi: rgba(16, 16, 32, 0.18);
+  --fg: #15151f;
+  --muted: #5e5e74;
+  --faint: #8a8aa0;
+  --violet: #5b48e0;
+  --cyan: #0d9fbd;
+  --gold: #b9791a;
+  --green: #0f9c6e;
+  --red: #d94f63;
+  --on-accent: #ffffff;
+  --shadow: 0 16px 40px -22px rgba(16, 16, 40, 0.28);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-panel: var(--panel);
+  --color-panel-hi: var(--panel-hi);
+  --color-line: var(--line);
+  --color-line-hi: var(--line-hi);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-violet: var(--violet);
+  --color-cyan: var(--cyan);
+  --color-gold: var(--gold);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-on-accent: var(--on-accent);
+
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+[data-theme="light"] html,
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Degradado de marca: violeta -> cian */
+.brand-grad {
+  background-image: linear-gradient(100deg, var(--violet), var(--cyan));
+}
+
+.brand-text {
+  background-image: linear-gradient(100deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Resplandor decorativo del hero */
+.glow::before {
+  content: "";
+  position: absolute;
+  inset: -20% 10% auto 10%;
+  height: 420px;
+  background: radial-gradient(
+    60% 60% at 50% 40%,
+    color-mix(in oklab, var(--violet) 26%, transparent),
+    transparent 70%
+  );
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--violet) 40%, transparent);
+}
+
+/* Barras de scroll discretas */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line-hi);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
