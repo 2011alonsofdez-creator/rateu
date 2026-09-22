@@ -84,7 +84,17 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Historial */}
       <div className="mt-5 flex-1 overflow-y-auto px-3 pb-4">
-        {GROUPS.map((g) => {
+        {/* Los chats se guardarán en la base de datos en el siguiente paso.
+            Hasta entonces, esta lista de ejemplo solo aparece en modo demo:
+            enseñar chats falsos a un usuario real sería engañarle. */}
+        {!perfil.demo && (
+          <p className="px-3 py-2 text-[12.5px] leading-relaxed text-faint">
+            {lang === "es"
+              ? "Tus chats aparecerán aquí cuando se guarden."
+              : "Your chats will show up here once they are saved."}
+          </p>
+        )}
+        {perfil.demo && GROUPS.map((g) => {
           const items = conversations.filter((c) => c.group === g.key);
           if (!items.length) return null;
           return (

@@ -2,12 +2,15 @@
 
 > *"La IA que trabaja cuando tú no."*
 
-**Paso 1 (interfaz) y Paso 2 (login, base de datos y créditos) hechos.**
-Falta el Paso 3 (la IA) y el Paso 4 (pagos).
+**Pasos 1, 2 y 3 hechos.** Falta el Paso 4 (pagos).
 
-Todavía no se llama a ninguna IA ni hay ninguna clave de modelo: las respuestas
-del chat son de ejemplo. Lo que ya es real son las cuentas, los perfiles y el
-gasto de créditos.
+La IA responde de verdad: el chat llama a Gemini desde el servidor, en
+streaming, con el system prompt y los filtros de contenido que corresponden a
+la edad del usuario. Los créditos se cobran en la base de datos cuando llega
+el primer trozo de respuesta, así que un fallo del modelo nunca se cobra.
+
+Claude y GPT todavía no están conectados: `lib/ia/config.ts` ya está preparado
+para ellos, solo hay que añadir sus claves y sus modelos.
 
 **La app funciona con y sin Supabase.** Sin las variables de entorno arranca en
 modo demo con datos de ejemplo, así que un despliegue nunca se queda en blanco
@@ -23,8 +26,9 @@ npm install
 npm run dev          # http://localhost:3000  (modo demo)
 ```
 
-Para conectarlo a Supabase, copia `.env.example` a `.env.local`, rellena las dos
-variables y sigue [`supabase/README.md`](supabase/README.md).
+Para conectarlo de verdad, copia `.env.example` a `.env.local`, rellena las
+variables y sigue [`supabase/README.md`](supabase/README.md). La clave de
+Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 
 ## Qué hay montado
 
@@ -54,7 +58,12 @@ variables y sigue [`supabase/README.md`](supabase/README.md).
   mismo crédito, y el navegador no puede tocar la columna `creditos`.
 - **Selector ⚡ Rápido / Normal / MEGA** con el coste en créditos **visible antes de pulsar**.
 - **Modal de "sin créditos"** cuando el nivel elegido cuesta más de lo que queda.
-- **El tono elegido se guarda** en el perfil (lo usará el system prompt en el Paso 3).
+- **La IA responde de verdad**, en streaming, con el tono que el usuario eligió
+  y los filtros de contenido de su modo de edad.
+- **El nivel decide el modelo y cuánto razona**: Rápido usa Flash-Lite sin
+  razonamiento, Normal usa Flash, y MEGA usa Flash con el presupuesto de
+  razonamiento al máximo.
+- **Un nivel que el plan no incluye aparece bloqueado**, no da error después.
 - **Español e inglés** completos, y **tema oscuro y claro** sin parpadeo al cargar.
 - **Responsive**: en móvil la barra lateral pasa a menú deslizante.
 
@@ -104,8 +113,15 @@ src/
    contra Supabase; el segundo se limita a leer una cookie que el usuario controla.
 6. **La clave `service_role` no aparece en el proyecto.** Si algún día hace falta, va en
    una variable de servidor y jamás en un archivo que empiece por `NEXT_PUBLIC_`.
+7. **`GEMINI_API_KEY` no lleva `NEXT_PUBLIC_`.** Solo la ve `/api/chat`, en el
+   servidor. Si acabara en el navegador, cualquiera gastaría tu cuota.
+8. **Los modelos se nombran con alias `-latest`.** Google renombra sus modelos
+   cada pocos meses; con el alias el código no se rompe.
 
-## Siguiente paso
+## Lo que falta
 
-El **Paso 3** (el router multi-modelo y la moderación por edad) está escrito y listo
-para pegar en `../docs/kairo/ESPECIFICACION.md`, sección 7.
+- **Guardar los chats** en la base de datos (las tablas ya existen).
+- **Claude y GPT**, para que el router elija de verdad entre tres cerebros.
+- **El clasificador automático**: que Kairo escoja el nivel solo, sin que el
+  usuario toque el botón ⚡.
+- **Paso 4**: pagos con Lemon Squeezy.

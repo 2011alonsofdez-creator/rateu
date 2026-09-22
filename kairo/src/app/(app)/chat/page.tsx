@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
-import { LEVELS, pick, thread, type Level, type Message } from "@/lib/mock";
+import { LEVELS, pick, type Level, type Message } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
+import { usePerfil } from "@/lib/perfil-cliente";
 import { Composer } from "@/components/Composer";
 import { Markdown } from "@/components/Markdown";
+import { Pensando } from "@/components/Pensando";
+import { Marca, MarcaTile } from "@/components/Logo";
 import {
   Bolt,
   Brain,
@@ -17,30 +20,23 @@ import {
   Copy,
   Image as ImageIcon,
   Refresh,
-  Sparkle,
 } from "@/components/Icons";
 
-/* Respuestas de ejemplo. En el Paso 3 esto lo sustituye la llamada real
-   al router multi-modelo, que decide el nivel y el proveedor. */
-const CANNED: Record<Level, Record<Lang, string>> = {
+/* Respuestas de ejemplo. Solo se usan en modo demo, cuando no hay
+   Supabase ni clave de Gemini configurados. */
+const DEMO: Record<Level, Record<Lang, string>> = {
   fast: {
-    es: "Listo. Para algo así el nivel **Rápido** sobra: he respondido con el modelo más ligero y te ha costado **1 crédito**.\n\nSi la pregunta fuera más larga o necesitara pensar, Kairo habría subido de nivel solo.",
-    en: "Done. **Fast** is plenty for this: I answered with the lightest model and it cost you **1 credit**.\n\nIf the question were longer or needed reasoning, Kairo would have stepped up on its own.",
+    es: "Esto es el **modo demo**: no hay ninguna IA detrás todavía, solo un texto de ejemplo.\n\nConfigura Supabase y la clave de Gemini y aquí empezará a responder de verdad.",
+    en: "This is **demo mode**: there is no AI behind this yet, just sample text.\n\nSet up Supabase and the Gemini key and this will start answering for real.",
   },
   normal: {
-    es: "He usado el nivel **Normal**, que es el equilibrio entre calidad y coste: **4 créditos**.\n\nPara redactar, resumir o explicar es el que mejor relación da. Si en algún momento detecto que la tarea necesita razonar en varios pasos, subo sola al nivel máximo y te lo aviso antes de gastar.",
-    en: "I used the **Normal** level, the balance between quality and cost: **4 credits**.\n\nFor writing, summarising or explaining it gives the best ratio. If I detect a task that needs multi-step reasoning, I step up to the top tier and warn you before spending.",
+    es: "Modo demo. Con las claves puestas, este nivel usa un modelo mejor y responde de verdad.",
+    en: "Demo mode. With the keys in place, this level uses a better model and answers for real.",
   },
   mega: {
-    es: "**Mega-Prompt ejecutado.** He lanzado la pregunta a los tres modelos a la vez y he combinado lo mejor de cada respuesta:\n\n- **Claude** ha aportado la estructura y el detalle técnico.\n- **Gemini** ha añadido los datos más recientes.\n- **GPT** ha revisado el razonamiento y ha detectado dos huecos.\n\nCoste: **120 créditos**. Úsalo cuando acertar importe de verdad; para el día a día, con el nivel Normal vas sobrado.",
-    en: "**Mega-Prompt executed.** I sent your question to all three models at once and merged the best of each answer:\n\n- **Claude** contributed the structure and technical detail.\n- **Gemini** added the most recent data.\n- **GPT** reviewed the reasoning and caught two gaps.\n\nCost: **120 credits**. Use it when getting it right really matters; for everyday work, Normal is plenty.",
+    es: "Modo demo. El Mega-Prompt exprime el modelo al máximo cuando está conectado de verdad.",
+    en: "Demo mode. The Mega-Prompt pushes the model to its limit once properly connected.",
   },
-};
-
-const MODEL_LABEL: Record<Level, string> = {
-  fast: "Gemini Flash",
-  normal: "Sonnet",
-  mega: "Mega-Prompt · Claude + Gemini + GPT",
 };
 
 const CARDS: {
@@ -48,9 +44,17 @@ const CARDS: {
   title: TKey;
   desc: TKey;
   href?: string;
-  demo?: boolean;
+  prompt?: { es: string; en: string };
 }[] = [
-  { icon: ChatIcon, title: "card.chat", desc: "card.chatDesc", demo: true },
+  {
+    icon: ChatIcon,
+    title: "card.chat",
+    desc: "card.chatDesc",
+    prompt: {
+      es: "Explícame en 3 frases qué sabes hacer",
+      en: "Tell me in 3 sentences what you can do",
+    },
+  },
   { icon: Brain, title: "card.mentes", desc: "card.mentesDesc", href: "/mentes" },
   { icon: Clock, title: "card.cowork", desc: "card.coworkDesc", href: "/coworks" },
   { icon: Code, title: "card.code", desc: "card.codeDesc", href: "/codigo" },
@@ -59,10 +63,14 @@ const CARDS: {
 
 export default function ChatPage() {
   const { t, lang } = useUi();
+  const perfil = usePerfil();
+  const { credits, spend, sincronizar } = useCredits();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [level, setLevel] = useState<Level>("fast");
-  const { credits, spend } = useCredits();
   const [busy, setBusy] = useState(false);
+  const [modelo, setModelo] = useState<string>();
+  const [error, setError] = useState<TKey>();
   const [noCredits, setNoCredits] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -70,45 +78,147 @@ export default function ChatPage() {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  const send = async (text: string) => {
-    const cost = LEVELS[level].credits;
+  const send = async (texto: string) => {
+    const coste = LEVELS[level].credits;
+    setError(undefined);
 
-    // Comprobación rápida para no molestar al servidor si es evidente
-    // que no llega. La que decide de verdad es la de la base de datos,
-    // que descuenta y comprueba en la misma transacción.
-    if (cost > credits) {
+    // Comprobación rápida para no molestar al servidor en vano.
+    // La que decide de verdad está en la base de datos.
+    if (coste > credits) {
       setNoCredits(true);
       return;
     }
 
-    const id = `u${Date.now()}`;
-    const bi = { es: text, en: text };
-    setMessages((m) => [...m, { id, role: "user", content: bi }]);
+    const bi = { es: texto, en: texto };
+    const conElMio: Message[] = [
+      ...messages,
+      { id: `u${Date.now()}`, role: "user", content: bi },
+    ];
+    setMessages(conElMio);
     setBusy(true);
+    setModelo(undefined);
 
-    const ok = await spend(cost, `mensaje ${level}`);
-    if (!ok) {
-      // El servidor ha dicho que no: retiramos el mensaje y avisamos.
-      setMessages((m) => m.filter((x) => x.id !== id));
-      setBusy(false);
-      setNoCredits(true);
+    // --- Modo demo: sin claves, respuesta de ejemplo ---
+    if (perfil.demo) {
+      await spend(coste, `demo ${level}`);
+      window.setTimeout(() => {
+        setMessages((m) => [
+          ...m,
+          {
+            id: `k${Date.now()}`,
+            role: "kairo",
+            level,
+            credits: coste,
+            model: "demo",
+            content: { es: DEMO[level].es, en: DEMO[level].en },
+          },
+        ]);
+        setBusy(false);
+      }, 700);
       return;
     }
 
-    window.setTimeout(() => {
-      setMessages((m) => [
-        ...m,
-        {
-          id: `k${Date.now()}`,
-          role: "kairo",
-          level,
-          credits: cost,
-          model: MODEL_LABEL[level],
-          content: { es: CANNED[level].es, en: CANNED[level].en },
-        },
-      ]);
+    // --- Modo real ---
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          nivel: level,
+          mensajes: conElMio.map((m) => ({
+            rol: m.role,
+            texto: pick(m.content, lang),
+          })),
+        }),
+      });
+
+      if (!res.ok || !res.body) {
+        setBusy(false);
+        if (res.status === 402) return setNoCredits(true);
+        if (res.status === 403) return setError("err.nivel");
+        if (res.status === 401) return setError("err.sesion");
+        return setError("err.modelo");
+      }
+
+      const lector = res.body.getReader();
+      const decoder = new TextDecoder();
+      const idK = `k${Date.now()}`;
+      let resto = "";
+      let abierto = false;
+
+      const anadirTexto = (v: string) => {
+        setMessages((m) => {
+          if (!abierto) return m;
+          const copia = [...m];
+          const ult = copia[copia.length - 1];
+          if (ult?.id !== idK) return m;
+          copia[copia.length - 1] = {
+            ...ult,
+            content: { es: ult.content.es + v, en: ult.content.en + v },
+          };
+          return copia;
+        });
+      };
+
+      while (true) {
+        const { done, value } = await lector.read();
+        if (done) break;
+
+        resto += decoder.decode(value, { stream: true });
+        const lineas = resto.split("\n");
+        resto = lineas.pop() ?? "";
+
+        for (const linea of lineas) {
+          if (!linea.trim()) continue;
+          let ev: Record<string, unknown>;
+          try {
+            ev = JSON.parse(linea);
+          } catch {
+            continue; // línea partida a medias: se recompone en la siguiente vuelta
+          }
+
+          if (ev.t === "meta") {
+            setModelo(String(ev.modelo ?? ""));
+          } else if (ev.t === "creditos") {
+            sincronizar(Number(ev.creditos ?? 0), Number(ev.creditosExtra ?? 0));
+          } else if (ev.t === "texto") {
+            if (!abierto) {
+              abierto = true;
+              setBusy(false);
+              setMessages((m) => [
+                ...m,
+                {
+                  id: idK,
+                  role: "kairo",
+                  level,
+                  credits: coste,
+                  model: modelo,
+                  content: { es: "", en: "" },
+                },
+              ]);
+            }
+            anadirTexto(String(ev.v ?? ""));
+          } else if (ev.t === "error") {
+            setBusy(false);
+            const v = String(ev.v);
+            setError(
+              v === "cuota_agotada"
+                ? "err.cuota"
+                : v === "bloqueado"
+                  ? "err.bloqueado"
+                  : v === "sin_creditos"
+                    ? "err.modelo"
+                    : "err.modelo",
+            );
+            if (v === "sin_creditos") setNoCredits(true);
+          }
+        }
+      }
+    } catch {
+      setError("err.red");
+    } finally {
       setBusy(false);
-    }, 900);
+    }
   };
 
   const empty = messages.length === 0;
@@ -118,9 +228,7 @@ export default function ChatPage() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         {empty ? (
           <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-12">
-            <span className="brand-grad grid h-12 w-12 place-items-center rounded-2xl text-on-accent">
-              <Sparkle className="h-6 w-6" />
-            </span>
+            <MarcaTile className="h-12 w-12 rounded-2xl" />
             <h1 className="mt-5 text-[26px] font-semibold tracking-tight sm:text-[30px]">
               {t("app.greeting")}
             </h1>
@@ -141,8 +249,8 @@ export default function ChatPage() {
                 const cls =
                   "rounded-xl border border-line bg-panel p-3.5 text-left transition hover:border-line-hi hover:bg-panel-hi";
 
-                return c.demo ? (
-                  <button key={c.title} className={cls} onClick={() => setMessages(thread)}>
+                return c.prompt ? (
+                  <button key={c.title} className={cls} onClick={() => send(c.prompt![lang])}>
                     {inner}
                   </button>
                 ) : (
@@ -167,20 +275,14 @@ export default function ChatPage() {
               ),
             )}
 
-            {busy && (
+            {busy && <Pensando nivel={level} modelo={modelo} />}
+
+            {error && (
               <div className="flex gap-3">
-                <span className="brand-grad mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-on-accent">
-                  <Sparkle className="h-4 w-4" />
-                </span>
-                <div className="flex items-center gap-1.5 pt-2.5">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-faint"
-                      style={{ animationDelay: `${i * 140}ms` }}
-                    />
-                  ))}
-                </div>
+                <MarcaTile className="mt-0.5 h-8 w-8" />
+                <p className="rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-2.5 text-[14px] leading-relaxed text-gold">
+                  {t(error)}
+                </p>
               </div>
             )}
 
@@ -189,7 +291,6 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* Contador de créditos flotante */}
       <div className="pointer-events-none flex justify-center">
         <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
           <Bolt className="h-3 w-3 text-gold" />
@@ -207,10 +308,11 @@ export default function ChatPage() {
 function KairoMessage({ m }: { m: Message }) {
   const { t, lang } = useUi();
   const [copied, setCopied] = useState(false);
+  const texto = pick(m.content, lang);
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pick(m.content, lang));
+      await navigator.clipboard.writeText(texto);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -220,12 +322,10 @@ function KairoMessage({ m }: { m: Message }) {
 
   return (
     <div className="flex gap-3">
-      <span className="brand-grad mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-on-accent">
-        <Sparkle className="h-4 w-4" />
-      </span>
+      <MarcaTile className="mt-0.5 h-8 w-8" />
 
       <div className="min-w-0 flex-1">
-        <Markdown text={pick(m.content, lang)} />
+        <Markdown text={texto} />
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
@@ -243,7 +343,7 @@ function KairoMessage({ m }: { m: Message }) {
             {t("app.regen")}
           </button>
 
-          {m.model && (
+          {m.model && m.model !== "demo" && (
             <span className="rounded-lg border border-line px-2 py-1 text-[11.5px] text-faint">
               {m.model}
             </span>
@@ -273,15 +373,9 @@ function NoCreditsModal({ onClose }: { onClose: () => void }) {
         <div className="mt-6 space-y-2">
           <Link
             href="/precios"
-            className="brand-grad block rounded-xl px-4 py-2.5 text-[14px] font-semibold text-on-accent transition hover:opacity-90"
+            className="brand-grad block rounded-xl px-4 py-2.5 text-center text-[14px] font-semibold text-on-accent transition hover:opacity-90"
           >
             {t("app.upgrade")}
-          </Link>
-          <Link
-            href="/precios"
-            className="block rounded-xl border border-line-hi px-4 py-2.5 text-[14px] font-medium transition hover:bg-panel-hi"
-          >
-            {t("app.buyCredits")}
           </Link>
           <button
             onClick={onClose}

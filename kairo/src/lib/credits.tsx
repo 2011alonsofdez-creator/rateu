@@ -22,6 +22,8 @@ type Credits = {
   total: number;
   gastando: boolean;
   spend: (n: number, motivo?: string) => Promise<boolean>;
+  /** Pone el saldo que acaba de devolver el servidor. */
+  sincronizar: (creditos: number, creditosExtra: number) => void;
 };
 
 const Ctx = createContext<Credits | null>(null);
@@ -53,6 +55,10 @@ export function CreditsProvider({
       credits: disponibles,
       total: CREDITOS_PLAN[plan],
       gastando,
+      sincronizar: (c, e) => {
+        setPlan(c);
+        setExtra(e);
+      },
       spend: async (n, motivo = "") => {
         // Comprobación optimista para no ir al servidor en vano.
         // La de verdad, la que cuenta, está en la base de datos.

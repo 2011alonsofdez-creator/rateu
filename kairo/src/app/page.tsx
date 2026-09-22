@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
+import { Marca, MarcaTile } from "@/components/Logo";
 import {
   Arrow,
   Bolt,
@@ -12,7 +13,6 @@ import {
   Code,
   Plug,
   Shield,
-  Sparkle,
 } from "@/components/Icons";
 
 const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
@@ -42,7 +42,7 @@ export default function Landing() {
         <section className="glow relative overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
           <div className="relative z-10 mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3.5 py-1.5 text-[12.5px] text-muted">
-              <Sparkle className="h-3.5 w-3.5 text-violet" />
+              <Marca className="h-3.5 w-3.5" />
               {t("hero.badge")}
             </span>
 
@@ -95,9 +95,7 @@ export default function Landing() {
                 </div>
 
                 <div className="flex gap-3">
-                  <span className="brand-grad mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-on-accent">
-                    <Sparkle className="h-3.5 w-3.5" />
-                  </span>
+                  <MarcaTile className="mt-0.5 h-7 w-7 rounded-lg" />
                   <div>
                     <p className="text-[14px] leading-relaxed text-muted">
                       {lang === "es"
