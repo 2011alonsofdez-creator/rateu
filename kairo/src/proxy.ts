@@ -21,6 +21,7 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request });
 
+  try {
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
@@ -63,6 +64,12 @@ export async function proxy(request: NextRequest) {
   }
 
   return response;
+  } catch {
+    // Supabase caído, cookie corrupta, lo que sea: la web sigue en pie.
+    // Quien no tenga sesión se topará igualmente con la comprobación
+    // del layout, que es la que de verdad protege los datos.
+    return NextResponse.next();
+  }
 }
 
 export const config = {

@@ -43,6 +43,7 @@ type FilaPerfil = {
 export async function obtenerPerfil(): Promise<Perfil | null> {
   if (!hasSupabase) return perfilDemo();
 
+  try {
   const supabase = await clienteServidor();
   if (!supabase) return perfilDemo();
 
@@ -76,4 +77,8 @@ export async function obtenerPerfil(): Promise<Perfil | null> {
     renuevaEl: data.renueva_el,
     demo: false,
   };
+  } catch {
+    // Mejor mandar a la pantalla de entrar que enseñar un error 500.
+    return null;
+  }
 }
