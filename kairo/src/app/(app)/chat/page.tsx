@@ -9,7 +9,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { Composer } from "@/components/Composer";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
-import { Marca, MarcaTile } from "@/components/Logo";
+import { Marca } from "@/components/Logo";
 import {
   Bolt,
   Brain,
@@ -71,6 +71,7 @@ export default function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
   const [error, setError] = useState<TKey>();
+  const [detalle, setDetalle] = useState<string>();
   const [noCredits, setNoCredits] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -81,6 +82,7 @@ export default function ChatPage() {
   const send = async (texto: string) => {
     const coste = LEVELS[level].credits;
     setError(undefined);
+    setDetalle(undefined);
 
     // Comprobación rápida para no molestar al servidor en vano.
     // La que decide de verdad está en la base de datos.
@@ -206,10 +208,11 @@ export default function ChatPage() {
                 ? "err.cuota"
                 : v === "bloqueado"
                   ? "err.bloqueado"
-                  : v === "sin_creditos"
-                    ? "err.modelo"
+                  : v === "clave_invalida"
+                    ? "err.clave"
                     : "err.modelo",
             );
+            if (ev.detalle) setDetalle(String(ev.detalle));
             if (v === "sin_creditos") setNoCredits(true);
           }
         }
@@ -228,7 +231,7 @@ export default function ChatPage() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         {empty ? (
           <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-12">
-            <MarcaTile className="h-12 w-12 rounded-2xl" />
+            <Marca className="h-12 w-12" />
             <h1 className="mt-5 text-[26px] font-semibold tracking-tight sm:text-[30px]">
               {t("app.greeting")}
             </h1>
@@ -279,10 +282,17 @@ export default function ChatPage() {
 
             {error && (
               <div className="flex gap-3">
-                <MarcaTile className="mt-0.5 h-8 w-8" />
-                <p className="rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-2.5 text-[14px] leading-relaxed text-gold">
-                  {t(error)}
-                </p>
+                <Marca className="mt-0.5 h-8 w-8 shrink-0" />
+                <div className="rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-2.5">
+                  <p className="text-[14px] leading-relaxed text-gold">{t(error)}</p>
+                  {detalle && (
+                    // Detalle técnico: te lo enseña para que puedas
+                    // arreglarlo, porque de momento el único usuario eres tú.
+                    <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-faint">
+                      {detalle}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -322,7 +332,7 @@ function KairoMessage({ m }: { m: Message }) {
 
   return (
     <div className="flex gap-3">
-      <MarcaTile className="mt-0.5 h-8 w-8" />
+      <Marca className="mt-0.5 h-8 w-8 shrink-0" />
 
       <div className="min-w-0 flex-1">
         <Markdown text={texto} />

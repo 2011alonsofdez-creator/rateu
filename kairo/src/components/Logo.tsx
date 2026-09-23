@@ -32,17 +32,6 @@ export function Marca({
   );
 }
 
-/** La marca dentro de un cuadrado de color, para avatares e iconos. */
-export function MarcaTile({ className = "h-8 w-8" }: { className?: string }) {
-  return (
-    <span
-      className={`brand-grad grid shrink-0 place-items-center rounded-[10px] text-on-accent ${className}`}
-    >
-      <Marca className="h-[62%] w-[62%]" solida />
-    </span>
-  );
-}
-
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2.5">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
-import { Marca, MarcaTile } from "@/components/Logo";
+import { Marca } from "@/components/Logo";
 import {
   Arrow,
   Bolt,
@@ -95,7 +95,7 @@ export default function Landing() {
                 </div>
 
                 <div className="flex gap-3">
-                  <MarcaTile className="mt-0.5 h-7 w-7 rounded-lg" />
+                  <Marca className="mt-0.5 h-7 w-7 shrink-0" />
                   <div>
                     <p className="text-[14px] leading-relaxed text-muted">
                       {lang === "es"
