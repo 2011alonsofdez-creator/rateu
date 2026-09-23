@@ -43,3 +43,11 @@ export const RUTAS_PRIVADAS = [
 
 export const esRutaPrivada = (path: string) =>
   RUTAS_PRIVADAS.some((r) => path === r || path.startsWith(`${r}/`));
+
+/* Entrar con Google exige darlo de alta en Google Cloud y activarlo en
+   Supabase. Mientras no esté hecho, Supabase responde
+   "provider is not enabled" y el usuario se come un error en crudo.
+   Un botón que siempre falla es peor que no tenerlo, así que solo
+   aparece cuando se enciende a propósito con esta variable. */
+export const LOGIN_GOOGLE =
+  (process.env.NEXT_PUBLIC_LOGIN_GOOGLE ?? "").trim() === "1";

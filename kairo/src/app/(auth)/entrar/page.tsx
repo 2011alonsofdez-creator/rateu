@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { clienteNavegador } from "@/lib/supabase/client";
-import { hasSupabase } from "@/lib/supabase/config";
+import { LOGIN_GOOGLE, hasSupabase } from "@/lib/supabase/config";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
 
@@ -49,14 +49,20 @@ function Formulario() {
   };
 
   const conGoogle = async () => {
+    setError("");
     const supabase = clienteNavegador();
     if (!supabase) return;
-    await supabase.auth.signInWithOAuth({
+
+    const { error: err } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?volver=${encodeURIComponent(volver)}`,
       },
     });
+
+    // Si Google no está dado de alta en Supabase, mejor un aviso claro
+    // que la pantalla de error en crudo que devuelve el servidor.
+    if (err) setError(t("auth.errGoogle"));
   };
 
   return (
@@ -86,19 +92,23 @@ function Formulario() {
         {cargando ? t("auth.working") : t("auth.loginCta")}
       </BotonPrincipal>
 
-      <div className="flex items-center gap-3 py-1">
-        <span className="h-px flex-1 bg-line" />
-        <span className="text-[12px] text-faint">{t("auth.or")}</span>
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      {LOGIN_GOOGLE && (
+        <>
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-line" />
+            <span className="text-[12px] text-faint">{t("auth.or")}</span>
+            <span className="h-px flex-1 bg-line" />
+          </div>
 
-      <button
-        type="button"
-        onClick={conGoogle}
-        className="w-full rounded-xl border border-line-hi px-4 py-2.5 text-[14.5px] font-medium transition hover:bg-panel-hi"
-      >
-        {t("auth.google")}
-      </button>
+          <button
+            type="button"
+            onClick={conGoogle}
+            className="w-full rounded-xl border border-line-hi px-4 py-2.5 text-[14.5px] font-medium transition hover:bg-panel-hi"
+          >
+            {t("auth.google")}
+          </button>
+        </>
+      )}
 
       <p className="pt-2 text-center text-[13.5px] text-muted">
         {t("auth.noAccount")}{" "}
