@@ -10,8 +10,10 @@
    todas las rutas, eso tumbaba la web entera con un "Internal Server
    Error" que no dice nada. Mejor aceptar las dos formas. */
 function limpiarUrl(valor: string | undefined): string {
-  const texto = (valor ?? "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+  let texto = (valor ?? "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
   if (!texto) return "";
+  // Copiada a mano es fácil que venga sin el https:// delante.
+  if (!/^https?:\/\//i.test(texto)) texto = `https://${texto}`;
   try {
     const u = new URL(texto);
     return u.protocol === "https:" || u.protocol === "http:" ? texto : "";
