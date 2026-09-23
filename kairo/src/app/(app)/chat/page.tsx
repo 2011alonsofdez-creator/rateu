@@ -76,6 +76,10 @@ export default function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
   const [mente, setMente] = useState<Mente | null>(null);
+  /* Id del mensaje que se está escribiendo ahora mismo. Hace falta aparte
+     de `busy`, porque `busy` se apaga con la primera palabra y el logo
+     tiene que seguir vivo hasta la última. */
+  const [escribiendo, setEscribiendo] = useState<string>();
   const [error, setError] = useState<TKey>();
   const [detalle, setDetalle] = useState<string>();
   const [noCredits, setNoCredits] = useState(false);
@@ -217,6 +221,7 @@ export default function ChatPage() {
             if (!abierto) {
               abierto = true;
               setBusy(false);
+              setEscribiendo(idK);
               setMessages((m) => [
                 ...m,
                 {
@@ -253,6 +258,7 @@ export default function ChatPage() {
       setError("err.red");
     } finally {
       setBusy(false);
+      setEscribiendo(undefined);
     }
   };
 
@@ -314,7 +320,7 @@ export default function ChatPage() {
                   </p>
                 </div>
               ) : (
-                <KairoMessage key={m.id} m={m} />
+                <KairoMessage key={m.id} m={m} viva={m.id === escribiendo} />
               ),
             )}
 
@@ -362,7 +368,7 @@ export default function ChatPage() {
   );
 }
 
-function KairoMessage({ m }: { m: Message }) {
+function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
   const { t, lang } = useUi();
   const [copied, setCopied] = useState(false);
   const texto = pick(m.content, lang);
@@ -379,7 +385,7 @@ function KairoMessage({ m }: { m: Message }) {
 
   return (
     <div className="flex gap-3">
-      <Marca className="mt-0.5 h-8 w-8 shrink-0" />
+      <Marca className="mt-0.5 h-8 w-8 shrink-0" animada={viva} />
 
       <div className="min-w-0 flex-1">
         <Markdown text={texto} />

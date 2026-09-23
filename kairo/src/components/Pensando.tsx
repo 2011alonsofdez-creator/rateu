@@ -52,7 +52,7 @@ export function Pensando({
 
   return (
     <div className="flex gap-3">
-      <Marca className="mt-0.5 h-8 w-8 shrink-0" />
+      <Marca className="mt-0.5 h-8 w-8 shrink-0" animada />
 
       <div className="pt-1">
         <span className="texto-brillo text-[15px] font-medium">
