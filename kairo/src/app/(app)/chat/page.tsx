@@ -33,6 +33,10 @@ const DEMO: Record<Level, Record<Lang, string>> = {
     es: "Modo demo. Con las claves puestas, este nivel usa un modelo mejor y responde de verdad.",
     en: "Demo mode. With the keys in place, this level uses a better model and answers for real.",
   },
+  forja: {
+    es: "Modo demo. Forja es el nivel para trabajar a fondo: programar, analizar y crear.",
+    en: "Demo mode. Forge is the level for deep work: coding, analysis and creation.",
+  },
   mega: {
     es: "Modo demo. El Mega-Prompt exprime el modelo al máximo cuando está conectado de verdad.",
     en: "Demo mode. The Mega-Prompt pushes the model to its limit once properly connected.",

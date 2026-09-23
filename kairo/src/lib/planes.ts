@@ -34,8 +34,11 @@ export type Perfil = {
 };
 
 /** Qué niveles del selector ⚡ puede usar cada plan. */
-export const NIVELES_POR_PLAN: Record<PlanId, ("fast" | "normal" | "mega")[]> = {
+export const NIVELES_POR_PLAN: Record<
+  PlanId,
+  ("fast" | "normal" | "forja" | "mega")[]
+> = {
   free: ["fast"],
-  plus: ["fast", "normal", "mega"],
-  supreme: ["fast", "normal", "mega"],
+  plus: ["fast", "normal", "forja", "mega"],
+  supreme: ["fast", "normal", "forja", "mega"],
 };

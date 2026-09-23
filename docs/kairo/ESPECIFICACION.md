@@ -110,7 +110,7 @@ Estado a 21/09/2026: **Paso 1 (interfaz) y Paso 2 (cuentas y créditos) hechos.*
 |---|---|---|
 | Mensaje rápido | 1 | ~0,003 € |
 | Mensaje estándar | 4 | ~0,012 € |
-| Mensaje máximo (con razonamiento) | 20 | ~0,060 € |
+| **Forja** (razonamiento a fondo: programar, analizar, crear) | 20 | ~0,060 € |
 | Generar imagen | 20 | ~0,060 € |
 | Analizar documento largo | 15 | ~0,045 € |
 | Co-Work ejecutado | 40 | ~0,120 € |

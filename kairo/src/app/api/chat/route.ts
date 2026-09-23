@@ -31,7 +31,7 @@ export const maxDuration = 60;
  * no se le cobra nada.
  */
 
-const NIVELES: Level[] = ["fast", "normal", "mega"];
+const NIVELES: Level[] = ["fast", "normal", "forja", "mega"];
 
 type Entrada = { rol: "user" | "kairo"; texto: string };
 
@@ -143,6 +143,7 @@ export async function POST(req: Request) {
             modoEdad: perfil.modo_edad,
             tono: perfil.tono ?? "cercano",
             nombre: perfil.nombre || undefined,
+            nivel,
           }),
           safetySettings: ajustesSeguridad(perfil.modo_edad),
           thinkingConfig: { thinkingBudget: RAZONAMIENTO[nivel] },

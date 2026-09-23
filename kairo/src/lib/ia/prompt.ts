@@ -1,4 +1,5 @@
 import type { ModoEdad } from "@/lib/planes";
+import type { Level } from "@/lib/mock";
 
 /* El system prompt de Kairo. Sale del documento de especificación,
    sección 6, y se arma en tres piezas: base + tono elegido + añadido
@@ -74,14 +75,30 @@ HABLAS CON ALGUIEN DE ENTRE 13 Y 17 AÑOS
 - Con dinero o contratos: informa, pero recuérdale que es menor y necesita
   a un adulto.`;
 
+/* Lo que separa a Forja de los demás niveles no es solo que el modelo
+   piense más tiempo: también se le pide otra cosa. Sin esto, pensar más
+   solo produce lo mismo pero tardando. */
+const FORJA = `
+
+TRABAJO A FONDO
+Te han pedido la mejor respuesta posible, no la más rápida.
+- Tómate el espacio que haga falta. Aquí la brevedad no se premia.
+- Antes de contestar, repasa tu propio razonamiento: números, nombres y pasos.
+- Con código: entrégalo completo y listo para ejecutar, cubre los casos límite
+  y explica las decisiones que no sean obvias.
+- Si hay varias formas de resolverlo, di cuál eliges y por qué descartas las otras.
+- Deja claro qué has dado por supuesto y qué conviene verificar antes de fiarse.`;
+
 export function construirPrompt({
   modoEdad,
   tono,
   nombre,
+  nivel,
 }: {
   modoEdad: ModoEdad | null;
   tono: string;
   nombre?: string;
+  nivel?: Level;
 }): string {
   const estilo = TONOS[tono] ?? TONOS.cercano;
 
@@ -92,6 +109,10 @@ export function construirPrompt({
   }
 
   // Ante la duda, el modo más protegido.
+  if (nivel === "forja" || nivel === "mega") prompt += FORJA;
+
+  // El modo de edad va al final a propósito: es lo último que lee el
+  // modelo y lo que más pesa si algo entra en conflicto.
   if (modoEdad === "nino" || modoEdad === null) prompt += NINOS;
   else if (modoEdad === "adolescente") prompt += ADOLESCENTES;
 

@@ -15,6 +15,7 @@ export { NIVELES_POR_PLAN } from "@/lib/planes";
 export const MODELOS: Record<Level, string> = {
   fast: process.env.KAIRO_MODELO_RAPIDO || "gemini-flash-latest",
   normal: process.env.KAIRO_MODELO_ESTANDAR || "gemini-flash-latest",
+  forja: process.env.KAIRO_MODELO_FORJA || "gemini-flash-latest",
   mega: process.env.KAIRO_MODELO_MAXIMO || "gemini-flash-latest",
 };
 
@@ -29,12 +30,14 @@ export const MODELO_RESPALDO = "gemini-flash-latest";
 export const RAZONAMIENTO: Record<Level, number> = {
   fast: 0,
   normal: -1,
+  forja: 16384,
   mega: 24576,
 };
 
 export const CREDITOS: Record<Level, number> = {
   fast: 1,
   normal: 4,
+  forja: 20,
   mega: 120,
 };
 
