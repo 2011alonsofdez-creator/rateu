@@ -103,7 +103,7 @@ Te han pedido la mejor respuesta posible, no la más rápida.
  * protección de menores, no lo que el usuario se haya inventado.
  */
 function bloqueMente(mente: Mente): string {
-  const instrucciones = mente.instrucciones.trim().slice(0, 4000);
+  const instrucciones = mente.instrucciones.trim().slice(0, 12000);
   if (!instrucciones) return "";
 
   return `

@@ -28,8 +28,8 @@ export type Mente = {
  *  avisar antes de enviar; quien decide de verdad es la tabla. */
 export const MENTE = {
   nombre: 60,
-  descripcion: 160,
-  instrucciones: 4000,
+  descripcion: 300,
+  instrucciones: 12000,
   porPersona: 30,
 } as const;
 
