@@ -137,6 +137,13 @@ export const Chevron = ({ className, style }: P) => (
     <path d="M6 9.5l6 6 6-6" />
   </svg>
 );
+export const Team = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <circle cx="9" cy="8" r="3.4" />
+    <path d="M3 20c0-3.3 2.7-5.4 6-5.4s6 2.1 6 5.4" />
+    <path d="M16.5 6.2a3.4 3.4 0 010 6.6M17.5 14.9c2.2.6 3.5 2.3 3.5 4.6" />
+  </svg>
+);
 export const Shield = ({ className, style }: P) => (
   <svg {...base(className)} style={style}>
     <path d="M12 3l7.5 3v5.5c0 4.5-3.1 8.2-7.5 9.5-4.4-1.3-7.5-5-7.5-9.5V6L12 3z" />
