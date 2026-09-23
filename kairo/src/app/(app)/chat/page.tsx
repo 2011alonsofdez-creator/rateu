@@ -246,7 +246,7 @@ export default function ChatPage() {
                 const Icon = c.icon;
                 const inner = (
                   <>
-                    <Icon className="h-5 w-5 text-violet" />
+                    <Icon className="h-5 w-5 text-acento" />
                     <span className="mt-2.5 block text-[13.5px] font-medium">{t(c.title)}</span>
                     <span className="mt-0.5 block text-[11.5px] leading-snug text-faint">
                       {t(c.desc)}

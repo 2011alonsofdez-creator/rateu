@@ -20,7 +20,7 @@ export function Section({
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-violet">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-acento">
           <Icon className="h-5 w-5" />
         </span>
         <h1 className="text-[24px] font-semibold tracking-tight">{title}</h1>

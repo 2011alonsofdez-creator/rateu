@@ -21,9 +21,9 @@ const FASES: Record<Level, TKey[]> = {
 /** Color del punto según la familia del modelo. */
 function colorModelo(modelo: string) {
   const m = modelo.toLowerCase();
-  if (m.includes("claude")) return "var(--violet)";
+  if (m.includes("claude")) return "var(--acento)";
   if (m.includes("gpt")) return "var(--green)";
-  if (m.includes("gemini")) return "var(--cyan)";
+  if (m.includes("gemini")) return "var(--gold)";
   return "var(--muted)";
 }
 
