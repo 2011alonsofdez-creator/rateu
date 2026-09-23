@@ -13,10 +13,15 @@ export { NIVELES_POR_PLAN } from "@/lib/planes";
  * KAIRO_MODELO_MAXIMO a "gemini-pro-latest" y listo: no hay que tocar código.
  */
 export const MODELOS: Record<Level, string> = {
-  fast: process.env.KAIRO_MODELO_RAPIDO || "gemini-flash-lite-latest",
+  fast: process.env.KAIRO_MODELO_RAPIDO || "gemini-flash-latest",
   normal: process.env.KAIRO_MODELO_ESTANDAR || "gemini-flash-latest",
   mega: process.env.KAIRO_MODELO_MAXIMO || "gemini-flash-latest",
 };
+
+/* Si el modelo configurado no existe (Google retira nombres sin avisar),
+   se reintenta con este, que es el alias documentado y estable. Vale más
+   una respuesta de un modelo algo distinto que un error en la cara. */
+export const MODELO_RESPALDO = "gemini-flash-latest";
 
 /* Presupuesto de razonamiento en tokens. 0 lo desactiva, -1 lo deja
    a criterio del modelo. Es lo que separa de verdad un nivel de otro

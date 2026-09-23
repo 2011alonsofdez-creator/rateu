@@ -1,4 +1,6 @@
+import { GoogleGenAI } from "@google/genai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
+import { MODELOS } from "@/lib/ia/config";
 
 export const runtime = "nodejs";
 
@@ -16,6 +18,27 @@ export async function GET() {
     dominio = SUPABASE_URL ? new URL(SUPABASE_URL).host : null;
   } catch {
     dominio = null;
+  }
+
+  /* Le preguntamos a Google qué modelos acepta esta clave, en vez de
+     confiar en una lista escrita a mano que se queda vieja. Si esto falla,
+     el mensaje de error dice exactamente por qué. */
+  let modelos: { disponibles?: string[]; error?: string; configurados?: string[] } = {};
+  if (gemini) {
+    try {
+      const ia = new GoogleGenAI({ apiKey: gemini });
+      const lista: string[] = [];
+      for await (const m of await ia.models.list()) {
+        if (m.name) lista.push(m.name.replace(/^models\//, ""));
+        if (lista.length >= 60) break;
+      }
+      modelos = {
+        configurados: [...new Set(Object.values(MODELOS))],
+        disponibles: lista.filter((n) => n.includes("gemini")).slice(0, 40),
+      };
+    } catch (e) {
+      modelos = { error: (e instanceof Error ? e.message : String(e)).slice(0, 300) };
+    }
   }
 
   return Response.json({
@@ -40,6 +63,8 @@ export async function GET() {
       clave_recibida: gemini.length > 0,
       clave_caracteres: gemini.length,
     },
+
+    modelos,
 
     listo_para_chatear: hasSupabase && gemini.length > 0,
   });

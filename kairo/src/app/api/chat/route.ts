@@ -4,6 +4,7 @@ import {
   CREDITOS,
   HISTORIAL_MAX,
   MODELOS,
+  MODELO_RESPALDO,
   NIVELES_POR_PLAN,
   RAZONAMIENTO,
   nombreModelo,
@@ -50,6 +51,16 @@ function permitePeticion(id: string, max = 20, ventanaMs = 60_000) {
   ventanas.set(id, previas);
   if (ventanas.size > 5000) ventanas.clear(); // no crecer sin fin
   return true;
+}
+
+/** Traduce el error del proveedor a algo accionable. */
+function clasificarError(mensaje: string) {
+  if (/api[_ ]?key|API_KEY_INVALID|401|403|PERMISSION_DENIED/i.test(mensaje)) {
+    return "clave_invalida";
+  }
+  if (/quota|rate|429|RESOURCE_EXHAUSTED/i.test(mensaje)) return "cuota_agotada";
+  if (/not found|404|NOT_FOUND|is not supported/i.test(mensaje)) return "modelo_no_existe";
+  return "error_modelo";
 }
 
 const fallo = (estado: number, motivo: string) =>
@@ -126,20 +137,33 @@ export async function POST(req: Request) {
       let algoEscrito = false;
 
       try {
-        const respuesta = await new GoogleGenAI({ apiKey }).models.generateContentStream({
-          model: modelo,
-          contents,
-          config: {
-            systemInstruction: construirPrompt({
-              modoEdad: perfil.modo_edad,
-              tono: perfil.tono ?? "cercano",
-              nombre: perfil.nombre || undefined,
-            }),
-            safetySettings: ajustesSeguridad(perfil.modo_edad),
-            thinkingConfig: { thinkingBudget: RAZONAMIENTO[nivel] },
-            maxOutputTokens: nivel === "mega" ? 8192 : 4096,
-          },
-        });
+        const ia = new GoogleGenAI({ apiKey });
+        const config = {
+          systemInstruction: construirPrompt({
+            modoEdad: perfil.modo_edad,
+            tono: perfil.tono ?? "cercano",
+            nombre: perfil.nombre || undefined,
+          }),
+          safetySettings: ajustesSeguridad(perfil.modo_edad),
+          thinkingConfig: { thinkingBudget: RAZONAMIENTO[nivel] },
+          maxOutputTokens: nivel === "mega" ? 8192 : 4096,
+        };
+
+        let respuesta;
+        try {
+          respuesta = await ia.models.generateContentStream({ model: modelo, contents, config });
+        } catch (e) {
+          // Nombre de modelo retirado: se reintenta con el alias estable
+          // antes de darle un error al usuario por algo que no es culpa suya.
+          const msg = e instanceof Error ? e.message : String(e);
+          if (clasificarError(msg) !== "modelo_no_existe" || modelo === MODELO_RESPALDO) throw e;
+          enviar({ t: "meta", modelo: nombreModelo(MODELO_RESPALDO), nivel });
+          respuesta = await ia.models.generateContentStream({
+            model: MODELO_RESPALDO,
+            contents,
+            config,
+          });
+        }
 
         for await (const trozo of respuesta) {
           const texto = trozo.text;
@@ -180,8 +204,13 @@ export async function POST(req: Request) {
         enviar({ t: "fin" });
       } catch (e) {
         const mensaje = e instanceof Error ? e.message : String(e);
-        const esCuota = /quota|rate|429|RESOURCE_EXHAUSTED/i.test(mensaje);
-        enviar({ t: "error", v: esCuota ? "cuota_agotada" : "error_modelo" });
+        console.error("[kairo] fallo del modelo:", mensaje);
+        enviar({
+          t: "error",
+          v: clasificarError(mensaje),
+          // El detalle va al dueño de la web, que es quien puede arreglarlo.
+          detalle: mensaje.slice(0, 200),
+        });
       } finally {
         controlador.close();
       }

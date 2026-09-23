@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import type { Level } from "@/lib/mock";
-import { MarcaTile } from "./Logo";
+import { Marca } from "./Logo";
 
 /* Lo que se ve mientras la IA trabaja.
    Dos cosas a la vez: qué está haciendo, y con qué cerebro. Esa etiqueta
@@ -51,7 +51,7 @@ export function Pensando({
 
   return (
     <div className="flex gap-3">
-      <MarcaTile className="mt-0.5 h-8 w-8" />
+      <Marca className="mt-0.5 h-8 w-8 shrink-0" />
 
       <div className="pt-1">
         <span className="texto-brillo text-[15px] font-medium">
