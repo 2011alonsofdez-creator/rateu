@@ -3,11 +3,12 @@ import type { Lang } from "./i18n";
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
 
-export type Level = "fast" | "normal" | "mega";
+export type Level = "fast" | "normal" | "forja" | "mega";
 
 export const LEVELS: Record<Level, { credits: number; color: string }> = {
   fast: { credits: 1, color: "var(--green)" },
   normal: { credits: 4, color: "var(--cyan)" },
+  forja: { credits: 20, color: "var(--gold)" },
   mega: { credits: 120, color: "var(--gold)" },
 };
 

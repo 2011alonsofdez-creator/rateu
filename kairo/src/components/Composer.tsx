@@ -11,6 +11,7 @@ import Link from "next/link";
 const LEVEL_META: { id: Level; label: TKey; desc: TKey }[] = [
   { id: "fast", label: "app.fast", desc: "app.fastDesc" },
   { id: "normal", label: "app.normal", desc: "app.normalDesc" },
+  { id: "forja", label: "app.forja", desc: "app.forjaDesc" },
   { id: "mega", label: "app.mega", desc: "app.megaDesc" },
 ];
 

@@ -12,6 +12,7 @@ import { Marca } from "./Logo";
 const FASES: Record<Level, TKey[]> = {
   fast: ["pensar.pensando"],
   normal: ["pensar.leyendo", "pensar.pensando", "pensar.redactando"],
+  forja: ["pensar.analizando", "pensar.forjando", "pensar.verificando", "pensar.redactando"],
   // Cuando se conecten Claude y GPT, aquí entran "consultando a los tres"
   // y "combinando lo mejor". Mientras haya un solo proveedor sería mentira.
   mega: ["pensar.profundizando", "pensar.analizando", "pensar.redactando"],
