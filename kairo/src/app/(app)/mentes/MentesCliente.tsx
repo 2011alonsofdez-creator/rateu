@@ -274,7 +274,7 @@ function Editor({
         aria-label={t("mente.cancel")}
       />
 
-      <div className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-line bg-panel p-6 shadow-[var(--shadow)] sm:rounded-2xl">
+      <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-line bg-panel p-6 pb-0 shadow-[var(--shadow)] sm:rounded-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-[18px] font-semibold">
             {campos.id ? t("mente.editTitle") : t("mente.newTitle")}
@@ -336,9 +336,9 @@ function Editor({
               value={campos.instrucciones}
               onChange={(e) => cambiar({ instrucciones: e.target.value })}
               maxLength={MENTE.instrucciones}
-              rows={7}
+              rows={14}
               placeholder={t("mente.instrPh")}
-              className={`${caja} resize-y leading-relaxed`}
+              className={`${caja} min-h-[260px] resize-y leading-relaxed`}
             />
             <span className="mt-1.5 flex items-start justify-between gap-3 text-[12px] text-faint">
               <span className="leading-relaxed">{t("mente.instrHelp")}</span>
@@ -380,7 +380,7 @@ function Editor({
           </p>
         )}
 
-        <div className="mt-6 flex items-center gap-2">
+        <div className="sticky bottom-0 -mx-6 mt-6 flex items-center gap-2 border-t border-line bg-panel px-6 py-4">
           <button
             onClick={guardar}
             disabled={ocupado}

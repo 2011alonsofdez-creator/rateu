@@ -52,7 +52,10 @@ Estado a 23/09/2026: **Paso 1 (interfaz), Paso 2 (cuentas y créditos) y Paso 3
 - [x] Registro y login (email + Google)
 - [x] Rutas protegidas y sesión que se refresca sola
 - [x] Chat en tiempo real con respuesta en streaming
-- [x] Selector manual ⚡ Rápido / Normal / Mega-Prompt, con el coste a la vista
+- [x] Selector manual ⚡ Rápido / Normal / Forja / MEGA, etiquetado por **esfuerzo**
+      (Bajo / Medio / Alto / Extra) y no por créditos: el número convertía cada
+      mensaje en un taxímetro y la gente elegía por precio, no por necesidad.
+      El saldo sigue encima del cuadro de escribir, que es donde hace falta
 - [ ] **Router multi-modelo** que elige el modelo por sí solo *(Paso 3)*
 - [ ] Subida de archivos (PDF, imagen, Word, Excel) y lectura de su contenido
 - [ ] Historial de conversaciones, renombrar y borrar

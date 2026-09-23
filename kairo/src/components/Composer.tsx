@@ -9,11 +9,15 @@ import type { Mente } from "@/lib/tipos";
 import { Bolt, Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
 import Link from "next/link";
 
-const LEVEL_META: { id: Level; label: TKey; desc: TKey }[] = [
-  { id: "fast", label: "app.fast", desc: "app.fastDesc" },
-  { id: "normal", label: "app.normal", desc: "app.normalDesc" },
-  { id: "forja", label: "app.forja", desc: "app.forjaDesc" },
-  { id: "mega", label: "app.mega", desc: "app.megaDesc" },
+/* Lo que se enseña de cada nivel es el esfuerzo, no el precio.
+   El número de créditos convertía cada mensaje en un taxímetro: la
+   gente elegía por lo que costaba y no por lo que necesitaba. El saldo
+   sigue a la vista encima del cuadro de escribir, que es donde importa. */
+const LEVEL_META: { id: Level; label: TKey; desc: TKey; esfuerzo: TKey }[] = [
+  { id: "fast", label: "app.fast", desc: "app.fastDesc", esfuerzo: "effort.low" },
+  { id: "normal", label: "app.normal", desc: "app.normalDesc", esfuerzo: "effort.mid" },
+  { id: "forja", label: "app.forja", desc: "app.forjaDesc", esfuerzo: "effort.high" },
+  { id: "mega", label: "app.mega", desc: "app.megaDesc", esfuerzo: "effort.extra" },
 ];
 
 export function Composer({
@@ -220,14 +224,17 @@ export function Composer({
               >
                 <Bolt className="h-3.5 w-3.5" style={{ color: LEVELS[level].color }} />
                 {t(current.label)}
-                <span className="text-faint">
-                  {LEVELS[level].credits} {t("app.cr")}
-                </span>
+                <span className="text-faint">{t(current.esfuerzo)}</span>
                 <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
               </button>
 
               {menu && (
-                <div className="absolute bottom-full right-0 z-30 mb-2 w-[290px] overflow-hidden rounded-xl border border-line bg-panel shadow-[var(--shadow)]">
+                <div className="absolute bottom-full right-0 z-30 mb-2 w-[300px] overflow-hidden rounded-xl border border-line bg-panel shadow-[var(--shadow)]">
+                  <div className="flex items-center justify-between border-b border-line px-3.5 py-2 text-[11px] uppercase tracking-wide text-faint">
+                    <span>{t("app.level")}</span>
+                    <span>{t("effort.title")}</span>
+                  </div>
+
                   {LEVEL_META.map((l) => {
                     // Un nivel que el plan no incluye no se ofrece como si
                     // funcionara: se marca y se manda a la página de precios.
@@ -245,8 +252,8 @@ export function Composer({
                             {bloqueado ? t("app.upgrade") : t(l.desc)}
                           </span>
                         </span>
-                        <span className="shrink-0 font-mono text-[12px] text-muted">
-                          {LEVELS[l.id].credits} {t("app.cr")}
+                        <span className="shrink-0 text-[12px] text-muted">
+                          {t(l.esfuerzo)}
                         </span>
                       </>
                     );
@@ -272,6 +279,10 @@ export function Composer({
                       </button>
                     );
                   })}
+
+                  <p className="border-t border-line px-3.5 py-2.5 text-[11.5px] leading-relaxed text-faint">
+                    {t("effort.note")}
+                  </p>
                 </div>
               )}
             </div>

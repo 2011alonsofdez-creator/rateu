@@ -127,6 +127,13 @@ const dict = {
     "app.mega": "MEGA",
     "app.megaDesc": "Los tres modelos a la vez",
     "app.cr": "cr",
+    "effort.low": "Bajo",
+    "effort.mid": "Medio",
+    "effort.high": "Alto",
+    "effort.extra": "Extra",
+    "effort.title": "Esfuerzo",
+    "effort.note":
+      "El esfuerzo es cuánto se piensa Kairo la respuesta. A más esfuerzo, mejor resultado, más tarda y más gasta.",
     "app.noCredits": "Te has quedado sin créditos",
     "app.noCreditsSub":
       "Se renuevan mañana, o puedes subir de plan y seguir ahora mismo.",
@@ -148,7 +155,7 @@ const dict = {
     "mente.manage": "Ver mis Mentes",
     "mente.talkingTo": "Hablas con",
     "mente.lead":
-      "Una Mente es tu propia IA especializada: le escribes unas instrucciones y responde siempre así, sin tener que repetírselo cada vez. Es lo que otros llaman GPTs.",
+      "Una Mente es tu propia IA especializada. Le escribes unas instrucciones —cómo trabaja, en qué formato quieres las respuestas, qué no debe hacer nunca— y a partir de ahí responde siempre así, sin que tengas que repetírselo en cada mensaje. Es lo que otros llaman GPTs. Puedes tener hasta 30, cada una con su tono, y cambiar de una a otra desde el propio chat.",
     "mente.new": "Crear Mente",
     "mente.edit": "Editar",
     "mente.delete": "Borrar",
@@ -358,6 +365,13 @@ const dict = {
     "app.mega": "MEGA",
     "app.megaDesc": "All three models at once",
     "app.cr": "cr",
+    "effort.low": "Low",
+    "effort.mid": "Medium",
+    "effort.high": "High",
+    "effort.extra": "Extra",
+    "effort.title": "Effort",
+    "effort.note":
+      "Effort is how hard Kairo thinks about your answer. More effort means a better result, a longer wait and more spent.",
     "app.noCredits": "You're out of credits",
     "app.noCreditsSub":
       "They reset tomorrow, or you can upgrade and keep going right now.",
@@ -379,7 +393,7 @@ const dict = {
     "mente.manage": "See my Minds",
     "mente.talkingTo": "Talking to",
     "mente.lead":
-      "A Mind is your own specialised AI: you write it some instructions and it always answers that way, without repeating yourself every time. It is what others call GPTs.",
+      "A Mind is your own specialised AI. You write it some instructions — how it works, what format you want answers in, what it must never do — and from then on it always answers that way, without you repeating yourself every message. It is what others call GPTs. You can keep up to 30, each with its own tone, and switch between them from the chat itself.",
     "mente.new": "Create a Mind",
     "mente.edit": "Edit",
     "mente.delete": "Delete",
