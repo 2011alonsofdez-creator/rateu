@@ -103,7 +103,7 @@ export function Markdown({ text }: { text: string }) {
                 <ul key={key} className="my-3 space-y-1.5 pl-1">
                   {lines.map((l, li) => (
                     <li key={li} className="flex gap-2.5">
-                      <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-violet" />
+                      <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-acento" />
                       <span>{inline(l.replace(/^\s*[-*]\s+/, ""), `${key}-${li}`)}</span>
                     </li>
                   ))}
@@ -116,7 +116,7 @@ export function Markdown({ text }: { text: string }) {
                 <ol key={key} className="my-3 space-y-1.5">
                   {lines.map((l, li) => (
                     <li key={li} className="flex gap-2.5">
-                      <span className="mt-0.5 font-mono text-[13px] text-violet">
+                      <span className="mt-0.5 font-mono text-[13px] text-acento">
                         {li + 1}.
                       </span>
                       <span>{inline(l.replace(/^\s*\d+[.)]\s+/, ""), `${key}-${li}`)}</span>

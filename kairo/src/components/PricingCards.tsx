@@ -50,7 +50,7 @@ export function PricingCards() {
             <div
               key={p.id}
               className={`relative flex flex-col rounded-2xl border bg-panel p-6 ${
-                p.featured ? "border-violet/50 shadow-[0_0_0_1px_var(--violet)]" : "border-line"
+                p.featured ? "border-acento/50 shadow-[0_0_0_1px_var(--acento)]" : "border-line"
               }`}
             >
               {p.featured && (

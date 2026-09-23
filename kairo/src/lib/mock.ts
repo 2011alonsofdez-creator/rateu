@@ -7,8 +7,8 @@ export type Level = "fast" | "normal" | "forja" | "mega";
 
 export const LEVELS: Record<Level, { credits: number; color: string }> = {
   fast: { credits: 1, color: "var(--green)" },
-  normal: { credits: 4, color: "var(--cyan)" },
-  forja: { credits: 20, color: "var(--gold)" },
+  normal: { credits: 4, color: "var(--acento-2)" },
+  forja: { credits: 20, color: "var(--acento)" },
   mega: { credits: 120, color: "var(--gold)" },
 };
 

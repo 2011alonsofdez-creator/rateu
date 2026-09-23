@@ -77,7 +77,7 @@ export default function AjustesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-violet">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-acento">
           <Settings className="h-5 w-5" />
         </span>
         <h1 className="text-[24px] font-semibold tracking-tight">{t("app.settings")}</h1>
@@ -124,7 +124,7 @@ export default function AjustesPage() {
                 disabled={pendiente}
                 className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition disabled:opacity-60 ${
                   tone === o.id
-                    ? "border-violet/60 bg-panel-hi"
+                    ? "border-acento/60 bg-panel-hi"
                     : "border-line hover:border-line-hi hover:bg-panel-hi"
                 }`}
               >

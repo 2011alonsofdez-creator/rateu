@@ -9,41 +9,41 @@
 
 :root,
 [data-theme="dark"] {
-  --bg: #0a0a11;
-  --bg-soft: #0f0f18;
-  --panel: #14141f;
-  --panel-hi: #1c1c2a;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-hi: rgba(255, 255, 255, 0.16);
-  --fg: #edeef4;
-  --muted: #9a9aae;
-  --faint: #6a6a80;
-  --violet: #7c6bff;
-  --cyan: #3bd7f0;
-  --gold: #f5b84e;
+  --bg: #120f0e;
+  --bg-soft: #171211;
+  --panel: #1a1513;
+  --panel-hi: #241c19;
+  --line: rgba(255, 168, 120, 0.14);
+  --line-hi: rgba(255, 168, 120, 0.26);
+  --fg: #f2ebe7;
+  --muted: #b5a49c;
+  --faint: #7d6b63;
+  --acento: #f97316;
+  --acento-2: #ef4444;
+  --gold: #fbbf24;
   --green: #34d399;
   --red: #fb7185;
-  --on-accent: #0a0a11;
-  --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.75);
+  --on-accent: #120f0e;
+  --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.8);
 }
 
 [data-theme="light"] {
-  --bg: #fafafc;
-  --bg-soft: #f2f2f7;
+  --bg: #fbf8f5;
+  --bg-soft: #f4efe9;
   --panel: #ffffff;
-  --panel-hi: #f4f4f8;
-  --line: rgba(16, 16, 32, 0.09);
-  --line-hi: rgba(16, 16, 32, 0.18);
-  --fg: #15151f;
-  --muted: #5e5e74;
-  --faint: #8a8aa0;
-  --violet: #5b48e0;
-  --cyan: #0d9fbd;
-  --gold: #b9791a;
+  --panel-hi: #f7f1eb;
+  --line: rgba(60, 40, 30, 0.12);
+  --line-hi: rgba(60, 40, 30, 0.22);
+  --fg: #1c1512;
+  --muted: #6b5a52;
+  --faint: #9a877d;
+  --acento: #d9540b;
+  --acento-2: #c2320f;
+  --gold: #b45309;
   --green: #0f9c6e;
   --red: #d94f63;
   --on-accent: #ffffff;
-  --shadow: 0 16px 40px -22px rgba(16, 16, 40, 0.28);
+  --shadow: 0 16px 40px -22px rgba(60, 30, 15, 0.22);
 }
 
 @theme inline {
@@ -56,8 +56,8 @@
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-violet: var(--violet);
-  --color-cyan: var(--cyan);
+  --color-acento: var(--acento);
+  --color-acento-2: var(--acento-2);
   --color-gold: var(--gold);
   --color-green: var(--green);
   --color-red: var(--red);
@@ -93,13 +93,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Degradado de marca: violeta -> cian */
+/* Degradado de marca: naranja fuego -> rojo brasa */
 .brand-grad {
-  background-image: linear-gradient(100deg, var(--violet), var(--cyan));
+  background-image: linear-gradient(100deg, var(--acento), var(--acento-2));
 }
 
 .brand-text {
-  background-image: linear-gradient(100deg, var(--violet), var(--cyan));
+  background-image: linear-gradient(100deg, var(--acento), var(--acento-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -113,7 +113,7 @@ body {
   height: 420px;
   background: radial-gradient(
     60% 60% at 50% 40%,
-    color-mix(in oklab, var(--violet) 26%, transparent),
+    color-mix(in oklab, var(--acento) 30%, transparent),
     transparent 70%
   );
   filter: blur(60px);
@@ -122,7 +122,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--violet) 40%, transparent);
+  background: color-mix(in oklab, var(--acento) 38%, transparent);
 }
 
 /* Barras de scroll discretas */

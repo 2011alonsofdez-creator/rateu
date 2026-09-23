@@ -16,8 +16,8 @@ import {
 } from "@/components/Icons";
 
 const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
-  { name: "Claude", title: "brains.claude", desc: "brains.claudeDesc", color: "var(--violet)" },
-  { name: "Gemini", title: "brains.gemini", desc: "brains.geminiDesc", color: "var(--cyan)" },
+  { name: "Claude", title: "brains.claude", desc: "brains.claudeDesc", color: "var(--acento)" },
+  { name: "Gemini", title: "brains.gemini", desc: "brains.geminiDesc", color: "var(--acento-2)" },
   { name: "GPT", title: "brains.gpt", desc: "brains.gptDesc", color: "var(--green)" },
 ];
 
@@ -178,7 +178,7 @@ export default function Landing() {
                     key={f.title}
                     className="rounded-2xl border border-line bg-panel p-6 transition hover:border-line-hi"
                   >
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel-hi text-violet">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel-hi text-acento">
                       <Icon className="h-5 w-5" />
                     </span>
                     <h3 className="mt-4 text-[16px] font-semibold">{t(f.title)}</h3>
