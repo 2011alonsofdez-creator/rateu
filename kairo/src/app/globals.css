@@ -9,19 +9,22 @@
 
 :root,
 [data-theme="dark"] {
-  /* Fondos NEUTROS a propósito. Si todo el interfaz es cálido, el naranja
-     se diluye en el conjunto; sobre un gris casi negro, el color canta y
-     es lo único que la gente recuerda. Esa es la idea: que el ascua sea
-     de Kairo, no que toda la pantalla sea naranja. */
-  --bg: #0a0a0b;
-  --bg-soft: #0f0f11;
-  --panel: #141417;
-  --panel-hi: #1d1d21;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-hi: rgba(255, 255, 255, 0.17);
-  --fg: #ededef;
-  --muted: #9c9ca4;
-  --faint: #6b6b73;
+  /* Fondo casi negro con una gota de azul. Dos motivos:
+     1. Si toda la interfaz fuera cálida, el naranja se diluiría en el
+        conjunto. Sobre un fondo frío, el ascua es lo único con color.
+     2. El azul es el complementario del naranja, así que lo hace vibrar
+        más sin que el fondo llegue a leerse como "azul".
+     La dosis está medida: más azul y tendrías dos colores de marca
+     peleándose. */
+  --bg: #090a0d;
+  --bg-soft: #0d0f14;
+  --panel: #121419;
+  --panel-hi: #1b1e26;
+  --line: rgba(180, 200, 255, 0.1);
+  --line-hi: rgba(180, 200, 255, 0.19);
+  --fg: #ecedf2;
+  --muted: #989ba6;
+  --faint: #676a76;
   --acento: #ff4a1c;
   --acento-2: #ff7a18;
   --gold: #fbbf24;

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
+  themeColor: "#090a0d",
 };
 
 /* Aplica el tema guardado antes del primer pintado. Sin esto, quien
