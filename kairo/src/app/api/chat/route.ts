@@ -16,6 +16,13 @@ import type { ModoEdad, PlanId } from "@/lib/planes";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+/* Por defecto Vercel ejecuta esto en Estados Unidos, mientras que tu base
+   de datos está en Irlanda y tú en España. Cada mensaje cruzaba el
+   Atlántico dos veces antes de llegar siquiera al modelo. Fijándolo en
+   Fráncfort, todo el viaje se queda en Europa. Es el mayor recorte de
+   espera de todo el proyecto, y es una línea. */
+export const preferredRegion = "fra1";
+
 /* El cerebro de Kairo.
  *
  * Todo pasa por aquí, en el servidor, y por un motivo: la clave de la API
@@ -83,16 +90,17 @@ export async function POST(req: Request) {
   const supabase = await clienteServidor();
   if (!supabase) return fallo(503, "demo");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return fallo(401, "sin_sesion");
-
+  /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
+     su perfil; ahora se pide el perfil directamente, porque la seguridad
+     a nivel de fila ya se encarga de devolver únicamente el de quien
+     pregunta. Sin sesión no hay fila, así que sigue sin haber manera de
+     ver lo ajeno: se ahorra un viaje de ida y vuelta, no una comprobación. */
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("nombre, plan, creditos, creditos_extra, modo_edad, tono")
-    .eq("auth_id", user.id)
+    .select("auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono")
+    .limit(1)
     .maybeSingle<{
+      auth_id: string;
       nombre: string | null;
       plan: PlanId;
       creditos: number;
@@ -101,7 +109,7 @@ export async function POST(req: Request) {
       tono: string | null;
     }>();
 
-  if (!perfil) return fallo(403, "sin_perfil");
+  if (!perfil) return fallo(401, "sin_sesion");
 
   const cuerpo = await req.json().catch(() => null);
   const nivel: Level = NIVELES.includes(cuerpo?.nivel) ? cuerpo.nivel : "fast";
@@ -120,7 +128,7 @@ export async function POST(req: Request) {
     return fallo(402, "sin_creditos");
   }
 
-  if (!permitePeticion(user.id)) return fallo(429, "demasiadas_peticiones");
+  if (!permitePeticion(perfil.auth_id)) return fallo(429, "demasiadas_peticiones");
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return fallo(503, "sin_clave");
