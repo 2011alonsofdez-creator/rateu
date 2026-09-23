@@ -172,7 +172,9 @@ export function Composer({
           </div>
         </div>
 
-        <p className="mt-2 text-center text-[11.5px] text-faint">{t("app.demo")}</p>
+        {perfil.demo && (
+          <p className="mt-2 text-center text-[11.5px] text-faint">{t("app.demo")}</p>
+        )}
       </div>
     </div>
   );
