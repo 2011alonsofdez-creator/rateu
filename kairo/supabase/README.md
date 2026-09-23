@@ -43,8 +43,9 @@ En Supabase, **SQL Editor** → **New query**:
 1. Pega entero el contenido de `migrations/0001_esquema.sql` → **Run**.
    Verás algunos avisos de *"does not exist, skipping"*: son normales la primera vez.
 2. Nueva consulta, pega `migrations/0002_recarga_diaria.sql` → **Run**.
+3. Nueva consulta, pega `migrations/0003_mentes.sql` → **Run**.
 
-Los dos archivos se pueden ejecutar varias veces sin romper nada.
+Los tres archivos se pueden ejecutar varias veces sin romper nada.
 
 ## 5. Activar la recarga diaria (1 min)
 
@@ -94,6 +95,9 @@ Solo si quieres el botón de Google. El registro con correo funciona sin esto.
 4. En el chat, envía un mensaje. Los créditos deben bajar **en la tabla**, no
    solo en pantalla. Recarga la página: el número se mantiene.
 5. En **Table Editor → movimientos** tiene que estar el apunte del gasto.
+6. Ve a **Mentes**, crea una desde una plantilla y guárdala. Tiene que aparecer
+   en **Table Editor → mentes** con tu `perfil_id`. Vuelve al chat, elígela en el
+   botón del cerebro y pregúntale algo: debe responder según sus instrucciones.
 
 ### Prueba de seguridad (recomendada)
 
@@ -137,3 +141,4 @@ se montará en el Paso 3.
 |---|---|
 | `migrations/0001_esquema.sql` | Tablas, RLS, permisos, `gastar_creditos`, `completar_perfil` y el disparador que crea el perfil al registrarse |
 | `migrations/0002_recarga_diaria.sql` | `recargar_creditos_free` y la tarea diaria de pg_cron |
+| `migrations/0003_mentes.sql` | La tabla `mentes`, su RLS, el tope de 30 por persona y el vínculo con `conversaciones` |

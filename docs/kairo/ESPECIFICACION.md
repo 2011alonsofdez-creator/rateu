@@ -46,11 +46,12 @@ un nivel. El usuario siempre puede forzar el nivel a mano desde el botón ⚡.
 
 ### MVP (versión 1 — esto es lo que se construye ahora)
 
-Estado a 21/09/2026: **Paso 1 (interfaz) y Paso 2 (cuentas y créditos) hechos.**
+Estado a 23/09/2026: **Paso 1 (interfaz), Paso 2 (cuentas y créditos) y Paso 3
+(chat real con Gemini) hechos. Las Mentes funcionan de punta a punta.**
 
 - [x] Registro y login (email + Google)
 - [x] Rutas protegidas y sesión que se refresca sola
-- [ ] Chat en tiempo real con respuesta en streaming *(Paso 3)*
+- [x] Chat en tiempo real con respuesta en streaming
 - [x] Selector manual ⚡ Rápido / Normal / Mega-Prompt, con el coste a la vista
 - [ ] **Router multi-modelo** que elige el modelo por sí solo *(Paso 3)*
 - [ ] Subida de archivos (PDF, imagen, Word, Excel) y lectura de su contenido
@@ -58,15 +59,18 @@ Estado a 21/09/2026: **Paso 1 (interfaz) y Paso 2 (cuentas y créditos) hechos.*
 - [x] Sistema de créditos con descuento atómico en servidor
 - [ ] Tres planes: Free / Kairo+ / Supreme, con pasarela de pago *(Paso 4)*
 - [x] Modo de edad asignado por fecha de nacimiento, imposible de cambiar después
-- [ ] Filtros de moderación distintos por modo de edad *(Paso 3)*
+- [x] Filtros de moderación distintos por modo de edad
 - [x] Selector de tono de la IA (lo elige el usuario en ajustes)
 - [x] Páginas legales, precios, error y estado vacío
 - [x] Interfaz en español e inglés
+- [x] **Mentes** — la IA especializada que crea cada usuario (el equivalente a los GPTs)
 
 ### Versión 2 (después de los primeros usuarios que paguen)
 
 - [ ] **Co-Works programados** — la función estrella
-- [ ] **Mentes** — agentes personalizados (el equivalente a los GPTs)
+- [ ] **Team** — contratar un puesto (abogado, contable, comercial) que se encarga
+      de un trabajo recurrente. Necesita los conectores para ser algo más que
+      una Mente con otro nombre
 - [ ] Conectores: Google Drive, Gmail, Google Calendar, GitHub
 - [ ] Zona de programación: editor de código, ejecutar, conectar repositorio
 - [ ] Generación de imágenes
@@ -97,10 +101,15 @@ Estado a 21/09/2026: **Paso 1 (interfaz) y Paso 2 (cuentas y créditos) hechos.*
 | Mega-Prompt | ❌ | 8 al mes | 25 al mes |
 | Co-Works activos | ❌ | 3 | Ilimitados |
 | Conectores | 1 | 5 | Todos |
-| Mentes propias | 1 | 10 | Ilimitadas |
+| Mentes propias | 1 | 10 | Ilimitadas |¹
 | Archivos | 5 MB | 25 MB | 100 MB |
 | Historial | 30 días | Completo | Completo |
 | Soporte | Comunidad | Email | Email prioritario |
+
+¹ De momento el tope es de **30 para todo el mundo**, y lo impone la base de
+datos. Limitar por plan antes de que existan los pagos solo serviría para dejar
+la función inservible: un usuario nuevo es `free`, y con el límite del plan
+podría crear exactamente una Mente. El tope por plan entra con el Paso 4.
 
 **Anual con 2 meses gratis:** Kairo+ 99 €/año · Supreme 249 €/año.
 
@@ -187,7 +196,7 @@ El plan Free es el único que puede sangrar. Protecciones obligatorias:
 | **Landing** | Eslogan, los 3 cerebros, demo del chat, precios, testimonios, pie legal |
 | **Registro / Login** | Email + Google. **Pregunta la fecha de nacimiento** (decide el modo por defecto) |
 | **Chat** | Barra lateral + hilo de mensajes + caja de texto |
-| **Mentes** | Galería de Mentes + botón "Crear Mente" (nombre, icono, instrucciones, archivos) |
+| **Mentes** | Galería de Mentes + botón "Crear Mente" (icono, nombre, para qué sirve, instrucciones y tono). Con la lista vacía salen cuatro plantillas que se abren rellenadas. Cada tarjeta lleva "Usar en el chat", que abre `/chat?mente=ID` |
 | **Co-Works** | Lista de trabajos programados, botón "Nuevo Co-Work", historial de ejecuciones |
 | **Código** | Editor, botón ejecutar, panel de salida, conectar repositorio |
 | **Conectores** | Tarjetas con botón "Conectar" / "Desconectar" por servicio |

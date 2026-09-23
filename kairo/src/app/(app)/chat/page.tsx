@@ -6,6 +6,7 @@ import { useUi, type Lang, type TKey } from "@/lib/i18n";
 import { LEVELS, pick, type Level, type Message } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
+import type { Mente } from "@/lib/tipos";
 import { Composer } from "@/components/Composer";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
@@ -74,6 +75,7 @@ export default function ChatPage() {
   const [level, setLevel] = useState<Level>("fast");
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
+  const [mente, setMente] = useState<Mente | null>(null);
   const [error, setError] = useState<TKey>();
   const [detalle, setDetalle] = useState<string>();
   const [noCredits, setNoCredits] = useState(false);
@@ -82,6 +84,26 @@ export default function ChatPage() {
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
+
+  /* Al llegar desde "Usar en el chat" la Mente viene en la dirección.
+     Se lee de window y no con useSearchParams a propósito: ese hook
+     obliga a generar esta página en el servidor en cada visita, y así
+     sigue siendo estática. Solo preselecciona; quien decide de verdad
+     qué Mente se usa es el servidor, que la busca por su identificador. */
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("mente");
+    if (!id) return;
+
+    fetch("/api/mentes")
+      .then((r) => r.json())
+      .then((j) => {
+        const m = (j?.mentes as Mente[] | undefined)?.find((x) => x.id === id);
+        if (m) setMente(m);
+      })
+      .catch(() => {
+        /* sin Mentes: el chat funciona igual */
+      });
+  }, []);
 
   const send = async (texto: string) => {
     const coste = LEVELS[level].credits;
@@ -131,6 +153,10 @@ export default function ChatPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           nivel: level,
+          // Solo el identificador. Las instrucciones las lee el servidor
+          // de la base de datos: si viajaran en la petición, cualquiera
+          // podría colar el texto que quisiera en el system prompt.
+          menteId: mente?.id ?? null,
           mensajes: conElMio.map((m) => ({
             rol: m.role,
             texto: pick(m.content, lang),
@@ -243,6 +269,14 @@ export default function ChatPage() {
             </h1>
             <p className="mt-2 text-[14.5px] text-muted">{t("app.greetingSub")}</p>
 
+            {mente && (
+              <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-acento/40 bg-acento/10 px-3 py-1.5 text-[13px]">
+                <span className="text-[15px] leading-none">{mente.emoji}</span>
+                <span className="text-faint">{t("mente.talkingTo")}</span>
+                <span className="font-medium">{mente.nombre}</span>
+              </span>
+            )}
+
             <div className="mt-9 grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {CARDS.map((c) => {
                 const Icon = c.icon;
@@ -314,7 +348,14 @@ export default function ChatPage() {
         </span>
       </div>
 
-      <Composer level={level} setLevel={setLevel} onSend={send} busy={busy} />
+      <Composer
+        level={level}
+        setLevel={setLevel}
+        mente={mente}
+        setMente={setMente}
+        onSend={send}
+        busy={busy}
+      />
 
       {noCredits && <NoCreditsModal onClose={() => setNoCredits(false)} />}
     </div>
