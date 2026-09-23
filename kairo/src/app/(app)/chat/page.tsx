@@ -210,6 +210,8 @@ export default function ChatPage() {
             setError(
               v === "cuota_agotada"
                 ? "err.cuota"
+                : v === "sobrecargado"
+                  ? "err.sobrecargado"
                 : v === "bloqueado"
                   ? "err.bloqueado"
                   : v === "clave_invalida"

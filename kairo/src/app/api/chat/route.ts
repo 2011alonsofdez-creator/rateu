@@ -60,8 +60,11 @@ function clasificarError(mensaje: string) {
   }
   if (/quota|rate|429|RESOURCE_EXHAUSTED/i.test(mensaje)) return "cuota_agotada";
   if (/not found|404|NOT_FOUND|is not supported/i.test(mensaje)) return "modelo_no_existe";
+  if (/503|UNAVAILABLE|overloaded|high demand/i.test(mensaje)) return "sobrecargado";
   return "error_modelo";
 }
+
+const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const fallo = (estado: number, motivo: string) =>
   new Response(JSON.stringify({ error: motivo }), {
@@ -150,20 +153,41 @@ export async function POST(req: Request) {
           maxOutputTokens: nivel === "mega" ? 8192 : 4096,
         };
 
+        /* Abrir el flujo puede fallar por dos motivos que NO son culpa del
+           usuario y que se arreglan solos:
+             - el modelo ya no existe  -> se prueba con el alias estable
+             - el modelo está saturado -> se espera un poco y se reintenta
+           Reintentar aquí es seguro porque todavía no ha salido ni una
+           palabra; si fallara a mitad del flujo, repetir duplicaría texto. */
+        const esperas = [900, 2500];
         let respuesta;
-        try {
-          respuesta = await ia.models.generateContentStream({ model: modelo, contents, config });
-        } catch (e) {
-          // Nombre de modelo retirado: se reintenta con el alias estable
-          // antes de darle un error al usuario por algo que no es culpa suya.
-          const msg = e instanceof Error ? e.message : String(e);
-          if (clasificarError(msg) !== "modelo_no_existe" || modelo === MODELO_RESPALDO) throw e;
-          enviar({ t: "meta", modelo: nombreModelo(MODELO_RESPALDO), nivel });
-          respuesta = await ia.models.generateContentStream({
-            model: MODELO_RESPALDO,
-            contents,
-            config,
-          });
+        let usado = modelo;
+
+        for (let intento = 0; ; intento++) {
+          try {
+            respuesta = await ia.models.generateContentStream({
+              model: usado,
+              contents,
+              config,
+            });
+            break;
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            const tipo = clasificarError(msg);
+
+            if (tipo === "modelo_no_existe" && usado !== MODELO_RESPALDO) {
+              usado = MODELO_RESPALDO;
+              enviar({ t: "meta", modelo: nombreModelo(usado), nivel });
+              continue;
+            }
+
+            if (tipo === "sobrecargado" && intento < esperas.length) {
+              await esperar(esperas[intento]);
+              continue;
+            }
+
+            throw e;
+          }
         }
 
         for await (const trozo of respuesta) {
