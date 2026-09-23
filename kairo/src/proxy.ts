@@ -74,7 +74,11 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /* Todo menos los archivos estáticos y las imágenes. */
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    /* Todo menos los archivos estáticos, las imágenes y /api.
+       Las rutas de API comprueban la sesión por su cuenta, así que
+       pasarlas también por aquí era pedirle a Supabase lo mismo dos
+       veces por mensaje. La sesión se mantiene fresca igualmente: el
+       cliente del navegador renueva el token solo. */
+    "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

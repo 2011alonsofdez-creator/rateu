@@ -47,17 +47,15 @@ export async function obtenerPerfil(): Promise<Perfil | null> {
   const supabase = await clienteServidor();
   if (!supabase) return perfilDemo();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
+  // Igual que en /api/chat: una consulta en lugar de dos. RLS decide
+  // qué fila se ve, así que preguntar "dame el perfil" ya es preguntar
+  // "dame MI perfil".
   const { data, error } = await supabase
     .from("perfiles")
     .select(
       "id, nombre, email, plan, creditos, creditos_extra, modo_edad, tono, idioma, renueva_el",
     )
-    .eq("auth_id", user.id)
+    .limit(1)
     .maybeSingle<FilaPerfil>();
 
   // El disparador crea el perfil al registrarse. Si por lo que sea aún no
@@ -66,8 +64,8 @@ export async function obtenerPerfil(): Promise<Perfil | null> {
 
   return {
     id: data.id,
-    nombre: data.nombre || user.email?.split("@")[0] || "",
-    email: data.email || user.email || "",
+    nombre: data.nombre || data.email?.split("@")[0] || "",
+    email: data.email || "",
     plan: data.plan ?? "free",
     creditos: data.creditos ?? 0,
     creditosExtra: data.creditos_extra ?? 0,

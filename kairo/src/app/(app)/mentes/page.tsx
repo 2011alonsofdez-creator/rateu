@@ -1,24 +1,29 @@
 "use client";
 
 import { useUi } from "@/lib/i18n";
+import { usePerfil } from "@/lib/perfil-cliente";
 import { Section } from "@/components/Section";
 import { Brain, Plus } from "@/components/Icons";
 
-const MENTES = {
+/* Los ejemplos llevan el nombre de quien ha entrado, no un nombre
+   inventado: así se entiende de un vistazo que son TUS Mentes. */
+const ejemplos = (nombre: string) => ({
   es: [
     { e: "📣", n: "Community manager", d: "Escribe mis publicaciones con mi tono de siempre" },
     { e: "⚖️", n: "Revisor de contratos", d: "Busca cláusulas abusivas y me las explica en claro" },
-    { e: "📚", n: "Profe de Lucía", d: "Explica matemáticas de 4º sin dar la respuesta hecha" },
+    { e: "📚", n: `Profe de ${nombre}`, d: "Explica el temario sin dar la respuesta hecha" },
   ],
   en: [
     { e: "📣", n: "Community manager", d: "Writes my posts in my usual voice" },
     { e: "⚖️", n: "Contract reviewer", d: "Finds unfair clauses and explains them plainly" },
-    { e: "📚", n: "Lucía's tutor", d: "Explains 4th-grade maths without giving the answer away" },
+    { e: "📚", n: `${nombre}'s tutor`, d: "Explains the syllabus without giving the answer away" },
   ],
-};
+});
 
 export default function MentesPage() {
   const { t, lang } = useUi();
+  const perfil = usePerfil();
+  const MENTES = ejemplos(perfil.nombre || (lang === "es" ? "ti" : "you"));
 
   return (
     <Section
