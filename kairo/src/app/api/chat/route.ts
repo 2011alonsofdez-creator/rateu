@@ -3,10 +3,9 @@ import { clienteServidor } from "@/lib/supabase/server";
 import {
   CREDITOS,
   HISTORIAL_MAX,
-  MODELOS,
-  MODELO_RESPALDO,
   NIVELES_POR_PLAN,
   RAZONAMIENTO,
+  cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
 import { construirPrompt } from "@/lib/ia/prompt";
@@ -66,6 +65,14 @@ function clasificarError(mensaje: string) {
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/* Cuarentena de modelos. Si uno falla por algo que no se arregla solo
+   (no tienes acceso, no existe, cuota agotada), no tiene sentido volver a
+   pedírselo en cada mensaje: se aparta un rato y se pasa al siguiente.
+   Vive en memoria, así que cada instancia aprende por su cuenta. */
+const enfriando = new Map<string, number>();
+const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
+const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
+
 const fallo = (estado: number, motivo: string) =>
   new Response(JSON.stringify({ error: motivo }), {
     status: estado,
@@ -118,8 +125,7 @@ export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return fallo(503, "sin_clave");
 
-  const modelo = MODELOS[nivel];
-  const etiqueta = nombreModelo(modelo);
+  const cadena = cadenaDe(nivel);
 
   const contents = entradas.slice(-HISTORIAL_MAX).map((m) => ({
     role: m.rol === "kairo" ? "model" : "user",
@@ -134,7 +140,7 @@ export async function POST(req: Request) {
 
       // Lo primero, decirle al cliente qué modelo está trabajando:
       // es lo que pinta la etiqueta bajo "Pensando…".
-      enviar({ t: "meta", modelo: etiqueta, nivel });
+      enviar({ t: "meta", modelo: nombreModelo(cadena[0]), nivel });
 
       let cobrado = false;
       let algoEscrito = false;
@@ -153,41 +159,54 @@ export async function POST(req: Request) {
           maxOutputTokens: nivel === "mega" ? 8192 : 4096,
         };
 
-        /* Abrir el flujo puede fallar por dos motivos que NO son culpa del
-           usuario y que se arreglan solos:
-             - el modelo ya no existe  -> se prueba con el alias estable
-             - el modelo está saturado -> se espera un poco y se reintenta
-           Reintentar aquí es seguro porque todavía no ha salido ni una
-           palabra; si fallara a mitad del flujo, repetir duplicaría texto. */
-        const esperas = [900, 2500];
+        /* Se recorre la cadena de modelos hasta que uno conteste.
+           Con el mismo modelo se reintenta solo si está saturado, porque
+           eso se pasa en segundos; cualquier otro fallo significa que ese
+           modelo no va a funcionar hoy, así que se aparta y se prueba el
+           siguiente. Todo esto ocurre antes de la primera palabra: una vez
+           empieza a salir texto, reintentar duplicaría la respuesta. */
+        const esperas = [700, 1800];
+        const enJuego = cadena.filter(disponible);
+        const candidatos = enJuego.length ? enJuego : [cadena[cadena.length - 1]];
+
         let respuesta;
-        let usado = modelo;
+        let usado = "";
+        let ultimoFallo: unknown;
 
-        for (let intento = 0; ; intento++) {
-          try {
-            respuesta = await ia.models.generateContentStream({
-              model: usado,
-              contents,
-              config,
-            });
-            break;
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e);
-            const tipo = clasificarError(msg);
+        buscar: for (const candidato of candidatos) {
+          for (let intento = 0; intento <= esperas.length; intento++) {
+            try {
+              respuesta = await ia.models.generateContentStream({
+                model: candidato,
+                contents,
+                config,
+              });
+              usado = candidato;
+              break buscar;
+            } catch (e) {
+              ultimoFallo = e;
+              const msg = e instanceof Error ? e.message : String(e);
+              const tipo = clasificarError(msg);
 
-            if (tipo === "modelo_no_existe" && usado !== MODELO_RESPALDO) {
-              usado = MODELO_RESPALDO;
-              enviar({ t: "meta", modelo: nombreModelo(usado), nivel });
-              continue;
+              if (tipo === "sobrecargado") {
+                if (intento < esperas.length) {
+                  await esperar(esperas[intento]);
+                  continue;
+                }
+                enfriar(candidato, 60_000); // saturación: vuelve pronto
+              } else {
+                enfriar(candidato, 10 * 60_000); // sin acceso o retirado
+              }
+              break; // siguiente modelo de la cadena
             }
-
-            if (tipo === "sobrecargado" && intento < esperas.length) {
-              await esperar(esperas[intento]);
-              continue;
-            }
-
-            throw e;
           }
+        }
+
+        if (!respuesta) throw ultimoFallo;
+
+        // Si acabó respondiendo otro, que la etiqueta diga la verdad.
+        if (usado !== cadena[0]) {
+          enviar({ t: "meta", modelo: nombreModelo(usado), nivel });
         }
 
         for await (const trozo of respuesta) {

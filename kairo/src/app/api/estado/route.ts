@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
-import { MODELOS } from "@/lib/ia/config";
+import { cadenaDe } from "@/lib/ia/config";
 
 export const runtime = "nodejs";
 
@@ -33,7 +33,11 @@ export async function GET() {
         if (lista.length >= 60) break;
       }
       modelos = {
-        configurados: [...new Set(Object.values(MODELOS))],
+        configurados: [
+          ...new Set(
+            (["fast", "normal", "forja", "mega"] as const).flatMap((n) => cadenaDe(n)),
+          ),
+        ],
         disponibles: lista.filter((n) => n.includes("gemini")).slice(0, 40),
       };
     } catch (e) {

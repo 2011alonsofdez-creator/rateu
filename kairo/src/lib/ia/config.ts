@@ -12,21 +12,68 @@ export { NIVELES_POR_PLAN } from "@/lib/planes";
  * con más presupuesto de razonamiento. Cuando actives facturación, cambia
  * KAIRO_MODELO_MAXIMO a "gemini-pro-latest" y listo: no hay que tocar código.
  */
-export const MODELOS: Record<Level, string> = {
-  fast: process.env.KAIRO_MODELO_RAPIDO || "gemini-flash-latest",
-  normal: process.env.KAIRO_MODELO_ESTANDAR || "gemini-flash-latest",
-  forja: process.env.KAIRO_MODELO_FORJA || "gemini-flash-latest",
-  mega: process.env.KAIRO_MODELO_MAXIMO || "gemini-flash-latest",
+/* Qué modelos atiende cada nivel, en orden de preferencia.
+ *
+ * Son cadenas, no un solo nombre, y el motivo es práctico: la capa gratuita
+ * de Google devuelve 503 "high demand" a menudo. Con un solo modelo, eso es
+ * un error en la cara del usuario; con una cadena, se prueba el siguiente y
+ * casi nunca se nota.
+ *
+ * La lista salió de preguntarle a la propia cuenta qué modelos acepta
+ * (/api/estado), no de adivinar nombres.
+ *
+ * Los alias "-latest" van primero porque Google los actualiza solo. Detrás
+ * van versiones concretas, que son las que siguen en pie si un alias se
+ * queda sin capacidad.
+ */
+export const CADENAS: Record<Level, string[]> = {
+  fast: [
+    "gemini-flash-lite-latest",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-flash-latest",
+  ],
+  normal: [
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+  ],
+  // Forja intenta primero un modelo Pro: si algún día activas facturación,
+  // sube de categoría sola, sin tocar nada. Mientras no tengas acceso, el
+  // primer intento falla una vez, se marca en cuarentena y se salta.
+  forja: [
+    "gemini-pro-latest",
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+  ],
+  mega: [
+    "gemini-pro-latest",
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+  ],
 };
 
-/* Si el modelo configurado no existe (Google retira nombres sin avisar),
-   se reintenta con este, que es el alias documentado y estable. Vale más
-   una respuesta de un modelo algo distinto que un error en la cara. */
-export const MODELO_RESPALDO = "gemini-flash-latest";
+/** Una variable de entorno, si existe, manda por delante de todo. */
+const FORZADO: Partial<Record<Level, string | undefined>> = {
+  fast: process.env.KAIRO_MODELO_RAPIDO,
+  normal: process.env.KAIRO_MODELO_ESTANDAR,
+  forja: process.env.KAIRO_MODELO_FORJA,
+  mega: process.env.KAIRO_MODELO_MAXIMO,
+};
 
-/* Presupuesto de razonamiento en tokens. 0 lo desactiva, -1 lo deja
-   a criterio del modelo. Es lo que separa de verdad un nivel de otro
-   mientras solo haya un proveedor conectado. */
+export function cadenaDe(nivel: Level): string[] {
+  const forzado = FORZADO[nivel]?.trim();
+  const cadena = CADENAS[nivel];
+  return forzado ? [forzado, ...cadena.filter((m) => m !== forzado)] : cadena;
+}
+
 export const RAZONAMIENTO: Record<Level, number> = {
   fast: 0,
   normal: -1,
