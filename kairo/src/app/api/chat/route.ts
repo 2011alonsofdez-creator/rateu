@@ -12,6 +12,7 @@ import { construirPrompt } from "@/lib/ia/prompt";
 import { ajustesSeguridad } from "@/lib/ia/seguridad";
 import type { Level } from "@/lib/mock";
 import type { ModoEdad, PlanId } from "@/lib/planes";
+import type { Mente } from "@/lib/tipos";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,6 +39,10 @@ export const preferredRegion = "fra1";
  */
 
 const NIVELES: Level[] = ["fast", "normal", "forja", "mega"];
+
+/* Solo se acepta algo con forma de identificador. Filtrar aquí evita
+   mandarle a la base de datos cualquier cosa que llegue en el cuerpo. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Entrada = { rol: "user" | "kairo"; texto: string };
 
@@ -90,12 +95,25 @@ export async function POST(req: Request) {
   const supabase = await clienteServidor();
   if (!supabase) return fallo(503, "demo");
 
+  const cuerpo = await req.json().catch(() => null);
+  const nivel: Level = NIVELES.includes(cuerpo?.nivel) ? cuerpo.nivel : "fast";
+  const entradas: Entrada[] = Array.isArray(cuerpo?.mensajes) ? cuerpo.mensajes : [];
+
+  /* De la Mente el navegador manda el identificador y nada más. Las
+     instrucciones se leen siempre de la base de datos, nunca del cuerpo
+     de la petición: si vinieran de fuera, cualquiera podría inyectar el
+     texto que quisiera en el system prompt sin pasar por su cuenta. */
+  const menteId: string | null =
+    typeof cuerpo?.menteId === "string" && UUID.test(cuerpo.menteId) ? cuerpo.menteId : null;
+
   /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
      su perfil; ahora se pide el perfil directamente, porque la seguridad
      a nivel de fila ya se encarga de devolver únicamente el de quien
      pregunta. Sin sesión no hay fila, así que sigue sin haber manera de
-     ver lo ajeno: se ahorra un viaje de ida y vuelta, no una comprobación. */
-  const { data: perfil } = await supabase
+     ver lo ajeno: se ahorra un viaje de ida y vuelta, no una comprobación.
+     Y si además hay Mente, las dos consultas salen a la vez, así que
+     usarla no cuesta ni un milisegundo de espera de más. */
+  const consultaPerfil = supabase
     .from("perfiles")
     .select("auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono")
     .limit(1)
@@ -109,12 +127,21 @@ export async function POST(req: Request) {
       tono: string | null;
     }>();
 
+  // Aquí tampoco hace falta filtrar por dueño: RLS solo deja ver las tuyas,
+  // así que pedir una Mente ajena por su id devuelve simplemente nada.
+  const consultaMente = menteId
+    ? supabase
+        .from("mentes")
+        .select("id, nombre, emoji, descripcion, instrucciones, tono")
+        .eq("id", menteId)
+        .maybeSingle<Mente>()
+    : null;
+
+  const [resPerfil, resMente] = await Promise.all([consultaPerfil, consultaMente]);
+  const perfil = resPerfil.data;
+  const mente = resMente?.data ?? null;
+
   if (!perfil) return fallo(401, "sin_sesion");
-
-  const cuerpo = await req.json().catch(() => null);
-  const nivel: Level = NIVELES.includes(cuerpo?.nivel) ? cuerpo.nivel : "fast";
-  const entradas: Entrada[] = Array.isArray(cuerpo?.mensajes) ? cuerpo.mensajes : [];
-
   if (!entradas.length) return fallo(400, "sin_mensaje");
 
   // El plan manda. Y se lee de la base de datos, nunca de lo que diga
@@ -161,6 +188,7 @@ export async function POST(req: Request) {
             tono: perfil.tono ?? "cercano",
             nombre: perfil.nombre || undefined,
             nivel,
+            mente,
           }),
           safetySettings: ajustesSeguridad(perfil.modo_edad),
           thinkingConfig: { thinkingBudget: RAZONAMIENTO[nivel] },
