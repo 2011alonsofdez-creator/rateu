@@ -9,11 +9,12 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { NOMBRE_PLAN } from "@/lib/planes";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
-import { Bolt, Brain, Chat, Clock, Close, Code, Plug, Plus, Settings } from "./Icons";
+import { Bolt, Brain, Chat, Clock, Close, Code, Plug, Plus, Settings, Team } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/chat", label: "app.chats", icon: Chat },
   { href: "/mentes", label: "app.mentes", icon: Brain },
+  { href: "/team", label: "app.team", icon: Team },
   { href: "/coworks", label: "app.coworks", icon: Clock },
   { href: "/codigo", label: "app.code", icon: Code },
   { href: "/conectores", label: "app.connectors", icon: Plug },
