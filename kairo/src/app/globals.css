@@ -9,41 +9,49 @@
 
 :root,
 [data-theme="dark"] {
-  --bg: #120f0e;
-  --bg-soft: #171211;
-  --panel: #1a1513;
-  --panel-hi: #241c19;
-  --line: rgba(255, 168, 120, 0.14);
-  --line-hi: rgba(255, 168, 120, 0.26);
-  --fg: #f2ebe7;
-  --muted: #b5a49c;
-  --faint: #7d6b63;
-  --acento: #f97316;
-  --acento-2: #ef4444;
+  /* Fondos NEUTROS a propósito. Si todo el interfaz es cálido, el naranja
+     se diluye en el conjunto; sobre un gris casi negro, el color canta y
+     es lo único que la gente recuerda. Esa es la idea: que el ascua sea
+     de Kairo, no que toda la pantalla sea naranja. */
+  --bg: #0a0a0b;
+  --bg-soft: #0f0f11;
+  --panel: #141417;
+  --panel-hi: #1d1d21;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-hi: rgba(255, 255, 255, 0.17);
+  --fg: #ededef;
+  --muted: #9c9ca4;
+  --faint: #6b6b73;
+  --acento: #ff4a1c;
+  --acento-2: #ff7a18;
   --gold: #fbbf24;
   --green: #34d399;
   --red: #fb7185;
-  --on-accent: #120f0e;
+  /* Sobre un ascua tan viva, el texto oscuro se lee mucho mejor que el blanco. */
+  --on-accent: #17100c;
   --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.8);
 }
 
 [data-theme="light"] {
-  --bg: #fbf8f5;
-  --bg-soft: #f4efe9;
+  /* Blanco neutro, no crema. El crema con naranja es justo la combinación
+     que hoy la gente asocia con otra marca. */
+  --bg: #ffffff;
+  --bg-soft: #f6f6f7;
   --panel: #ffffff;
-  --panel-hi: #f7f1eb;
-  --line: rgba(60, 40, 30, 0.12);
-  --line-hi: rgba(60, 40, 30, 0.22);
-  --fg: #1c1512;
-  --muted: #6b5a52;
-  --faint: #9a877d;
-  --acento: #d9540b;
-  --acento-2: #c2320f;
+  --panel-hi: #f2f2f4;
+  --line: rgba(18, 18, 20, 0.11);
+  --line-hi: rgba(18, 18, 20, 0.2);
+  --fg: #121214;
+  --muted: #5b5b64;
+  --faint: #8b8b95;
+  /* Más profundo en claro: sobre blanco, el ascua viva deslumbra. */
+  --acento: #e0380c;
+  --acento-2: #f2660f;
   --gold: #b45309;
   --green: #0f9c6e;
   --red: #d94f63;
   --on-accent: #ffffff;
-  --shadow: 0 16px 40px -22px rgba(60, 30, 15, 0.22);
+  --shadow: 0 16px 40px -22px rgba(18, 18, 20, 0.22);
 }
 
 @theme inline {
@@ -93,13 +101,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Degradado de marca: naranja fuego -> rojo brasa */
+/* Degradado de marca: corto a propósito. Un degradado largo se
+   recuerda como "colorido"; uno corto se recuerda como un color. */
 .brand-grad {
-  background-image: linear-gradient(100deg, var(--acento), var(--acento-2));
+  background-image: linear-gradient(105deg, var(--acento), var(--acento-2));
 }
 
 .brand-text {
-  background-image: linear-gradient(100deg, var(--acento), var(--acento-2));
+  background-image: linear-gradient(105deg, var(--acento), var(--acento-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
