@@ -186,3 +186,48 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .texto-brillo { animation: none; color: var(--muted); }
 }
+
+/* ---------------------------------------------------------------
+   El logo mientras Kairo trabaja.
+
+   Los tres círculos se encienden por turnos, uno detrás de otro. No es
+   un adorno: cada círculo es un modelo, así que el logo moviéndose
+   dice literalmente lo que está pasando por dentro.
+
+   El relevo se solapa a propósito (cada aro está encendido casi la
+   mitad del ciclo) para que nunca haya un instante con el logo apagado:
+   apagado del todo parecería que se ha colgado. Y el conjunto respira
+   despacio, en otro compás, para que no quede mecánico.
+   --------------------------------------------------------------- */
+@keyframes kairo-relevo {
+  0%   { opacity: 0.35; }
+  18%  { opacity: 1; }
+  42%  { opacity: 0.35; }
+  100% { opacity: 0.35; }
+}
+
+@keyframes kairo-respira {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+.marca-viva {
+  animation: kairo-respira 3.2s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+.marca-viva .kairo-aro {
+  animation: kairo-relevo 2.4s ease-in-out infinite;
+}
+
+/* Quien ha pedido menos movimiento no ve ninguno: el logo se queda
+   quieto y entero, sin medias tintas. */
+@media (prefers-reduced-motion: reduce) {
+  .marca-viva,
+  .marca-viva .kairo-aro {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
