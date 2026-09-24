@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { CreditsProvider } from "@/lib/credits";
 import { PerfilProvider } from "@/lib/perfil-cliente";
+import { HistorialProvider } from "@/lib/historial";
 import type { Perfil } from "@/lib/planes";
+import type { Conversacion } from "@/lib/tipos";
 import { gastarCreditos } from "@/app/(app)/actions";
 import { Sidebar } from "@/components/Sidebar";
 import { Logo } from "@/components/Logo";
@@ -12,9 +14,11 @@ import { Menu } from "@/components/Icons";
 
 export function AppShell({
   perfil,
+  conversaciones,
   children,
 }: {
   perfil: Perfil;
+  conversaciones: Conversacion[];
   children: React.ReactNode;
 }) {
   const { t } = useUi();
@@ -22,6 +26,7 @@ export function AppShell({
 
   return (
     <PerfilProvider perfil={perfil}>
+      <HistorialProvider conversaciones={conversaciones}>
       <CreditsProvider
         creditos={perfil.creditos}
         creditosExtra={perfil.creditosExtra}
@@ -32,7 +37,9 @@ export function AppShell({
         <div className="flex h-dvh overflow-hidden bg-bg">
           {/* Barra lateral fija en escritorio */}
           <aside className="hidden lg:block">
-            <Sidebar />
+            <Suspense fallback={null}>
+              <Sidebar />
+            </Suspense>
           </aside>
 
           {/* Barra lateral deslizante en móvil */}
@@ -44,7 +51,9 @@ export function AppShell({
                 aria-label={t("menu.close")}
               />
               <div className="absolute inset-y-0 left-0">
-                <Sidebar onClose={() => setOpen(false)} />
+                <Suspense fallback={null}>
+                  <Sidebar onClose={() => setOpen(false)} />
+                </Suspense>
               </div>
             </div>
           )}
@@ -66,6 +75,7 @@ export function AppShell({
           </div>
         </div>
       </CreditsProvider>
+      </HistorialProvider>
     </PerfilProvider>
   );
 }

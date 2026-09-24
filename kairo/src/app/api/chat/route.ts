@@ -10,6 +10,8 @@ import {
 } from "@/lib/ia/config";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { ajustesSeguridad } from "@/lib/ia/seguridad";
+import { tituloDesde } from "@/lib/conversaciones";
+import { recortar } from "@/lib/texto";
 import type { Level } from "@/lib/mock";
 import type { ModoEdad, PlanId } from "@/lib/planes";
 import type { Mente } from "@/lib/tipos";
@@ -85,6 +87,58 @@ const enfriando = new Map<string, number>();
 const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
 const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
 
+type Guardado = { id: string; titulo: string; nueva: boolean };
+
+/* Abre la conversación (o continúa la que ya había) y guarda de
+   inmediato lo que acaba de escribir el usuario.
+   Se guarda ANTES de llamar al modelo a propósito: si el modelo falla o
+   se cae la conexión, tu pregunta no se pierde. */
+async function abrirConversacion(
+  supabase: Awaited<ReturnType<typeof clienteServidor>>,
+  perfilId: string,
+  pedida: string | null,
+  menteId: string | null,
+  textoUsuario: string,
+): Promise<Guardado | null> {
+  if (!supabase) return null;
+
+  const guardarMensaje = (conversacionId: string) =>
+    supabase.from("mensajes").insert({
+      conversacion_id: conversacionId,
+      rol: "user",
+      contenido: textoUsuario,
+    });
+
+  if (pedida) {
+    // Si no es tuya, RLS devuelve vacío y se abre una nueva.
+    const { data } = await supabase
+      .from("conversaciones")
+      .select("id, titulo")
+      .eq("id", pedida)
+      .maybeSingle<{ id: string; titulo: string }>();
+
+    if (data) {
+      await guardarMensaje(data.id);
+      return { id: data.id, titulo: data.titulo, nueva: false };
+    }
+  }
+
+  const titulo = tituloDesde(textoUsuario);
+  const { data, error } = await supabase
+    .from("conversaciones")
+    .insert({ perfil_id: perfilId, titulo, mente_id: menteId })
+    .select("id, titulo")
+    .maybeSingle<{ id: string; titulo: string }>();
+
+  if (error || !data) {
+    console.error("[kairo] no se pudo abrir la conversación:", error?.message);
+    return null;
+  }
+
+  await guardarMensaje(data.id);
+  return { id: data.id, titulo: data.titulo, nueva: true };
+}
+
 const fallo = (estado: number, motivo: string) =>
   new Response(JSON.stringify({ error: motivo }), {
     status: estado,
@@ -106,6 +160,14 @@ export async function POST(req: Request) {
   const menteId: string | null =
     typeof cuerpo?.menteId === "string" && UUID.test(cuerpo.menteId) ? cuerpo.menteId : null;
 
+  /* La conversación en la que estamos. Si no viene, o viene una que no
+     es tuya, se abre una nueva: RLS no devuelve la fila y aquí no hay
+     forma de escribir en la conversación de otro. */
+  const conversacionPedida: string | null =
+    typeof cuerpo?.conversacionId === "string" && UUID.test(cuerpo.conversacionId)
+      ? cuerpo.conversacionId
+      : null;
+
   /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
      su perfil; ahora se pide el perfil directamente, porque la seguridad
      a nivel de fila ya se encarga de devolver únicamente el de quien
@@ -115,9 +177,10 @@ export async function POST(req: Request) {
      usarla no cuesta ni un milisegundo de espera de más. */
   const consultaPerfil = supabase
     .from("perfiles")
-    .select("auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono")
+    .select("id, auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono")
     .limit(1)
     .maybeSingle<{
+      id: string;
       auth_id: string;
       nombre: string | null;
       plan: PlanId;
@@ -164,7 +227,7 @@ export async function POST(req: Request) {
 
   const contents = entradas.slice(-HISTORIAL_MAX).map((m) => ({
     role: m.rol === "kairo" ? "model" : "user",
-    parts: [{ text: String(m.texto ?? "").slice(0, 12000) }],
+    parts: [{ text: recortar(m.texto, 12000) }],
   }));
 
   const codificador = new TextEncoder();
@@ -179,6 +242,23 @@ export async function POST(req: Request) {
 
       let cobrado = false;
       let algoEscrito = false;
+
+      /* Lo que va respondiendo se acumula para guardarlo entero al final.
+         Al final y no trozo a trozo: serían cien escrituras por mensaje. */
+      let acumulado = "";
+      let usado = "";
+      let conversacion: Guardado | null = null;
+
+      /* Se abre la conversación a la vez que se llama al modelo, no antes.
+         Así guardar el historial no añade ni un milisegundo de espera:
+         mientras la base de datos escribe, el modelo ya está pensando. */
+      const abriendo = abrirConversacion(
+        supabase,
+        perfil.id,
+        conversacionPedida,
+        menteId,
+        recortar(entradas[entradas.length - 1]?.texto, 12000),
+      );
 
       try {
         const ia = new GoogleGenAI({ apiKey });
@@ -206,7 +286,6 @@ export async function POST(req: Request) {
         const candidatos = enJuego.length ? enJuego : [cadena[cadena.length - 1]];
 
         let respuesta;
-        let usado = "";
         let ultimoFallo: unknown;
 
         buscar: for (const candidato of candidatos) {
@@ -245,6 +324,18 @@ export async function POST(req: Request) {
           enviar({ t: "meta", modelo: nombreModelo(usado), nivel });
         }
 
+        // Para entonces la conversación ya está abierta. El navegador
+        // necesita su identificador para seguir escribiendo en ella.
+        conversacion = await abriendo;
+        if (conversacion) {
+          enviar({
+            t: "conversacion",
+            id: conversacion.id,
+            titulo: conversacion.titulo,
+            nueva: conversacion.nueva,
+          });
+        }
+
         for await (const trozo of respuesta) {
           const texto = trozo.text;
           if (!texto) continue;
@@ -273,6 +364,7 @@ export async function POST(req: Request) {
           }
 
           algoEscrito = true;
+          acumulado += texto;
           enviar({ t: "texto", v: texto });
         }
 
@@ -292,7 +384,31 @@ export async function POST(req: Request) {
           detalle: mensaje.slice(0, 200),
         });
       } finally {
-        controlador.close();
+        /* Se guarda aquí, en el `finally`, y no al terminar el bucle:
+           si cierras la pestaña a mitad, lo que Kairo llevaba escrito se
+           queda guardado igual en vez de perderse. */
+        try {
+          conversacion = conversacion ?? (await abriendo);
+          if (conversacion && acumulado.trim()) {
+            const { error } = await supabase.from("mensajes").insert({
+              conversacion_id: conversacion.id,
+              rol: "kairo",
+              contenido: acumulado,
+              modelo_usado: usado ? nombreModelo(usado) : null,
+              nivel,
+              creditos_gastados: cobrado ? coste : 0,
+            });
+            if (error) console.error("[kairo] no se guardó la respuesta:", error.message);
+          }
+        } catch (e) {
+          console.error("[kairo] fallo al guardar:", e instanceof Error ? e.message : e);
+        }
+
+        try {
+          controlador.close();
+        } catch {
+          /* ya cerrado porque el navegador se fue */
+        }
       }
     },
   });

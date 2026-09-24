@@ -149,3 +149,15 @@ export const Shield = ({ className, style }: P) => (
     <path d="M12 3l7.5 3v5.5c0 4.5-3.1 8.2-7.5 9.5-4.4-1.3-7.5-5-7.5-9.5V6L12 3z" />
   </svg>
 );
+
+export const Pencil = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
+  </svg>
+);
+export const Trash = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+  </svg>
+);
