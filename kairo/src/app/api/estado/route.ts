@@ -44,6 +44,15 @@ async function modelosDeGpt(clave: string) {
     .slice(0, 40);
 }
 
+/* Al proveedor de repuesto también se le pregunta qué ofrece. Es lo que
+   te dice qué escribir en KAIRO_EXTRA_MODELOS: copiar un nombre de su
+   web es la forma más fácil de equivocarse. */
+async function modelosDelExtra(clave: string, url: string) {
+  const cliente = new OpenAI({ apiKey: clave, baseURL: url });
+  const pagina = await cliente.models.list();
+  return pagina.data.map((m) => m.id).sort().slice(0, 60);
+}
+
 export async function GET() {
   const crudaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const crudaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -62,10 +71,13 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
-  const [gem, cla, gpt] = await Promise.all([
+  const [gem, cla, gpt, ext] = await Promise.all([
     claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
     claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
     claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
+    claves.extra && EXTRA_URL()
+      ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
+      : null,
   ]);
 
   const disponibles = (v: string[] | string | null) =>
@@ -100,7 +112,10 @@ export async function GET() {
       extra: {
         clave_recibida: claves.extra.length > 0,
         url: EXTRA_URL() || null,
-        modelos: modelosExtra().map((m) => m.replace(/^extra:/, "")),
+        // Los que tú has puesto en KAIRO_EXTRA_MODELOS.
+        configurados: modelosExtra().map((m) => m.replace(/^extra:/, "")),
+        // Y los que ese proveedor dice tener, para que copies el nombre bien.
+        ...disponibles(ext),
       },
     },
 
