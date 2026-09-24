@@ -10,7 +10,7 @@ import {
   nombreModelo,
 } from "@/lib/ia/config";
 import { arrancar, type Arranque } from "@/lib/ia/proveedores";
-import { clasificarError } from "@/lib/ia/errores";
+import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
 import { recortar } from "@/lib/texto";
@@ -334,14 +334,30 @@ export async function POST(req: Request) {
             } catch (e) {
               ultimoFallo = e;
 
-              if (clasificarError(e) === "sobrecargado") {
-                // Vuelve a estar libre enseguida: se le da otra oportunidad
-                // en la siguiente vuelta, pero no en la siguiente petición.
-                enfriar(candidato, 30_000);
-              } else {
-                // No existe, no tienes acceso o lo han retirado: hoy no va.
-                enfriar(candidato, 10 * 60_000);
-                descartados.add(candidato);
+              /* Cada fallo dura lo suyo, y apartar un modelo más tiempo del
+                 necesario es tan malo como no apartarlo: en la capa gratuita
+                 cada intento que se tira a la basura es cuota que te comes. */
+              switch (clasificarError(e)) {
+                case "sobrecargado":
+                  // Vuelve a estar libre enseguida: otra oportunidad en la
+                  // vuelta siguiente, pero no en la siguiente petición.
+                  enfriar(candidato, 30_000);
+                  break;
+                case "cuota_minuto":
+                  // El límite por minuto se pasa solo; dentro de esta
+                  // petición ya no, pero en un minuto sí.
+                  enfriar(candidato, 70_000);
+                  descartados.add(candidato);
+                  break;
+                case "cuota_dia":
+                  // Hasta mañana. Seguir preguntándole es tirar peticiones.
+                  enfriar(candidato, 60 * 60_000);
+                  descartados.add(candidato);
+                  break;
+                default:
+                  // No existe, no tienes acceso o lo han retirado.
+                  enfriar(candidato, 10 * 60_000);
+                  descartados.add(candidato);
               }
             }
           }
@@ -416,7 +432,11 @@ export async function POST(req: Request) {
         console.error("[kairo] fallo del modelo:", mensaje);
         enviar({
           t: "error",
-          v: clasificarError(mensaje),
+          // Se le pasa el error entero, no solo su texto: los SDK traen el
+          // código de estado dentro, y ese código es más de fiar.
+          v: clasificarError(e),
+          // Si el propio proveedor dice cuánto hay que esperar, se dice.
+          espera: segundosDeEspera(mensaje),
           // El detalle va al dueño de la web, que es quien puede arreglarlo.
           detalle: mensaje.slice(0, 200),
         });

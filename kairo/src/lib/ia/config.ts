@@ -30,26 +30,40 @@ export { proveedoresActivos, type Proveedor } from "./proveedores";
  * /api/estado, que te lista los que sí, y ponlo en KAIRO_MODELO_*.
  */
 export const CADENAS: Record<Level, string[]> = {
+  /* El orden de los suplentes de Gemini no es el que parece lógico, y hay
+     un motivo: en la capa gratuita LA CUOTA ES POR MODELO. Poner cinco
+     variantes de Flash-Lite seguidas no sirve de nada, porque en cuanto
+     se acaba la del primero suele estar acabada la de sus hermanos —y el
+     alias "-latest" apunta a uno de ellos, así que comparte cuota con él.
+     Por eso cada suplente cambia de familia o de generación respecto al
+     anterior: cada salto es un depósito de cuota distinto. */
+
   // Rápido: lo que importa es que conteste ya.
   fast: [
     "gemini-flash-lite-latest",
-    "gemini-3.5-flash-lite",
+    "gemini-2.5-flash-lite", // otra generación → otra cuota
+    "gemini-flash-latest", // otra familia → otra cuota
     "gemini-3.1-flash-lite",
-    "gemini-2.5-flash-lite",
-    "gemini-flash-latest",
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite", // el último: es al que suele apuntar el alias
     "gpt:gpt-5-mini",
     "claude:claude-haiku-4-5",
   ],
+
   // Normal: redactar, resumir, explicar.
   normal: [
     "gemini-flash-latest",
-    "gemini-3.8-flash",
+    "gemini-2.5-flash", // otra generación
     "gemini-3.7-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
+    // Bajar a Flash-Lite es peor respuesta, sí. Pero peor todavía es no
+    // contestar, y en la capa gratuita es el que más cuota suele tener.
+    "gemini-flash-lite-latest",
+    "gemini-3.8-flash",
+    "gemini-2.5-flash-lite",
     "gpt:gpt-5",
     "claude:claude-sonnet-5",
   ],
+
   // Forja: programar, analizar, crear. Aquí manda Claude.
   forja: [
     "claude:claude-opus-5",
@@ -57,8 +71,10 @@ export const CADENAS: Record<Level, string[]> = {
     "gpt:gpt-5",
     "gemini-pro-latest",
     "gemini-flash-latest",
-    "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-flash-lite-latest",
   ],
+
   // MEGA: lo más capaz de cada casa, en ese orden.
   mega: [
     "claude:claude-opus-5",
@@ -66,6 +82,7 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-pro-latest",
     "claude:claude-sonnet-5",
     "gemini-flash-latest",
+    "gemini-2.5-flash",
   ],
 };
 
