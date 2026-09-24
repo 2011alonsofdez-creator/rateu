@@ -7,6 +7,10 @@ import { EXTRA_URL, modelosExtra } from "@/lib/ia/proveedores";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
+/* Nada de guardar esta página en ninguna parte. Es un diagnóstico: si el
+   navegador te enseña la de hace diez minutos mientras persigues un fallo,
+   te hace perder la tarde buscando algo que ya habías arreglado. */
+export const dynamic = "force-dynamic";
 
 /* Diagnóstico. Dice QUÉ variables han llegado, nunca su contenido:
    solo verdadero/falso, la longitud y el dominio, que de todas formas
@@ -131,5 +135,13 @@ export async function GET() {
     },
 
     listo_para_chatear: hasSupabase && activos.length > 0,
-  });
+
+    /* Para saber de un vistazo si estás mirando el despliegue que crees.
+       Vercel pone estas dos solo; si salen vacías es que estás en local. */
+    version: {
+      commit: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || null,
+      mensaje: process.env.VERCEL_GIT_COMMIT_MESSAGE?.split("\n")[0] ?? null,
+      desplegado: process.env.VERCEL_DEPLOYMENT_ID ?? null,
+    },
+  }, { headers: { "cache-control": "no-store" } });
 }
