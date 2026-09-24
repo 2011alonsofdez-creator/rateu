@@ -46,9 +46,9 @@ un nivel. El usuario siempre puede forzar el nivel a mano desde el botón ⚡.
 
 ### MVP (versión 1 — esto es lo que se construye ahora)
 
-Estado a 24/09/2026: **Paso 1 (interfaz), Paso 2 (cuentas y créditos) y Paso 3
-(chat real con Gemini) hechos. Las Mentes funcionan de punta a punta y las
-conversaciones se guardan.**
+Estado a 24/09/2026: **Pasos 1, 2 y 3 hechos. Claude, Gemini y GPT conectados
+de verdad. Las Mentes funcionan de punta a punta y las conversaciones se
+guardan.** Falta el Paso 4: los pagos.
 
 - [x] Registro y login (email + Google)
 - [x] Rutas protegidas y sesión que se refresca sola
@@ -57,7 +57,13 @@ conversaciones se guardan.**
       (Bajo / Medio / Alto / Extra) y no por créditos: el número convertía cada
       mensaje en un taxímetro y la gente elegía por precio, no por necesidad.
       El saldo sigue encima del cuadro de escribir, que es donde hace falta
-- [ ] **Router multi-modelo** que elige el modelo por sí solo *(Paso 3)*
+- [x] **Router multi-modelo**: los tres proveedores conectados, y cada nivel
+      empieza por el cerebro que mejor hace ese trabajo (Claude en Forja y MEGA,
+      Gemini en Rápido y Normal, GPT de segundo donde hay que razonar), con
+      suplentes de las tres casas si el primero falla
+- [ ] Que Kairo elija el **nivel** por sí solo, sin que lo toques *(pendiente)*
+- [ ] **MEGA de verdad**: los tres a la vez y una respuesta que combine las tres.
+      Hoy MEGA es el mejor modelo disponible, de uno en uno
 - [ ] Subida de archivos (PDF, imagen, Word, Excel) y lectura de su contenido
 - [x] Historial de conversaciones, renombrar y borrar
 - [x] Sistema de créditos con descuento atómico en servidor

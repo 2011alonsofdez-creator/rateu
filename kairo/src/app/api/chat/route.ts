@@ -1,15 +1,17 @@
-import { GoogleGenAI } from "@google/genai";
 import { clienteServidor } from "@/lib/supabase/server";
 import {
   CREDITOS,
+  ESFUERZO,
   HISTORIAL_MAX,
+  MAX_SALIDA,
   NIVELES_POR_PLAN,
   RAZONAMIENTO,
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
+import { arrancar, type Arranque } from "@/lib/ia/proveedores";
+import { clasificarError } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
-import { ajustesSeguridad } from "@/lib/ia/seguridad";
 import { tituloDesde } from "@/lib/conversaciones";
 import { recortar } from "@/lib/texto";
 import type { Level } from "@/lib/mock";
@@ -64,17 +66,6 @@ function permitePeticion(id: string, max = 20, ventanaMs = 60_000) {
   ventanas.set(id, previas);
   if (ventanas.size > 5000) ventanas.clear(); // no crecer sin fin
   return true;
-}
-
-/** Traduce el error del proveedor a algo accionable. */
-function clasificarError(mensaje: string) {
-  if (/api[_ ]?key|API_KEY_INVALID|401|403|PERMISSION_DENIED/i.test(mensaje)) {
-    return "clave_invalida";
-  }
-  if (/quota|rate|429|RESOURCE_EXHAUSTED/i.test(mensaje)) return "cuota_agotada";
-  if (/not found|404|NOT_FOUND|is not supported/i.test(mensaje)) return "modelo_no_existe";
-  if (/503|UNAVAILABLE|overloaded|high demand/i.test(mensaje)) return "sobrecargado";
-  return "error_modelo";
 }
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -220,14 +211,16 @@ export async function POST(req: Request) {
 
   if (!permitePeticion(perfil.auth_id)) return fallo(429, "demasiadas_peticiones");
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return fallo(503, "sin_clave");
+  /* La cadena ya viene filtrada: fuera los proveedores sin clave, y en
+     modo niño solo los que llevan filtro de contenido. Si queda vacía es
+     que no hay ningún cerebro al que preguntar, y eso se dice, no se
+     disimula respondiendo con otro. */
+  const cadena = cadenaDe(nivel, perfil.modo_edad);
+  if (!cadena.length) return fallo(503, "sin_clave");
 
-  const cadena = cadenaDe(nivel);
-
-  const contents = entradas.slice(-HISTORIAL_MAX).map((m) => ({
-    role: m.rol === "kairo" ? "model" : "user",
-    parts: [{ text: recortar(m.texto, 12000) }],
+  const historial = entradas.slice(-HISTORIAL_MAX).map((m) => ({
+    rol: m.rol,
+    texto: recortar(m.texto, 12000),
   }));
 
   const codificador = new TextEncoder();
@@ -261,47 +254,45 @@ export async function POST(req: Request) {
       );
 
       try {
-        const ia = new GoogleGenAI({ apiKey });
-        const config = {
-          systemInstruction: construirPrompt({
-            modoEdad: perfil.modo_edad,
-            tono: perfil.tono ?? "cercano",
-            nombre: perfil.nombre || undefined,
-            nivel,
-            mente,
-          }),
-          safetySettings: ajustesSeguridad(perfil.modo_edad),
-          thinkingConfig: { thinkingBudget: RAZONAMIENTO[nivel] },
-          maxOutputTokens: nivel === "mega" ? 8192 : 4096,
-        };
+        const sistema = construirPrompt({
+          modoEdad: perfil.modo_edad,
+          tono: perfil.tono ?? "cercano",
+          nombre: perfil.nombre || undefined,
+          nivel,
+          mente,
+        });
 
-        /* Se recorre la cadena de modelos hasta que uno conteste.
+        /* Se recorre la cadena de cerebros hasta que uno conteste.
            Con el mismo modelo se reintenta solo si está saturado, porque
            eso se pasa en segundos; cualquier otro fallo significa que ese
            modelo no va a funcionar hoy, así que se aparta y se prueba el
-           siguiente. Todo esto ocurre antes de la primera palabra: una vez
-           empieza a salir texto, reintentar duplicaría la respuesta. */
+           siguiente, aunque sea de otra casa. Todo esto ocurre antes de la
+           primera palabra: una vez empieza a salir texto, reintentar
+           duplicaría la respuesta. */
         const esperas = [700, 1800];
         const enJuego = cadena.filter(disponible);
         const candidatos = enJuego.length ? enJuego : [cadena[cadena.length - 1]];
 
-        let respuesta;
+        let arranque: Arranque | undefined;
         let ultimoFallo: unknown;
 
         buscar: for (const candidato of candidatos) {
           for (let intento = 0; intento <= esperas.length; intento++) {
             try {
-              respuesta = await ia.models.generateContentStream({
-                model: candidato,
-                contents,
-                config,
+              arranque = await arrancar({
+                id: candidato,
+                sistema,
+                mensajes: historial,
+                maxSalida: MAX_SALIDA[nivel],
+                esfuerzo: ESFUERZO[nivel],
+                modoEdad: perfil.modo_edad,
+                pensar: RAZONAMIENTO[nivel],
               });
               usado = candidato;
               break buscar;
             } catch (e) {
               ultimoFallo = e;
-              const msg = e instanceof Error ? e.message : String(e);
-              const tipo = clasificarError(msg);
+              const tipo = clasificarError(e);
 
               if (tipo === "sobrecargado") {
                 if (intento < esperas.length) {
@@ -317,7 +308,8 @@ export async function POST(req: Request) {
           }
         }
 
-        if (!respuesta) throw ultimoFallo;
+        if (!arranque) throw ultimoFallo;
+        const respuesta = arranque;
 
         // Si acabó respondiendo otro, que la etiqueta diga la verdad.
         if (usado !== cadena[0]) {
@@ -336,8 +328,21 @@ export async function POST(req: Request) {
           });
         }
 
-        for await (const trozo of respuesta) {
-          const texto = trozo.text;
+        /* El primer trozo ya está en la mano (es lo que confirmó que el
+           modelo responde). Se vuelve a poner al principio de la cola y
+           el resto sale del iterador. */
+        const trozos: AsyncIterable<string> = {
+          async *[Symbol.asyncIterator]() {
+            if (respuesta.primero) yield respuesta.primero;
+            while (true) {
+              const siguiente = await respuesta.resto.next();
+              if (siguiente.done) return;
+              if (siguiente.value) yield siguiente.value as string;
+            }
+          },
+        };
+
+        for await (const texto of trozos) {
           if (!texto) continue;
 
           // Primer trozo bueno: ahora sí se cobra. Ni antes (podría
