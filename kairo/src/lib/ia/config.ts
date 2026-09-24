@@ -38,6 +38,11 @@ export const CADENAS: Record<Level, string[]> = {
      Por eso cada suplente cambia de familia o de generación respecto al
      anterior: cada salto es un depósito de cuota distinto. */
 
+  /* Los identificadores de Gemini de abajo están comprobados uno a uno
+     contra lo que devuelve /api/estado en una cuenta de verdad, no
+     copiados de la documentación. Cada generación es un depósito de
+     cuota distinto, así que cuantas más haya, más tarda en acabarse. */
+
   // Rápido: lo que importa es que conteste ya.
   fast: [
     "gemini-flash-lite-latest",
@@ -45,7 +50,7 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-flash-latest", // otra familia → otra cuota
     "gemini-3.1-flash-lite",
     "gemini-2.5-flash",
-    "gemini-3.5-flash-lite", // el último: es al que suele apuntar el alias
+    "gemini-3.5-flash-lite", // suele ser al que apunta el alias: el último
     "gpt:gpt-5-mini",
     "claude:claude-haiku-4-5",
   ],
@@ -55,10 +60,12 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-flash-latest",
     "gemini-2.5-flash", // otra generación
     "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
     // Bajar a Flash-Lite es peor respuesta, sí. Pero peor todavía es no
     // contestar, y en la capa gratuita es el que más cuota suele tener.
     "gemini-flash-lite-latest",
-    "gemini-3.8-flash",
     "gemini-2.5-flash-lite",
     "gpt:gpt-5",
     "claude:claude-sonnet-5",
@@ -70,8 +77,14 @@ export const CADENAS: Record<Level, string[]> = {
     "claude:claude-sonnet-5",
     "gpt:gpt-5",
     "gemini-pro-latest",
+    // Los Pro salieron de la capa gratuita, pero las versiones "preview"
+    // a veces siguen entrando. Si no, falla una vez y se salta: barato de
+    // intentar y mucho mejor respuesta si cuela.
+    "gemini-3.1-pro-preview",
     "gemini-flash-latest",
+    "gemini-3.8-flash",
     "gemini-2.5-flash",
+    "gemini-3.6-flash",
     "gemini-flash-lite-latest",
   ],
 
@@ -80,8 +93,10 @@ export const CADENAS: Record<Level, string[]> = {
     "claude:claude-opus-5",
     "gpt:gpt-5",
     "gemini-pro-latest",
+    "gemini-3.1-pro-preview",
     "claude:claude-sonnet-5",
     "gemini-flash-latest",
+    "gemini-3.8-flash",
     "gemini-2.5-flash",
   ],
 };
