@@ -1,66 +1,76 @@
 import type { Level } from "@/lib/mock";
-export { NIVELES_POR_PLAN } from "@/lib/planes";
+import type { ModoEdad } from "@/lib/planes";
+import { partir, proveedorActivo, type Esfuerzo } from "./proveedores";
 
-/* Qué modelo atiende cada nivel.
+export { NIVELES_POR_PLAN } from "@/lib/planes";
+export { proveedoresActivos, type Proveedor } from "./proveedores";
+
+/* Qué cerebro atiende cada nivel.
  *
- * Se usan los alias "-latest" a propósito: Google saca modelo nuevo cada
- * pocos meses y los identificadores con número dejan de existir. El alias
- * se actualiza solo y el código no se rompe.
+ * Aquí es donde Kairo deja de ser un chat con un modelo detrás. Cada
+ * identificador lleva delante su proveedor —"claude:", "gpt:", sin nada
+ * para Gemini— y cada nivel empieza por el que mejor hace ese trabajo,
+ * que es exactamente lo que promete la portada:
  *
- * Desde abril de 2026 los modelos Pro NO están en la capa gratuita: solo
- * Flash y Flash-Lite. Por eso el nivel máximo apunta también a Flash, pero
- * con más presupuesto de razonamiento. Cuando actives facturación, cambia
- * KAIRO_MODELO_MAXIMO a "gemini-pro-latest" y listo: no hay que tocar código.
- */
-/* Qué modelos atiende cada nivel, en orden de preferencia.
+ *   Claude  → código y textos largos      → manda en Forja y en MEGA
+ *   Gemini  → velocidad                    → manda en Rápido y en Normal
+ *   GPT     → razonamiento                 → segundo en Forja y en MEGA
  *
- * Son cadenas, no un solo nombre, y el motivo es práctico: la capa gratuita
- * de Google devuelve 503 "high demand" a menudo. Con un solo modelo, eso es
- * un error en la cara del usuario; con una cadena, se prueba el siguiente y
- * casi nunca se nota.
+ * Detrás del primero va una cadena de suplentes. No es adorno: la capa
+ * gratuita de Google devuelve 503 a todas horas, y cualquier proveedor
+ * puede tener un mal día. Con un solo modelo eso es un error en la cara
+ * del usuario; con una cadena, se prueba el siguiente y casi nunca se nota.
  *
- * La lista salió de preguntarle a la propia cuenta qué modelos acepta
- * (/api/estado), no de adivinar nombres.
+ * Un proveedor sin clave puesta desaparece de todas las cadenas, así que
+ * esto funciona igual con una clave, con dos o con tres.
  *
- * Los alias "-latest" van primero porque Google los actualiza solo. Detrás
- * van versiones concretas, que son las que siguen en pie si un alias se
- * queda sin capacidad.
+ * Los identificadores de Gemini salieron de preguntarle a la propia
+ * cuenta qué acepta (/api/estado), y los de Claude de su documentación.
+ * Los de GPT son los previsibles: si alguno no existe en tu cuenta, mira
+ * /api/estado, que te lista los que sí, y ponlo en KAIRO_MODELO_*.
  */
 export const CADENAS: Record<Level, string[]> = {
+  // Rápido: lo que importa es que conteste ya.
   fast: [
     "gemini-flash-lite-latest",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
     "gemini-2.5-flash-lite",
     "gemini-flash-latest",
+    "gpt:gpt-5-mini",
+    "claude:claude-haiku-4-5",
   ],
+  // Normal: redactar, resumir, explicar.
   normal: [
     "gemini-flash-latest",
     "gemini-3.8-flash",
     "gemini-3.7-flash",
     "gemini-3.5-flash",
     "gemini-2.5-flash",
+    "gpt:gpt-5",
+    "claude:claude-sonnet-5",
   ],
-  // Forja intenta primero un modelo Pro: si algún día activas facturación,
-  // sube de categoría sola, sin tocar nada. Mientras no tengas acceso, el
-  // primer intento falla una vez, se marca en cuarentena y se salta.
+  // Forja: programar, analizar, crear. Aquí manda Claude.
   forja: [
+    "claude:claude-opus-5",
+    "claude:claude-sonnet-5",
+    "gpt:gpt-5",
     "gemini-pro-latest",
     "gemini-flash-latest",
     "gemini-3.8-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
   ],
+  // MEGA: lo más capaz de cada casa, en ese orden.
   mega: [
+    "claude:claude-opus-5",
+    "gpt:gpt-5",
     "gemini-pro-latest",
+    "claude:claude-sonnet-5",
     "gemini-flash-latest",
-    "gemini-3.8-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
   ],
 };
 
-/** Una variable de entorno, si existe, manda por delante de todo. */
+/** Una variable de entorno, si existe, manda por delante de todo.
+ *  Lleva el proveedor delante igual que las cadenas: "claude:claude-opus-5". */
 const FORZADO: Partial<Record<Level, string | undefined>> = {
   fast: process.env.KAIRO_MODELO_RAPIDO,
   normal: process.env.KAIRO_MODELO_ESTANDAR,
@@ -68,17 +78,59 @@ const FORZADO: Partial<Record<Level, string | undefined>> = {
   mega: process.env.KAIRO_MODELO_MAXIMO,
 };
 
-export function cadenaDe(nivel: Level): string[] {
+/* La cadena que se va a usar de verdad, ya filtrada.
+ *
+ * Dos filtros, y el segundo importa más que el primero:
+ *
+ *  1. Fuera los proveedores sin clave. Si solo tienes Gemini, Kairo
+ *     funciona exactamente igual que antes.
+ *
+ *  2. Los menores se quedan en Gemini. Es el único de los tres que acepta
+ *     un filtro de contenido por petición, y en modo niño va puesto en su
+ *     ajuste más estricto. Los otros dos tienen su propio entrenamiento de
+ *     seguridad y el añadido de edad del prompt sigue aplicándose, pero
+ *     esa capa extra la perderían. Conectar dos modelos más no es motivo
+ *     para que un crío quede menos protegido que ayer.
+ */
+export function cadenaDe(nivel: Level, modoEdad: ModoEdad | null): string[] {
   const forzado = FORZADO[nivel]?.trim();
-  const cadena = CADENAS[nivel];
-  return forzado ? [forzado, ...cadena.filter((m) => m !== forzado)] : cadena;
+  const base = CADENAS[nivel];
+  const conForzado = forzado ? [forzado, ...base.filter((m) => m !== forzado)] : base;
+
+  const conClave = conForzado.filter((id) => proveedorActivo(partir(id).proveedor));
+
+  if (modoEdad === "nino" || modoEdad === null) {
+    return conClave.filter((id) => partir(id).proveedor === "gemini");
+  }
+
+  return conClave;
 }
 
+/** Cuánto se le pide que se esfuerce a cada nivel. Cada motor lo traduce
+ *  a lo suyo: presupuesto de pensamiento en Gemini, `effort` en los otros. */
+export const ESFUERZO: Record<Level, Esfuerzo> = {
+  fast: "bajo",
+  normal: "medio",
+  forja: "alto",
+  mega: "maximo",
+};
+
+/** Presupuesto de razonamiento de Gemini. -1 = que lo decida él. */
 export const RAZONAMIENTO: Record<Level, number> = {
   fast: 0,
   normal: -1,
   forja: 16384,
   mega: 24576,
+};
+
+/** Techo de respuesta. Es un tope, no un gasto: solo se paga lo que salga.
+ *  Va holgado a propósito, porque en los modelos que piensan el
+ *  razonamiento también cuenta y un techo corto trunca a media frase. */
+export const MAX_SALIDA: Record<Level, number> = {
+  fast: 4096,
+  normal: 8192,
+  forja: 32000,
+  mega: 64000,
 };
 
 export const CREDITOS: Record<Level, number> = {
@@ -90,13 +142,23 @@ export const CREDITOS: Record<Level, number> = {
 
 /** Nombre bonito del modelo, para enseñárselo al usuario. */
 export function nombreModelo(id: string): string {
-  const m = id.toLowerCase();
-  if (m.includes("claude")) return "Claude";
-  if (m.includes("gpt")) return "GPT";
-  if (m.includes("lite")) return "Gemini Flash-Lite";
-  if (m.includes("flash")) return "Gemini Flash";
-  if (m.includes("pro")) return "Gemini Pro";
-  return id;
+  const { proveedor, modelo } = partir(id);
+
+  if (proveedor === "claude") {
+    if (modelo.includes("opus")) return "Claude Opus";
+    if (modelo.includes("sonnet")) return "Claude Sonnet";
+    if (modelo.includes("haiku")) return "Claude Haiku";
+    return "Claude";
+  }
+
+  if (proveedor === "gpt") {
+    return modelo.toLowerCase().startsWith("gpt") ? modelo.toUpperCase() : `GPT ${modelo}`;
+  }
+
+  if (modelo.includes("lite")) return "Gemini Flash-Lite";
+  if (modelo.includes("flash")) return "Gemini Flash";
+  if (modelo.includes("pro")) return "Gemini Pro";
+  return modelo;
 }
 
 /** Cuántos mensajes del historial se envían. Más contexto, más coste. */
