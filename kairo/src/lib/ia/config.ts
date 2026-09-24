@@ -174,9 +174,13 @@ export function nombreModelo(id: string): string {
     return modelo.toLowerCase().startsWith("gpt") ? modelo.toUpperCase() : `GPT ${modelo}`;
   }
 
-  // Del de repuesto no sabemos el nombre comercial: se enseña tal cual,
-  // que además es lo que te dice cuál de los tuyos ha contestado.
-  if (proveedor === "extra") return modelo;
+  /* Del de repuesto no sabemos el nombre comercial, así que se enseña su
+     identificador. Pero sin la casa que lo publica: muchos van como
+     "openai/gpt-oss-20b" o "meta/llama-3.3-70b", y enseñar ese prefijo
+     haría creer que detrás está OpenAI o Meta cuando lo que hay es otro
+     proveedor sirviendo un modelo abierto. Queda el nombre del modelo,
+     que es lo que te dice cuál de los tuyos ha contestado. */
+  if (proveedor === "extra") return modelo.split("/").pop() ?? modelo;
 
   if (modelo.includes("lite")) return "Gemini Flash-Lite";
   if (modelo.includes("flash")) return "Gemini Flash";
