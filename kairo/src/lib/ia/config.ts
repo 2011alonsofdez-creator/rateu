@@ -1,6 +1,6 @@
 import type { Level } from "@/lib/mock";
 import type { ModoEdad } from "@/lib/planes";
-import { partir, proveedorActivo, type Esfuerzo } from "./proveedores";
+import { modelosExtra, partir, proveedorActivo, type Esfuerzo } from "./proveedores";
 
 export { NIVELES_POR_PLAN } from "@/lib/planes";
 export { proveedoresActivos, type Proveedor } from "./proveedores";
@@ -94,7 +94,9 @@ const FORZADO: Partial<Record<Level, string | undefined>> = {
  */
 export function cadenaDe(nivel: Level, modoEdad: ModoEdad | null): string[] {
   const forzado = FORZADO[nivel]?.trim();
-  const base = CADENAS[nivel];
+  /* El proveedor de repuesto va al final de todas las cadenas: es la red
+     por si el resto está saturado, no la primera opción. */
+  const base = [...CADENAS[nivel], ...modelosExtra()];
   const conForzado = forzado ? [forzado, ...base.filter((m) => m !== forzado)] : base;
 
   const conClave = conForzado.filter((id) => proveedorActivo(partir(id).proveedor));
@@ -154,6 +156,10 @@ export function nombreModelo(id: string): string {
   if (proveedor === "gpt") {
     return modelo.toLowerCase().startsWith("gpt") ? modelo.toUpperCase() : `GPT ${modelo}`;
   }
+
+  // Del de repuesto no sabemos el nombre comercial: se enseña tal cual,
+  // que además es lo que te dice cuál de los tuyos ha contestado.
+  if (proveedor === "extra") return modelo;
 
   if (modelo.includes("lite")) return "Gemini Flash-Lite";
   if (modelo.includes("flash")) return "Gemini Flash";

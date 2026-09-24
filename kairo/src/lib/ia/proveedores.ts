@@ -13,7 +13,7 @@ import type { ModoEdad } from "@/lib/planes";
  * cambiar de uno a otro sin enterarse.
  */
 
-export type Proveedor = "gemini" | "claude" | "gpt";
+export type Proveedor = "gemini" | "claude" | "gpt" | "extra";
 export type Esfuerzo = "bajo" | "medio" | "alto" | "maximo";
 
 export type Peticion = {
@@ -38,7 +38,7 @@ export function partir(id: string): { proveedor: Proveedor; modelo: string } {
 
   const cabeza = id.slice(0, corte);
   const proveedor: Proveedor =
-    cabeza === "claude" || cabeza === "gpt" ? cabeza : "gemini";
+    cabeza === "claude" || cabeza === "gpt" || cabeza === "extra" ? cabeza : "gemini";
 
   return { proveedor, modelo: id.slice(corte + 1) };
 }
@@ -47,16 +47,31 @@ const CLAVES: Record<Proveedor, () => string | undefined> = {
   gemini: () => process.env.GEMINI_API_KEY,
   claude: () => process.env.ANTHROPIC_API_KEY,
   gpt: () => process.env.OPENAI_API_KEY,
+  extra: () => process.env.KAIRO_EXTRA_KEY,
 };
+
+export const EXTRA_URL = () => process.env.KAIRO_EXTRA_URL?.trim() ?? "";
+
+/** Los modelos del proveedor de repuesto, tal y como los hayas escrito. */
+export function modelosExtra(): string[] {
+  return (process.env.KAIRO_EXTRA_MODELOS ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .map((m) => `extra:${m}`);
+}
 
 /** Un proveedor sin clave puesta no existe: se cae de la cadena y ya está.
  *  Kairo sigue funcionando con los que sí tengas. */
 export function proveedorActivo(p: Proveedor): boolean {
+  if (p === "extra") {
+    return Boolean(CLAVES.extra()?.trim()) && Boolean(EXTRA_URL()) && modelosExtra().length > 0;
+  }
   return Boolean(CLAVES[p]()?.trim());
 }
 
 export function proveedoresActivos(): Proveedor[] {
-  return (["gemini", "claude", "gpt"] as const).filter(proveedorActivo);
+  return (["gemini", "claude", "gpt", "extra"] as const).filter(proveedorActivo);
 }
 
 /* Claude exige que los mensajes se alternen y que el primero sea del
@@ -182,6 +197,38 @@ async function* deGpt(pet: Peticion, modelo: string) {
 }
 
 // ---------------------------------------------------------------
+// El de repuesto: cualquiera que hable como OpenAI
+// ---------------------------------------------------------------
+/* Casi todos los proveedores de IA —incluidos los que tienen capa
+   gratuita— copian la interfaz de OpenAI en /chat/completions. Con eso,
+   una puerta más y tres variables de entorno bastan para enchufar el que
+   sea sin tocar código.
+   Aquí se usa /chat/completions y no la API de respuestas de OpenAI a
+   propósito: es la que entienden todos, y la otra es solo de OpenAI. */
+async function* deExtra(pet: Peticion, modelo: string) {
+  const cliente = new OpenAI({ apiKey: CLAVES.extra()!, baseURL: EXTRA_URL() });
+
+  const flujo = await cliente.chat.completions.create({
+    model: modelo,
+    messages: [
+      { role: "system" as const, content: pet.sistema },
+      ...normalizar(pet.mensajes).map((m) => ({
+        role: m.rol === "kairo" ? ("assistant" as const) : ("user" as const),
+        content: m.texto,
+      })),
+    ],
+    // Techo prudente: de un proveedor desconocido no sabemos cuánto aguanta.
+    max_tokens: Math.min(pet.maxSalida, 8192),
+    stream: true,
+  });
+
+  for await (const parte of flujo) {
+    const texto = parte.choices?.[0]?.delta?.content;
+    if (texto) yield texto;
+  }
+}
+
+// ---------------------------------------------------------------
 // La puerta
 // ---------------------------------------------------------------
 export type Arranque = {
@@ -205,7 +252,9 @@ export async function arrancar(pet: Peticion): Promise<Arranque> {
       ? deClaude(pet, modelo)
       : proveedor === "gpt"
         ? deGpt(pet, modelo)
-        : deGemini(pet, modelo);
+        : proveedor === "extra"
+          ? deExtra(pet, modelo)
+          : deGemini(pet, modelo);
 
   const resto = generador[Symbol.asyncIterator]();
   const primero = await resto.next();

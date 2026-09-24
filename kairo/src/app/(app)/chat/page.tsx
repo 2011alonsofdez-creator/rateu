@@ -16,6 +16,7 @@ import { Marca } from "@/components/Logo";
 import {
   Bolt,
   Brain,
+  Chevron,
   Chat as ChatIcon,
   Check,
   Clock,
@@ -103,12 +104,34 @@ function Chat() {
   const [detalle, setDetalle] = useState<string>();
   const [noCredits, setNoCredits] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  /* ¿Está el usuario pegado al final? Mientras lo esté, la conversación
+     baja sola con cada palabra que llega. En cuanto sube a releer algo,
+     deja de arrastrarle: antes el chat le devolvía abajo cada pocas
+     décimas y era imposible leer nada mientras Kairo escribía. */
+  const pegado = useRef(true);
+  const [abajo, setAbajo] = useState(true);
   /* Cuál está ya en pantalla. Sin esto, cambiar la dirección al crear una
      conversación volvería a cargarla y borraría lo que se está escribiendo. */
   const puesta = useRef<string | null>(null);
 
-  useEffect(() => {
+  const mirarPosicion = () => {
+    const el = caja.current;
+    if (!el) return;
+    // 80 píxeles de margen: si casi está abajo, cuenta como abajo.
+    const cerca = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    pegado.current = cerca;
+    setAbajo(cerca);
+  };
+
+  const bajarDelTodo = () => {
+    pegado.current = true;
+    setAbajo(true);
     bottom.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (pegado.current) bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
   /* Al llegar desde "Usar en el chat" la Mente viene en la dirección.
@@ -199,6 +222,8 @@ function Chat() {
       { id: `u${Date.now()}`, role: "user", content: bi },
     ];
     setMessages(conElMio);
+    pegado.current = true;
+    setAbajo(true);
     setBusy(true);
     setModelo(undefined);
 
@@ -223,18 +248,34 @@ function Chat() {
     }
 
     // --- Modo real ---
+    await pedir(conElMio, false);
+  };
+
+  /* Habla con el servidor con la lista de mensajes que se le dé.
+     Separado de `send` para poder reintentar sin volver a añadir tu
+     pregunta: en un reintento ya está en pantalla y en la base de datos. */
+  const pedir = async (lista: Message[], esReintento: boolean) => {
+    const coste = LEVELS[level].credits;
+    setError(undefined);
+    setDetalle(undefined);
+    setBusy(true);
+    setModelo(undefined);
+    pegado.current = true;
+    setAbajo(true);
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           nivel: level,
+          reintento: esReintento,
           // Solo el identificador. Las instrucciones las lee el servidor
           // de la base de datos: si viajaran en la petición, cualquiera
           // podría colar el texto que quisiera en el system prompt.
           menteId: mente?.id ?? null,
           conversacionId: conversacion,
-          mensajes: conElMio.map((m) => ({
+          mensajes: lista.map((m) => ({
             rol: m.role,
             texto: pick(m.content, lang),
           })),
@@ -345,6 +386,17 @@ function Chat() {
     }
   };
 
+  /* Reintentar solo tiene sentido si la última palabra la tienes tú: si
+     Kairo llegó a escribir algo antes de fallar, volver a pedirlo dejaría
+     dos respuestas a medias una detrás de otra. */
+  const ultimo = messages[messages.length - 1];
+  const puedeReintentar = Boolean(error) && !busy && ultimo?.role === "user" && !perfil.demo;
+
+  const reintentar = () => {
+    if (!puedeReintentar) return;
+    pedir(messages, true);
+  };
+
   const empty = messages.length === 0;
 
   /* El saludo lleva tu nombre, y cambia según quién seas: a quien ya
@@ -358,7 +410,7 @@ function Chat() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={caja} onScroll={mirarPosicion} className="relative min-h-0 flex-1 overflow-y-auto">
         {cargando ? (
           <div className="grid h-full place-items-center">
             <Marca className="h-10 w-10 opacity-60" animada />
@@ -434,6 +486,18 @@ function Chat() {
                       {detalle}
                     </p>
                   )}
+
+                  {/* Tu pregunta ya está guardada, así que reintentar no la
+                      duplica ni te obliga a volver a escribirla. */}
+                  {puedeReintentar && (
+                    <button
+                      onClick={reintentar}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-gold/40 px-2.5 py-1.5 text-[12.5px] font-medium text-gold transition hover:bg-gold/10"
+                    >
+                      <Refresh className="h-3.5 w-3.5" />
+                      {t("chat.retry")}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -443,7 +507,20 @@ function Chat() {
         )}
       </div>
 
-      <div className="pointer-events-none flex justify-center">
+      <div className="pointer-events-none relative flex justify-center">
+        {/* Solo aparece si te has ido hacia arriba: te devuelve al final
+            sin tener que arrastrar media conversación. */}
+        {!abajo && messages.length > 0 && (
+          <button
+            onClick={bajarDelTodo}
+            title={t("chat.toBottom")}
+            aria-label={t("chat.toBottom")}
+            className="pointer-events-auto absolute bottom-0 right-4 grid h-9 w-9 place-items-center rounded-full border border-line bg-panel text-muted shadow-[var(--shadow)] transition hover:border-line-hi hover:text-fg"
+          >
+            <Chevron className="h-4 w-4" />
+          </button>
+        )}
+
         <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
           <Bolt className="h-3 w-3 text-gold" />
           {credits.toLocaleString(lang)} {t("app.credits")}

@@ -90,15 +90,20 @@ async function abrirConversacion(
   pedida: string | null,
   menteId: string | null,
   textoUsuario: string,
+  /* En un reintento la pregunta ya está guardada del intento que falló.
+     Volver a guardarla la dejaría dos veces en el historial. */
+  guardarPregunta: boolean,
 ): Promise<Guardado | null> {
   if (!supabase) return null;
 
   const guardarMensaje = (conversacionId: string) =>
-    supabase.from("mensajes").insert({
-      conversacion_id: conversacionId,
-      rol: "user",
-      contenido: textoUsuario,
-    });
+    guardarPregunta
+      ? supabase.from("mensajes").insert({
+          conversacion_id: conversacionId,
+          rol: "user",
+          contenido: textoUsuario,
+        })
+      : Promise.resolve();
 
   if (pedida) {
     // Si no es tuya, RLS devuelve vacío y se abre una nueva.
@@ -158,6 +163,11 @@ export async function POST(req: Request) {
     typeof cuerpo?.conversacionId === "string" && UUID.test(cuerpo.conversacionId)
       ? cuerpo.conversacionId
       : null;
+
+  /* Reintento de una respuesta que falló. La pregunta ya está guardada,
+     así que no se vuelve a guardar. Solo cuenta si además viene la
+     conversación: sin ella no hay nada que reintentar. */
+  const reintento = cuerpo?.reintento === true && conversacionPedida !== null;
 
   /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
      su perfil; ahora se pide el perfil directamente, porque la seguridad
@@ -241,6 +251,21 @@ export async function POST(req: Request) {
       let acumulado = "";
       let usado = "";
       let conversacion: Guardado | null = null;
+      let avisado = false;
+
+      /* El navegador necesita saber en qué conversación está, y lo necesita
+         TAMBIÉN cuando el modelo falla: sin el identificador no hay a qué
+         reintentar. Por eso se avisa desde dos sitios y solo una vez. */
+      const avisarConversacion = () => {
+        if (!conversacion || avisado) return;
+        avisado = true;
+        enviar({
+          t: "conversacion",
+          id: conversacion.id,
+          titulo: conversacion.titulo,
+          nueva: conversacion.nueva,
+        });
+      };
 
       /* Se abre la conversación a la vez que se llama al modelo, no antes.
          Así guardar el historial no añade ni un milisegundo de espera:
@@ -251,6 +276,7 @@ export async function POST(req: Request) {
         conversacionPedida,
         menteId,
         recortar(entradas[entradas.length - 1]?.texto, 12000),
+        !reintento,
       );
 
       try {
@@ -262,22 +288,37 @@ export async function POST(req: Request) {
           mente,
         });
 
-        /* Se recorre la cadena de cerebros hasta que uno conteste.
-           Con el mismo modelo se reintenta solo si está saturado, porque
-           eso se pasa en segundos; cualquier otro fallo significa que ese
-           modelo no va a funcionar hoy, así que se aparta y se prueba el
-           siguiente, aunque sea de otra casa. Todo esto ocurre antes de la
-           primera palabra: una vez empieza a salir texto, reintentar
-           duplicaría la respuesta. */
-        const esperas = [700, 1800];
+        /* Cómo se busca un cerebro que conteste.
+         *
+         * Antes se insistía tres veces con el MISMO modelo antes de probar
+         * otro. Con la capa gratuita de Google eso es justo al revés de lo
+         * que conviene: cuando un modelo está saturado, el de al lado suele
+         * estar libre, porque no comparten la misma cola. Ahora se prueban
+         * todos una vez, deprisa, y solo si TODOS han fallado por saturación
+         * se espera y se da otra vuelta. Se llega al que funciona en el
+         * primer segundo en vez de en el quinto.
+         *
+         * Todo esto ocurre antes de la primera palabra: una vez empieza a
+         * salir texto, reintentar duplicaría la respuesta. */
+        const VUELTAS = [0, 1200, 3000];
+
         const enJuego = cadena.filter(disponible);
-        const candidatos = enJuego.length ? enJuego : [cadena[cadena.length - 1]];
+        /* Si están todos en cuarentena se prueban igual: la cuarentena es
+           una pista de lo que pasó en la petición anterior, no una condena. */
+        const candidatos = enJuego.length ? enJuego : cadena;
 
         let arranque: Arranque | undefined;
         let ultimoFallo: unknown;
+        const descartados = new Set<string>();
 
-        buscar: for (const candidato of candidatos) {
-          for (let intento = 0; intento <= esperas.length; intento++) {
+        buscar: for (const espera of VUELTAS) {
+          // Un poco de azar para que dos usuarios a la vez no vuelvan justo
+          // a la vez y se pisen otra vez en la misma cola.
+          if (espera) await esperar(espera + Math.round(Math.random() * 400));
+
+          for (const candidato of candidatos) {
+            if (descartados.has(candidato)) continue;
+
             try {
               arranque = await arrancar({
                 id: candidato,
@@ -292,18 +333,16 @@ export async function POST(req: Request) {
               break buscar;
             } catch (e) {
               ultimoFallo = e;
-              const tipo = clasificarError(e);
 
-              if (tipo === "sobrecargado") {
-                if (intento < esperas.length) {
-                  await esperar(esperas[intento]);
-                  continue;
-                }
-                enfriar(candidato, 60_000); // saturación: vuelve pronto
+              if (clasificarError(e) === "sobrecargado") {
+                // Vuelve a estar libre enseguida: se le da otra oportunidad
+                // en la siguiente vuelta, pero no en la siguiente petición.
+                enfriar(candidato, 30_000);
               } else {
-                enfriar(candidato, 10 * 60_000); // sin acceso o retirado
+                // No existe, no tienes acceso o lo han retirado: hoy no va.
+                enfriar(candidato, 10 * 60_000);
+                descartados.add(candidato);
               }
-              break; // siguiente modelo de la cadena
             }
           }
         }
@@ -319,14 +358,7 @@ export async function POST(req: Request) {
         // Para entonces la conversación ya está abierta. El navegador
         // necesita su identificador para seguir escribiendo en ella.
         conversacion = await abriendo;
-        if (conversacion) {
-          enviar({
-            t: "conversacion",
-            id: conversacion.id,
-            titulo: conversacion.titulo,
-            nueva: conversacion.nueva,
-          });
-        }
+        avisarConversacion();
 
         /* El primer trozo ya está en la mano (es lo que confirmó que el
            modelo responde). Se vuelve a poner al principio de la cola y
@@ -394,6 +426,8 @@ export async function POST(req: Request) {
            queda guardado igual en vez de perderse. */
         try {
           conversacion = conversacion ?? (await abriendo);
+          avisarConversacion();
+
           if (conversacion && acumulado.trim()) {
             const { error } = await supabase.from("mensajes").insert({
               conversacion_id: conversacion.id,

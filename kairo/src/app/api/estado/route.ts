@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
+import { EXTRA_URL, modelosExtra } from "@/lib/ia/proveedores";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -50,6 +51,7 @@ export async function GET() {
     gemini: process.env.GEMINI_API_KEY ?? "",
     claude: process.env.ANTHROPIC_API_KEY ?? "",
     gpt: process.env.OPENAI_API_KEY ?? "",
+    extra: process.env.KAIRO_EXTRA_KEY ?? "",
   };
 
   let dominio: string | null = null;
@@ -75,7 +77,7 @@ export async function GET() {
     resumen: !hasSupabase
       ? "Supabase NO configurado: la app está en modo demo"
       : activos.length === 0
-        ? "Falta al menos una clave de IA (GEMINI_API_KEY, ANTHROPIC_API_KEY u OPENAI_API_KEY)"
+        ? "Falta al menos una clave de IA (GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY o el proveedor de repuesto)"
         : `TODO CORRECTO · cerebros conectados: ${activos.join(", ")}`,
 
     supabase: {
@@ -95,6 +97,11 @@ export async function GET() {
       gemini: { clave_recibida: claves.gemini.length > 0, ...disponibles(gem) },
       claude: { clave_recibida: claves.claude.length > 0, ...disponibles(cla) },
       gpt: { clave_recibida: claves.gpt.length > 0, ...disponibles(gpt) },
+      extra: {
+        clave_recibida: claves.extra.length > 0,
+        url: EXTRA_URL() || null,
+        modelos: modelosExtra().map((m) => m.replace(/^extra:/, "")),
+      },
     },
 
     /* Lo que Kairo va a intentar de verdad en cada nivel, ya filtrado por
