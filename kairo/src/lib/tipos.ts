@@ -40,3 +40,24 @@ export type ResultadoMente =
       motivo: "demo" | "limite" | "nombre" | "instrucciones" | "sesion" | "error";
       detalle?: string;
     };
+
+/* Una conversación guardada, tal y como la enseña la barra lateral. */
+export type Conversacion = {
+  id: string;
+  titulo: string;
+  menteId: string | null;
+  /** Cuándo se escribió el último mensaje. Es por lo que se ordena. */
+  actualizadaEl: string;
+};
+
+/** Un mensaje recuperado de la base de datos. */
+export type MensajeGuardado = {
+  id: string;
+  rol: "user" | "kairo";
+  contenido: string;
+  modelo: string | null;
+  nivel: string | null;
+  creditos: number;
+};
+
+export const TITULO_MAX = 120;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { clienteServidor } from "@/lib/supabase/server";
 import { MENTE, type Mente, type ResultadoMente, type ResultadoSimple } from "@/lib/tipos";
+import { recortar } from "@/lib/texto";
 
 /* Crear, editar y borrar Mentes.
  *
@@ -24,11 +25,6 @@ export type EntradaMente = {
   instrucciones: string;
   tono: string | null;
 };
-
-/** Recorta por puntos de código, que es lo que cuenta PostgreSQL:
- *  un emoji no ocupa un carácter y cortar por bytes lo partiría. */
-const recortar = (v: unknown, max: number) =>
-  [...String(v ?? "").trim()].slice(0, max).join("");
 
 export async function guardarMente(entrada: EntradaMente): Promise<ResultadoMente> {
   const supabase = await clienteServidor();

@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { clienteServidor } from "@/lib/supabase/server";
-import type { ResultadoGasto, ResultadoSimple } from "@/lib/tipos";
+import { TITULO_MAX, type ResultadoGasto, type ResultadoSimple } from "@/lib/tipos";
+import { recortar } from "@/lib/texto";
 
 /**
  * Descuenta créditos. La comprobación de saldo y el descuento ocurren
@@ -94,4 +95,43 @@ export async function cerrarSesion() {
   const supabase = await clienteServidor();
   if (supabase) await supabase.auth.signOut();
   redirect("/");
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Borra una conversación. Los mensajes se van con ella por la clave
+ *  foránea en cascada, y la política de la tabla solo deja borrar las
+ *  tuyas: pasar el identificador de otro no borra nada. */
+export async function borrarConversacion(id: string): Promise<ResultadoSimple> {
+  if (!UUID.test(id)) return { ok: false, mensaje: "id no válida" };
+
+  const supabase = await clienteServidor();
+  if (!supabase) return { ok: false, mensaje: "demo" };
+
+  const { error } = await supabase.from("conversaciones").delete().eq("id", id);
+  if (error) return { ok: false, mensaje: error.message };
+
+  return { ok: true };
+}
+
+/** Cambia el nombre de una conversación. */
+export async function renombrarConversacion(
+  id: string,
+  titulo: string,
+): Promise<ResultadoSimple> {
+  if (!UUID.test(id)) return { ok: false, mensaje: "id no válida" };
+
+  const limpio = recortar(titulo.replace(/\s+/g, " "), TITULO_MAX);
+  if (!limpio) return { ok: false, mensaje: "sin título" };
+
+  const supabase = await clienteServidor();
+  if (!supabase) return { ok: false, mensaje: "demo" };
+
+  const { error } = await supabase
+    .from("conversaciones")
+    .update({ titulo: limpio })
+    .eq("id", id);
+
+  if (error) return { ok: false, mensaje: error.message };
+  return { ok: true };
 }

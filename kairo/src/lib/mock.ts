@@ -15,49 +15,9 @@ export const LEVELS: Record<Level, { credits: number; color: string }> = {
 type Bi = { es: string; en: string };
 export const pick = (v: Bi, lang: Lang) => v[lang];
 
-export type Conversation = {
-  id: string;
-  title: Bi;
-  group: "today" | "week" | "earlier";
-};
-
-export const conversations: Conversation[] = [
-  {
-    id: "c1",
-    title: { es: "Plan de marketing del trimestre", en: "Quarterly marketing plan" },
-    group: "today",
-  },
-  {
-    id: "c2",
-    title: { es: "Resumen del contrato de alquiler", en: "Rental contract summary" },
-    group: "today",
-  },
-  {
-    id: "c3",
-    title: { es: "Bug del carrito en el móvil", en: "Mobile cart bug" },
-    group: "week",
-  },
-  {
-    id: "c4",
-    title: { es: "Ideas para el vídeo de lanzamiento", en: "Launch video ideas" },
-    group: "week",
-  },
-  {
-    id: "c5",
-    title: { es: "Ejercicios de matemáticas de Lucía", en: "Lucía's maths practice" },
-    group: "week",
-  },
-  {
-    id: "c6",
-    title: { es: "Comparar proveedores de envío", en: "Compare shipping providers" },
-    group: "earlier",
-  },
-  {
-    id: "c7",
-    title: { es: "Traducir la web al inglés", en: "Translate the site to English" },
-    group: "earlier",
-  },
-];
+/* La lista de conversaciones de ejemplo se ha ido: ahora salen de la
+   base de datos. Enseñar chats inventados a alguien que ha entrado con
+   su cuenta era mentirle en la pantalla principal. */
 
 export type Message = {
   id: string;

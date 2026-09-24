@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
 import { LEVELS, pick, type Level, type Message } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
-import type { Mente } from "@/lib/tipos";
+import { useHistorial } from "@/lib/historial";
+import type { Mente, MensajeGuardado } from "@/lib/tipos";
 import { Composer } from "@/components/Composer";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
@@ -66,9 +68,22 @@ const CARDS: {
   { icon: ImageIcon, title: "card.image", desc: "card.imageDesc", href: "/codigo" },
 ];
 
+/* La página lee la dirección (?c= y ?mente=), y eso obliga a envolverla:
+   sin el Suspense, Next no puede adelantar nada del HTML. */
 export default function ChatPage() {
+  return (
+    <Suspense fallback={null}>
+      <Chat />
+    </Suspense>
+  );
+}
+
+function Chat() {
   const { t, lang } = useUi();
+  const router = useRouter();
+  const params = useSearchParams();
   const perfil = usePerfil();
+  const historial = useHistorial();
   const { credits, spend, sincronizar } = useCredits();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -80,22 +95,27 @@ export default function ChatPage() {
      de `busy`, porque `busy` se apaga con la primera palabra y el logo
      tiene que seguir vivo hasta la última. */
   const [escribiendo, setEscribiendo] = useState<string>();
+  /* En qué conversación estamos. Null = todavía no existe; se creará
+     con el primer mensaje. */
+  const [conversacion, setConversacion] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<TKey>();
   const [detalle, setDetalle] = useState<string>();
   const [noCredits, setNoCredits] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
+  /* Cuál está ya en pantalla. Sin esto, cambiar la dirección al crear una
+     conversación volvería a cargarla y borraría lo que se está escribiendo. */
+  const puesta = useRef<string | null>(null);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
   /* Al llegar desde "Usar en el chat" la Mente viene en la dirección.
-     Se lee de window y no con useSearchParams a propósito: ese hook
-     obliga a generar esta página en el servidor en cada visita, y así
-     sigue siendo estática. Solo preselecciona; quien decide de verdad
-     qué Mente se usa es el servidor, que la busca por su identificador. */
+     Solo preselecciona; quien decide de verdad qué Mente se usa es el
+     servidor, que la busca por su identificador. */
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("mente");
+    const id = params.get("mente");
     if (!id) return;
 
     fetch("/api/mentes")
@@ -107,7 +127,59 @@ export default function ChatPage() {
       .catch(() => {
         /* sin Mentes: el chat funciona igual */
       });
-  }, []);
+  }, [params]);
+
+  /* Abrir una conversación guardada, o empezar una limpia si no hay ?c=.
+     Es lo que hace que "Nuevo chat" vacíe la pantalla: cambia la
+     dirección, y esto se entera. */
+  useEffect(() => {
+    const c = params.get("c");
+    if (c === puesta.current) return; // ya está en pantalla
+    puesta.current = c;
+
+    if (!c) {
+      setMessages([]);
+      setConversacion(null);
+      setMente(null);
+      setError(undefined);
+      return;
+    }
+
+    setCargando(true);
+    fetch(`/api/conversaciones/${c}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("404"))))
+      .then((j) => {
+        const guardados = (j?.mensajes ?? []) as MensajeGuardado[];
+        setMessages(
+          guardados.map((m) => ({
+            id: m.id,
+            role: m.rol,
+            content: { es: m.contenido, en: m.contenido },
+            model: m.modelo ?? undefined,
+            level: (m.nivel as Level | null) ?? undefined,
+            credits: m.rol === "kairo" ? m.creditos : undefined,
+          })),
+        );
+        setConversacion(c);
+
+        // Si la conversación se abrió con una Mente, se sigue con ella.
+        const menteId = j?.conversacion?.menteId as string | null | undefined;
+        if (!menteId) return setMente(null);
+        return fetch("/api/mentes")
+          .then((r) => r.json())
+          .then((jm) => {
+            const m = (jm?.mentes as Mente[] | undefined)?.find((x) => x.id === menteId);
+            setMente(m ?? null);
+          });
+      })
+      .catch(() => {
+        // Borrada, o de otra persona: se vuelve a un chat en blanco.
+        setMessages([]);
+        setConversacion(null);
+        puesta.current = null;
+      })
+      .finally(() => setCargando(false));
+  }, [params]);
 
   const send = async (texto: string) => {
     const coste = LEVELS[level].credits;
@@ -161,6 +233,7 @@ export default function ChatPage() {
           // de la base de datos: si viajaran en la petición, cualquiera
           // podría colar el texto que quisiera en el system prompt.
           menteId: mente?.id ?? null,
+          conversacionId: conversacion,
           mensajes: conElMio.map((m) => ({
             rol: m.role,
             texto: pick(m.content, lang),
@@ -215,6 +288,16 @@ export default function ChatPage() {
 
           if (ev.t === "meta") {
             setModelo(String(ev.modelo ?? ""));
+          } else if (ev.t === "conversacion") {
+            const id = String(ev.id);
+            setConversacion(id);
+            puesta.current = id;
+            // La dirección pasa a apuntar a esta conversación, para que
+            // recargar o compartir el enlace la abra. Sin salto de página.
+            if (ev.nueva) {
+              router.replace(`/chat?c=${id}`, { scroll: false });
+              router.refresh(); // que salga ya en la barra lateral
+            }
           } else if (ev.t === "creditos") {
             sincronizar(Number(ev.creditos ?? 0), Number(ev.creditosExtra ?? 0));
           } else if (ev.t === "texto") {
@@ -264,14 +347,27 @@ export default function ChatPage() {
 
   const empty = messages.length === 0;
 
+  /* El saludo lleva tu nombre, y cambia según quién seas: a quien ya
+     tiene chats se le pregunta por dónde sigue; a quien llega hoy, en
+     qué trabaja. Solo el nombre de pila: el apellido suena a carta del
+     banco. */
+  const pila = (perfil.nombre || "").trim().split(/\s+/)[0];
+  const saludo = pila
+    ? t(historial.length ? "app.greetingBack" : "app.greetingName").replace("{n}", pila)
+    : t("app.greeting");
+
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {empty ? (
+        {cargando ? (
+          <div className="grid h-full place-items-center">
+            <Marca className="h-10 w-10 opacity-60" animada />
+          </div>
+        ) : empty ? (
           <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-12">
             <Marca className="h-12 w-12" />
-            <h1 className="mt-5 text-[26px] font-semibold tracking-tight sm:text-[30px]">
-              {t("app.greeting")}
+            <h1 className="mt-5 text-balance text-center text-[26px] font-semibold tracking-tight sm:text-[30px]">
+              {saludo}
             </h1>
             <p className="mt-2 text-[14.5px] text-muted">{t("app.greetingSub")}</p>
 

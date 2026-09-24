@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { obtenerPerfil } from "@/lib/perfil";
+import { listarConversaciones } from "@/lib/conversaciones";
 import { hasSupabase } from "@/lib/supabase/config";
 import { AppShell } from "@/components/AppShell";
 
@@ -12,7 +13,12 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const perfil = await obtenerPerfil();
+  /* Las dos consultas salen a la vez: el historial no le cuesta espera
+     a nadie, porque se pide mientras se pide el perfil. */
+  const [perfil, conversaciones] = await Promise.all([
+    obtenerPerfil(),
+    listarConversaciones(),
+  ]);
 
   if (!perfil) redirect("/entrar");
 
@@ -20,5 +26,9 @@ export default async function AppLayout({
   // antes de dejarle usar nada, porque de ella depende la moderación.
   if (hasSupabase && !perfil.modoEdad) redirect("/bienvenida");
 
-  return <AppShell perfil={perfil}>{children}</AppShell>;
+  return (
+    <AppShell perfil={perfil} conversaciones={conversaciones}>
+      {children}
+    </AppShell>
+  );
 }
