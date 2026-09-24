@@ -102,6 +102,8 @@ function Chat() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<TKey>();
   const [detalle, setDetalle] = useState<string>();
+  /** Segundos que el proveedor pide esperar, cuando los dice. */
+  const [espera, setEspera] = useState<number>();
   const [noCredits, setNoCredits] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const caja = useRef<HTMLDivElement>(null);
@@ -258,6 +260,7 @@ function Chat() {
     const coste = LEVELS[level].credits;
     setError(undefined);
     setDetalle(undefined);
+    setEspera(undefined);
     setBusy(true);
     setModelo(undefined);
     pegado.current = true;
@@ -363,7 +366,11 @@ function Chat() {
             setBusy(false);
             const v = String(ev.v);
             setError(
-              v === "cuota_agotada"
+              v === "cuota_dia"
+                ? "err.cuotaDia"
+                : v === "cuota_minuto"
+                  ? "err.cuotaMinuto"
+                : v === "cuota_agotada"
                 ? "err.cuota"
                 : v === "sobrecargado"
                   ? "err.sobrecargado"
@@ -374,6 +381,7 @@ function Chat() {
                     : "err.modelo",
             );
             if (ev.detalle) setDetalle(String(ev.detalle));
+            if (ev.espera) setEspera(Number(ev.espera));
             if (v === "sin_creditos") setNoCredits(true);
           }
         }
@@ -478,7 +486,10 @@ function Chat() {
               <div className="flex gap-3">
                 <Marca className="mt-0.5 h-8 w-8 shrink-0" />
                 <div className="rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-2.5">
-                  <p className="text-[14px] leading-relaxed text-gold">{t(error)}</p>
+                  <p className="text-[14px] leading-relaxed text-gold">
+                    {t(error)}
+                    {espera ? ` ${t("err.espera").replace("{s}", String(espera))}` : ""}
+                  </p>
                   {detalle && (
                     // Detalle técnico: te lo enseña para que puedas
                     // arreglarlo, porque de momento el único usuario eres tú.
