@@ -22,6 +22,10 @@ export const pick = (v: Bi, lang: Lang) => v[lang];
 
 export type Message = {
   id: string;
+  /** El identificador que le dio la base de datos, cuando ya está
+   *  guardado. Es lo que permite editar una pregunta o regenerar una
+   *  respuesta: las dos cosas rehacen la conversación desde ese punto. */
+  dbId?: string;
   role: "user" | "kairo";
   content: Bi;
   model?: string;

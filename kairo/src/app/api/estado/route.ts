@@ -5,6 +5,8 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/con
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
 import { EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
 import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
+import { clienteServidor } from "@/lib/supabase/server";
+import { faltaColumna } from "@/lib/supabase/compat";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -58,6 +60,55 @@ async function modelosDelExtra(clave: string, url: string) {
   return pagina.data.map((m) => m.id).sort().slice(0, 60);
 }
 
+/* Qué migraciones están puestas de verdad.
+ *
+ * No se mira una lista escrita a mano: se le pregunta a la propia base
+ * de datos por una columna de cada una. Si falta, la respuesta dice el
+ * archivo exacto que hay que pegar en Supabase, que es justo lo que uno
+ * quiere saber cuando la barra lateral aparece vacía.
+ *
+ * Hace falta haber iniciado sesión, porque sin sesión la base de datos
+ * no deja leer ninguna tabla y no habría forma de distinguir "falta la
+ * columna" de "no tienes permiso". */
+async function migraciones() {
+  if (!hasSupabase) return { estado: "sin Supabase: la app va en modo demo" };
+
+  const supabase = await clienteServidor().catch(() => null);
+  if (!supabase) return { estado: "sin Supabase: la app va en modo demo" };
+
+  const { data: sesion } = await supabase.auth.getUser();
+  if (!sesion?.user) {
+    return { estado: "abre esta página con la sesión iniciada para comprobarlo" };
+  }
+
+  const probar = async (tabla: string, columna: string) => {
+    const { error } = await supabase.from(tabla).select(columna).limit(1);
+    if (!error) return "puesta";
+    return faltaColumna(error) ? "FALTA" : `no se sabe: ${error.message.slice(0, 80)}`;
+  };
+
+  const [mentes, historial, pagos, fuentes] = await Promise.all([
+    probar("mentes", "id"),
+    probar("conversaciones", "actualizada_el"),
+    probar("suscripciones", "id"),
+    probar("mensajes", "fuentes"),
+  ]);
+
+  return {
+    "0003_mentes.sql": mentes,
+    "0005_historial.sql": historial,
+    "0006_pagos.sql": pagos,
+    "0007_fuentes.sql": fuentes,
+    que_pasa_si_falta: {
+      "0003_mentes.sql": "no se pueden crear Mentes",
+      "0005_historial.sql":
+        "la barra lateral sale vacía aunque tengas conversaciones, y las respuestas de Kairo no se guardan",
+      "0006_pagos.sql": "los pagos no cambian el plan de nadie",
+      "0007_fuentes.sql": "las fuentes se ven al momento pero no al reabrir la conversación",
+    },
+  };
+}
+
 export async function GET() {
   const crudaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const crudaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -76,13 +127,14 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
-  const [gem, cla, gpt, ext] = await Promise.all([
+  const [gem, cla, gpt, ext, migra] = await Promise.all([
     claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
     claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
     claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
     claves.extra && EXTRA_URL()
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
+    migraciones().catch((e) => ({ estado: corto(e) })),
   ]);
 
   const disponibles = (v: string[] | string | null) =>
@@ -96,6 +148,10 @@ export async function GET() {
       : activos.length === 0
         ? "Falta al menos una clave de IA (GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY o el proveedor de repuesto)"
         : `TODO CORRECTO · cerebros conectados: ${activos.join(", ")}`,
+
+    /* Las migraciones que faltan por pegar en Supabase. Si algo de la
+       web "no se guarda", esto lo dice en una línea. */
+    migraciones: migra,
 
     supabase: {
       url_recibida: crudaUrl.length > 0,

@@ -3,6 +3,7 @@
 import { useUi } from "@/lib/i18n";
 import { Section } from "@/components/Section";
 import { Clock, Plus } from "@/components/Icons";
+import { BotonAunNo } from "@/components/AunNo";
 
 const COWORKS = {
   es: [
@@ -59,10 +60,25 @@ export default function CoworksPage() {
           </div>
         ))}
 
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-line-hi p-4 text-[14px] font-medium text-muted transition hover:bg-panel hover:text-fg">
+        <BotonAunNo
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-line-hi p-4 text-[14px] font-medium text-muted transition hover:bg-panel hover:text-fg"
+          titulo={lang === "es" ? "Nuevo Co-Work" : "New Co-Work"}
+          explica={
+            lang === "es"
+              ? "Un Co-Work es un encargo con hora: cada lunes a las 8, o todas las noches. Kairo lo hace solo mientras tú no estás y te deja el resultado esperándote."
+              : "A Co-Work is a job with a time on it: every Monday at 8, or every night. Kairo does it on its own while you are away and leaves the result waiting for you."
+          }
+          mientras={
+            lang === "es"
+              ? "Hoy hay que pedírselo tú en el chat, pero la respuesta es la misma."
+              : "Today you have to ask for it in the chat, but the answer is the same."
+          }
+          enlace="/chat"
+          enlaceTexto={lang === "es" ? "Ir al chat" : "Go to the chat"}
+        >
           <Plus className="h-4 w-4" />
           {lang === "es" ? "Nuevo Co-Work" : "New Co-Work"}
-        </button>
+        </BotonAunNo>
       </div>
     </Section>
   );
