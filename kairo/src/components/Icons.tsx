@@ -173,3 +173,17 @@ export const Stop = ({ className, style }: P) => (
     <rect x="6" y="6" width="12" height="12" rx="2" />
   </svg>
 );
+
+export const Ojo = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+export const OjoTachado = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M10.6 6.2A9.9 9.9 0 0112 6c6.4 0 10 7 10 7a17 17 0 01-3.2 4M6.6 6.7A17 17 0 002 13s3.6 7 10 7a9.8 9.8 0 005.5-1.6" />
+    <path d="M9.9 9.9a3 3 0 004.2 4.2" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
