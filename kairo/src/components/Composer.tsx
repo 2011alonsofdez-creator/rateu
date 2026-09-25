@@ -5,6 +5,7 @@ import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level } from "@/lib/mock";
 import { NIVELES_POR_PLAN } from "@/lib/planes";
 import { usePerfil } from "@/lib/perfil-cliente";
+import { escuchar, hayMicrofono } from "@/lib/voz";
 import type { Mente } from "@/lib/tipos";
 import { Bolt, Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
 import Link from "next/link";
@@ -35,7 +36,7 @@ export function Composer({
   onSend: (text: string) => void;
   busy: boolean;
 }) {
-  const { t } = useUi();
+  const { t, lang } = useUi();
   const perfil = usePerfil();
   const permitidos = NIVELES_POR_PLAN[perfil.plan];
   const [text, setText] = useState("");
@@ -47,6 +48,49 @@ export function Composer({
   const box = useRef<HTMLTextAreaElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const wrapMente = useRef<HTMLDivElement>(null);
+
+  /* Dictado. Lo pone el navegador, no un servicio de pago.
+   *
+   * Si se preguntara "¿hay micrófono?" al pintar, el servidor diría que no
+   * (allí no hay navegador) y el navegador diría que sí: dos HTML distintos
+   * para la misma página, y React se queja con razón. Se pregunta después
+   * de pintar, así que el botón aparece un instante más tarde y ya está. */
+  const [conMicrofono, setConMicrofono] = useState(false);
+  useEffect(() => setConMicrofono(hayMicrofono()), []);
+
+  const [escuchando, setEscuchando] = useState(false);
+  const [sinPermiso, setSinPermiso] = useState(false);
+  const parar = useRef<(() => void) | null>(null);
+  // Lo que ya habías escrito antes de abrir el micro: el dictado se le
+  // añade detrás en vez de pisarlo.
+  const yaEscrito = useRef("");
+
+  const micro = () => {
+    if (escuchando) return parar.current?.();
+
+    setSinPermiso(false);
+    yaEscrito.current = text.trim() ? `${text.trimEnd()} ` : "";
+
+    const detener = escuchar(
+      lang,
+      (dictado) => setText(yaEscrito.current + dictado),
+      (motivo) => {
+        setEscuchando(false);
+        parar.current = null;
+        // "sin habla" y "cancelado" no son fallos: es que te has callado.
+        if (motivo === "not-allowed" || motivo === "service-not-allowed") {
+          setSinPermiso(true);
+        }
+      },
+    );
+
+    if (!detener) return;
+    parar.current = detener;
+    setEscuchando(true);
+  };
+
+  // Si te vas de la página, que no se quede el micro abierto.
+  useEffect(() => () => parar.current?.(), []);
 
   const abrirMentes = async () => {
     const abriendo = !menuMente;
@@ -85,6 +129,7 @@ export function Composer({
   const submit = () => {
     const value = text.trim();
     if (!value || busy) return;
+    parar.current?.(); // enviar cierra el micro
     onSend(value);
     setText("");
   };
@@ -118,13 +163,21 @@ export function Composer({
             >
               <Clip className="h-[18px] w-[18px]" />
             </button>
-            <button
-              className="grid h-9 w-9 place-items-center rounded-lg text-muted transition hover:bg-panel-hi hover:text-fg"
-              title={t("app.voice")}
-              aria-label={t("app.voice")}
-            >
-              <Mic className="h-[18px] w-[18px]" />
-            </button>
+            {conMicrofono && (
+              <button
+                onClick={micro}
+                aria-pressed={escuchando}
+                title={escuchando ? t("app.stopVoice") : t("app.voice")}
+                aria-label={escuchando ? t("app.stopVoice") : t("app.voice")}
+                className={`grid h-9 w-9 place-items-center rounded-lg transition ${
+                  escuchando
+                    ? "bg-acento/15 text-acento ring-1 ring-acento/50"
+                    : "text-muted hover:bg-panel-hi hover:text-fg"
+                }`}
+              >
+                <Mic className={`h-[18px] w-[18px] ${escuchando ? "animate-pulse" : ""}`} />
+              </button>
+            )}
 
             {/* Selector de Mente. Compacto a propósito: al lado del de
                 nivel, y en el móvil solo el icono cuando no hay ninguna. */}
@@ -299,7 +352,15 @@ export function Composer({
           </div>
         </div>
 
-        {perfil.demo && (
+        {escuchando && (
+          <p className="mt-2 text-center text-[12px] text-acento">{t("app.listening")}</p>
+        )}
+        {sinPermiso && (
+          <p className="mt-2 text-center text-[12px] leading-relaxed text-gold">
+            {t("app.micDenied")}
+          </p>
+        )}
+        {perfil.demo && !escuchando && !sinPermiso && (
           <p className="mt-2 text-center text-[11.5px] text-faint">{t("app.demo")}</p>
         )}
       </div>
