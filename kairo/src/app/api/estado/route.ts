@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
-import { EXTRA_URL, modelosExtra } from "@/lib/ia/proveedores";
+import { EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
 import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
 
 export const runtime = "nodejs";
@@ -122,6 +122,16 @@ export async function GET() {
         // Y los que ese proveedor dice tener, para que copies el nombre bien.
         ...disponibles(ext),
       },
+    },
+
+    /* Si Kairo puede buscar en internet antes de contestar. La búsqueda
+       la pone Gemini y va incluida con su clave: no hay nada más que
+       configurar. "modelos_que_buscan" son los de la cadena normal que
+       la aceptan; si alguno rechaza las herramientas, se cae de esta
+       lista él solo en cuanto lo intenta una vez. */
+    busqueda: {
+      apagada_a_mano: /^(1|true|si|sí)$/i.test(process.env.KAIRO_SIN_BUSQUEDA?.trim() ?? ""),
+      modelos_que_buscan: cadenaDe("normal", "adulto").filter(puedeBuscar),
     },
 
     /* Lo que Kairo va a intentar de verdad en cada nivel, ya filtrado por

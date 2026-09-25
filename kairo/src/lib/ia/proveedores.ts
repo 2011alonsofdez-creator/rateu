@@ -1,8 +1,10 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type ToolListUnion } from "@google/genai";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { ajustesSeguridad } from "./seguridad";
+import { recolectorDeFuentes } from "./grounding";
 import type { ModoEdad } from "@/lib/planes";
+import type { Fuente } from "@/lib/tipos";
 
 /* Los tres cerebros, detrás de una sola puerta.
  *
@@ -15,6 +17,12 @@ import type { ModoEdad } from "@/lib/planes";
 
 export type Proveedor = "gemini" | "claude" | "gpt" | "extra";
 export type Esfuerzo = "bajo" | "medio" | "alto" | "maximo";
+
+/* Lo que sale de un motor. Casi siempre es texto, pero cuando el modelo
+   ha buscado en internet sale además de dónde lo ha sacado. Van por el
+   mismo tubo, y con dos formas distintas para que sea imposible
+   confundir una fuente con un trozo de respuesta. */
+export type Trozo = { texto: string } | { fuentes: Fuente[]; busquedas: string[] };
 
 export type Peticion = {
   /** Identificador completo, con proveedor delante: "claude:claude-opus-5". */
@@ -98,26 +106,121 @@ export function normalizar(mensajes: Peticion["mensajes"]) {
 // ---------------------------------------------------------------
 // Gemini
 // ---------------------------------------------------------------
-async function* deGemini(pet: Peticion, modelo: string) {
+/* Las herramientas, de más a menos.
+ *
+ * Esto es lo que hace que Kairo pueda contestar a "¿dónde está la
+ * biblioteca?" o "¿cuánto cuesta el abono?" con un dato de verdad en vez
+ * de con lo que recuerde de su entrenamiento:
+ *
+ *   googleSearch → busca en Google y trae las páginas que leyó
+ *   urlContext   → si le pegas un enlace, lo abre y lo lee
+ *   googleMaps   → sitios reales: dirección, horario, teléfono
+ *
+ * El modelo decide cuándo usarlas; no se le fuerza. Y van en escalera
+ * porque no todos los modelos ni todas las cuentas aceptan las tres: si
+ * una sobra, la petición rebota con un 400 y lo único razonable es
+ * volver a intentarlo con menos en vez de dar la respuesta por perdida.
+ * El peldaño que funcionó se recuerda, así que ese rebote pasa una vez
+ * por modelo y no en cada mensaje. */
+const ESCALERA: ToolListUnion[] = [
+  [{ googleSearch: {} }, { urlContext: {} }, { googleMaps: {} }],
+  [{ googleSearch: {} }, { urlContext: {} }],
+  [{ googleSearch: {} }],
+  [],
+];
+
+/** El último peldaño: sin herramientas. Es el que siempre funciona. */
+const SIN_HERRAMIENTAS = ESCALERA.length - 1;
+
+/* Modelo → primer peldaño que se sabe que traga. Vive en memoria, así
+   que cada instancia lo aprende por su cuenta y se olvida al reiniciar. */
+const peldano = new Map<string, number>();
+
+/** Apagar la búsqueda entera sin tocar código, por si algún día hace falta. */
+const busquedaApagada = () => /^(1|true|si|sí)$/i.test(process.env.KAIRO_SIN_BUSQUEDA?.trim() ?? "");
+
+/** ¿Este modelo va a poder buscar? Lo pregunta el prompt: prometerle al
+ *  modelo un buscador que no tiene es peor que no prometerle nada. */
+export function puedeBuscar(id: string): boolean {
+  const { proveedor, modelo } = partir(id);
+  if (proveedor !== "gemini" || busquedaApagada()) return false;
+  return (peldano.get(modelo) ?? 0) < SIN_HERRAMIENTAS;
+}
+
+/* Un 400 o un 403 con herramientas puestas casi siempre significa "esta
+   no la tengo": modelo antiguo, cuenta sin Maps, combinación no
+   permitida. Un 429 o un 503 no tienen nada que ver con las
+   herramientas, y ahí no se baja ningún peldaño: se deja subir el error
+   para que la cadena pruebe con otro modelo. */
+function puedeSerLaHerramienta(fallo: unknown): boolean {
+  const estado = (fallo as { status?: number } | null)?.status;
+  if (typeof estado === "number") return estado === 400 || estado === 403 || estado === 404;
+
+  const mensaje = fallo instanceof Error ? fallo.message : String(fallo);
+  return /\b(400|403|404)\b|not supported|unsupported|invalid argument|permission denied/i.test(
+    mensaje,
+  );
+}
+
+async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
   const ia = new GoogleGenAI({ apiKey: CLAVES.gemini()! });
 
-  const respuesta = await ia.models.generateContentStream({
-    model: modelo,
-    contents: normalizar(pet.mensajes).map((m) => ({
-      role: m.rol === "kairo" ? "model" : "user",
-      parts: [{ text: m.texto }],
-    })),
-    config: {
-      systemInstruction: pet.sistema,
-      safetySettings: ajustesSeguridad(pet.modoEdad),
-      thinkingConfig: { thinkingBudget: pet.pensar },
-      // Los Flash no aceptan techos enormes; los de Forja y MEGA se quedan aquí.
-      maxOutputTokens: Math.min(pet.maxSalida, 8192),
-    },
-  });
+  const contents = normalizar(pet.mensajes).map((m) => ({
+    role: m.rol === "kairo" ? "model" : "user",
+    parts: [{ text: m.texto }],
+  }));
 
-  for await (const trozo of respuesta) {
-    if (trozo.text) yield trozo.text;
+  const desde = busquedaApagada() ? SIN_HERRAMIENTAS : (peldano.get(modelo) ?? 0);
+
+  for (let i = desde; i <= SIN_HERRAMIENTAS; i++) {
+    const herramientas = ESCALERA[i];
+    const fuentes = recolectorDeFuentes();
+    let empezado = false;
+
+    try {
+      const respuesta = await ia.models.generateContentStream({
+        model: modelo,
+        contents,
+        config: {
+          systemInstruction: pet.sistema,
+          safetySettings: ajustesSeguridad(pet.modoEdad),
+          thinkingConfig: { thinkingBudget: pet.pensar },
+          // Los Flash no aceptan techos enormes; los de Forja y MEGA se quedan aquí.
+          maxOutputTokens: Math.min(pet.maxSalida, 8192),
+          ...(herramientas.length ? { tools: herramientas } : {}),
+        },
+      });
+
+      /* El primer trozo se pide dentro del `try` a propósito: según el
+         fallo, el error salta al hacer la petición o al leer la primera
+         respuesta, y bajar un peldaño solo vale si todavía no ha salido
+         ni una letra. */
+      const lector = respuesta[Symbol.asyncIterator]();
+      const primero = await lector.next();
+      empezado = true;
+      peldano.set(modelo, i);
+
+      let actual = primero;
+      while (!actual.done) {
+        const trozo = actual.value;
+        fuentes.anadir(trozo.candidates?.[0]?.groundingMetadata);
+        if (trozo.text) yield { texto: trozo.text };
+        actual = await lector.next();
+      }
+
+      /* Las fuentes, al final y de una vez. Llegan repartidas y
+         repetidas entre los trozos, así que soltarlas a mitad sería
+         enseñar media lista y luego cambiarla. */
+      if (fuentes.hayAlgo) {
+        yield { fuentes: fuentes.fuentes, busquedas: fuentes.busquedas };
+      }
+      return;
+    } catch (fallo) {
+      // Ya había salido texto: reintentar duplicaría la respuesta.
+      if (empezado || i === SIN_HERRAMIENTAS || !puedeSerLaHerramienta(fallo)) throw fallo;
+      // Este modelo no quiere estas herramientas. Se apunta y se baja.
+      peldano.set(modelo, i + 1);
+    }
   }
 }
 
@@ -136,7 +239,7 @@ const ESFUERZO_CLAUDE = {
    cadena como último recurso, así que va sin adornos. */
 const ES_HAIKU = /^claude-haiku/;
 
-async function* deClaude(pet: Peticion, modelo: string) {
+async function* deClaude(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
   const cliente = new Anthropic({ apiKey: CLAVES.claude()! });
 
   const extras = ES_HAIKU.test(modelo)
@@ -159,7 +262,7 @@ async function* deClaude(pet: Peticion, modelo: string) {
 
   for await (const evento of flujo) {
     if (evento.type === "content_block_delta" && evento.delta.type === "text_delta") {
-      yield evento.delta.text;
+      yield { texto: evento.delta.text };
     }
   }
 }
@@ -169,7 +272,7 @@ async function* deClaude(pet: Peticion, modelo: string) {
 // ---------------------------------------------------------------
 const ESFUERZO_GPT = { bajo: "low", medio: "low", alto: "high", maximo: "high" } as const;
 
-async function* deGpt(pet: Peticion, modelo: string) {
+async function* deGpt(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
   const cliente = new OpenAI({ apiKey: CLAVES.gpt()! });
 
   /* El parámetro de razonamiento solo lo entienden los modelos que razonan,
@@ -192,7 +295,7 @@ async function* deGpt(pet: Peticion, modelo: string) {
   });
 
   for await (const evento of flujo) {
-    if (evento.type === "response.output_text.delta") yield evento.delta;
+    if (evento.type === "response.output_text.delta") yield { texto: evento.delta };
   }
 }
 
@@ -205,7 +308,7 @@ async function* deGpt(pet: Peticion, modelo: string) {
    sea sin tocar código.
    Aquí se usa /chat/completions y no la API de respuestas de OpenAI a
    propósito: es la que entienden todos, y la otra es solo de OpenAI. */
-async function* deExtra(pet: Peticion, modelo: string) {
+async function* deExtra(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
   const cliente = new OpenAI({ apiKey: CLAVES.extra()!, baseURL: EXTRA_URL() });
 
   const flujo = await cliente.chat.completions.create({
@@ -224,7 +327,7 @@ async function* deExtra(pet: Peticion, modelo: string) {
 
   for await (const parte of flujo) {
     const texto = parte.choices?.[0]?.delta?.content;
-    if (texto) yield texto;
+    if (texto) yield { texto };
   }
 }
 
@@ -233,8 +336,8 @@ async function* deExtra(pet: Peticion, modelo: string) {
 // ---------------------------------------------------------------
 export type Arranque = {
   /** El primer trozo, si lo hubo. Vacío = el modelo no dijo nada. */
-  primero?: string;
-  resto: AsyncIterator<string, unknown>;
+  primero?: Trozo;
+  resto: AsyncIterator<Trozo, unknown>;
 };
 
 /* Arranca la respuesta y espera al primer trozo.

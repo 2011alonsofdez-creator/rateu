@@ -187,3 +187,19 @@ export const OjoTachado = ({ className, style }: P) => (
     <path d="M3 3l18 18" />
   </svg>
 );
+
+/* Un alfiler de mapa y una lupa: las dos formas en las que Kairo puede
+   haber averiguado algo. Salen junto a cada fuente para que se vea de un
+   golpe si el dato viene de un sitio real o de una página web. */
+export const Pin = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M12 21.5s7-6.1 7-11a7 7 0 10-14 0c0 4.9 7 11 7 11z" />
+    <circle cx="12" cy="10.5" r="2.6" />
+  </svg>
+);
+export const Lupa = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <circle cx="10.8" cy="10.8" r="6.3" />
+    <path d="M15.5 15.5L21 21" />
+  </svg>
+);
