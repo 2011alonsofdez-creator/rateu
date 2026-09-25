@@ -50,6 +50,25 @@ export type Conversacion = {
   actualizadaEl: string;
 };
 
+/* Una fuente: de dónde salió lo que Kairo acaba de decir.
+   Va aquí, y no en la carpeta de la IA, porque la pinta el navegador. */
+export type Fuente = {
+  titulo: string;
+  /** El enlace tal y como lo da Google. No se toca: acorta a su
+   *  redirección y así el que lo publica sabe que el clic vino de aquí. */
+  url: string;
+  /** El sitio, limpio: "renfe.com". Es lo que se lee de un vistazo. */
+  dominio: string;
+  tipo: "web" | "mapa";
+};
+
+/** Cuántas fuentes se enseñan. Más de esto es una pared de enlaces que
+ *  nadie mira, y ocupa sitio en la base de datos por nada. */
+export const FUENTES_MAX = 12;
+
+/** Cuántas búsquedas sugeridas se enseñan debajo de las fuentes. */
+export const BUSQUEDAS_MAX = 6;
+
 /** Un mensaje recuperado de la base de datos. */
 export type MensajeGuardado = {
   id: string;
@@ -58,6 +77,10 @@ export type MensajeGuardado = {
   modelo: string | null;
   nivel: string | null;
   creditos: number;
+  /** De dónde sacó los datos, si los buscó. */
+  fuentes: Fuente[];
+  /** Lo que buscó para responder. */
+  busquedas: string[];
 };
 
 export const TITULO_MAX = 120;

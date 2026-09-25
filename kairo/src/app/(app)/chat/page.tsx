@@ -9,8 +9,9 @@ import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
 import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz";
-import type { Mente, MensajeGuardado } from "@/lib/tipos";
+import type { Fuente, Mente, MensajeGuardado } from "@/lib/tipos";
 import { Composer } from "@/components/Composer";
+import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
 import { Marca } from "@/components/Logo";
@@ -233,6 +234,8 @@ function Chat() {
             model: m.modelo ?? undefined,
             level: (m.nivel as Level | null) ?? undefined,
             credits: m.rol === "kairo" ? m.creditos : undefined,
+            fuentes: m.fuentes.length ? m.fuentes : undefined,
+            busquedas: m.busquedas.length ? m.busquedas : undefined,
           })),
         );
         setConversacion(c);
@@ -439,6 +442,25 @@ function Chat() {
               ]);
             }
             flujo.encolar(String(ev.v ?? ""));
+          } else if (ev.t === "fuentes") {
+            /* Llegan al final, cuando el modelo ya ha dicho lo que tenía
+               que decir. Se cuelgan del mensaje que se está escribiendo;
+               si no llegó a abrirse ninguno, no hay nada que adornar. */
+            const lista = Array.isArray(ev.v) ? (ev.v as Fuente[]) : [];
+            const buscado = Array.isArray(ev.busquedas) ? (ev.busquedas as string[]) : [];
+            if (abierto && (lista.length || buscado.length)) {
+              setMessages((m) =>
+                m.map((x) =>
+                  x.id === idK
+                    ? {
+                        ...x,
+                        fuentes: lista.length ? lista : undefined,
+                        busquedas: buscado.length ? buscado : undefined,
+                      }
+                    : x,
+                ),
+              );
+            }
           } else if (ev.t === "error") {
             setBusy(false);
             const v = String(ev.v);
@@ -692,6 +714,8 @@ function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
 
       <div className="min-w-0 flex-1">
         <Markdown text={texto} />
+
+        <Fuentes fuentes={m.fuentes} busquedas={m.busquedas} />
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button

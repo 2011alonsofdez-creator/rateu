@@ -9,14 +9,14 @@ import {
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
-import { arrancar, type Arranque } from "@/lib/ia/proveedores";
+import { arrancar, puedeBuscar, type Arranque, type Trozo } from "@/lib/ia/proveedores";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
 import { recortar } from "@/lib/texto";
 import type { Level } from "@/lib/mock";
 import type { ModoEdad, PlanId } from "@/lib/planes";
-import type { Mente } from "@/lib/tipos";
+import type { Fuente, Mente } from "@/lib/tipos";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -77,6 +77,13 @@ const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const enfriando = new Map<string, number>();
 const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
 const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
+
+/* ¿Está puesta la migración 0007, la que añade las columnas de las
+   fuentes? Se averigua a la primera y no se vuelve a preguntar. Sin
+   esto, una web con la migración pendiente dejaría de guardar las
+   respuestas enteras, y perder la conversación por no poder guardar de
+   dónde salió un dato sería un pésimo canje. */
+let columnasDeFuentes = true;
 
 type Guardado = { id: string; titulo: string; nueva: boolean };
 
@@ -250,6 +257,10 @@ export async function POST(req: Request) {
          Al final y no trozo a trozo: serían cien escrituras por mensaje. */
       let acumulado = "";
       let usado = "";
+      /* De dónde salió lo que ha dicho. Se guarda con la respuesta para
+         que al volver a abrir la conversación sigan estando ahí. */
+      let fuentes: Fuente[] = [];
+      let busquedas: string[] = [];
       let conversacion: Guardado | null = null;
       let avisado = false;
 
@@ -280,13 +291,19 @@ export async function POST(req: Request) {
       );
 
       try {
-        const sistema = construirPrompt({
-          modoEdad: perfil.modo_edad,
-          tono: perfil.tono ?? "cercano",
-          nombre: perfil.nombre || undefined,
-          nivel,
-          mente,
-        });
+        /* El prompt se arma por candidato y no una vez para todos: no
+           todos los modelos de la cadena pueden buscar en internet, y
+           decirle a uno que no puede que tiene buscador es pedirle que
+           se invente lo que no ha consultado. */
+        const promptPara = (candidato: string) =>
+          construirPrompt({
+            modoEdad: perfil.modo_edad,
+            tono: perfil.tono ?? "cercano",
+            nombre: perfil.nombre || undefined,
+            nivel,
+            mente,
+            conBusqueda: puedeBuscar(candidato),
+          });
 
         /* Cómo se busca un cerebro que conteste.
          *
@@ -322,7 +339,7 @@ export async function POST(req: Request) {
             try {
               arranque = await arrancar({
                 id: candidato,
-                sistema,
+                sistema: promptPara(candidato),
                 mensajes: historial,
                 maxSalida: MAX_SALIDA[nivel],
                 esfuerzo: ESFUERZO[nivel],
@@ -379,18 +396,28 @@ export async function POST(req: Request) {
         /* El primer trozo ya está en la mano (es lo que confirmó que el
            modelo responde). Se vuelve a poner al principio de la cola y
            el resto sale del iterador. */
-        const trozos: AsyncIterable<string> = {
+        const trozos: AsyncIterable<Trozo> = {
           async *[Symbol.asyncIterator]() {
             if (respuesta.primero) yield respuesta.primero;
             while (true) {
               const siguiente = await respuesta.resto.next();
               if (siguiente.done) return;
-              if (siguiente.value) yield siguiente.value as string;
+              if (siguiente.value) yield siguiente.value as Trozo;
             }
           },
         };
 
-        for await (const texto of trozos) {
+        for await (const trozo of trozos) {
+          /* Las fuentes no son respuesta: no se cobran, no se acumulan
+             en el texto y van por su propio aviso. */
+          if ("fuentes" in trozo) {
+            fuentes = trozo.fuentes;
+            busquedas = trozo.busquedas;
+            enviar({ t: "fuentes", v: fuentes, busquedas });
+            continue;
+          }
+
+          const texto = trozo.texto;
           if (!texto) continue;
 
           // Primer trozo bueno: ahora sí se cobra. Ni antes (podría
@@ -449,14 +476,31 @@ export async function POST(req: Request) {
           avisarConversacion();
 
           if (conversacion && acumulado.trim()) {
-            const { error } = await supabase.from("mensajes").insert({
+            const fila = {
               conversacion_id: conversacion.id,
               rol: "kairo",
               contenido: acumulado,
               modelo_usado: usado ? nombreModelo(usado) : null,
               nivel,
               creditos_gastados: cobrado ? coste : 0,
-            });
+            };
+
+            const conFuentes =
+              columnasDeFuentes && (fuentes.length || busquedas.length)
+                ? { ...fila, fuentes, busquedas }
+                : fila;
+
+            let { error } = await supabase.from("mensajes").insert(conFuentes);
+
+            /* Las columnas de fuentes todavía no existen: se guarda la
+               respuesta sin ellas. Mejor la conversación sin las fuentes
+               que la conversación perdida. */
+            if (error && conFuentes !== fila && /fuentes|busquedas|column/i.test(error.message)) {
+              columnasDeFuentes = false;
+              console.warn("[kairo] falta la migración 0007: las fuentes no se guardan todavía");
+              ({ error } = await supabase.from("mensajes").insert(fila));
+            }
+
             if (error) console.error("[kairo] no se guardó la respuesta:", error.message);
           }
         } catch (e) {

@@ -63,6 +63,10 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
 - **El nivel decide el modelo y cuánto razona**: Rápido usa Flash-Lite sin
   razonamiento, Normal usa Flash, y MEGA usa Flash con el presupuesto de
   razonamiento al máximo.
+- **Busca en internet antes de contestar y enseña de dónde lo ha sacado**:
+  precios, horarios, direcciones y cualquier cosa que cambie salen del
+  buscador, no de la memoria del modelo, y debajo de la respuesta queda la
+  lista de páginas consultadas. Va incluido con la clave de Gemini.
 - **Un nivel que el plan no incluye aparece bloqueado**, no da error después.
 - **Español e inglés** completos, y **tema oscuro y claro** sin parpadeo al cargar.
 - **Responsive**: en móvil la barra lateral pasa a menú deslizante.

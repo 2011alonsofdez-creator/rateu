@@ -47,8 +47,9 @@ En Supabase, **SQL Editor** → **New query**:
 4. Nueva consulta, pega `migrations/0004_mentes_mas_texto.sql` → **Run**.
 5. Nueva consulta, pega `migrations/0005_historial.sql` → **Run**.
 6. Nueva consulta, pega `migrations/0006_pagos.sql` → **Run**.
+7. Nueva consulta, pega `migrations/0007_fuentes.sql` → **Run**.
 
-Los seis archivos se pueden ejecutar varias veces sin romper nada.
+Los siete archivos se pueden ejecutar varias veces sin romper nada.
 
 ## 5. Activar la recarga diaria (1 min)
 
@@ -151,3 +152,4 @@ se montará en el Paso 3.
 | `migrations/0004_mentes_mas_texto.sql` | Sube las instrucciones de una Mente a 12.000 caracteres y la descripción a 300 |
 | `migrations/0005_historial.sql` | Arregla los niveles de `mensajes`, ordena las conversaciones por actividad y las sube solas con cada mensaje |
 | `migrations/0006_pagos.sql` | `suscripciones`, `eventos_pago` y las funciones que mueven plan y créditos. Ninguna la puede llamar el navegador |
+| `migrations/0007_fuentes.sql` | Guarda con cada respuesta las páginas que Kairo consultó, para que las fuentes sigan ahí al reabrir la conversación |
