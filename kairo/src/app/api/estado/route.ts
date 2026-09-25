@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
 import { EXTRA_URL, modelosExtra } from "@/lib/ia/proveedores";
+import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -132,6 +133,17 @@ export async function GET() {
       forja: cadenaDe("forja", "adulto"),
       mega: cadenaDe("mega", "adulto"),
       menores: cadenaDe("normal", "nino"),
+    },
+
+    /* Los pagos son opcionales: sin configurar, los botones llevan a
+       crear cuenta y ya está. Esto dice cuáles de las cuatro piezas
+       están puestas, nunca su contenido. */
+    pagos: {
+      tienda_montada: hayTienda(),
+      enlaces_puestos: PRODUCTOS.filter((x) => enlaceDe(x)),
+      secreto_del_webhook: secretoWebhook().length > 0,
+      clave_de_administrador: (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").length > 0,
+      botones_visibles: process.env.NEXT_PUBLIC_TIENDA === "1",
     },
 
     listo_para_chatear: hasSupabase && activos.length > 0,
