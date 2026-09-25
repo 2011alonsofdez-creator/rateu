@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useCredits } from "@/lib/credits";
@@ -56,6 +56,25 @@ export default function AjustesPage() {
   const [tone, setTone] = useState(perfil.tono);
   const [guardado, setGuardado] = useState(false);
   const [pendiente, startTransition] = useTransition();
+
+  /* La suscripción se pide solo aquí, no en el perfil que carga toda la
+     app: es un dato que se mira una vez al mes, no en cada pantalla. */
+  const [suscripcion, setSuscripcion] = useState<{
+    estado: string;
+    renueva_el: string | null;
+    termina_el: string | null;
+    portal: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (perfil.demo || perfil.plan === "free") return;
+    fetch("/api/suscripcion")
+      .then((r) => r.json())
+      .then((j) => setSuscripcion(j?.suscripcion ?? null))
+      .catch(() => {
+        /* sin suscripción que enseñar, se queda como estaba */
+      });
+  }, [perfil.demo, perfil.plan]);
   const es = lang === "es";
 
   const elegirTono = (id: string) => {
@@ -212,18 +231,43 @@ export default function AjustesPage() {
                 {t("app.creditsLeft")}:{" "}
                 <strong className="text-fg">{credits.toLocaleString(lang)}</strong> / {total}
               </p>
-              {perfil.renuevaEl && (
-                <p className="mt-0.5 text-[12.5px] text-faint">
-                  {t("app.renews")} {perfil.renuevaEl}
+              {/* Cancelada no es lo mismo que caducada: sigues teniendo lo
+                  que pagaste hasta el día que termina, y conviene decirlo. */}
+              {suscripcion?.estado === "cancelada" && suscripcion.termina_el ? (
+                <p className="mt-0.5 text-[12.5px] text-gold">
+                  {es
+                    ? `Cancelada. Lo mantienes hasta el ${suscripcion.termina_el}.`
+                    : `Cancelled. You keep it until ${suscripcion.termina_el}.`}
                 </p>
+              ) : (
+                perfil.renuevaEl && (
+                  <p className="mt-0.5 text-[12.5px] text-faint">
+                    {t("app.renews")} {perfil.renuevaEl}
+                  </p>
+                )
               )}
             </div>
-            <Link
-              href="/precios"
-              className="rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
-            >
-              {es ? "Gestionar plan" : "Manage plan"}
-            </Link>
+
+            <div className="flex flex-wrap gap-2">
+              {/* Cancelar tiene que ser tan fácil como suscribirse. El
+                  enlace lo da el proveedor, que es quien cobra. */}
+              {suscripcion?.portal && (
+                <a
+                  href={suscripcion.portal}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+                >
+                  {es ? "Gestionar o cancelar" : "Manage or cancel"}
+                </a>
+              )}
+              <Link
+                href="/precios"
+                className="rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+              >
+                {es ? "Ver planes" : "See plans"}
+              </Link>
+            </div>
           </div>
         </Card>
 

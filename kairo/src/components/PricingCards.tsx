@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { creditPacks, plans } from "@/lib/mock";
+import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
 import { Bolt, Check } from "./Icons";
 
 const NAME = { free: "pricing.free", plus: "pricing.plus", supreme: "pricing.supreme" } as const;
@@ -80,8 +81,14 @@ export function PricingCards() {
                 ))}
               </ul>
 
+              {/* Con la tienda montada, el botón lleva a pagar; sin ella,
+                  a crear la cuenta, que es lo único que hay de momento. */}
               <Link
-                href="/chat"
+                href={
+                  HAY_TIENDA && p.id !== "free"
+                    ? comprar(yearly ? `${p.id}_anual` : p.id)
+                    : "/chat"
+                }
                 className={`mt-7 rounded-xl px-4 py-2.5 text-center text-[14px] font-semibold transition ${
                   p.featured
                     ? "brand-grad text-on-accent hover:opacity-90"
@@ -106,15 +113,26 @@ export function PricingCards() {
             <p className="mt-1 text-[13px] text-faint">{t("pricing.creditsSub")}</p>
           </div>
           <div className="flex gap-3">
-            {creditPacks.map((pack) => (
-              <button
-                key={pack.credits}
-                className="rounded-xl border border-line-hi px-4 py-2.5 text-[14px] transition hover:bg-panel-hi"
-              >
-                <span className="font-semibold">{pack.credits.toLocaleString(lang)}</span>
-                <span className="text-faint"> · {money(pack.price)}</span>
-              </button>
-            ))}
+            {creditPacks.map((pack) => {
+              const dentro = (
+                <>
+                  <span className="font-semibold">{pack.credits.toLocaleString(lang)}</span>
+                  <span className="text-faint"> · {money(pack.price)}</span>
+                </>
+              );
+              const clases =
+                "rounded-xl border border-line-hi px-4 py-2.5 text-[14px] transition hover:bg-panel-hi";
+
+              return HAY_TIENDA ? (
+                <Link key={pack.credits} href={comprar(`pack_${pack.credits}`)} className={clases}>
+                  {dentro}
+                </Link>
+              ) : (
+                <Link key={pack.credits} href="/chat" className={clases}>
+                  {dentro}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

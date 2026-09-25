@@ -46,9 +46,9 @@ un nivel. El usuario siempre puede forzar el nivel a mano desde el botón ⚡.
 
 ### MVP (versión 1 — esto es lo que se construye ahora)
 
-Estado a 24/09/2026: **Pasos 1, 2 y 3 hechos. Claude, Gemini y GPT conectados
-de verdad. Las Mentes funcionan de punta a punta y las conversaciones se
-guardan.** Falta el Paso 4: los pagos.
+Estado a 25/09/2026: **Los cuatro pasos hechos.** Claude, Gemini y GPT
+conectados, las Mentes funcionan de punta a punta, las conversaciones se
+guardan y los pagos están montados a falta de dar de alta la tienda.
 
 - [x] Registro y login (email + Google)
 - [x] Rutas protegidas y sesión que se refresca sola
@@ -67,7 +67,9 @@ guardan.** Falta el Paso 4: los pagos.
 - [ ] Subida de archivos (PDF, imagen, Word, Excel) y lectura de su contenido
 - [x] Historial de conversaciones, renombrar y borrar
 - [x] Sistema de créditos con descuento atómico en servidor
-- [ ] Tres planes: Free / Kairo+ / Supreme, con pasarela de pago *(Paso 4)*
+- [x] Tres planes: Free / Kairo+ / Supreme, con pasarela de pago. Montado y
+      probado; queda dar de alta la tienda, que pide ser mayor de edad y datos
+      fiscales. Guía en `docs/kairo/PAGOS.md`
 - [x] Modo de edad asignado por fecha de nacimiento, imposible de cambiar después
 - [x] Filtros de moderación distintos por modo de edad
 - [x] Selector de tono de la IA (lo elige el usuario en ajustes)
