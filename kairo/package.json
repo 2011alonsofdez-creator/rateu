@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start"
   },
+  "allowScripts": {
+    "@google/genai@2.24.0": true,
+    "protobufjs@7.6.6": true
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
     "@google/genai": "^2.24.0",
