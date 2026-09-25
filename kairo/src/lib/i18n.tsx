@@ -122,6 +122,10 @@ const dict = {
     "app.placeholder": "Escribe aquí...",
     "app.attach": "Adjuntar archivo",
     "app.voice": "Dictar",
+    "app.stopVoice": "Dejar de escuchar",
+    "app.listening": "Te escucho… habla",
+    "app.micDenied":
+      "No tengo permiso para el micrófono. Ábrelo en el candado de la barra de direcciones y vuelve a intentarlo.",
     "app.send": "Enviar",
     "app.copy": "Copiar",
     "auth.showPass": "Ver la contraseña",
@@ -379,6 +383,10 @@ const dict = {
     "app.placeholder": "Type here...",
     "app.attach": "Attach file",
     "app.voice": "Dictate",
+    "app.stopVoice": "Stop listening",
+    "app.listening": "Listening… go ahead",
+    "app.micDenied":
+      "I do not have microphone permission. Allow it from the padlock in the address bar and try again.",
     "app.send": "Send",
     "app.copy": "Copy",
     "auth.showPass": "Show password",

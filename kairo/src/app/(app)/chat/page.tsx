@@ -8,6 +8,7 @@ import { LEVELS, pick, type Level, type Message } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
+import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz";
 import type { Mente, MensajeGuardado } from "@/lib/tipos";
 import { Composer } from "@/components/Composer";
 import { Markdown } from "@/components/Markdown";
@@ -654,23 +655,25 @@ function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
   const texto = pick(m.content, lang);
 
   /* La voz la pone el navegador, no un servicio de pago: no cuesta nada
-     y funciona sin conexión. Si el navegador no la trae, el botón no sale. */
-  const hayVoz = typeof window !== "undefined" && "speechSynthesis" in window;
+     y funciona sin conexión. Si el navegador no la trae, el botón no sale.
+     Se comprueba después de pintar, no durante: preguntarlo al pintar da
+     un HTML en el servidor y otro distinto en el navegador. */
+  const [hayVoz, setHayVoz] = useState(false);
 
-  // Si te vas de la página a media lectura, que no se quede hablando solo.
-  useEffect(() => () => { if (hayVoz) window.speechSynthesis.cancel(); }, [hayVoz]);
+  useEffect(() => {
+    setHayVoz(hayVozParaLeer());
+    prepararVoces(); // las voces buenas tardan un instante en cargarse
+    return () => callar(); // si te vas a media lectura, que no siga hablando
+  }, []);
 
   const leer = () => {
     if (!hayVoz) return;
-    window.speechSynthesis.cancel();
-    if (leyendo) return setLeyendo(false);
-
-    const frase = new SpeechSynthesisUtterance(paraLeer(texto));
-    frase.lang = lang === "es" ? "es-ES" : "en-US";
-    frase.onend = () => setLeyendo(false);
-    frase.onerror = () => setLeyendo(false);
-    window.speechSynthesis.speak(frase);
+    if (leyendo) {
+      callar();
+      return setLeyendo(false);
+    }
     setLeyendo(true);
+    leerEnVozAlta(paraLeer(texto), lang, () => setLeyendo(false));
   };
 
   const copy = async () => {
