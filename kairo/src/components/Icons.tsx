@@ -161,3 +161,15 @@ export const Trash = ({ className, style }: P) => (
     <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
   </svg>
 );
+
+export const Altavoz = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M11 5 6 9H3v6h3l5 4V5z" />
+    <path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13" />
+  </svg>
+);
+export const Stop = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <rect x="6" y="6" width="12" height="12" rx="2" />
+  </svg>
+);

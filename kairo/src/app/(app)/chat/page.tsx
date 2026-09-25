@@ -22,6 +22,8 @@ import {
   Clock,
   Code,
   Copy,
+  Altavoz,
+  Stop,
   Image as ImageIcon,
   Refresh,
 } from "@/components/Icons";
@@ -79,6 +81,49 @@ export default function ChatPage() {
   );
 }
 
+/* Saca el texto a ritmo constante en vez de a ráfagas.
+ *
+ * El modelo no manda el texto letra a letra: llega a trompicones, y a
+ * veces un párrafo entero de golpe. Pintarlo tal cual da esa sensación de
+ * tirones. Esto guarda lo que llega y lo va soltando; si se acumula
+ * mucho, acelera, para no quedarse por detrás de lo que ya está dicho. */
+function suavizado(anadir: (v: string) => void, alVaciarse: () => void) {
+  let pendiente = "";
+  let animando = false;
+  let terminado = false;
+
+  const soltar = () => {
+    if (!pendiente) {
+      animando = false;
+      if (terminado) alVaciarse();
+      return;
+    }
+
+    let n = Math.max(3, Math.ceil(pendiente.length / 25));
+    // Sin partir un emoji por la mitad: ocupa dos posiciones.
+    const codigo = pendiente.charCodeAt(n - 1);
+    if (codigo >= 0xd800 && codigo <= 0xdbff) n += 1;
+
+    anadir(pendiente.slice(0, n));
+    pendiente = pendiente.slice(n);
+    requestAnimationFrame(soltar);
+  };
+
+  return {
+    encolar(v: string) {
+      if (!v) return;
+      pendiente += v;
+      if (animando) return;
+      animando = true;
+      requestAnimationFrame(soltar);
+    },
+    cerrar() {
+      terminado = true;
+      if (!animando) alVaciarse();
+    },
+  };
+}
+
 function Chat() {
   const { t, lang } = useUi();
   const router = useRouter();
@@ -133,8 +178,12 @@ function Chat() {
   };
 
   useEffect(() => {
-    if (pegado.current) bottom.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, busy]);
+    if (!pegado.current) return;
+    /* Mientras se escribe, el salto es instantáneo: con "smooth" sesenta
+       veces por segundo el navegador se pelea consigo mismo y da tirones.
+       Cuando no se escribe, suave, que es cuando se nota bonito. */
+    bottom.current?.scrollIntoView({ behavior: escribiendo ? "auto" : "smooth" });
+  }, [messages, busy, escribiendo]);
 
   /* Al llegar desde "Usar en el chat" la Mente viene en la dirección.
      Solo preselecciona; quien decide de verdad qué Mente se usa es el
@@ -232,19 +281,35 @@ function Chat() {
     // --- Modo demo: sin claves, respuesta de ejemplo ---
     if (perfil.demo) {
       await spend(coste, `demo ${level}`);
+      const idK = `k${Date.now()}`;
+
       window.setTimeout(() => {
+        setBusy(false);
+        setEscribiendo(idK);
         setMessages((m) => [
           ...m,
-          {
-            id: `k${Date.now()}`,
-            role: "kairo",
-            level,
-            credits: coste,
-            model: "demo",
-            content: { es: DEMO[level].es, en: DEMO[level].en },
-          },
+          { id: idK, role: "kairo", level, credits: coste, model: "demo",
+            content: { es: "", en: "" } },
         ]);
-        setBusy(false);
+
+        // La demo escribe igual que la web de verdad: si aquí saliera de
+        // golpe, estaríamos enseñando algo que no se parece al producto.
+        const flujo = suavizado(
+          (v) =>
+            setMessages((m) => {
+              const copia = [...m];
+              const ult = copia[copia.length - 1];
+              if (ult?.id !== idK) return m;
+              copia[copia.length - 1] = {
+                ...ult,
+                content: { es: ult.content.es + v, en: ult.content.en + v },
+              };
+              return copia;
+            }),
+          () => setEscribiendo(undefined),
+        );
+        flujo.encolar(DEMO[level][lang]);
+        flujo.cerrar();
       }, 700);
       return;
     }
@@ -265,6 +330,9 @@ function Chat() {
     setModelo(undefined);
     pegado.current = true;
     setAbajo(true);
+
+    // Si la respuesta ni empieza, no hay cola que cerrar.
+    let cerrarFlujo = () => setEscribiendo(undefined);
 
     try {
       const res = await fetch("/api/chat", {
@@ -298,6 +366,14 @@ function Chat() {
       const idK = `k${Date.now()}`;
       let resto = "";
       let abierto = false;
+
+      /* El logo deja de moverse cuando se acaba el texto EN PANTALLA, no
+         cuando se acaba el que viene por el cable. */
+      const flujo = suavizado(
+        (v) => anadirTexto(v),
+        () => setEscribiendo(undefined),
+      );
+      cerrarFlujo = () => flujo.cerrar();
 
       const anadirTexto = (v: string) => {
         setMessages((m) => {
@@ -361,7 +437,7 @@ function Chat() {
                 },
               ]);
             }
-            anadirTexto(String(ev.v ?? ""));
+            flujo.encolar(String(ev.v ?? ""));
           } else if (ev.t === "error") {
             setBusy(false);
             const v = String(ev.v);
@@ -390,7 +466,9 @@ function Chat() {
       setError("err.red");
     } finally {
       setBusy(false);
-      setEscribiendo(undefined);
+      // Si no queda nada por soltar se apaga ya; si queda, lo apaga el
+      // propio bucle al vaciar la cola.
+      cerrarFlujo();
     }
   };
 
@@ -552,10 +630,48 @@ function Chat() {
   );
 }
 
+/* Quita el formato de Markdown para que la voz no lea los asteriscos ni
+   se ponga a deletrear un bloque de código entero. */
+function paraLeer(md: string) {
+  return md
+    .replace(/```[\s\S]*?```/g, ". Aquí hay un bloque de código. ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}>\s?/gm, "")
+    .replace(/\*\*|__|\*|_|~~/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\|/g, " ")
+    .replace(/\n{2,}/g, ". ")
+    .trim();
+}
+
 function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
   const { t, lang } = useUi();
   const [copied, setCopied] = useState(false);
+  const [leyendo, setLeyendo] = useState(false);
   const texto = pick(m.content, lang);
+
+  /* La voz la pone el navegador, no un servicio de pago: no cuesta nada
+     y funciona sin conexión. Si el navegador no la trae, el botón no sale. */
+  const hayVoz = typeof window !== "undefined" && "speechSynthesis" in window;
+
+  // Si te vas de la página a media lectura, que no se quede hablando solo.
+  useEffect(() => () => { if (hayVoz) window.speechSynthesis.cancel(); }, [hayVoz]);
+
+  const leer = () => {
+    if (!hayVoz) return;
+    window.speechSynthesis.cancel();
+    if (leyendo) return setLeyendo(false);
+
+    const frase = new SpeechSynthesisUtterance(paraLeer(texto));
+    frase.lang = lang === "es" ? "es-ES" : "en-US";
+    frase.onend = () => setLeyendo(false);
+    frase.onerror = () => setLeyendo(false);
+    window.speechSynthesis.speak(frase);
+    setLeyendo(true);
+  };
 
   const copy = async () => {
     try {
@@ -582,6 +698,21 @@ function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
             {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             {copied ? t("app.copied") : t("app.copy")}
           </button>
+          {hayVoz && (
+            <button
+              onClick={leer}
+              title={leyendo ? t("app.stopRead") : t("app.read")}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[12px] transition ${
+                leyendo
+                  ? "border-acento/50 bg-acento/10 text-fg"
+                  : "border-line text-muted hover:border-line-hi hover:text-fg"
+              }`}
+            >
+              {leyendo ? <Stop className="h-3.5 w-3.5" /> : <Altavoz className="h-3.5 w-3.5" />}
+              {leyendo ? t("app.stopRead") : t("app.read")}
+            </button>
+          )}
+
           <button
             title={t("app.regenWarn")}
             className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[12px] text-muted transition hover:border-line-hi hover:text-fg"
@@ -593,11 +724,6 @@ function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
           {m.model && m.model !== "demo" && (
             <span className="rounded-lg border border-line px-2 py-1 text-[11.5px] text-faint">
               {m.model}
-            </span>
-          )}
-          {m.credits != null && (
-            <span className="rounded-lg border border-line px-2 py-1 text-[11.5px] text-faint">
-              {m.credits} {t("app.cr")}
             </span>
           )}
         </div>
