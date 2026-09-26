@@ -9,7 +9,9 @@ import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
 import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz";
-import type { Fuente, Mente, MensajeGuardado } from "@/lib/tipos";
+import { borrarDesde } from "@/app/(app)/actions";
+import { esImagen, type Adjunto, type Fuente, type Mente, type MensajeGuardado } from "@/lib/tipos";
+import { tamano } from "@/lib/archivos";
 import { Composer } from "@/components/Composer";
 import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
@@ -25,6 +27,7 @@ import {
   Code,
   Copy,
   Altavoz,
+  Pencil,
   Stop,
   Image as ImageIcon,
   Refresh,
@@ -229,6 +232,8 @@ function Chat() {
         setMessages(
           guardados.map((m) => ({
             id: m.id,
+            // Al venir de la base de datos, el identificador ES el suyo.
+            dbId: m.id,
             role: m.rol,
             content: { es: m.contenido, en: m.contenido },
             model: m.modelo ?? undefined,
@@ -259,7 +264,73 @@ function Chat() {
       .finally(() => setCargando(false));
   }, [params]);
 
-  const send = async (texto: string) => {
+  /* Responder de mentira, para el modo demo. Escribe igual que la web de
+     verdad: si aquí saliera de golpe, estaríamos enseñando algo que no
+     se parece al producto. */
+  const responderDemo = async (coste: number) => {
+    await spend(coste, `demo ${level}`);
+    const idK = `k${Date.now()}`;
+
+    window.setTimeout(() => {
+      setBusy(false);
+      setEscribiendo(idK);
+      setMessages((m) => [
+        ...m,
+        { id: idK, role: "kairo", level, credits: coste, model: "demo",
+          content: { es: "", en: "" } },
+      ]);
+
+      const flujo = suavizado(
+        (v) =>
+          setMessages((m) => {
+            const copia = [...m];
+            const ult = copia[copia.length - 1];
+            if (ult?.id !== idK) return m;
+            copia[copia.length - 1] = {
+              ...ult,
+              content: { es: ult.content.es + v, en: ult.content.en + v },
+            };
+            return copia;
+          }),
+        () => setEscribiendo(undefined),
+      );
+      flujo.encolar(DEMO[level][lang]);
+      flujo.cerrar();
+    }, 700);
+  };
+
+  /* Pone la pantalla en modo "estoy trabajando" y lanza la respuesta,
+     con IA de verdad o con la de ejemplo. Lo usan enviar, editar y
+     regenerar: los tres acaban en el mismo sitio. */
+  const arrancarRespuesta = async (lista: Message[], esReintento: boolean) => {
+    const coste = LEVELS[level].credits;
+    pegado.current = true;
+    setAbajo(true);
+    setBusy(true);
+    setModelo(undefined);
+
+    if (perfil.demo) return responderDemo(coste);
+    await pedir(lista, esReintento);
+  };
+
+  /* Los archivos ya enviados dejan de hacer falta enteros: el modelo
+     ya los vio. Se queda la miniatura de las fotos pequeñas, para que
+     la conversación siga teniendo sentido al mirarla, y del resto solo
+     el nombre. Un PDF de tres megas por mensaje, multiplicado por una
+     tarde de preguntas, es memoria del navegador tirada. */
+  const aligerar = (lista: Message[]): Message[] =>
+    lista.map((m) =>
+      m.adjuntos?.length
+        ? {
+            ...m,
+            adjuntos: m.adjuntos.map((a) =>
+              esImagen(a.tipo) && a.datos.length <= 300_000 ? a : { ...a, datos: "" },
+            ),
+          }
+        : m,
+    );
+
+  const send = async (texto: string, adjuntos: Adjunto[] = []) => {
     const coste = LEVELS[level].credits;
     setError(undefined);
     setDetalle(undefined);
@@ -273,53 +344,88 @@ function Chat() {
 
     const bi = { es: texto, en: texto };
     const conElMio: Message[] = [
-      ...messages,
-      { id: `u${Date.now()}`, role: "user", content: bi },
+      ...aligerar(messages),
+      {
+        id: `u${Date.now()}`,
+        role: "user",
+        content: bi,
+        adjuntos: adjuntos.length ? adjuntos : undefined,
+      },
     ];
     setMessages(conElMio);
-    pegado.current = true;
-    setAbajo(true);
-    setBusy(true);
-    setModelo(undefined);
+    await arrancarRespuesta(conElMio, false);
+  };
 
-    // --- Modo demo: sin claves, respuesta de ejemplo ---
-    if (perfil.demo) {
-      await spend(coste, `demo ${level}`);
-      const idK = `k${Date.now()}`;
+  /* Editar una pregunta ya enviada.
+   *
+   * Te has equivocado escribiendo y la respuesta ya no vale: contesta a
+   * lo que escribiste, no a lo que querías decir. Así que la pregunta
+   * se cambia y se vuelve a preguntar desde ahí, y todo lo que venía
+   * después se va. También de la base de datos: si se quedara, al
+   * reabrir la conversación aparecerían la pregunta vieja y la nueva
+   * una detrás de otra, como si hubieras preguntado dos veces. */
+  const editar = async (id: string, nuevo: string) => {
+    if (busy) return;
 
-      window.setTimeout(() => {
-        setBusy(false);
-        setEscribiendo(idK);
-        setMessages((m) => [
-          ...m,
-          { id: idK, role: "kairo", level, credits: coste, model: "demo",
-            content: { es: "", en: "" } },
-        ]);
+    const idx = messages.findIndex((m) => m.id === id);
+    if (idx < 0) return;
 
-        // La demo escribe igual que la web de verdad: si aquí saliera de
-        // golpe, estaríamos enseñando algo que no se parece al producto.
-        const flujo = suavizado(
-          (v) =>
-            setMessages((m) => {
-              const copia = [...m];
-              const ult = copia[copia.length - 1];
-              if (ult?.id !== idK) return m;
-              copia[copia.length - 1] = {
-                ...ult,
-                content: { es: ult.content.es + v, en: ult.content.en + v },
-              };
-              return copia;
-            }),
-          () => setEscribiendo(undefined),
-        );
-        flujo.encolar(DEMO[level][lang]);
-        flujo.cerrar();
-      }, 700);
-      return;
+    const original = messages[idx];
+    const texto = nuevo.trim();
+    if (!texto || texto === pick(original.content, lang)) return;
+
+    const coste = LEVELS[level].credits;
+    if (coste > credits) return setNoCredits(true);
+
+    setError(undefined);
+    setDetalle(undefined);
+
+    if (conversacion && original.dbId && !perfil.demo) {
+      await borrarDesde(conversacion, original.dbId);
     }
 
-    // --- Modo real ---
-    await pedir(conElMio, false);
+    /* Los archivos que llevaba siguen con la pregunta corregida: has
+       cambiado lo que preguntas, no lo que le enseñas. Solo los que
+       todavía están enteros en memoria; de los viejos se soltó el
+       contenido y volver a mandarlos sería mandar un archivo vacío. */
+    const conservados = original.adjuntos?.filter((a) => a.datos);
+
+    const lista: Message[] = [
+      ...messages.slice(0, idx),
+      {
+        id: `u${Date.now()}`,
+        role: "user",
+        content: { es: texto, en: texto },
+        adjuntos: conservados?.length ? conservados : undefined,
+      },
+    ];
+    setMessages(lista);
+    await arrancarRespuesta(lista, false);
+  };
+
+  /* Volver a pedir la última respuesta. La pregunta sigue donde estaba
+     —en pantalla y en la base de datos—, así que no se vuelve a guardar;
+     lo que se tira es la respuesta que no te ha servido. */
+  const regenerar = async (id: string) => {
+    if (busy) return;
+
+    const idx = messages.findIndex((m) => m.id === id);
+    if (idx < 0 || messages[idx].role !== "kairo") return;
+
+    const coste = LEVELS[level].credits;
+    if (coste > credits) return setNoCredits(true);
+
+    setError(undefined);
+    setDetalle(undefined);
+
+    const dbId = messages[idx].dbId;
+    if (conversacion && dbId && !perfil.demo) {
+      await borrarDesde(conversacion, dbId);
+    }
+
+    const lista = messages.slice(0, idx);
+    setMessages(lista);
+    await arrancarRespuesta(lista, true);
   };
 
   /* Habla con el servidor con la lista de mensajes que se le dé.
@@ -330,10 +436,6 @@ function Chat() {
     setError(undefined);
     setDetalle(undefined);
     setEspera(undefined);
-    setBusy(true);
-    setModelo(undefined);
-    pegado.current = true;
-    setAbajo(true);
 
     // Si la respuesta ni empieza, no hay cola que cerrar.
     let cerrarFlujo = () => setEscribiendo(undefined);
@@ -350,9 +452,16 @@ function Chat() {
           // podría colar el texto que quisiera en el system prompt.
           menteId: mente?.id ?? null,
           conversacionId: conversacion,
-          mensajes: lista.map((m) => ({
+          /* Los archivos van SOLO con la última pregunta. En el resto
+             sobran: el modelo ya los vio en su momento y repetirlos en
+             cada mensaje haría la petición más grande cada vez, hasta
+             que dejara de caber. */
+          mensajes: lista.map((m, i) => ({
             rol: m.role,
             texto: pick(m.content, lang),
+            ...(i === lista.length - 1 && m.adjuntos?.length
+              ? { adjuntos: m.adjuntos }
+              : {}),
           })),
         }),
       });
@@ -362,6 +471,10 @@ function Chat() {
         if (res.status === 402) return setNoCredits(true);
         if (res.status === 403) return setError("err.nivel");
         if (res.status === 401) return setError("err.sesion");
+        if (res.status === 503) {
+          const j = await res.json().catch(() => null);
+          if (j?.error === "sin_modelo_archivos") return setError("err.archivos");
+        }
         return setError("err.modelo");
       }
 
@@ -416,6 +529,20 @@ function Chat() {
             const id = String(ev.id);
             setConversacion(id);
             puesta.current = id;
+
+            /* La base de datos ya tiene tu pregunta y acaba de decirnos
+               con qué identificador. Sin él no se podría editar: editar
+               es rehacer la conversación desde ese mensaje, y para eso
+               hay que saber cuál es. */
+            const idPregunta = ev.mensajeUsuario;
+            if (typeof idPregunta === "string") {
+              setMessages((m) => {
+                const ultimo = [...m].reverse().find((x) => x.role === "user");
+                return ultimo && !ultimo.dbId
+                  ? m.map((x) => (x.id === ultimo.id ? { ...x, dbId: idPregunta } : x))
+                  : m;
+              });
+            }
             // La dirección pasa a apuntar a esta conversación, para que
             // recargar o compartir el enlace la abra. Sin salto de página.
             if (ev.nueva) {
@@ -459,6 +586,14 @@ function Chat() {
                       }
                     : x,
                 ),
+              );
+            }
+          } else if (ev.t === "guardado") {
+            // Lo mismo para la respuesta: es lo que "Regenerar" reemplaza.
+            const idRespuesta = String(ev.id ?? "");
+            if (idRespuesta) {
+              setMessages((m) =>
+                m.map((x) => (x.id === idK ? { ...x, dbId: idRespuesta } : x)),
               );
             }
           } else if (ev.t === "error") {
@@ -569,15 +704,29 @@ function Chat() {
           </div>
         ) : (
           <div className="mx-auto max-w-3xl space-y-7 px-4 py-8">
-            {messages.map((m) =>
+            {messages.map((m, i) =>
               m.role === "user" ? (
-                <div key={m.id} className="flex justify-end">
-                  <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-panel-hi px-4 py-2.5 text-[15px] leading-relaxed">
-                    {pick(m.content, lang)}
-                  </p>
-                </div>
+                <UserMessage
+                  key={m.id}
+                  m={m}
+                  puedeEditar={!busy && !escribiendo}
+                  onEditar={(texto) => editar(m.id, texto)}
+                />
               ) : (
-                <KairoMessage key={m.id} m={m} viva={m.id === escribiendo} />
+                <KairoMessage
+                  key={m.id}
+                  m={m}
+                  viva={m.id === escribiendo}
+                  /* Regenerar solo la última: rehacer una de en medio
+                     tiraría también todo lo que viniera después, y eso
+                     no es lo que nadie espera de un botón que pone
+                     "Regenerar". */
+                  onRegenerar={
+                    i === messages.length - 1 && !busy && !escribiendo
+                      ? () => regenerar(m.id)
+                      : undefined
+                  }
+                />
               ),
             )}
 
@@ -670,7 +819,159 @@ function paraLeer(md: string) {
     .trim();
 }
 
-function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
+/* Tu pregunta, con la posibilidad de arreglarla.
+ *
+ * Mandas la pregunta, la lees ya enviada y ves la errata: has escrito
+ * otra cosa, y Kairo te está contestando a lo que escribiste. Hasta
+ * ahora la única salida era volver a escribirla entera debajo y dejar
+ * la conversación con las dos. Ahora se edita y se pregunta otra vez
+ * desde ahí. */
+function UserMessage({
+  m,
+  puedeEditar,
+  onEditar,
+}: {
+  m: Message;
+  puedeEditar: boolean;
+  onEditar: (texto: string) => void;
+}) {
+  const { t, lang } = useUi();
+  const original = pick(m.content, lang);
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState(original);
+  const area = useRef<HTMLTextAreaElement>(null);
+
+  /* Al abrir: el cursor al final (no al principio, que obliga a
+     recorrer lo escrito) y la caja con la altura justa del texto. */
+  useEffect(() => {
+    const caja = area.current;
+    if (!editando || !caja) return;
+    caja.style.height = "auto";
+    caja.style.height = `${caja.scrollHeight}px`;
+    caja.focus();
+    caja.setSelectionRange(caja.value.length, caja.value.length);
+  }, [editando]);
+
+  const abrir = () => {
+    setTexto(original);
+    setEditando(true);
+  };
+
+  const guardar = () => {
+    setEditando(false);
+    onEditar(texto);
+  };
+
+  if (editando) {
+    return (
+      <div className="flex justify-end">
+        <div className="w-full max-w-[90%] rounded-2xl border border-line-hi bg-panel p-2.5">
+          <textarea
+            ref={area}
+            value={texto}
+            onChange={(e) => {
+              setTexto(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") return setEditando(false);
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                guardar();
+              }
+            }}
+            rows={1}
+            className="block max-h-64 w-full resize-none bg-transparent px-1.5 text-[15px] leading-relaxed outline-none"
+          />
+          <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+            <span className="mr-auto pl-1.5 text-[11.5px] text-faint">{t("app.editHint")}</span>
+            <button
+              onClick={() => setEditando(false)}
+              className="rounded-lg px-2.5 py-1 text-[12.5px] text-muted transition hover:text-fg"
+            >
+              {t("app.cancel")}
+            </button>
+            <button
+              onClick={guardar}
+              disabled={!texto.trim()}
+              className="rounded-lg bg-acento px-2.5 py-1 text-[12.5px] font-medium text-on-accent transition hover:opacity-90 disabled:opacity-40"
+            >
+              {t("app.saveAsk")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex items-start justify-end gap-1.5">
+      {puedeEditar && (
+        <button
+          onClick={abrir}
+          title={t("app.edit")}
+          aria-label={t("app.edit")}
+          /* En el móvil no hay ratón por encima de nada, así que ahí se
+             ve siempre, discreto. En el escritorio aparece al pasar. */
+          className="mt-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-faint opacity-70 transition hover:bg-panel-hi hover:text-fg focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      )}
+
+      <div className="flex max-w-[85%] flex-col items-end gap-1.5">
+        {Boolean(m.adjuntos?.length) && (
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {m.adjuntos!.map((a, i) => (
+              <span
+                key={`${a.nombre}-${i}`}
+                className="inline-flex max-w-[200px] items-center gap-1.5 rounded-xl border border-line bg-bg-soft py-1 pl-1 pr-2"
+              >
+                {esImagen(a.tipo) && a.datos ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`data:${a.tipo};base64,${a.datos}`}
+                    alt={a.nombre}
+                    className="h-7 w-7 shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-line text-[9.5px] font-semibold text-faint">
+                    {(a.nombre.split(".").pop() ?? "?").slice(0, 4).toUpperCase()}
+                  </span>
+                )}
+                <span className="min-w-0">
+                  <span className="block truncate text-[12px] leading-tight">{a.nombre}</span>
+                  <span className="block text-[10.5px] leading-tight text-faint">
+                    {tamano(a.bytes, lang)}
+                  </span>
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {Boolean(original) && (
+          <p className="whitespace-pre-wrap rounded-2xl rounded-br-md bg-panel-hi px-4 py-2.5 text-[15px] leading-relaxed">
+            {original}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KairoMessage({
+  m,
+  viva = false,
+  onRegenerar,
+}: {
+  m: Message;
+  viva?: boolean;
+  /** Solo la última respuesta se puede regenerar; a las demás no les
+   *  llega esta función y no enseñan el botón. */
+  onRegenerar?: () => void;
+}) {
   const { t, lang } = useUi();
   const [copied, setCopied] = useState(false);
   const [leyendo, setLeyendo] = useState(false);
@@ -740,13 +1041,16 @@ function KairoMessage({ m, viva = false }: { m: Message; viva?: boolean }) {
             </button>
           )}
 
-          <button
-            title={t("app.regenWarn")}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[12px] text-muted transition hover:border-line-hi hover:text-fg"
-          >
-            <Refresh className="h-3.5 w-3.5" />
-            {t("app.regen")}
-          </button>
+          {onRegenerar && (
+            <button
+              onClick={onRegenerar}
+              title={t("app.regenWarn")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[12px] text-muted transition hover:border-line-hi hover:text-fg"
+            >
+              <Refresh className="h-3.5 w-3.5" />
+              {t("app.regen")}
+            </button>
+          )}
 
           {m.model && m.model !== "demo" && (
             <span className="rounded-lg border border-line px-2 py-1 text-[11.5px] text-faint">

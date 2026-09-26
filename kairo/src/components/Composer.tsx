@@ -6,7 +6,8 @@ import { LEVELS, type Level } from "@/lib/mock";
 import { NIVELES_POR_PLAN } from "@/lib/planes";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { escuchar, hayMicrofono } from "@/lib/voz";
-import type { Mente } from "@/lib/tipos";
+import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
+import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
 import { Bolt, Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
 import Link from "next/link";
 
@@ -33,7 +34,7 @@ export function Composer({
   setLevel: (l: Level) => void;
   mente: Mente | null;
   setMente: (m: Mente | null) => void;
-  onSend: (text: string) => void;
+  onSend: (text: string, adjuntos: Adjunto[]) => void;
   busy: boolean;
 }) {
   const { t, lang } = useUi();
@@ -45,6 +46,16 @@ export function Composer({
   // null = todavía no se han pedido. Se piden al abrir el desplegable,
   // no al cargar el chat: abrir el chat sigue costando una consulta.
   const [mentes, setMentes] = useState<Mente[] | null>(null);
+  /* Archivos adjuntos.
+   *
+   * Viven aquí y no en la página del chat porque son parte de lo que
+   * estás escribiendo: se ponen, se quitan y se van con el mensaje. */
+  const [adjuntos, setAdjuntos] = useState<Adjunto[]>([]);
+  const [avisoArchivo, setAvisoArchivo] = useState<string>();
+  const [leyendo, setLeyendo] = useState(false);
+  const [encima, setEncima] = useState(false);
+  const selector = useRef<HTMLInputElement>(null);
+
   const box = useRef<HTMLTextAreaElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const wrapMente = useRef<HTMLDivElement>(null);
@@ -126,12 +137,76 @@ export function Composer({
     return () => document.removeEventListener("mousedown", close);
   }, [menu, menuMente]);
 
+  /* Meter archivos. Da igual por dónde lleguen —el clip, arrastrarlos
+     encima o pegar una captura—, acaban todos aquí. */
+  const anadirArchivos = async (lista: FileList | File[] | null) => {
+    const archivos = [...(lista ?? [])];
+    if (!archivos.length) return;
+
+    setAvisoArchivo(undefined);
+    setLeyendo(true);
+
+    const sitio = ADJUNTOS.max - adjuntos.length;
+    const cabenAhora = archivos.slice(0, Math.max(0, sitio));
+    const quejas: string[] = [];
+
+    if (archivos.length > cabenAhora.length) {
+      quejas.push(t("file.tooMany").replace("{n}", String(ADJUNTOS.max)));
+    }
+
+    const nuevos: Adjunto[] = [];
+    for (const archivo of cabenAhora) {
+      const r = await prepararArchivo(archivo);
+      if (r.ok) {
+        nuevos.push(r.adjunto);
+        continue;
+      }
+      quejas.push(
+        (r.motivo === "tipo"
+          ? t("file.badType")
+          : r.motivo === "grande"
+            ? t("file.tooBig")
+            : t("file.broken")
+        ).replace("{f}", r.nombre),
+      );
+    }
+
+    /* El tope de todos juntos se mira al final, cuando ya se sabe lo
+       que ocupa cada uno: una foto de 4 MB puede quedarse en 300 KB
+       después de encogerla, y rechazarla antes habría sido injusto. */
+    const juntos = [...adjuntos, ...nuevos];
+    const buenos: Adjunto[] = [];
+    let peso = 0;
+    for (const a of juntos) {
+      if (peso + a.datos.length > ADJUNTOS.bytesTotal) {
+        quejas.push(t("file.tooBig").replace("{f}", a.nombre));
+        continue;
+      }
+      peso += a.datos.length;
+      buenos.push(a);
+    }
+
+    setAdjuntos(buenos);
+    if (quejas.length) setAvisoArchivo(quejas[0]);
+    setLeyendo(false);
+    box.current?.focus();
+  };
+
+  const quitarArchivo = (i: number) => {
+    setAdjuntos((v) => v.filter((_, n) => n !== i));
+    setAvisoArchivo(undefined);
+  };
+
   const submit = () => {
     const value = text.trim();
-    if (!value || busy) return;
+    // Con un archivo delante, "mira esto" puede ir sin texto: la propia
+    // foto es la pregunta. Sin archivo, un mensaje vacío no se manda.
+    if ((!value && !adjuntos.length) || busy || leyendo) return;
     parar.current?.(); // enviar cierra el micro
-    onSend(value);
+    onSend(value, adjuntos);
     setText("");
+    setAdjuntos([]);
+    setAvisoArchivo(undefined);
   };
 
   const current = LEVEL_META.find((l) => l.id === level)!;
@@ -139,12 +214,86 @@ export function Composer({
   return (
     <div className="border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4">
       <div className="mx-auto max-w-3xl">
-        <div className="rounded-2xl border border-line bg-panel transition focus-within:border-line-hi">
+        <div
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes("Files")) return;
+            e.preventDefault();
+            setEncima(true);
+          }}
+          onDragLeave={(e) => {
+            // Solo cuando se sale del cuadro entero, no al pasar de un
+            // hijo a otro: si no, el aviso parpadea al mover el ratón.
+            if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+            setEncima(false);
+          }}
+          onDrop={(e) => {
+            if (!e.dataTransfer.files.length) return;
+            e.preventDefault();
+            setEncima(false);
+            anadirArchivos(e.dataTransfer.files);
+          }}
+          className={`relative rounded-2xl border bg-panel transition focus-within:border-line-hi ${
+            encima ? "border-acento bg-acento/5" : "border-line"
+          }`}
+        >
+          {encima && (
+            <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center rounded-2xl bg-panel/80 text-[13.5px] font-medium text-acento">
+              {t("file.drop")}
+            </div>
+          )}
+
+          {/* Lo que llevas puesto, encima de donde escribes. */}
+          {Boolean(adjuntos.length) && (
+            <div className="flex flex-wrap gap-2 px-3 pt-3">
+              {adjuntos.map((a, i) => (
+                <span
+                  key={`${a.nombre}-${i}`}
+                  className="inline-flex max-w-[220px] items-center gap-2 rounded-xl border border-line bg-bg-soft py-1 pl-1 pr-1.5"
+                >
+                  {esImagen(a.tipo) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:${a.tipo};base64,${a.datos}`}
+                      alt=""
+                      className="h-8 w-8 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line text-[10px] font-semibold text-faint">
+                      {(a.nombre.split(".").pop() ?? "?").slice(0, 4).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[12.5px] leading-tight">{a.nombre}</span>
+                    <span className="block text-[11px] leading-tight text-faint">
+                      {tamano(a.bytes, lang)}
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => quitarArchivo(i)}
+                    title={t("file.remove")}
+                    aria-label={`${t("file.remove")}: ${a.nombre}`}
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-faint transition hover:bg-panel-hi hover:text-fg"
+                  >
+                    <Close className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
           <textarea
             ref={box}
             rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}
+            onPaste={(e) => {
+              /* Pegar una captura de pantalla. Es como la gente manda
+                 de verdad una imagen: Imprimir pantalla y Ctrl+V. */
+              const pegados = [...e.clipboardData.files].filter((f) => tipoAceptado(tipoDe(f)));
+              if (!pegados.length) return;
+              e.preventDefault();
+              anadirArchivos(pegados);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -156,12 +305,26 @@ export function Composer({
           />
 
           <div className="flex items-center gap-1.5 px-2.5 pb-2.5 pt-1">
+            <input
+              ref={selector}
+              type="file"
+              multiple
+              accept={ADJUNTOS_ACEPTADOS}
+              className="hidden"
+              onChange={(e) => {
+                anadirArchivos(e.target.files);
+                // Para que elegir dos veces el mismo archivo funcione.
+                e.target.value = "";
+              }}
+            />
             <button
-              className="grid h-9 w-9 place-items-center rounded-lg text-muted transition hover:bg-panel-hi hover:text-fg"
-              title={t("app.attach")}
-              aria-label={t("app.attach")}
+              onClick={() => selector.current?.click()}
+              disabled={leyendo || adjuntos.length >= ADJUNTOS.max}
+              className="grid h-9 w-9 place-items-center rounded-lg text-muted transition hover:bg-panel-hi hover:text-fg disabled:opacity-40"
+              title={t("file.attach")}
+              aria-label={t("file.attach")}
             >
-              <Clip className="h-[18px] w-[18px]" />
+              <Clip className={`h-[18px] w-[18px] ${leyendo ? "animate-pulse" : ""}`} />
             </button>
             {conMicrofono && (
               <button
@@ -342,7 +505,7 @@ export function Composer({
 
             <button
               onClick={submit}
-              disabled={!text.trim() || busy}
+              disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
               className="brand-grad grid h-9 w-9 place-items-center rounded-lg text-on-accent transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
               title={t("app.send")}
               aria-label={t("app.send")}
@@ -352,6 +515,18 @@ export function Composer({
           </div>
         </div>
 
+        {avisoArchivo && (
+          <p className="mt-2 text-center text-[12px] leading-relaxed text-gold">{avisoArchivo}</p>
+        )}
+        {leyendo && !avisoArchivo && (
+          <p className="mt-2 text-center text-[12px] text-muted">{t("file.reading")}</p>
+        )}
+        {/* Que quede dicho dónde acaban los archivos: se leen y se
+            tiran. Es justo lo que uno querría saber antes de subir una
+            factura o los apuntes de clase. */}
+        {Boolean(adjuntos.length) && !avisoArchivo && !leyendo && (
+          <p className="mt-2 text-center text-[11.5px] text-faint">{t("file.notKept")}</p>
+        )}
         {escuchando && (
           <p className="mt-2 text-center text-[12px] text-acento">{t("app.listening")}</p>
         )}
@@ -360,7 +535,7 @@ export function Composer({
             {t("app.micDenied")}
           </p>
         )}
-        {perfil.demo && !escuchando && !sinPermiso && (
+        {perfil.demo && !escuchando && !sinPermiso && !avisoArchivo && !adjuntos.length && (
           <p className="mt-2 text-center text-[11.5px] text-faint">{t("app.demo")}</p>
         )}
       </div>

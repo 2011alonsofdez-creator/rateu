@@ -69,6 +69,58 @@ export const FUENTES_MAX = 12;
 /** Cuántas búsquedas sugeridas se enseñan debajo de las fuentes. */
 export const BUSQUEDAS_MAX = 6;
 
+/* Un archivo que acompaña a una pregunta.
+ *
+ * Viaja dentro de la propia petición, en base64, y no se guarda en
+ * ningún sitio: lo lee el modelo para contestar y ahí se acaba. Es la
+ * diferencia entre "sube tus documentos a mi servidor" y "enséñaselo y
+ * ya está", y para alguien que va a subir apuntes, facturas o el DNI
+ * sin pensarlo, esa diferencia importa.
+ */
+export type Adjunto = {
+  nombre: string;
+  /** El tipo MIME, comprobado contra la lista de los que aceptamos. */
+  tipo: string;
+  /** El contenido en base64, SIN el "data:...;base64," de delante. */
+  datos: string;
+  /** Tamaño del archivo original, solo para enseñarlo. */
+  bytes: number;
+};
+
+export const ADJUNTOS = {
+  /** Cuántos archivos por mensaje. */
+  max: 4,
+  /** Lo que ocupa cada uno, ya en base64 (que es lo que viaja). */
+  bytesPorArchivo: 3 * 1024 * 1024,
+  /** Y lo que ocupan todos juntos. El servidor de Vercel corta las
+   *  peticiones por encima de 4,5 MB, así que este tope no es un
+   *  capricho: pasarlo es un error feo en vez de un aviso claro. */
+  bytesTotal: 4 * 1024 * 1024,
+  imagenes: ["image/png", "image/jpeg", "image/webp", "image/gif"],
+  /** Los que el modelo lee como documento. */
+  documentos: ["application/pdf"],
+  /** Estos no hacen falta mandarlos como archivo: se pegan como texto
+   *  en la propia pregunta, y así los entiende cualquier modelo. */
+  texto: ["text/plain", "text/markdown", "text/csv"],
+} as const;
+
+/** Todo lo que se acepta, para el `accept` del selector de archivos. */
+export const ADJUNTOS_ACEPTADOS = [
+  ...ADJUNTOS.imagenes,
+  ...ADJUNTOS.documentos,
+  ...ADJUNTOS.texto,
+  // Windows no siempre sabe el tipo de un .md o un .csv; por extensión sí.
+  ".md",
+  ".markdown",
+  ".csv",
+  ".txt",
+].join(",");
+
+export const esImagen = (tipo: string) => (ADJUNTOS.imagenes as readonly string[]).includes(tipo);
+export const esTexto = (tipo: string) => (ADJUNTOS.texto as readonly string[]).includes(tipo);
+export const esDocumento = (tipo: string) =>
+  (ADJUNTOS.documentos as readonly string[]).includes(tipo);
+
 /** Un mensaje recuperado de la base de datos. */
 export type MensajeGuardado = {
   id: string;

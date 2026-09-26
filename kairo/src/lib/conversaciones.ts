@@ -1,15 +1,24 @@
 import { clienteServidor } from "./supabase/server";
 import { hasSupabase } from "./supabase/config";
 import { busquedasDesdeJson, fuentesDesdeJson } from "./ia/grounding";
+import { faltaColumna } from "./supabase/compat";
 import type { Conversacion, MensajeGuardado } from "./tipos";
 
 /* Lectura del historial. Solo servidor: usa cookies.
    Ninguna consulta filtra por usuario, y no hace falta: la seguridad a
    nivel de fila ya devuelve solo lo tuyo. */
 
-/* ¿Existen ya las columnas de fuentes (migración 0007)? Igual que en la
-   ruta del chat: se averigua a la primera y no se pregunta más. */
-let columnasDeFuentes = true;
+/* Qué sabe hacer todavía la base de datos.
+ *
+ * Cada una de estas banderas es una migración que puede estar sin
+ * ejecutar. Se averigua a la primera consulta que falle y no se vuelve
+ * a preguntar: a partir de ahí se pide solo lo que existe.
+ * La alternativa era lo que pasaba antes: pedir `actualizada_el` sin
+ * tener la migración 0005 hace fallar la consulta entera, y la barra
+ * lateral se queda vacía como si no tuvieras ninguna conversación
+ * guardada. Las tenías; no se podían leer. */
+let columnasDeFuentes = true; // 0007
+let columnaDeActividad = true; // 0005
 
 /** Las conversaciones de quien está usando la app, la más reciente primero. */
 export async function listarConversaciones(): Promise<Conversacion[]> {
@@ -19,19 +28,39 @@ export async function listarConversaciones(): Promise<Conversacion[]> {
     const supabase = await clienteServidor();
     if (!supabase) return [];
 
-    const { data, error } = await supabase
-      .from("conversaciones")
-      .select("id, titulo, mente_id, actualizada_el")
-      .order("actualizada_el", { ascending: false })
-      .limit(60);
+    const conActividad = () =>
+      supabase
+        .from("conversaciones")
+        .select("id, titulo, mente_id, actualizada_el")
+        .order("actualizada_el", { ascending: false })
+        .limit(60);
+
+    /* Sin la migración 0005 no existe `actualizada_el`. Se ordena
+       entonces por cuándo se creó cada una: no es lo ideal (una vieja
+       que retomas hoy no sube), pero es infinitamente mejor que no
+       enseñar ninguna. */
+    const porFechaDeCreacion = () =>
+      supabase
+        .from("conversaciones")
+        .select("id, titulo, mente_id, creada_el")
+        .order("creada_el", { ascending: false })
+        .limit(60);
+
+    let { data, error } = columnaDeActividad ? await conActividad() : await porFechaDeCreacion();
+
+    if (error && columnaDeActividad && faltaColumna(error)) {
+      columnaDeActividad = false;
+      console.warn("[kairo] falta la migración 0005: las conversaciones se ordenan por fecha de creación");
+      ({ data, error } = await porFechaDeCreacion());
+    }
 
     if (error || !data) return [];
 
-    return data.map((c) => ({
+    return (data as unknown as Record<string, unknown>[]).map((c) => ({
       id: c.id as string,
       titulo: (c.titulo as string) || "",
       menteId: (c.mente_id as string | null) ?? null,
-      actualizadaEl: c.actualizada_el as string,
+      actualizadaEl: (c.actualizada_el ?? c.creada_el) as string,
     }));
   } catch {
     return [];
@@ -49,13 +78,20 @@ export async function leerConversacion(
     if (!supabase) return null;
 
     // Si la conversación es de otro, RLS no devuelve fila y aquí se acaba.
-    const { data: conv } = await supabase
-      .from("conversaciones")
-      .select("id, titulo, mente_id, actualizada_el")
-      .eq("id", id)
-      .maybeSingle();
+    const cabecera = (columnas: string) =>
+      supabase.from("conversaciones").select(columnas).eq("id", id).maybeSingle();
+
+    let { data: conv, error: errorConv } = await cabecera(
+      columnaDeActividad ? "id, titulo, mente_id, actualizada_el" : "id, titulo, mente_id, creada_el",
+    );
+
+    if (errorConv && columnaDeActividad && faltaColumna(errorConv)) {
+      columnaDeActividad = false;
+      ({ data: conv } = await cabecera("id, titulo, mente_id, creada_el"));
+    }
 
     if (!conv) return null;
+    const c = conv as unknown as Record<string, unknown>;
 
     const mensajesDe = (columnas: string) =>
       supabase
@@ -77,17 +113,17 @@ export async function leerConversacion(
 
     /* Solo se rinde si el fallo es por las columnas. Un corte de red no
        puede dejar las fuentes apagadas hasta el siguiente reinicio. */
-    if (error && columnasDeFuentes && /fuentes|busquedas|column/i.test(error.message)) {
+    if (error && columnasDeFuentes && faltaColumna(error)) {
       columnasDeFuentes = false;
       ({ data: filas } = await mensajesDe(BASE));
     }
 
     return {
       conversacion: {
-        id: conv.id as string,
-        titulo: (conv.titulo as string) || "",
-        menteId: (conv.mente_id as string | null) ?? null,
-        actualizadaEl: conv.actualizada_el as string,
+        id: c.id as string,
+        titulo: (c.titulo as string) || "",
+        menteId: (c.mente_id as string | null) ?? null,
+        actualizadaEl: (c.actualizada_el ?? c.creada_el) as string,
       },
       mensajes: ((filas ?? []) as unknown as Record<string, unknown>[]).map((m) => ({
         id: m.id as string,

@@ -9,11 +9,19 @@ import {
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
-import { arrancar, puedeBuscar, type Arranque, type Trozo } from "@/lib/ia/proveedores";
+import {
+  aceptaArchivos,
+  arrancar,
+  puedeBuscar,
+  type Arranque,
+  type Trozo,
+} from "@/lib/ia/proveedores";
+import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
 import { recortar } from "@/lib/texto";
+import { faltaColumna } from "@/lib/supabase/compat";
 import type { Level } from "@/lib/mock";
 import type { ModoEdad, PlanId } from "@/lib/planes";
 import type { Fuente, Mente } from "@/lib/tipos";
@@ -48,7 +56,7 @@ const NIVELES: Level[] = ["fast", "normal", "forja", "mega"];
    mandarle a la base de datos cualquier cosa que llegue en el cuerpo. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type Entrada = { rol: "user" | "kairo"; texto: string };
+type Entrada = { rol: "user" | "kairo"; texto: string; adjuntos?: unknown };
 
 // ---------------------------------------------------------------
 // Límite de peticiones. Vive en memoria, así que en un servidor sin
@@ -85,7 +93,16 @@ const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
    dónde salió un dato sería un pésimo canje. */
 let columnasDeFuentes = true;
 
-type Guardado = { id: string; titulo: string; nueva: boolean };
+/* La conversación abierta, más el identificador que la base de datos le
+   dio a la pregunta. Ese identificador es lo que luego permite EDITAR la
+   pregunta: para rehacer la conversación desde ese punto hay que saber
+   cuál es ese punto, y el navegador solo lo sabe si se lo decimos. */
+type Guardado = {
+  id: string;
+  titulo: string;
+  nueva: boolean;
+  mensajeUsuario: string | null;
+};
 
 /* Abre la conversación (o continúa la que ya había) y guarda de
    inmediato lo que acaba de escribir el usuario.
@@ -103,14 +120,22 @@ async function abrirConversacion(
 ): Promise<Guardado | null> {
   if (!supabase) return null;
 
-  const guardarMensaje = (conversacionId: string) =>
-    guardarPregunta
-      ? supabase.from("mensajes").insert({
-          conversacion_id: conversacionId,
-          rol: "user",
-          contenido: textoUsuario,
-        })
-      : Promise.resolve();
+  const guardarMensaje = async (conversacionId: string): Promise<string | null> => {
+    if (!guardarPregunta) return null;
+
+    const { data, error } = await supabase
+      .from("mensajes")
+      .insert({
+        conversacion_id: conversacionId,
+        rol: "user",
+        contenido: textoUsuario,
+      })
+      .select("id")
+      .maybeSingle<{ id: string }>();
+
+    if (error) console.error("[kairo] no se guardó la pregunta:", error.message);
+    return data?.id ?? null;
+  };
 
   if (pedida) {
     // Si no es tuya, RLS devuelve vacío y se abre una nueva.
@@ -121,8 +146,12 @@ async function abrirConversacion(
       .maybeSingle<{ id: string; titulo: string }>();
 
     if (data) {
-      await guardarMensaje(data.id);
-      return { id: data.id, titulo: data.titulo, nueva: false };
+      return {
+        id: data.id,
+        titulo: data.titulo,
+        nueva: false,
+        mensajeUsuario: await guardarMensaje(data.id),
+      };
     }
   }
 
@@ -138,8 +167,12 @@ async function abrirConversacion(
     return null;
   }
 
-  await guardarMensaje(data.id);
-  return { id: data.id, titulo: data.titulo, nueva: true };
+  return {
+    id: data.id,
+    titulo: data.titulo,
+    nueva: true,
+    mensajeUsuario: await guardarMensaje(data.id),
+  };
 }
 
 const fallo = (estado: number, motivo: string) =>
@@ -232,12 +265,35 @@ export async function POST(req: Request) {
      modo niño solo los que llevan filtro de contenido. Si queda vacía es
      que no hay ningún cerebro al que preguntar, y eso se dice, no se
      disimula respondiendo con otro. */
-  const cadena = cadenaDe(nivel, perfil.modo_edad);
-  if (!cadena.length) return fallo(503, "sin_clave");
+  /* Los archivos solo se aceptan en la ÚLTIMA pregunta, que es la que
+     se está contestando. Si vinieran en todas, cada mensaje arrastraría
+     los archivos de toda la conversación y la petición crecería hasta
+     no caber. Y, de paso, un cliente escrito a mano no puede colar
+     cuatro megas en cada línea del historial. */
+  const archivos = revisarAdjuntos(entradas[entradas.length - 1]?.adjuntos);
 
-  const historial = entradas.slice(-HISTORIAL_MAX).map((m) => ({
+  const todaLaCadena = cadenaDe(nivel, perfil.modo_edad);
+
+  /* Con una imagen o un PDF delante, los modelos que solo leen texto no
+     valen: no es que contesten peor, es que devuelven un error raro. Se
+     quedan fuera mientras haya archivos. */
+  const cadena = archivos.adjuntos.length
+    ? todaLaCadena.filter(aceptaArchivos)
+    : todaLaCadena;
+
+  if (!todaLaCadena.length) return fallo(503, "sin_clave");
+  if (!cadena.length) return fallo(503, "sin_modelo_archivos");
+
+  /* Los que no son imagen ni PDF se han convertido en texto y se pegan
+     a la pregunta. El recorte va antes: lo que escribe la persona no
+     compite por sitio con lo que trae el archivo. */
+  const historial = entradas.slice(-HISTORIAL_MAX).map((m, i, lista) => ({
     rol: m.rol,
-    texto: recortar(m.texto, 12000),
+    texto:
+      i === lista.length - 1 ? recortar(m.texto, 12000) + archivos.texto : recortar(m.texto, 12000),
+    ...(i === lista.length - 1 && archivos.adjuntos.length
+      ? { adjuntos: archivos.adjuntos }
+      : {}),
   }));
 
   const codificador = new TextEncoder();
@@ -275,6 +331,7 @@ export async function POST(req: Request) {
           id: conversacion.id,
           titulo: conversacion.titulo,
           nueva: conversacion.nueva,
+          mensajeUsuario: conversacion.mensajeUsuario,
         });
       };
 
@@ -286,7 +343,8 @@ export async function POST(req: Request) {
         perfil.id,
         conversacionPedida,
         menteId,
-        recortar(entradas[entradas.length - 1]?.texto, 12000),
+        recortar(entradas[entradas.length - 1]?.texto, 12000) +
+          marcaDeArchivos(archivos.nombres),
         !reintento,
       );
 
@@ -303,6 +361,7 @@ export async function POST(req: Request) {
             nivel,
             mente,
             conBusqueda: puedeBuscar(candidato),
+            conArchivos: archivos.adjuntos.length > 0 || archivos.texto.length > 0,
           });
 
         /* Cómo se busca un cerebro que conteste.
@@ -490,18 +549,37 @@ export async function POST(req: Request) {
                 ? { ...fila, fuentes, busquedas }
                 : fila;
 
-            let { error } = await supabase.from("mensajes").insert(conFuentes);
+            const guardar = (f: Record<string, unknown>) =>
+              supabase.from("mensajes").insert(f).select("id").maybeSingle<{ id: string }>();
+
+            let { data: guardado, error } = await guardar(conFuentes);
 
             /* Las columnas de fuentes todavía no existen: se guarda la
                respuesta sin ellas. Mejor la conversación sin las fuentes
                que la conversación perdida. */
-            if (error && conFuentes !== fila && /fuentes|busquedas|column/i.test(error.message)) {
+            if (error && conFuentes !== fila && faltaColumna(error)) {
               columnasDeFuentes = false;
               console.warn("[kairo] falta la migración 0007: las fuentes no se guardan todavía");
-              ({ error } = await supabase.from("mensajes").insert(fila));
+              ({ data: guardado, error } = await guardar(fila));
+            }
+
+            /* Y sin la 0005, la tabla solo acepta los nombres de nivel
+               viejos, así que rechaza CADA respuesta que Kairo escribe:
+               escribes, lees la respuesta, vuelves mañana y no está.
+               Se guarda sin nivel antes que perderla. */
+            if (error && /nivel/i.test(error.message)) {
+              console.warn("[kairo] falta la migración 0005: la respuesta se guarda sin nivel");
+              // Con las fuentes si todavía caben: quitar el nivel no es
+              // motivo para tirar también de dónde salió el dato.
+              const base = columnasDeFuentes ? conFuentes : fila;
+              ({ data: guardado, error } = await guardar({ ...base, nivel: null }));
             }
 
             if (error) console.error("[kairo] no se guardó la respuesta:", error.message);
+
+            /* Y el identificador de la respuesta, para que "Regenerar"
+               sepa cuál tiene que reemplazar en vez de dejar dos. */
+            if (guardado?.id) enviar({ t: "guardado", id: guardado.id });
           }
         } catch (e) {
           console.error("[kairo] fallo al guardar:", e instanceof Error ? e.message : e);

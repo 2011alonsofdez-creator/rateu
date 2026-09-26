@@ -4,6 +4,7 @@ import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { Section } from "@/components/Section";
 import { Plus, Team } from "@/components/Icons";
+import { BotonAunNo } from "@/components/AunNo";
 
 /* Team es lo contrario de Mentes, aunque de lejos se parezcan.
    Una Mente cambia CÓMO responde Kairo. Un miembro del Team se encarga
@@ -98,7 +99,22 @@ export default function TeamPage() {
           </div>
         ))}
 
-        <button className="grid min-h-[120px] place-items-center rounded-2xl border border-dashed border-line-hi p-5 text-muted transition hover:bg-panel hover:text-fg sm:col-span-2">
+        <BotonAunNo
+          className="grid min-h-[120px] w-full place-items-center rounded-2xl border border-dashed border-line-hi p-5 text-muted transition hover:bg-panel hover:text-fg sm:col-span-2"
+          titulo={es ? "Contratar a alguien" : "Hire someone"}
+          explica={
+            es
+              ? "Le pondrás nombre, le dirás de qué se encarga y con qué archivos trabaja, y él hará ese trabajo siempre igual sin que se lo tengas que explicar cada vez."
+              : "You will give them a name, say what they handle and which files they work with, and they will do that job the same way every time without you explaining it again."
+          }
+          mientras={
+            es
+              ? "Hoy puedes hacer casi lo mismo con una Mente: unas instrucciones con nombre que Kairo sigue siempre que la elijas."
+              : "Today a Mind does almost the same: named instructions Kairo follows whenever you pick it."
+          }
+          enlace="/mentes"
+          enlaceTexto={es ? "Ir a Mentes" : "Go to Minds"}
+        >
           <span className="text-center">
             <Plus className="mx-auto h-6 w-6" />
             <span className="mt-2 block text-[14px] font-medium">
@@ -110,7 +126,7 @@ export default function TeamPage() {
                 : "Give them a name, say what they handle, done"}
             </span>
           </span>
-        </button>
+        </BotonAunNo>
       </div>
 
       <div className="mt-6 rounded-2xl border border-line bg-bg-soft p-5">

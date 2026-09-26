@@ -135,3 +135,49 @@ export async function renombrarConversacion(
   if (error) return { ok: false, mensaje: error.message };
   return { ok: true };
 }
+
+/* Rehacer la conversación desde un punto.
+ *
+ * Es lo que hace falta para dos cosas que se piden solas: editar una
+ * pregunta que has mandado con una errata, y volver a pedir una
+ * respuesta que no te ha convencido. En los dos casos, lo que había de
+ * ahí en adelante deja de valer, y dejarlo en la base de datos haría
+ * que al reabrir la conversación aparecieran la pregunta vieja y la
+ * nueva, una detrás de otra, como si hubieras preguntado dos veces.
+ *
+ * Borra ese mensaje y todos los posteriores. La seguridad a nivel de
+ * fila solo deja tocar los de tus conversaciones, así que pasar el
+ * identificador de otra persona no borra nada de nadie.
+ */
+export async function borrarDesde(
+  conversacionId: string,
+  mensajeId: string,
+): Promise<ResultadoSimple> {
+  if (!UUID.test(conversacionId) || !UUID.test(mensajeId)) {
+    return { ok: false, mensaje: "id no válida" };
+  }
+
+  const supabase = await clienteServidor();
+  if (!supabase) return { ok: false, mensaje: "demo" };
+
+  /* Primero, cuándo se escribió ese mensaje. Se pide filtrando también
+     por conversación: así, si el mensaje es de otra, no hay ni fecha
+     desde la que borrar. */
+  const { data: desde } = await supabase
+    .from("mensajes")
+    .select("creado_el")
+    .eq("id", mensajeId)
+    .eq("conversacion_id", conversacionId)
+    .maybeSingle<{ creado_el: string }>();
+
+  if (!desde) return { ok: false, mensaje: "no encontrado" };
+
+  const { error } = await supabase
+    .from("mensajes")
+    .delete()
+    .eq("conversacion_id", conversacionId)
+    .gte("creado_el", desde.creado_el);
+
+  if (error) return { ok: false, mensaje: error.message };
+  return { ok: true };
+}

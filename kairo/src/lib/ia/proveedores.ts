@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
 import type { ModoEdad } from "@/lib/planes";
-import type { Fuente } from "@/lib/tipos";
+import { esImagen, type Adjunto, type Fuente } from "@/lib/tipos";
 
 /* Los tres cerebros, detrás de una sola puerta.
  *
@@ -28,7 +28,7 @@ export type Peticion = {
   /** Identificador completo, con proveedor delante: "claude:claude-opus-5". */
   id: string;
   sistema: string;
-  mensajes: { rol: "user" | "kairo"; texto: string }[];
+  mensajes: { rol: "user" | "kairo"; texto: string; adjuntos?: Adjunto[] }[];
   maxSalida: number;
   esfuerzo: Esfuerzo;
   /** Solo lo usa Gemini, que es el único con filtro de contenido por petición. */
@@ -78,6 +78,16 @@ export function proveedorActivo(p: Proveedor): boolean {
   return Boolean(CLAVES[p]()?.trim());
 }
 
+/* ¿Este modelo sabe mirar una imagen o un PDF?
+ *
+ * Los tres grandes, sí. El de repuesto es cualquier cosa que hable como
+ * OpenAI —puede ser un modelo de texto y nada más—, y mandarle una foto
+ * es un error raro en vez de una respuesta. Cuando hay archivos, se cae
+ * de la cadena: mejor menos suplentes que un fallo incomprensible. */
+export function aceptaArchivos(id: string): boolean {
+  return partir(id).proveedor !== "extra";
+}
+
 export function proveedoresActivos(): Proveedor[] {
   return (["gemini", "claude", "gpt", "extra"] as const).filter(proveedorActivo);
 }
@@ -96,8 +106,13 @@ export function normalizar(mensajes: Peticion["mensajes"]) {
     if (!salida.length && m.rol === "kairo") continue;
 
     const ultimo = salida[salida.length - 1];
-    if (ultimo?.rol === m.rol) ultimo.texto += `\n\n${m.texto}`;
-    else salida.push({ ...m });
+    if (ultimo?.rol === m.rol) {
+      ultimo.texto += `\n\n${m.texto}`;
+      // Y los archivos de los dos, o el segundo perdería el suyo.
+      if (m.adjuntos?.length) ultimo.adjuntos = [...(ultimo.adjuntos ?? []), ...m.adjuntos];
+    } else {
+      salida.push({ ...m });
+    }
   }
 
   return salida;
@@ -167,7 +182,15 @@ async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
 
   const contents = normalizar(pet.mensajes).map((m) => ({
     role: m.rol === "kairo" ? "model" : "user",
-    parts: [{ text: m.texto }],
+    /* El archivo va DELANTE de la pregunta a propósito: el modelo lee
+       en orden, y "mira esto y dime qué es" se entiende mejor después
+       de haber visto el esto. */
+    parts: [
+      ...(m.adjuntos ?? []).map((a) => ({
+        inlineData: { mimeType: a.tipo, data: a.datos },
+      })),
+      { text: m.texto },
+    ],
   }));
 
   const desde = busquedaApagada() ? SIN_HERRAMIENTAS : (peldano.get(modelo) ?? 0);
@@ -255,7 +278,30 @@ async function* deClaude(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
     system: pet.sistema,
     messages: normalizar(pet.mensajes).map((m) => ({
       role: m.rol === "kairo" ? ("assistant" as const) : ("user" as const),
-      content: m.texto,
+      content: m.adjuntos?.length
+        ? [
+            ...m.adjuntos.map((a) =>
+              esImagen(a.tipo)
+                ? ({
+                    type: "image" as const,
+                    source: {
+                      type: "base64" as const,
+                      media_type: a.tipo as "image/png" | "image/jpeg" | "image/webp" | "image/gif",
+                      data: a.datos,
+                    },
+                  })
+                : ({
+                    type: "document" as const,
+                    source: {
+                      type: "base64" as const,
+                      media_type: "application/pdf" as const,
+                      data: a.datos,
+                    },
+                  }),
+            ),
+            { type: "text" as const, text: m.texto },
+          ]
+        : m.texto,
     })),
     ...extras,
   });
@@ -285,7 +331,24 @@ async function* deGpt(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
     instructions: pet.sistema,
     input: normalizar(pet.mensajes).map((m) => ({
       role: m.rol === "kairo" ? ("assistant" as const) : ("user" as const),
-      content: m.texto,
+      content: m.adjuntos?.length
+        ? [
+            ...m.adjuntos.map((a) =>
+              esImagen(a.tipo)
+                ? ({
+                    type: "input_image" as const,
+                    image_url: `data:${a.tipo};base64,${a.datos}`,
+                    detail: "auto" as const,
+                  })
+                : ({
+                    type: "input_file" as const,
+                    filename: a.nombre,
+                    file_data: `data:${a.tipo};base64,${a.datos}`,
+                  }),
+            ),
+            { type: "input_text" as const, text: m.texto },
+          ]
+        : m.texto,
     })),
     max_output_tokens: pet.maxSalida,
     ...(razona ? { reasoning: { effort: ESFUERZO_GPT[pet.esfuerzo] } } : {}),
