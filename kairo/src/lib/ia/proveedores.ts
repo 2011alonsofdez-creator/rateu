@@ -147,9 +147,37 @@ const ESCALERA: ToolListUnion[] = [
 /** El último peldaño: sin herramientas. Es el que siempre funciona. */
 const SIN_HERRAMIENTAS = ESCALERA.length - 1;
 
-/* Modelo → primer peldaño que se sabe que traga. Vive en memoria, así
-   que cada instancia lo aprende por su cuenta y se olvida al reiniciar. */
-const peldano = new Map<string, number>();
+/* Modelo → primer peldaño que se sabe que traga, y hasta cuándo nos lo
+   creemos.
+ *
+ * Lo de la caducidad no es un adorno: un 400 de un mal día dejaba a ese
+ * modelo SIN BUSCADOR para siempre (hasta reiniciar el servidor), y
+ * como el prompt le dice entonces que no tiene internet, el resultado
+ * era Kairo contestando de memoria durante horas sin que nadie supiera
+ * por qué. Ahora se vuelve a probar cada cuarto de hora: si la
+ * herramienta no estaba de verdad, cuesta una llamada fallida cada
+ * quince minutos; si fue cosa de un momento, se arregla solo. */
+const CADUCA_MS = 15 * 60_000;
+
+const peldano = new Map<string, { desde: number; hasta: number }>();
+
+function peldanoDe(modelo: string): number {
+  const apunte = peldano.get(modelo);
+  if (!apunte) return 0;
+  if (apunte.hasta < Date.now()) {
+    peldano.delete(modelo);
+    return 0;
+  }
+  return apunte.desde;
+}
+
+function apuntarPeldano(modelo: string, desde: number) {
+  /* Que funcione se recuerda mucho más tiempo que que falle: si este
+     modelo acepta las tres herramientas, no hay por qué volver a
+     dudarlo cada cuarto de hora. */
+  const rato = desde === 0 ? 12 * 60 * 60_000 : CADUCA_MS;
+  peldano.set(modelo, { desde, hasta: Date.now() + rato });
+}
 
 /** Apagar la búsqueda entera sin tocar código, por si algún día hace falta. */
 const busquedaApagada = () => /^(1|true|si|sí)$/i.test(process.env.KAIRO_SIN_BUSQUEDA?.trim() ?? "");
@@ -159,7 +187,7 @@ const busquedaApagada = () => /^(1|true|si|sí)$/i.test(process.env.KAIRO_SIN_BU
 export function puedeBuscar(id: string): boolean {
   const { proveedor, modelo } = partir(id);
   if (proveedor !== "gemini" || busquedaApagada()) return false;
-  return (peldano.get(modelo) ?? 0) < SIN_HERRAMIENTAS;
+  return peldanoDe(modelo) < SIN_HERRAMIENTAS;
 }
 
 /* Un 400 o un 403 con herramientas puestas casi siempre significa "esta
@@ -193,7 +221,7 @@ async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
     ],
   }));
 
-  const desde = busquedaApagada() ? SIN_HERRAMIENTAS : (peldano.get(modelo) ?? 0);
+  const desde = busquedaApagada() ? SIN_HERRAMIENTAS : peldanoDe(modelo);
 
   for (let i = desde; i <= SIN_HERRAMIENTAS; i++) {
     const herramientas = ESCALERA[i];
@@ -221,7 +249,7 @@ async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
       const lector = respuesta[Symbol.asyncIterator]();
       const primero = await lector.next();
       empezado = true;
-      peldano.set(modelo, i);
+      apuntarPeldano(modelo, i);
 
       let actual = primero;
       while (!actual.done) {
@@ -242,7 +270,8 @@ async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
       // Ya había salido texto: reintentar duplicaría la respuesta.
       if (empezado || i === SIN_HERRAMIENTAS || !puedeSerLaHerramienta(fallo)) throw fallo;
       // Este modelo no quiere estas herramientas. Se apunta y se baja.
-      peldano.set(modelo, i + 1);
+      console.warn(`[kairo] ${modelo} rechaza el peldaño ${i} de herramientas; se prueba con menos`);
+      apuntarPeldano(modelo, i + 1);
     }
   }
 }
