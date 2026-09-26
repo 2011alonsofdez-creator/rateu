@@ -150,6 +150,7 @@ function Chat() {
   const [level, setLevel] = useState<Level>("fast");
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
+  const [buscando, setBuscando] = useState(false);
   const [mente, setMente] = useState<Mente | null>(null);
   /* Id del mensaje que se está escribiendo ahora mismo. Hace falta aparte
      de `busy`, porque `busy` se apaga con la primera palabra y el logo
@@ -535,7 +536,9 @@ function Chat() {
             continue; // línea partida a medias: se recompone en la siguiente vuelta
           }
 
-          if (ev.t === "meta") {
+          if (ev.t === "buscando") {
+            setBuscando(true);
+          } else if (ev.t === "meta") {
             setModelo(String(ev.modelo ?? ""));
           } else if (ev.t === "conversacion") {
             const id = String(ev.id);
@@ -580,6 +583,7 @@ function Chat() {
                 },
               ]);
             }
+            setBuscando(false);
             flujo.encolar(String(ev.v ?? ""));
           } else if (ev.t === "fuentes") {
             /* Llegan al final, cuando el modelo ya ha dicho lo que tenía
@@ -610,6 +614,7 @@ function Chat() {
             }
           } else if (ev.t === "error") {
             setBusy(false);
+            setBuscando(false);
             const v = String(ev.v);
             setError(
               v === "cuota_dia"
@@ -636,6 +641,7 @@ function Chat() {
       setError("err.red");
     } finally {
       setBusy(false);
+      setBuscando(false);
       // Si no queda nada por soltar se apaga ya; si queda, lo apaga el
       // propio bucle al vaciar la cola.
       cerrarFlujo();
@@ -742,7 +748,7 @@ function Chat() {
               ),
             )}
 
-            {busy && <Pensando nivel={level} modelo={modelo} />}
+            {busy && <Pensando nivel={level} modelo={modelo} buscando={buscando} />}
 
             {error && (
               <div className="flex gap-3">

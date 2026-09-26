@@ -32,13 +32,18 @@ function colorModelo(modelo: string) {
 export function Pensando({
   nivel,
   modelo,
+  buscando = false,
 }: {
   nivel: Level;
   /** Nombre del modelo que está respondiendo. Llega del servidor. */
   modelo?: string;
+  /** Está buscando en internet antes de contestar. */
+  buscando?: boolean;
 }) {
   const { t } = useUi();
-  const fases = FASES[nivel];
+  /* Buscar es lo único que no se adivina: si está buscando, se dice, y
+     no se va pasando de fase como si estuviera pensando. */
+  const fases = buscando ? (["pensar.buscando"] as TKey[]) : FASES[nivel];
   const [i, setI] = useState(0);
 
   // Va pasando de fase mientras espera. Se queda en la última.

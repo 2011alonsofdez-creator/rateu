@@ -17,6 +17,8 @@ import {
   type Trozo,
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
+import { esDeAhora } from "@/lib/ia/ahora";
+import { buscarHechos } from "@/lib/ia/buscar";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
@@ -355,6 +357,39 @@ export async function POST(req: Request) {
       );
 
       try {
+        /* Buscar ANTES de contestar.
+         *
+         * Si la pregunta va de algo de ahora —un precio, un sitio, algo
+         * que ha salido este mes—, se busca primero y la respuesta se
+         * escribe con los resultados delante. Dejarle al modelo la
+         * decisión de buscar no funciona: cree que se acuerda, y
+         * contesta con lo que tenía de hace dos años.
+         *
+         * Si la búsqueda falla, no pasa nada: se sigue como antes. */
+        let hechos: string | undefined;
+
+        const ultima = historial[historial.length - 1]?.texto ?? "";
+        if (esDeAhora(ultima)) {
+          enviar({ t: "buscando" });
+
+          // De qué venían hablando, para que "¿y el horario?" se entienda.
+          const contexto = historial
+            .slice(-3, -1)
+            .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
+            .join("\n");
+
+          const hallazgo = await buscarHechos(ultima, contexto, perfil.modo_edad).catch(() => null);
+
+          if (hallazgo) {
+            hechos = hallazgo.hechos;
+            fuentes = hallazgo.fuentes;
+            busquedas = hallazgo.busquedas;
+            if (fuentes.length || busquedas.length) {
+              enviar({ t: "fuentes", v: fuentes, busquedas });
+            }
+          }
+        }
+
         /* El prompt se arma por candidato y no una vez para todos: no
            todos los modelos de la cadena pueden buscar en internet, y
            decirle a uno que no puede que tiene buscador es pedirle que
@@ -369,6 +404,7 @@ export async function POST(req: Request) {
             conBusqueda: puedeBuscar(candidato),
             conArchivos: archivos.adjuntos.length > 0 || archivos.texto.length > 0,
             zonaHoraria,
+            hechos,
           });
 
         /* Cómo se busca un cerebro que conteste.
@@ -477,8 +513,12 @@ export async function POST(req: Request) {
           /* Las fuentes no son respuesta: no se cobran, no se acumulan
              en el texto y van por su propio aviso. */
           if ("fuentes" in trozo) {
-            fuentes = trozo.fuentes;
-            busquedas = trozo.busquedas;
+            /* Puede que ya hubiera fuentes de la búsqueda previa: se
+               juntan sin repetir, en vez de que las últimas borren a
+               las primeras. */
+            const vistas = new Set(fuentes.map((f) => f.url));
+            fuentes = [...fuentes, ...trozo.fuentes.filter((f) => !vistas.has(f.url))];
+            busquedas = [...new Set([...busquedas, ...trozo.busquedas])];
             enviar({ t: "fuentes", v: fuentes, busquedas });
             continue;
           }
