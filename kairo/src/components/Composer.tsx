@@ -69,6 +69,26 @@ export function Composer({
   const [conMicrofono, setConMicrofono] = useState(false);
   useEffect(() => setConMicrofono(hayMicrofono()), []);
 
+  /* Una pregunta dejada a medias desde otra pantalla (por ejemplo, el
+     "preguntar sobre esto" de una ficha de Gist). Se recoge una vez y
+     se borra: si no, volvería a salir cada vez que abres el chat. */
+  useEffect(() => {
+    try {
+      const borrador = sessionStorage.getItem("kairo.borrador");
+      if (!borrador) return;
+      sessionStorage.removeItem("kairo.borrador");
+      setText(borrador);
+      requestAnimationFrame(() => {
+        const caja = box.current;
+        if (!caja) return;
+        caja.focus();
+        caja.setSelectionRange(borrador.length, borrador.length);
+      });
+    } catch {
+      /* sin memoria de sesión: el chat se abre vacío */
+    }
+  }, []);
+
   const [escuchando, setEscuchando] = useState(false);
   const [sinPermiso, setSinPermiso] = useState(false);
   const parar = useRef<(() => void) | null>(null);

@@ -211,3 +211,21 @@ export const Play = ({ className, style }: P) => (
     <path d="M7.5 5.2a1 1 0 011.52-.85l9 6.8a1 1 0 010 1.7l-9 6.8A1 1 0 017.5 18.8V5.2z" />
   </svg>
 );
+
+/* Dos fichas apiladas: lo que queda después de pegar un enlace. */
+export const Fichas = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <rect x="3" y="6" width="13" height="14" rx="2.5" />
+    <path d="M8 3h9a2.5 2.5 0 012.5 2.5v11" />
+    <path d="M6.5 10.5h7M6.5 14h4.5" />
+  </svg>
+);
+
+/* Un papel con su esquina doblada y un sello: la carta que te llega. */
+export const Papel = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z" />
+    <path d="M14 3v4a1 1 0 001 1h4" />
+    <path d="M9 13h6M9 17h4" />
+  </svg>
+);

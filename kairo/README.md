@@ -73,6 +73,14 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
   se tira.
 - **Editar una pregunta ya enviada** y **regenerar** la última respuesta. Las
   dos rehacen la conversación desde ese punto, también en la base de datos.
+- **Código**: editor con colores, botón de ejecutar y panel de salida. JavaScript
+  y Python corren **en tu navegador** (Pyodide), el HTML se pinta en un marco
+  aislado, y Kairo lee el mismo archivo que tú. Sin servidor de ejecución y sin
+  ninguna clave que conectar.
+- **Gist**: pegas un enlace y queda la ficha con los apuntes. Un vídeo de YouTube
+  se lo pasa a Gemini, que lo ve entero; una página, la abre y la lee.
+- **Paperwork**: subes la foto de un papel oficial y sale qué es, qué quieren,
+  cuánto, para cuándo y qué pasa si no haces nada, ordenado por urgencia.
 - **Un nivel que el plan no incluye aparece bloqueado**, no da error después.
 - **Español e inglés** completos, y **tema oscuro y claro** sin parpadeo al cargar.
 - **Responsive**: en móvil la barra lateral pasa a menú deslizante.
@@ -134,5 +142,6 @@ src/
   usuario toque el botón ⚡.
 - **Team, Co-Works y Conectores**. Sus botones ya explican qué harán y a dónde
   ir mientras tanto, en vez de no hacer nada al pulsarlos.
+- **Conectar tu repositorio** en Código: para eso hacen falta permisos de GitHub.
 - **Guardar los archivos adjuntos**. Hoy se leen para responder y no se
   guardan en ninguna parte; del historial queda solo su nombre.
