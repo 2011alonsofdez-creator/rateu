@@ -67,6 +67,12 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
   precios, horarios, direcciones y cualquier cosa que cambie salen del
   buscador, no de la memoria del modelo, y debajo de la respuesta queda la
   lista de páginas consultadas. Va incluido con la clave de Gemini.
+- **Archivos**: imágenes, PDF y archivos de texto, con el clip, arrastrándolos
+  encima o pegando una captura. Las fotos se encogen en el navegador antes de
+  salir, y nada de eso se guarda en ningún servidor: se lee para responder y
+  se tira.
+- **Editar una pregunta ya enviada** y **regenerar** la última respuesta. Las
+  dos rehacen la conversación desde ese punto, también en la base de datos.
 - **Un nivel que el plan no incluye aparece bloqueado**, no da error después.
 - **Español e inglés** completos, y **tema oscuro y claro** sin parpadeo al cargar.
 - **Responsive**: en móvil la barra lateral pasa a menú deslizante.
@@ -124,8 +130,9 @@ src/
 
 ## Lo que falta
 
-- **Guardar los chats** en la base de datos (las tablas ya existen).
-- **Claude y GPT**, para que el router elija de verdad entre tres cerebros.
 - **El clasificador automático**: que Kairo escoja el nivel solo, sin que el
   usuario toque el botón ⚡.
-- **Paso 4**: pagos con Lemon Squeezy.
+- **Team, Co-Works y Conectores**. Sus botones ya explican qué harán y a dónde
+  ir mientras tanto, en vez de no hacer nada al pulsarlos.
+- **Guardar los archivos adjuntos**. Hoy se leen para responder y no se
+  guardan en ninguna parte; del historial queda solo su nombre.

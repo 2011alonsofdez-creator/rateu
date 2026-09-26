@@ -9,7 +9,14 @@ import {
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
-import { arrancar, puedeBuscar, type Arranque, type Trozo } from "@/lib/ia/proveedores";
+import {
+  aceptaArchivos,
+  arrancar,
+  puedeBuscar,
+  type Arranque,
+  type Trozo,
+} from "@/lib/ia/proveedores";
+import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
@@ -49,7 +56,7 @@ const NIVELES: Level[] = ["fast", "normal", "forja", "mega"];
    mandarle a la base de datos cualquier cosa que llegue en el cuerpo. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type Entrada = { rol: "user" | "kairo"; texto: string };
+type Entrada = { rol: "user" | "kairo"; texto: string; adjuntos?: unknown };
 
 // ---------------------------------------------------------------
 // Límite de peticiones. Vive en memoria, así que en un servidor sin
@@ -258,12 +265,35 @@ export async function POST(req: Request) {
      modo niño solo los que llevan filtro de contenido. Si queda vacía es
      que no hay ningún cerebro al que preguntar, y eso se dice, no se
      disimula respondiendo con otro. */
-  const cadena = cadenaDe(nivel, perfil.modo_edad);
-  if (!cadena.length) return fallo(503, "sin_clave");
+  /* Los archivos solo se aceptan en la ÚLTIMA pregunta, que es la que
+     se está contestando. Si vinieran en todas, cada mensaje arrastraría
+     los archivos de toda la conversación y la petición crecería hasta
+     no caber. Y, de paso, un cliente escrito a mano no puede colar
+     cuatro megas en cada línea del historial. */
+  const archivos = revisarAdjuntos(entradas[entradas.length - 1]?.adjuntos);
 
-  const historial = entradas.slice(-HISTORIAL_MAX).map((m) => ({
+  const todaLaCadena = cadenaDe(nivel, perfil.modo_edad);
+
+  /* Con una imagen o un PDF delante, los modelos que solo leen texto no
+     valen: no es que contesten peor, es que devuelven un error raro. Se
+     quedan fuera mientras haya archivos. */
+  const cadena = archivos.adjuntos.length
+    ? todaLaCadena.filter(aceptaArchivos)
+    : todaLaCadena;
+
+  if (!todaLaCadena.length) return fallo(503, "sin_clave");
+  if (!cadena.length) return fallo(503, "sin_modelo_archivos");
+
+  /* Los que no son imagen ni PDF se han convertido en texto y se pegan
+     a la pregunta. El recorte va antes: lo que escribe la persona no
+     compite por sitio con lo que trae el archivo. */
+  const historial = entradas.slice(-HISTORIAL_MAX).map((m, i, lista) => ({
     rol: m.rol,
-    texto: recortar(m.texto, 12000),
+    texto:
+      i === lista.length - 1 ? recortar(m.texto, 12000) + archivos.texto : recortar(m.texto, 12000),
+    ...(i === lista.length - 1 && archivos.adjuntos.length
+      ? { adjuntos: archivos.adjuntos }
+      : {}),
   }));
 
   const codificador = new TextEncoder();
@@ -313,7 +343,8 @@ export async function POST(req: Request) {
         perfil.id,
         conversacionPedida,
         menteId,
-        recortar(entradas[entradas.length - 1]?.texto, 12000),
+        recortar(entradas[entradas.length - 1]?.texto, 12000) +
+          marcaDeArchivos(archivos.nombres),
         !reintento,
       );
 
@@ -330,6 +361,7 @@ export async function POST(req: Request) {
             nivel,
             mente,
             conBusqueda: puedeBuscar(candidato),
+            conArchivos: archivos.adjuntos.length > 0 || archivos.texto.length > 0,
           });
 
         /* Cómo se busca un cerebro que conteste.

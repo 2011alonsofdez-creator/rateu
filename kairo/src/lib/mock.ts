@@ -1,5 +1,5 @@
 import type { Lang } from "./i18n";
-import type { Fuente } from "./tipos";
+import type { Adjunto, Fuente } from "./tipos";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
@@ -31,6 +31,10 @@ export type Message = {
   model?: string;
   level?: Level;
   credits?: number;
+  /** Lo que mandaste con la pregunta. En los mensajes viejos se guarda
+   *  solo el nombre y el tamaño: el contenido se suelta en cuanto deja
+   *  de hacer falta, que es un archivo menos dando vueltas por ahí. */
+  adjuntos?: Adjunto[];
   /** Las páginas que consultó para contestar, si las consultó. */
   fuentes?: Fuente[];
   /** Lo que buscó. Se enseña debajo de las fuentes. */

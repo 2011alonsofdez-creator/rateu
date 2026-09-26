@@ -10,7 +10,8 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
 import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz";
 import { borrarDesde } from "@/app/(app)/actions";
-import type { Fuente, Mente, MensajeGuardado } from "@/lib/tipos";
+import { esImagen, type Adjunto, type Fuente, type Mente, type MensajeGuardado } from "@/lib/tipos";
+import { tamano } from "@/lib/archivos";
 import { Composer } from "@/components/Composer";
 import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
@@ -312,7 +313,24 @@ function Chat() {
     await pedir(lista, esReintento);
   };
 
-  const send = async (texto: string) => {
+  /* Los archivos ya enviados dejan de hacer falta enteros: el modelo
+     ya los vio. Se queda la miniatura de las fotos pequeñas, para que
+     la conversación siga teniendo sentido al mirarla, y del resto solo
+     el nombre. Un PDF de tres megas por mensaje, multiplicado por una
+     tarde de preguntas, es memoria del navegador tirada. */
+  const aligerar = (lista: Message[]): Message[] =>
+    lista.map((m) =>
+      m.adjuntos?.length
+        ? {
+            ...m,
+            adjuntos: m.adjuntos.map((a) =>
+              esImagen(a.tipo) && a.datos.length <= 300_000 ? a : { ...a, datos: "" },
+            ),
+          }
+        : m,
+    );
+
+  const send = async (texto: string, adjuntos: Adjunto[] = []) => {
     const coste = LEVELS[level].credits;
     setError(undefined);
     setDetalle(undefined);
@@ -326,8 +344,13 @@ function Chat() {
 
     const bi = { es: texto, en: texto };
     const conElMio: Message[] = [
-      ...messages,
-      { id: `u${Date.now()}`, role: "user", content: bi },
+      ...aligerar(messages),
+      {
+        id: `u${Date.now()}`,
+        role: "user",
+        content: bi,
+        adjuntos: adjuntos.length ? adjuntos : undefined,
+      },
     ];
     setMessages(conElMio);
     await arrancarRespuesta(conElMio, false);
@@ -361,9 +384,20 @@ function Chat() {
       await borrarDesde(conversacion, original.dbId);
     }
 
+    /* Los archivos que llevaba siguen con la pregunta corregida: has
+       cambiado lo que preguntas, no lo que le enseñas. Solo los que
+       todavía están enteros en memoria; de los viejos se soltó el
+       contenido y volver a mandarlos sería mandar un archivo vacío. */
+    const conservados = original.adjuntos?.filter((a) => a.datos);
+
     const lista: Message[] = [
       ...messages.slice(0, idx),
-      { id: `u${Date.now()}`, role: "user", content: { es: texto, en: texto } },
+      {
+        id: `u${Date.now()}`,
+        role: "user",
+        content: { es: texto, en: texto },
+        adjuntos: conservados?.length ? conservados : undefined,
+      },
     ];
     setMessages(lista);
     await arrancarRespuesta(lista, false);
@@ -418,9 +452,16 @@ function Chat() {
           // podría colar el texto que quisiera en el system prompt.
           menteId: mente?.id ?? null,
           conversacionId: conversacion,
-          mensajes: lista.map((m) => ({
+          /* Los archivos van SOLO con la última pregunta. En el resto
+             sobran: el modelo ya los vio en su momento y repetirlos en
+             cada mensaje haría la petición más grande cada vez, hasta
+             que dejara de caber. */
+          mensajes: lista.map((m, i) => ({
             rol: m.role,
             texto: pick(m.content, lang),
+            ...(i === lista.length - 1 && m.adjuntos?.length
+              ? { adjuntos: m.adjuntos }
+              : {}),
           })),
         }),
       });
@@ -430,6 +471,10 @@ function Chat() {
         if (res.status === 402) return setNoCredits(true);
         if (res.status === 403) return setError("err.nivel");
         if (res.status === 401) return setError("err.sesion");
+        if (res.status === 503) {
+          const j = await res.json().catch(() => null);
+          if (j?.error === "sin_modelo_archivos") return setError("err.archivos");
+        }
         return setError("err.modelo");
       }
 
@@ -874,9 +919,44 @@ function UserMessage({
           <Pencil className="h-3.5 w-3.5" />
         </button>
       )}
-      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-panel-hi px-4 py-2.5 text-[15px] leading-relaxed">
-        {original}
-      </p>
+
+      <div className="flex max-w-[85%] flex-col items-end gap-1.5">
+        {Boolean(m.adjuntos?.length) && (
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {m.adjuntos!.map((a, i) => (
+              <span
+                key={`${a.nombre}-${i}`}
+                className="inline-flex max-w-[200px] items-center gap-1.5 rounded-xl border border-line bg-bg-soft py-1 pl-1 pr-2"
+              >
+                {esImagen(a.tipo) && a.datos ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`data:${a.tipo};base64,${a.datos}`}
+                    alt={a.nombre}
+                    className="h-7 w-7 shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-line text-[9.5px] font-semibold text-faint">
+                    {(a.nombre.split(".").pop() ?? "?").slice(0, 4).toUpperCase()}
+                  </span>
+                )}
+                <span className="min-w-0">
+                  <span className="block truncate text-[12px] leading-tight">{a.nombre}</span>
+                  <span className="block text-[10.5px] leading-tight text-faint">
+                    {tamano(a.bytes, lang)}
+                  </span>
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {Boolean(original) && (
+          <p className="whitespace-pre-wrap rounded-2xl rounded-br-md bg-panel-hi px-4 py-2.5 text-[15px] leading-relaxed">
+            {original}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
