@@ -38,6 +38,15 @@ Ve a **Project Settings → API** (en los paneles nuevos, *Data API*) y copia:
 
 ## 4. Crear las tablas (2 min)
 
+### El atajo
+
+Si vas a ponerlos todos de golpe, `migrations/TODO_DE_UNA_VEZ.sql` son
+los seis archivos de la 0003 a la 0008 pegados en orden: una sola
+consulta, un solo **Run**. Hace exactamente lo mismo que pegarlos uno a
+uno, y también se puede ejecutar dos veces sin romper nada.
+
+### O uno a uno
+
 En Supabase, **SQL Editor** → **New query**:
 
 1. Pega entero el contenido de `migrations/0001_esquema.sql` → **Run**.
