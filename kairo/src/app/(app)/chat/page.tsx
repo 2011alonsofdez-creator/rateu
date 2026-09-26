@@ -86,6 +86,15 @@ export default function ChatPage() {
   );
 }
 
+/** La zona horaria de este navegador, o nada si no se puede saber. */
+function zonaDelNavegador(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /* Saca el texto a ritmo constante en vez de a ráfagas.
  *
  * El modelo no manda el texto letra a letra: llega a trompicones, y a
@@ -447,6 +456,9 @@ function Chat() {
         body: JSON.stringify({
           nivel: level,
           reintento: esReintento,
+          /* Tu huso horario. Sin esto, Kairo no sabe qué día es hoy para
+             ti y acaba contestando "mi conocimiento llega hasta 2024". */
+          zona: zonaDelNavegador(),
           // Solo el identificador. Las instrucciones las lee el servidor
           // de la base de datos: si viajaran en la petición, cualquiera
           // podría colar el texto que quisiera en el system prompt.
