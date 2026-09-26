@@ -48,8 +48,9 @@ En Supabase, **SQL Editor** → **New query**:
 5. Nueva consulta, pega `migrations/0005_historial.sql` → **Run**.
 6. Nueva consulta, pega `migrations/0006_pagos.sql` → **Run**.
 7. Nueva consulta, pega `migrations/0007_fuentes.sql` → **Run**.
+8. Nueva consulta, pega `migrations/0008_gist_y_paperwork.sql` → **Run**.
 
-Los siete archivos se pueden ejecutar varias veces sin romper nada.
+Los ocho archivos se pueden ejecutar varias veces sin romper nada.
 
 ## 5. Activar la recarga diaria (1 min)
 
@@ -153,3 +154,4 @@ se montará en el Paso 3.
 | `migrations/0005_historial.sql` | Arregla los niveles de `mensajes`, ordena las conversaciones por actividad y las sube solas con cada mensaje |
 | `migrations/0006_pagos.sql` | `suscripciones`, `eventos_pago` y las funciones que mueven plan y créditos. Ninguna la puede llamar el navegador |
 | `migrations/0007_fuentes.sql` | Guarda con cada respuesta las páginas que Kairo consultó, para que las fuentes sigan ahí al reabrir la conversación |
+| `migrations/0008_gist_y_paperwork.sql` | Las fichas de Gist (resúmenes de enlaces) y la bandeja de Paperwork (papeles con su fecha límite) |
