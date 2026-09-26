@@ -209,6 +209,12 @@ export async function POST(req: Request) {
      conversación: sin ella no hay nada que reintentar. */
   const reintento = cuerpo?.reintento === true && conversacionPedida !== null;
 
+  /* En qué huso vive quien pregunta. Lo manda el navegador porque es el
+     único que lo sabe: el servidor está en Fráncfort y no tiene ni idea
+     de si son las nueve de la mañana para ti. Se valida antes de usarlo. */
+  const zonaHoraria: string | undefined =
+    typeof cuerpo?.zona === "string" ? cuerpo.zona : undefined;
+
   /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
      su perfil; ahora se pide el perfil directamente, porque la seguridad
      a nivel de fila ya se encarga de devolver únicamente el de quien
@@ -362,6 +368,7 @@ export async function POST(req: Request) {
             mente,
             conBusqueda: puedeBuscar(candidato),
             conArchivos: archivos.adjuntos.length > 0 || archivos.texto.length > 0,
+            zonaHoraria,
           });
 
         /* Cómo se busca un cerebro que conteste.
