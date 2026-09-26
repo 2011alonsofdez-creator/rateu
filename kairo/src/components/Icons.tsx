@@ -203,3 +203,11 @@ export const Lupa = ({ className, style }: P) => (
     <path d="M15.5 15.5L21 21" />
   </svg>
 );
+
+/* Un triángulo de "ejecutar". Relleno y no de trazo: es el botón que
+   más se pulsa de la pantalla de Código y tiene que verse de lejos. */
+export const Play = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="currentColor" stroke="none">
+    <path d="M7.5 5.2a1 1 0 011.52-.85l9 6.8a1 1 0 010 1.7l-9 6.8A1 1 0 017.5 18.8V5.2z" />
+  </svg>
+);
