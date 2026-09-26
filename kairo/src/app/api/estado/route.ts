@@ -87,11 +87,13 @@ async function migraciones() {
     return faltaColumna(error) ? "FALTA" : `no se sabe: ${error.message.slice(0, 80)}`;
   };
 
-  const [mentes, historial, pagos, fuentes] = await Promise.all([
+  const [mentes, historial, pagos, fuentes, fichas, papeles] = await Promise.all([
     probar("mentes", "id"),
     probar("conversaciones", "actualizada_el"),
     probar("suscripciones", "id"),
     probar("mensajes", "fuentes"),
+    probar("fichas", "id"),
+    probar("papeles", "fecha_limite"),
   ]);
 
   return {
@@ -99,12 +101,19 @@ async function migraciones() {
     "0005_historial.sql": historial,
     "0006_pagos.sql": pagos,
     "0007_fuentes.sql": fuentes,
+    /* Las dos tablas van en el mismo archivo, así que si una falta
+       falta la otra. Se enseñan por separado igualmente: si alguna vez
+       una está y la otra no, eso hay que verlo. */
+    "0008_gist_y_paperwork.sql":
+      fichas === papeles ? fichas : `fichas: ${fichas} · papeles: ${papeles}`,
     que_pasa_si_falta: {
       "0003_mentes.sql": "no se pueden crear Mentes",
       "0005_historial.sql":
         "la barra lateral sale vacía aunque tengas conversaciones, y las respuestas de Kairo no se guardan",
       "0006_pagos.sql": "los pagos no cambian el plan de nadie",
       "0007_fuentes.sql": "las fuentes se ven al momento pero no al reabrir la conversación",
+      "0008_gist_y_paperwork.sql":
+        "Gist y Paperwork funcionan, pero cada ficha se pierde al salir de la página",
     },
   };
 }
