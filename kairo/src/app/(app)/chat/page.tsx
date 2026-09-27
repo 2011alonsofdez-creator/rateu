@@ -49,8 +49,8 @@ const DEMO: Record<Level, Record<Lang, string>> = {
     en: "Demo mode. Forge is the level for deep work: coding, analysis and creation.",
   },
   mega: {
-    es: "Modo demo. El Mega-Prompt exprime el modelo al máximo cuando está conectado de verdad.",
-    en: "Demo mode. The Mega-Prompt pushes the model to its limit once properly connected.",
+    es: "Modo demo. Conectado de verdad, el Mega-Prompt pregunta a varios modelos a la vez y escribe una sola respuesta con lo mejor de cada uno.",
+    en: "Demo mode. Properly connected, the Mega-Prompt asks several models at once and writes a single answer with the best of each.",
   },
 };
 
@@ -159,6 +159,9 @@ function Chat() {
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
   const [buscando, setBuscando] = useState(false);
+  /* En qué va el Mega-Prompt: preguntando a varios o comparando lo que
+     han dicho. Lo manda el servidor, porque es el único que lo sabe. */
+  const [paso, setPaso] = useState<"consultando" | "comparando" | null>(null);
   const [mente, setMente] = useState<Mente | null>(null);
   /* Id del mensaje que se está escribiendo ahora mismo. Hace falta aparte
      de `busy`, porque `busy` se apaga con la primera palabra y el logo
@@ -553,6 +556,9 @@ function Chat() {
 
           if (ev.t === "buscando") {
             setBuscando(true);
+          } else if (ev.t === "paso") {
+            const v = String(ev.v);
+            if (v === "consultando" || v === "comparando") setPaso(v);
           } else if (ev.t === "meta") {
             setModelo(String(ev.modelo ?? ""));
             const n = String(ev.nivel ?? "") as Level;
@@ -604,6 +610,7 @@ function Chat() {
               ]);
             }
             setBuscando(false);
+            setPaso(null);
             flujo.encolar(String(ev.v ?? ""));
           } else if (ev.t === "fuentes") {
             /* Llegan al final, cuando el modelo ya ha dicho lo que tenía
@@ -635,6 +642,7 @@ function Chat() {
           } else if (ev.t === "error") {
             setBusy(false);
             setBuscando(false);
+            setPaso(null);
             const v = String(ev.v);
             setError(
               v === "cuota_dia"
@@ -662,6 +670,7 @@ function Chat() {
     } finally {
       setBusy(false);
       setBuscando(false);
+      setPaso(null);
       // Si no queda nada por soltar se apaga ya; si queda, lo apaga el
       // propio bucle al vaciar la cola.
       cerrarFlujo();
@@ -773,6 +782,7 @@ function Chat() {
                 nivel={nivelReal ?? (level === "auto" ? "normal" : level)}
                 modelo={modelo}
                 buscando={buscando}
+                paso={paso}
                 /* Solo si lo ha elegido él: enseñar "Normal" cuando lo
                    has puesto tú a mano sería decirte lo que ya sabes. */
                 elegido={elegido.current?.auto ? nivelReal : undefined}

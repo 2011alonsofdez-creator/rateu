@@ -20,6 +20,7 @@ import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos } from "@/lib/ia/buscar";
+import { correrMega } from "@/lib/ia/mega";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
@@ -356,12 +357,57 @@ export async function POST(req: Request) {
          Al final y no trozo a trozo: serían cien escrituras por mensaje. */
       let acumulado = "";
       let usado = "";
+      /* Con qué se ha contestado, tal y como se guarda. Normalmente es el
+         nombre del modelo; en MEGA son varios y el nombre lo pone él. */
+      let etiqueta: string | null = null;
       /* De dónde salió lo que ha dicho. Se guarda con la respuesta para
          que al volver a abrir la conversación sigan estando ahí. */
       let fuentes: Fuente[] = [];
       let busquedas: string[] = [];
       let conversacion: Guardado | null = null;
       let avisado = false;
+
+      /* Cobrar y escribir. Lo usan las dos vías —la de un modelo y la del
+         Mega-Prompt— porque el momento de cobrar es delicado y no debe
+         estar escrito dos veces: ni antes de la primera palabra (el
+         modelo podría fallar) ni al final (podrías cerrar la pestaña).
+         Devuelve false si no hay saldo, y entonces se para todo. */
+      const escribir = async (texto: string) => {
+        if (!cobrado) {
+          cobrado = true;
+          const { data, error } = await supabase.rpc("gastar_creditos", {
+            p_cantidad: coste,
+            p_motivo: `mensaje ${nivel}`,
+          });
+
+          if (error) {
+            enviar({ t: "error", v: "sin_creditos" });
+            return false;
+          }
+
+          const fila = Array.isArray(data) ? data[0] : data;
+          enviar({
+            t: "creditos",
+            creditos: fila?.creditos ?? 0,
+            creditosExtra: fila?.creditos_extra ?? 0,
+          });
+        }
+
+        algoEscrito = true;
+        acumulado += texto;
+        enviar({ t: "texto", v: texto });
+        return true;
+      };
+
+      /* Las fuentes nuevas se suman a las que ya hubiera, sin repetir
+         direcciones: las de la búsqueda previa no las borran las del
+         modelo ni al revés. */
+      const anadirFuentes = (nuevas: Fuente[], consultas: string[]) => {
+        const vistas = new Set(fuentes.map((f) => f.url));
+        fuentes = [...fuentes, ...nuevas.filter((f) => !vistas.has(f.url))];
+        busquedas = [...new Set([...busquedas, ...consultas])];
+        enviar({ t: "fuentes", v: fuentes, busquedas });
+      };
 
       /* El navegador necesita saber en qué conversación está, y lo necesita
          TAMBIÉN cuando el modelo falla: sin el identificador no hay a qué
@@ -441,6 +487,53 @@ export async function POST(req: Request) {
             zonaHoraria,
             hechos,
           });
+
+        /* El Mega-Prompt: varios cerebros a la vez.
+         *
+         * Aquí no hay cadena de suplentes porque no hace falta: si uno de
+         * los tres falla, quedan los otros dos y la respuesta sale igual.
+         * Solo si no contesta NINGUNO se lanza el fallo, y entonces lo
+         * recoge el catch de abajo como cualquier otro. */
+        if (nivel === "mega") {
+          conversacion = await abriendo;
+          avisarConversacion();
+
+          /* Los que acaban de fallar se quedan fuera si con los demás
+             hay bastante. La cuarentena aquí es una pista, no una
+             condena: si apartándolos queda un solo modelo, se pregunta
+             a todos y que decida la realidad. */
+          const enJuegoMega = cadena.filter(disponible);
+
+          for await (const paso of correrMega({
+            cadena: enJuegoMega.length >= 2 ? enJuegoMega : cadena,
+            prompt: promptPara,
+            mensajes: historial,
+            modoEdad: perfil.modo_edad,
+            /* Lo que tarde en llegar más allá de esto se queda fuera: la
+               función tiene un minuto para contestar y la respuesta final
+               todavía tiene que escribirse. */
+            msParaCandidatos: 22_000,
+            maxSalida: Math.min(MAX_SALIDA[nivel], 16000),
+          })) {
+            if (paso.t === "equipo") {
+              etiqueta = `Mega · ${paso.modelos.join(" + ")}`;
+              enviar({ t: "meta", modelo: etiqueta, nivel });
+            } else if (paso.t === "paso") {
+              enviar({ t: "paso", v: paso.v });
+            } else if (paso.t === "fuentes") {
+              anadirFuentes(paso.fuentes, paso.busquedas);
+            } else if (paso.t === "texto") {
+              if (!(await escribir(paso.v))) {
+                controlador.close();
+                return;
+              }
+            }
+          }
+
+          if (!algoEscrito) enviar({ t: "error", v: "bloqueado" });
+          enviar({ t: "fin" });
+          return;
+        }
 
         /* Cómo se busca un cerebro que conteste.
          *
@@ -553,45 +646,17 @@ export async function POST(req: Request) {
           /* Las fuentes no son respuesta: no se cobran, no se acumulan
              en el texto y van por su propio aviso. */
           if ("fuentes" in trozo) {
-            /* Puede que ya hubiera fuentes de la búsqueda previa: se
-               juntan sin repetir, en vez de que las últimas borren a
-               las primeras. */
-            const vistas = new Set(fuentes.map((f) => f.url));
-            fuentes = [...fuentes, ...trozo.fuentes.filter((f) => !vistas.has(f.url))];
-            busquedas = [...new Set([...busquedas, ...trozo.busquedas])];
-            enviar({ t: "fuentes", v: fuentes, busquedas });
+            anadirFuentes(trozo.fuentes, trozo.busquedas);
             continue;
           }
 
           const texto = trozo.texto;
           if (!texto) continue;
 
-          // Primer trozo bueno: ahora sí se cobra. Ni antes (podría
-          // fallar) ni al final (el usuario podría cerrar la pestaña).
-          if (!cobrado) {
-            cobrado = true;
-            const { data, error } = await supabase.rpc("gastar_creditos", {
-              p_cantidad: coste,
-              p_motivo: `mensaje ${nivel}`,
-            });
-
-            if (error) {
-              enviar({ t: "error", v: "sin_creditos" });
-              controlador.close();
-              return;
-            }
-
-            const fila = Array.isArray(data) ? data[0] : data;
-            enviar({
-              t: "creditos",
-              creditos: fila?.creditos ?? 0,
-              creditosExtra: fila?.creditos_extra ?? 0,
-            });
+          if (!(await escribir(texto))) {
+            controlador.close();
+            return;
           }
-
-          algoEscrito = true;
-          acumulado += texto;
-          enviar({ t: "texto", v: texto });
         }
 
         // Sin una sola palabra: o lo cortó el filtro de seguridad, o el
@@ -626,7 +691,7 @@ export async function POST(req: Request) {
               conversacion_id: conversacion.id,
               rol: "kairo",
               contenido: acumulado,
-              modelo_usado: usado ? nombreModelo(usado) : null,
+              modelo_usado: etiqueta ?? (usado ? nombreModelo(usado) : null),
               nivel,
               creditos_gastados: cobrado ? coste : 0,
             };
