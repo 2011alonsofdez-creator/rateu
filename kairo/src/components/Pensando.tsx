@@ -14,11 +14,19 @@ const FASES: Record<Level, TKey[]> = {
   fast: ["pensar.pensando"],
   normal: ["pensar.leyendo", "pensar.pensando", "pensar.redactando"],
   forja: ["pensar.analizando", "pensar.forjando", "pensar.verificando", "pensar.redactando"],
-  // Ya hay tres cerebros conectados, pero MEGA sigue preguntando a uno
-  // cada vez, no a los tres a la vez. Cuando lo haga, aquí entran
-  // "consultando a los tres" y "combinando lo mejor". Hasta entonces
-  // sería mentira, y una etiqueta que miente se nota.
-  mega: ["pensar.profundizando", "pensar.analizando", "pensar.redactando"],
+  /* MEGA no adivina por dónde va: el servidor lo dice (`paso`), porque
+     es el único que sabe si está esperando a los modelos o juntando lo
+     que han escrito. Esto es solo el primer segundo, hasta que llega el
+     primer aviso. */
+  mega: ["pensar.profundizando"],
+};
+
+/* Lo que se enseña en cada paso del Mega-Prompt. Comparar y combinar es
+   una sola espera —la del modelo que escribe la respuesta final—, así
+   que van juntos y se van pasando solos. */
+const PASOS: Record<"consultando" | "comparando", TKey[]> = {
+  consultando: ["pensar.consultando"],
+  comparando: ["pensar.comparando", "pensar.combinando"],
 };
 
 /** Color del punto según la familia del modelo. */
@@ -34,6 +42,7 @@ export function Pensando({
   nivel,
   modelo,
   buscando = false,
+  paso = null,
   elegido,
 }: {
   nivel: Level;
@@ -41,6 +50,8 @@ export function Pensando({
   modelo?: string;
   /** Está buscando en internet antes de contestar. */
   buscando?: boolean;
+  /** En qué punto va el Mega-Prompt, si es un Mega-Prompt. */
+  paso?: "consultando" | "comparando" | null;
   /** El nivel que ha elegido Kairo solo. Sin esto, no se enseña nada:
    *  decirte "Normal" cuando lo has puesto tú es ruido. */
   elegido?: Level;
@@ -48,7 +59,11 @@ export function Pensando({
   const { t } = useUi();
   /* Buscar es lo único que no se adivina: si está buscando, se dice, y
      no se va pasando de fase como si estuviera pensando. */
-  const fases = buscando ? (["pensar.buscando"] as TKey[]) : FASES[nivel];
+  const fases = buscando
+    ? (["pensar.buscando"] as TKey[])
+    : paso
+      ? PASOS[paso]
+      : FASES[nivel];
   const [i, setI] = useState(0);
 
   // Va pasando de fase mientras espera. Se queda en la última.
