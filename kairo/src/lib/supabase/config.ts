@@ -9,14 +9,50 @@
    librería lanza una excepción nada más arrancar. Como el proxy corre en
    todas las rutas, eso tumbaba la web entera con un "Internal Server
    Error" que no dice nada. Mejor aceptar las dos formas. */
-function limpiarUrl(valor: string | undefined): string {
-  let texto = (valor ?? "").trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+/** Deja la dirección como debería haber llegado. Se exporta para poder
+ *  probarla caso a caso: es el sitio donde una variable mal pegada deja
+ *  de ser una variable mal pegada y pasa a ser un "no se ha podido
+ *  conectar" que nadie sabe de dónde sale. */
+export function limpiarUrl(valor: string | undefined): string {
+  /* Los espacios se van TODOS, no solo los de los extremos: al copiar y
+     pegar en el panel de Vercel se cuela alguno en medio, y una
+     dirección con un espacio dentro no existe —el navegador ni lo
+     intenta—. Y de paso el punto y coma y la coma, que se pegan cuando
+     copias la variable con su nombre delante. */
+  let texto = (valor ?? "")
+    .replace(/\s+/g, "")
+    .replace(/[;,]+$/, "")
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/, "");
   if (!texto) return "";
   // Copiada a mano es fácil que venga sin el https:// delante.
   if (!/^https?:\/\//i.test(texto)) texto = `https://${texto}`;
   try {
     const u = new URL(texto);
-    return u.protocol === "https:" || u.protocol === "http:" ? texto : "";
+    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+
+    /* Y tiene que parecer una dirección de verdad.
+       Quitando los espacios, una frase cualquiera ("pon aquí tu url") se
+       convierte en algo que el navegador acepta como dominio, y entonces
+       la app cree que está configurada y se pasa la vida sin poder
+       conectar. Un dominio lleva un punto; en tu ordenador, no. */
+    const enCasaLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(u.hostname);
+    if (!enCasaLocal && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(u.hostname)) {
+      return "";
+    }
+
+    /* Y http:// se sube a https://, salvo en tu propio ordenador.
+       Esto no es manía: la web va por https, y un navegador NO deja que
+       una página https pida nada por http. Lo bloquea sin preguntar, y
+       lo que se ve es "no se ha podido conectar con el servidor",
+       exactamente igual que si el servidor estuviera caído. Una letra de
+       más en una variable, y a buscar el fallo donde no está. */
+    if (u.protocol === "http:" && !enCasaLocal) {
+      u.protocol = "https:";
+      return u.toString().replace(/\/+$/, "");
+    }
+
+    return texto;
   } catch {
     // Una URL inválida deja la app en modo demo, que es feo pero se ve.
     return "";
@@ -24,6 +60,19 @@ function limpiarUrl(valor: string | undefined): string {
 }
 
 export const SUPABASE_URL = limpiarUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+
+/** El sitio con el que se intenta hablar. Para poder decirlo en pantalla
+ *  cuando no se llega: va dentro del código que se descarga el
+ *  navegador, así que no revela nada que no estuviera ya a la vista. */
+export const SUPABASE_HOST = (() => {
+  try {
+    return SUPABASE_URL ? new URL(SUPABASE_URL).host : "";
+  } catch {
+    return "";
+  }
+})();
+
+
 export const SUPABASE_ANON_KEY = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
 
 /* Sin variables configuradas la app sigue funcionando en modo demo, con
