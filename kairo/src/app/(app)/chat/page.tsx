@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
-import { LEVELS, pick, type Level, type Message } from "@/lib/mock";
+import { LEVELS, pick, type Level, type Message, type Nivel } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
@@ -147,7 +147,15 @@ function Chat() {
   const { credits, spend, sincronizar } = useCredits();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [level, setLevel] = useState<Level>("fast");
+  /* "auto" = que lo elija Kairo. Es lo que viene puesto de fábrica:
+     acertar el nivel no es trabajo del que pregunta. */
+  const [level, setLevel] = useState<Nivel>("auto");
+
+  /* El nivel que se ha usado de verdad. En automático no se sabe hasta
+     que el servidor lo dice, y hace falta para la etiqueta y para
+     apuntar bien lo que ha costado el mensaje. */
+  const [nivelReal, setNivelReal] = useState<Level>();
+  const elegido = useRef<{ nivel: Level; auto: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const [modelo, setModelo] = useState<string>();
   const [buscando, setBuscando] = useState(false);
@@ -286,8 +294,8 @@ function Chat() {
       setEscribiendo(idK);
       setMessages((m) => [
         ...m,
-        { id: idK, role: "kairo", level, credits: coste, model: "demo",
-          content: { es: "", en: "" } },
+        { id: idK, role: "kairo", level: level === "auto" ? "normal" : level,
+          credits: coste, model: "demo", content: { es: "", en: "" } },
       ]);
 
       const flujo = suavizado(
@@ -304,7 +312,7 @@ function Chat() {
           }),
         () => setEscribiendo(undefined),
       );
-      flujo.encolar(DEMO[level][lang]);
+      flujo.encolar(DEMO[level === "auto" ? "normal" : level][lang]);
       flujo.cerrar();
     }, 700);
   };
@@ -313,7 +321,9 @@ function Chat() {
      con IA de verdad o con la de ejemplo. Lo usan enviar, editar y
      regenerar: los tres acaban en el mismo sitio. */
   const arrancarRespuesta = async (lista: Message[], esReintento: boolean) => {
-    const coste = LEVELS[level].credits;
+    const coste = costeMinimo;
+    setNivelReal(undefined);
+    elegido.current = null;
     pegado.current = true;
     setAbajo(true);
     setBusy(true);
@@ -340,8 +350,13 @@ function Chat() {
         : m,
     );
 
+  /* Lo que va a costar, para avisar ANTES de molestar al servidor. En
+     automático no se puede saber todavía, así que se comprueba contra
+     el más barato: si no llega ni para eso, no llega para nada. */
+  const costeMinimo = level === "auto" ? LEVELS.fast.credits : LEVELS[level].credits;
+
   const send = async (texto: string, adjuntos: Adjunto[] = []) => {
-    const coste = LEVELS[level].credits;
+    const coste = costeMinimo;
     setError(undefined);
     setDetalle(undefined);
 
@@ -384,7 +399,7 @@ function Chat() {
     const texto = nuevo.trim();
     if (!texto || texto === pick(original.content, lang)) return;
 
-    const coste = LEVELS[level].credits;
+    const coste = costeMinimo;
     if (coste > credits) return setNoCredits(true);
 
     setError(undefined);
@@ -422,7 +437,7 @@ function Chat() {
     const idx = messages.findIndex((m) => m.id === id);
     if (idx < 0 || messages[idx].role !== "kairo") return;
 
-    const coste = LEVELS[level].credits;
+    const coste = costeMinimo;
     if (coste > credits) return setNoCredits(true);
 
     setError(undefined);
@@ -442,7 +457,7 @@ function Chat() {
      Separado de `send` para poder reintentar sin volver a añadir tu
      pregunta: en un reintento ya está en pantalla y en la base de datos. */
   const pedir = async (lista: Message[], esReintento: boolean) => {
-    const coste = LEVELS[level].credits;
+    const coste = costeMinimo;
     setError(undefined);
     setDetalle(undefined);
     setEspera(undefined);
@@ -540,6 +555,11 @@ function Chat() {
             setBuscando(true);
           } else if (ev.t === "meta") {
             setModelo(String(ev.modelo ?? ""));
+            const n = String(ev.nivel ?? "") as Level;
+            if (LEVELS[n]) {
+              setNivelReal(n);
+              elegido.current = { nivel: n, auto: ev.auto === true };
+            }
           } else if (ev.t === "conversacion") {
             const id = String(ev.id);
             setConversacion(id);
@@ -576,8 +596,8 @@ function Chat() {
                 {
                   id: idK,
                   role: "kairo",
-                  level,
-                  credits: coste,
+                  level: elegido.current?.nivel ?? (level === "auto" ? undefined : level),
+                  credits: elegido.current ? LEVELS[elegido.current.nivel].credits : coste,
                   model: modelo,
                   content: { es: "", en: "" },
                 },
@@ -748,7 +768,16 @@ function Chat() {
               ),
             )}
 
-            {busy && <Pensando nivel={level} modelo={modelo} buscando={buscando} />}
+            {busy && (
+              <Pensando
+                nivel={nivelReal ?? (level === "auto" ? "normal" : level)}
+                modelo={modelo}
+                buscando={buscando}
+                /* Solo si lo ha elegido él: enseñar "Normal" cuando lo
+                   has puesto tú a mano sería decirte lo que ya sabes. */
+                elegido={elegido.current?.auto ? nivelReal : undefined}
+              />
+            )}
 
             {error && (
               <div className="flex gap-3">

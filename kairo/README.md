@@ -138,8 +138,6 @@ src/
 
 ## Lo que falta
 
-- **El clasificador automático**: que Kairo escoja el nivel solo, sin que el
-  usuario toque el botón ⚡.
 - **Team, Co-Works y Conectores**. Sus botones ya explican qué harán y a dónde
   ir mientras tanto, en vez de no hacer nada al pulsarlos.
 - **Conectar tu repositorio** en Código: para eso hacen falta permisos de GitHub.

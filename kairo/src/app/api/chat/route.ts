@@ -18,6 +18,7 @@ import {
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
+import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos } from "@/lib/ia/buscar";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
@@ -188,7 +189,13 @@ export async function POST(req: Request) {
   if (!supabase) return fallo(503, "demo");
 
   const cuerpo = await req.json().catch(() => null);
-  const nivel: Level = NIVELES.includes(cuerpo?.nivel) ? cuerpo.nivel : "fast";
+
+  /* "auto" no es un nivel: es dejar que lo elija Kairo. Se resuelve más
+     abajo, cuando ya se sabe el plan y el saldo, porque el navegador no
+     tiene por qué saber ninguna de las dos cosas y desde luego no puede
+     decidir con ellas. */
+  const enAutomatico = cuerpo?.nivel === "auto";
+  const pedido: Level = NIVELES.includes(cuerpo?.nivel) ? cuerpo.nivel : "fast";
   const entradas: Entrada[] = Array.isArray(cuerpo?.mensajes) ? cuerpo.mensajes : [];
 
   /* De la Mente el navegador manda el identificador y nada más. Las
@@ -256,14 +263,36 @@ export async function POST(req: Request) {
   if (!perfil) return fallo(401, "sin_sesion");
   if (!entradas.length) return fallo(400, "sin_mensaje");
 
+  const permitidos = NIVELES_POR_PLAN[perfil.plan];
+  const saldo = perfil.creditos + perfil.creditos_extra;
+
+  /* En automático se mira la pregunta, y luego se recorta a lo que el
+     plan permite y el saldo paga. Nunca elige MEGA: 120 créditos se
+     piden a mano.
+     Se calcula aquí y no en el navegador porque el plan y los créditos
+     viven en la base de datos; fiarse de lo que diga el cliente sería
+     regalarle el nivel caro a quien edite la petición. */
+  const eleccion = enAutomatico
+    ? elegirNivel(entradas[entradas.length - 1]?.texto ?? "", {
+        conArchivos: Array.isArray(entradas[entradas.length - 1]?.adjuntos)
+          ? (entradas[entradas.length - 1]!.adjuntos as unknown[]).length > 0
+          : false,
+        mensajes: entradas.length,
+      })
+    : null;
+
+  const nivel: Level = enAutomatico
+    ? loQueCabe(eleccion!.nivel, permitidos, saldo, CREDITOS)
+    : pedido;
+
   // El plan manda. Y se lee de la base de datos, nunca de lo que diga
   // el navegador, que es justo lo que un usuario listo intentaría cambiar.
-  if (!NIVELES_POR_PLAN[perfil.plan].includes(nivel)) {
+  if (!permitidos.includes(nivel)) {
     return fallo(403, "nivel_no_permitido");
   }
 
   const coste = CREDITOS[nivel];
-  if (perfil.creditos + perfil.creditos_extra < coste) {
+  if (saldo < coste) {
     return fallo(402, "sin_creditos");
   }
 
@@ -312,7 +341,13 @@ export async function POST(req: Request) {
 
       // Lo primero, decirle al cliente qué modelo está trabajando:
       // es lo que pinta la etiqueta bajo "Pensando…".
-      enviar({ t: "meta", modelo: nombreModelo(cadena[0]), nivel });
+      enviar({
+        t: "meta",
+        modelo: nombreModelo(cadena[0]),
+        nivel,
+        // Solo cuando lo ha elegido él: así la etiqueta puede decirlo.
+        ...(eleccion ? { auto: true, motivo: eleccion.motivo } : {}),
+      });
 
       let cobrado = false;
       let algoEscrito = false;
@@ -487,7 +522,12 @@ export async function POST(req: Request) {
 
         // Si acabó respondiendo otro, que la etiqueta diga la verdad.
         if (usado !== cadena[0]) {
-          enviar({ t: "meta", modelo: nombreModelo(usado), nivel });
+          enviar({
+            t: "meta",
+            modelo: nombreModelo(usado),
+            nivel,
+            ...(eleccion ? { auto: true, motivo: eleccion.motivo } : {}),
+          });
         }
 
         // Para entonces la conversación ya está abierta. El navegador
