@@ -90,6 +90,35 @@ const enfriando = new Map<string, number>();
 const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
 const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
 
+/* Aparta un modelo que acaba de fallar, el tiempo que toque según por qué.
+ *
+ * Cada fallo dura lo suyo, y apartar un modelo más tiempo del necesario es
+ * tan malo como no apartarlo: en la capa gratuita cada intento que se tira
+ * a la basura es cuota que te comes.
+ *
+ * Devuelve si además hay que descartarlo para el RESTO de esta petición:
+ * un saturado vuelve a estar libre en segundos y merece otra vuelta, pero
+ * al que se le ha acabado la cuota del minuto ya no se le pregunta más. */
+function apartar(modelo: string, fallo: unknown): boolean {
+  switch (clasificarError(fallo)) {
+    case "sobrecargado":
+      enfriar(modelo, 30_000);
+      return false;
+    case "cuota_minuto":
+      // El límite por minuto se pasa solo; dentro de esta petición ya no.
+      enfriar(modelo, 70_000);
+      return true;
+    case "cuota_dia":
+      // Hasta mañana. Seguir preguntándole es tirar peticiones.
+      enfriar(modelo, 60 * 60_000);
+      return true;
+    default:
+      // No existe, no tienes acceso o lo han retirado.
+      enfriar(modelo, 10 * 60_000);
+      return true;
+  }
+}
+
 /* ¿Está puesta la migración 0007, la que añade las columnas de las
    fuentes? Se averigua a la primera y no se vuelve a preguntar. Sin
    esto, una web con la migración pendiente dejaría de guardar las
@@ -491,9 +520,10 @@ export async function POST(req: Request) {
         /* El Mega-Prompt: varios cerebros a la vez.
          *
          * Aquí no hay cadena de suplentes porque no hace falta: si uno de
-         * los tres falla, quedan los otros dos y la respuesta sale igual.
-         * Solo si no contesta NINGUNO se lanza el fallo, y entonces lo
-         * recoge el catch de abajo como cualquier otro. */
+         * los tres falla, quedan los otros dos y la respuesta sale igual
+         * —incluida la de combinarlas, que la escribe alguno de los que sí
+         * contestaron—. Solo si no contesta NINGUNO se lanza el fallo, y
+         * entonces lo recoge el catch de abajo como cualquier otro. */
         if (nivel === "mega") {
           conversacion = await abriendo;
           avisarConversacion();
@@ -514,10 +544,21 @@ export async function POST(req: Request) {
                todavía tiene que escribirse. */
             msParaCandidatos: 22_000,
             maxSalida: Math.min(MAX_SALIDA[nivel], 16000),
+            /* Los fallos no paran el Mega-Prompt, pero sí se apuntan: un
+               modelo sin cuota tiene que quedarse fuera del equipo en el
+               mensaje siguiente en vez de llevarse un sitio otra vez. */
+            alFallar: apartar,
           })) {
             if (paso.t === "equipo") {
               etiqueta = `Mega · ${paso.modelos.join(" + ")}`;
-              enviar({ t: "meta", modelo: etiqueta, nivel });
+              enviar({
+                t: "meta",
+                modelo: etiqueta,
+                nivel,
+                // Si el nivel lo eligió Kairo, que la etiqueta lo siga
+                // diciendo: este aviso sustituye al primero.
+                ...(eleccion ? { auto: true, motivo: eleccion.motivo } : {}),
+              });
             } else if (paso.t === "paso") {
               enviar({ t: "paso", v: paso.v });
             } else if (paso.t === "fuentes") {
@@ -580,32 +621,7 @@ export async function POST(req: Request) {
               break buscar;
             } catch (e) {
               ultimoFallo = e;
-
-              /* Cada fallo dura lo suyo, y apartar un modelo más tiempo del
-                 necesario es tan malo como no apartarlo: en la capa gratuita
-                 cada intento que se tira a la basura es cuota que te comes. */
-              switch (clasificarError(e)) {
-                case "sobrecargado":
-                  // Vuelve a estar libre enseguida: otra oportunidad en la
-                  // vuelta siguiente, pero no en la siguiente petición.
-                  enfriar(candidato, 30_000);
-                  break;
-                case "cuota_minuto":
-                  // El límite por minuto se pasa solo; dentro de esta
-                  // petición ya no, pero en un minuto sí.
-                  enfriar(candidato, 70_000);
-                  descartados.add(candidato);
-                  break;
-                case "cuota_dia":
-                  // Hasta mañana. Seguir preguntándole es tirar peticiones.
-                  enfriar(candidato, 60 * 60_000);
-                  descartados.add(candidato);
-                  break;
-                default:
-                  // No existe, no tienes acceso o lo han retirado.
-                  enfriar(candidato, 10 * 60_000);
-                  descartados.add(candidato);
-              }
+              if (apartar(candidato, e)) descartados.add(candidato);
             }
           }
         }

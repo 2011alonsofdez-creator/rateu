@@ -514,6 +514,26 @@ function Chat() {
       const idK = `k${Date.now()}`;
       let resto = "";
       let abierto = false;
+      /* Las fuentes que llegan ANTES de la primera palabra. Pasa siempre
+         en el Mega-Prompt (las trae quien buscó, que no es quien escribe
+         la respuesta final) y también cuando se busca antes de contestar.
+         Sin guardarlas, se caían: el mensaje al que colgarlas todavía no
+         existía y el aviso no se repite. */
+      let fuentesEnEspera: { lista: Fuente[]; buscado: string[] } | null = null;
+
+      const colgarFuentes = (lista: Fuente[], buscado: string[]) => {
+        setMessages((m) =>
+          m.map((x) =>
+            x.id === idK
+              ? {
+                  ...x,
+                  fuentes: lista.length ? lista : undefined,
+                  busquedas: buscado.length ? buscado : undefined,
+                }
+              : x,
+          ),
+        );
+      };
 
       /* El logo deja de moverse cuando se acaba el texto EN PANTALLA, no
          cuando se acaba el que viene por el cable. */
@@ -558,7 +578,13 @@ function Chat() {
             setBuscando(true);
           } else if (ev.t === "paso") {
             const v = String(ev.v);
-            if (v === "consultando" || v === "comparando") setPaso(v);
+            if (v === "consultando" || v === "comparando") {
+              /* Si antes se había buscado, la búsqueda ya terminó: sin
+                 apagarla aquí, "Buscando…" tapa todo el Mega-Prompt,
+                 porque tiene prioridad sobre el paso. */
+              setBuscando(false);
+              setPaso(v);
+            }
           } else if (ev.t === "meta") {
             setModelo(String(ev.modelo ?? ""));
             const n = String(ev.nivel ?? "") as Level;
@@ -608,28 +634,26 @@ function Chat() {
                   content: { es: "", en: "" },
                 },
               ]);
+
+              // Ya hay mensaje: las fuentes que esperaban se cuelgan de él.
+              if (fuentesEnEspera) {
+                colgarFuentes(fuentesEnEspera.lista, fuentesEnEspera.buscado);
+                fuentesEnEspera = null;
+              }
             }
             setBuscando(false);
             setPaso(null);
             flujo.encolar(String(ev.v ?? ""));
           } else if (ev.t === "fuentes") {
-            /* Llegan al final, cuando el modelo ya ha dicho lo que tenía
-               que decir. Se cuelgan del mensaje que se está escribiendo;
-               si no llegó a abrirse ninguno, no hay nada que adornar. */
+            /* Se cuelgan del mensaje que se está escribiendo. Si todavía no
+               hay mensaje —porque estas fuentes vienen de la búsqueda previa
+               o de los cerebros del Mega-Prompt, y llegan antes de la
+               primera palabra—, se guardan para colgarlas al abrirlo. */
             const lista = Array.isArray(ev.v) ? (ev.v as Fuente[]) : [];
             const buscado = Array.isArray(ev.busquedas) ? (ev.busquedas as string[]) : [];
-            if (abierto && (lista.length || buscado.length)) {
-              setMessages((m) =>
-                m.map((x) =>
-                  x.id === idK
-                    ? {
-                        ...x,
-                        fuentes: lista.length ? lista : undefined,
-                        busquedas: buscado.length ? buscado : undefined,
-                      }
-                    : x,
-                ),
-              );
+            if (lista.length || buscado.length) {
+              if (abierto) colgarFuentes(lista, buscado);
+              else fuentesEnEspera = { lista, buscado };
             }
           } else if (ev.t === "guardado") {
             // Lo mismo para la respuesta: es lo que "Regenerar" reemplaza.

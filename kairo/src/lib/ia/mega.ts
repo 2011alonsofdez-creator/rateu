@@ -49,6 +49,14 @@ export type OpcionesMega = {
   msParaCandidatos?: number;
   /** Techo de salida de la respuesta final. */
   maxSalida?: number;
+  /* Aviso de que un modelo ha fallado, con el error tal cual.
+   *
+   * Aquí los fallos no paran nada —para eso se pregunta a varios—, pero
+   * quien llama sí necesita enterarse: es quien aparta al modelo un rato
+   * (la cuarentena) y quien sabe traducir un 429 a "vuelve mañana". Sin
+   * esto, un modelo con la cuota del día agotada se lleva un sitio del
+   * equipo en CADA mensaje y el usuario nunca sabe por qué. */
+  alFallar?: (id: string, error: unknown) => void;
 };
 
 /* Lo que se le dice al que combina. Va pegado al prompt de siempre, así
@@ -111,8 +119,13 @@ export function elegirEquipo(cadena: string[], maximo = 3): string[] {
   return equipo;
 }
 
-/** Le pregunta a un modelo y espera a que termine del todo. */
-async function recoger(pet: Peticion): Promise<Respuesta> {
+/* Le pregunta a un modelo y espera a que termine del todo.
+ *
+ * `rendirse` es el interruptor común: cuando el que llama ya no espera a
+ * nadie más, el que iba tarde deja de leer y CIERRA su flujo. Sin eso, el
+ * proveedor sigue generando —y cobrando— una respuesta que ya nadie va a
+ * mirar, y la función de servidor sigue despierta aguantándola. */
+async function recoger(pet: Peticion, rendirse: { ya: boolean }): Promise<Respuesta> {
   const arranque = await arrancar(pet);
 
   let texto = "";
@@ -130,21 +143,40 @@ async function recoger(pet: Peticion): Promise<Respuesta> {
   };
 
   tratar(arranque.primero);
-  while (true) {
+  while (!rendirse.ya) {
     const siguiente = await arranque.resto.next();
     if (siguiente.done) break;
     tratar(siguiente.value as Trozo);
   }
 
+  if (rendirse.ya) {
+    try {
+      await arranque.resto.return?.(undefined);
+    } catch {
+      /* ya se había cerrado por su cuenta */
+    }
+  }
+
   return { id: pet.id, texto: texto.trim(), fuentes, busquedas };
 }
 
-/** Se rinde al cabo de un rato. Al que llega tarde se le deja atrás. */
+/* Se rinde al cabo de un rato. Al que llega tarde se le deja atrás.
+ *
+ * El temporizador se apaga en cuanto se decide la carrera: si no, queda
+ * armado hasta el final aunque los tres hayan contestado en tres
+ * segundos, y en una función de servidor eso es tenerla despierta
+ * esperando a nada. */
 function conPrisa<T>(promesa: Promise<T>, ms: number): Promise<T | null> {
+  let reloj: ReturnType<typeof setTimeout> | undefined;
+
   return Promise.race([
     promesa,
-    new Promise<null>((listo) => setTimeout(() => listo(null), ms)),
-  ]);
+    new Promise<null>((listo) => {
+      reloj = setTimeout(() => listo(null), ms);
+    }),
+  ]).finally(() => {
+    if (reloj !== undefined) clearTimeout(reloj);
+  });
 }
 
 /** Las respuestas, sin nombre y numeradas, para el que las combina. */
@@ -201,30 +233,50 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
   };
   yield { t: "paso", v: "consultando" };
 
+  /* En cuanto se sabe quién ha llegado, al que no se le deja de esperar y
+     se le cierra el grifo. Se comparte entre los tres encargos. */
+  const rendirse = { ya: false };
+  /* El último error de verdad, para poder subirlo si no contesta nadie. */
+  let ultimoFallo: unknown;
+
   /* A los candidatos se les pide una respuesta completa pero no
      interminable: lo que escriban no se enseña, se funde. El espacio
      largo se lo queda la respuesta final, que es la que se lee. */
   const encargos = equipo.map((id) =>
     conPrisa(
-      recoger({
-        id,
-        sistema: op.prompt(id),
-        mensajes: op.mensajes,
-        maxSalida: 6000,
-        esfuerzo: "alto",
-        modoEdad: op.modoEdad,
-        pensar: 8192,
-      }),
+      recoger(
+        {
+          id,
+          sistema: op.prompt(id),
+          mensajes: op.mensajes,
+          maxSalida: 6000,
+          esfuerzo: "alto",
+          modoEdad: op.modoEdad,
+          pensar: 8192,
+        },
+        rendirse,
+      ),
       op.msParaCandidatos ?? 32_000,
-    ).catch(() => null),
+    ).catch((e) => {
+      /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
+         saberlo: es el que aparta al modelo un rato y el que sabe decir
+         "cuota agotada" en vez de "algo ha ido mal". */
+      op.alFallar?.(id, e);
+      ultimoFallo = e;
+      return null;
+    }),
   );
 
   const llegadas = await Promise.all(encargos);
+  rendirse.ya = true;
   const respuestas = llegadas.filter((r): r is Respuesta => Boolean(r?.texto));
 
-  /* Ninguno ha contestado. Se avisa y que lo recoja quien llame: ahí
-     fuera está la cadena de reintentos de siempre. */
-  if (!respuestas.length) throw new Error("mega: ningún modelo ha contestado a tiempo");
+  /* Ninguno ha contestado. Se sube el error de verdad del último que
+     falló, no uno inventado: dentro va el código de estado, y es lo que
+     convierte "algo ha ido mal" en "se ha agotado la cuota del día". */
+  if (!respuestas.length) {
+    throw ultimoFallo ?? new Error("mega: ningún modelo ha contestado a tiempo");
+  }
 
   const { fuentes, busquedas } = unir(respuestas);
   if (fuentes.length || busquedas.length) yield { t: "fuentes", fuentes, busquedas };
@@ -243,26 +295,44 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
      a "combinando", en vez de mandar dos avisos con nada en medio. */
   yield { t: "paso", v: "comparando" };
 
-  /* Combina el primero del equipo, que es el que la cadena pone por
-     delante para este nivel. Las respuestas le llegan numeradas y sin
-     firma, así que no puede reconocer la suya para protegerla. */
-  const juez = equipo[0];
+  /* Quién combina: uno de los que SÍ han contestado, y por el orden de la
+     cadena. Pedírselo al primero del equipo sin mirar era el fallo gordo:
+     si ese es justo el que acaba de devolver un 429, se le vuelve a
+     preguntar, vuelve a fallar, y se tira a la basura el trabajo bueno de
+     los otros dos. Si el primero tampoco puede ahora, lo intenta el
+     siguiente. Las respuestas le llegan numeradas y sin firma, así que no
+     puede reconocer la suya para protegerla. */
+  const jueces = equipo.filter((id) => respuestas.some((r) => r.id === id));
   const conversacion: Mensaje[] = [
     ...op.mensajes,
     { rol: "user", texto: dossier(respuestas) },
   ];
 
-  const final = await arrancar({
-    id: juez,
-    sistema: op.prompt(juez) + COMBINAR,
-    mensajes: conversacion,
-    maxSalida,
-    esfuerzo: "maximo",
-    modoEdad: op.modoEdad,
-    pensar: 16384,
-  });
+  for (const juez of jueces) {
+    let final;
+    try {
+      final = await arrancar({
+        id: juez,
+        sistema: op.prompt(juez) + COMBINAR,
+        mensajes: conversacion,
+        maxSalida,
+        esfuerzo: "maximo",
+        modoEdad: op.modoEdad,
+        pensar: 16384,
+      });
+    } catch (e) {
+      op.alFallar?.(juez, e);
+      continue;
+    }
 
-  yield* soltar(final);
+    yield* soltar(final);
+    return;
+  }
+
+  /* Nadie puede combinar. Antes que perder tres respuestas buenas por no
+     tener quien las junte, se enseña la del primero de la cadena que
+     contestó: es peor que la combinada, y muchísimo mejor que un error. */
+  yield { t: "texto", v: respuestas[0].texto };
 }
 
 /** Va soltando lo que escribe un modelo, trozo a trozo. */
