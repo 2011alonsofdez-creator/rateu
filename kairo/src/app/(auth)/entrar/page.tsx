@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { clienteNavegador } from "@/lib/supabase/client";
 import { LOGIN_GOOGLE, hasSupabase } from "@/lib/supabase/config";
+import { razonDeAuth, textoDeRazon, type Razon } from "@/lib/supabase/errores";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
 
@@ -17,17 +18,24 @@ function Formulario() {
 
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
-  const [error, setError] = useState("");
+  /* El motivo, no el mensaje. El mensaje se saca de aquí al pintar, y
+     además hay motivos que traen su propio botón. */
+  const [razon, setRazon] = useState<Razon | null>(
+    // El callback rebota aquí cuando un enlace del correo ya no vale.
+    params.get("error") ? "enlace_caducado" : null,
+  );
   const [cargando, setCargando] = useState(false);
+  const [reenviado, setReenviado] = useState(false);
 
   const entrar = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setRazon(null);
+    setReenviado(false);
     setCargando(true);
 
     const supabase = clienteNavegador();
     if (!supabase) {
-      setError(t("auth.errGeneric"));
+      setRazon("otro");
       setCargando(false);
       return;
     }
@@ -38,7 +46,10 @@ function Formulario() {
     });
 
     if (err) {
-      setError(t("auth.errCredentials"));
+      /* Antes esto decía "correo o contraseña incorrectos" pasara lo que
+         pasara, y mandaba a cambiar una contraseña que estaba bien.
+         Ahora se dice lo que ha fallado de verdad. */
+      setRazon(razonDeAuth(err));
       setCargando(false);
       return;
     }
@@ -48,8 +59,31 @@ function Formulario() {
     router.refresh();
   };
 
+  /* Falta confirmar el correo: el enlace se le manda otra vez sin que
+     tenga que registrarse de nuevo. Es el arreglo de un vistazo para el
+     caso más habitual de "mi contraseña es la buena y no me deja". */
+  const reenviar = async () => {
+    const supabase = clienteNavegador();
+    if (!supabase) return;
+
+    setCargando(true);
+    const { error: err } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setCargando(false);
+
+    if (err) {
+      setRazon(razonDeAuth(err));
+      return;
+    }
+    setRazon(null);
+    setReenviado(true);
+  };
+
   const conGoogle = async () => {
-    setError("");
+    setRazon(null);
     const supabase = clienteNavegador();
     if (!supabase) return;
 
@@ -62,12 +96,33 @@ function Formulario() {
 
     // Si Google no está dado de alta en Supabase, mejor un aviso claro
     // que la pantalla de error en crudo que devuelve el servidor.
-    if (err) setError(t("auth.errGoogle"));
+    if (err) setRazon("otro");
   };
 
   return (
     <form onSubmit={entrar} className="space-y-4">
-      {error && <Aviso>{error}</Aviso>}
+      {razon && (
+        <div className="space-y-2">
+          <Aviso>{t(textoDeRazon(razon))}</Aviso>
+
+          {razon === "sin_confirmar" && (
+            <button
+              type="button"
+              onClick={reenviar}
+              disabled={cargando || !email.trim()}
+              className="w-full rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition enabled:hover:bg-panel-hi disabled:opacity-50"
+            >
+              {t("auth.resendCta")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {reenviado && (
+        <p className="rounded-xl border border-green/30 bg-green/10 px-3.5 py-2.5 text-[13.5px] leading-relaxed text-green">
+          {t("auth.resendDone")}
+        </p>
+      )}
 
       <Campo
         id="email"
@@ -91,6 +146,12 @@ function Formulario() {
       <BotonPrincipal type="submit" cargando={cargando}>
         {cargando ? t("auth.working") : t("auth.loginCta")}
       </BotonPrincipal>
+
+      <p className="text-center text-[13px]">
+        <Link href="/recuperar" className="text-muted underline-offset-4 hover:text-fg hover:underline">
+          {t("auth.forgot")}
+        </Link>
+      </p>
 
       {LOGIN_GOOGLE && (
         <>

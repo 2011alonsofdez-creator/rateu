@@ -118,6 +118,46 @@ async function migraciones() {
   };
 }
 
+/* ¿Contesta el Supabase al que apunta la URL?
+ *
+ * Es la pregunta que de verdad se hace uno cuando la pantalla de entrar
+ * dice que no. Una URL puede tener la pinta perfecta —dominio correcto,
+ * sin espacios, sin barra final— y apuntar a un proyecto pausado,
+ * borrado o de otra cuenta. Esto lo llama y cuenta qué respondió.
+ * /auth/v1/health es público: no hace falta sesión y no devuelve datos
+ * de nadie. */
+async function contestaSupabase() {
+  if (!SUPABASE_URL) return { probado: false, motivo: "no hay URL configurada" };
+
+  const corta = AbortSignal.timeout(6000);
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+      headers: { apikey: SUPABASE_ANON_KEY },
+      signal: corta,
+      cache: "no-store",
+    });
+    return {
+      probado: true,
+      responde: r.ok,
+      http: r.status,
+      /* 401 con la clave puesta significa que el proyecto existe pero la
+         clave no es suya: la confusión clásica de tener dos proyectos. */
+      pista: r.ok
+        ? "el proyecto responde"
+        : r.status === 401
+          ? "el proyecto responde pero rechaza la clave: ¿la clave anon es de OTRO proyecto?"
+          : "el proyecto contesta algo raro",
+    };
+  } catch (e) {
+    return {
+      probado: true,
+      responde: false,
+      pista: "no se ha podido conectar: la URL no apunta a ningún Supabase vivo",
+      detalle: corto(e),
+    };
+  }
+}
+
 export async function GET() {
   const crudaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const crudaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -136,7 +176,7 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
-  const [gem, cla, gpt, ext, migra] = await Promise.all([
+  const [gem, cla, gpt, ext, migra, salud] = await Promise.all([
     claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
     claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
     claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
@@ -144,6 +184,7 @@ export async function GET() {
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
     migraciones().catch((e) => ({ estado: corto(e) })),
+    contestaSupabase().catch((e) => ({ probado: true, responde: false, detalle: corto(e) })),
   ]);
 
   const disponibles = (v: string[] | string | null) =>
@@ -172,6 +213,7 @@ export async function GET() {
       clave_caracteres: crudaKey.length,
       clave_tiene_espacios: crudaKey !== crudaKey.trim(),
       clave_anon_valida: SUPABASE_ANON_KEY.length > 0,
+      contesta: salud,
     },
 
     cerebros: {

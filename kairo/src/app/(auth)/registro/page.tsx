@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { clienteNavegador } from "@/lib/supabase/client";
 import { hasSupabase } from "@/lib/supabase/config";
+import { razonDeAuth, textoDeRazon } from "@/lib/supabase/errores";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
 
@@ -77,7 +78,9 @@ function Formulario() {
     });
 
     if (err) {
-      setError(err.message || t("auth.errGeneric"));
+      /* El mensaje de Supabase viene en inglés y de cara al que programa
+         ("User already registered"). Aquí se traduce a qué hacer. */
+      setError(t(textoDeRazon(razonDeAuth(err))));
       setCargando(false);
       return;
     }
