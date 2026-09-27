@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { clienteNavegador } from "@/lib/supabase/client";
-import { LOGIN_GOOGLE, hasSupabase } from "@/lib/supabase/config";
+import { LOGIN_GOOGLE, SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
 import { razonDeAuth, textoDeRazon, type Razon } from "@/lib/supabase/errores";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
@@ -104,6 +104,21 @@ function Formulario() {
       {razon && (
         <div className="space-y-2">
           <Aviso>{t(textoDeRazon(razon))}</Aviso>
+
+          {/* Cuando no se llega al servidor, lo que hace falta saber es
+              A CUÁL no se llega: casi siempre es que la dirección
+              configurada no es la del proyecto. El nombre del sitio ya
+              viaja dentro del código que se descarga el navegador, así
+              que enseñarlo no destapa nada. */}
+          {razon === "sin_conexion" && SUPABASE_HOST && (
+            <p className="text-[12.5px] leading-relaxed text-faint">
+              {t("auth.triedHost")} <span className="font-mono text-muted">{SUPABASE_HOST}</span>
+              {" · "}
+              <a href="/api/estado" target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-fg">
+                {t("auth.seeDiagnosis")}
+              </a>
+            </p>
+          )}
 
           {razon === "sin_confirmar" && (
             <button
