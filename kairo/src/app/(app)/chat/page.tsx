@@ -669,7 +669,9 @@ function Chat() {
             setPaso(null);
             const v = String(ev.v);
             setError(
-              v === "cuota_dia"
+              v === "sin_tiempo"
+                ? "err.tiempo"
+                : v === "cuota_dia"
                 ? "err.cuotaDia"
                 : v === "cuota_minuto"
                   ? "err.cuotaMinuto"

@@ -214,7 +214,15 @@ const fallo = (estado: number, motivo: string) =>
     headers: { "content-type": "application/json" },
   });
 
+/* Cuánto tiempo se da a una respuesta, de reloj, contando desde que
+   entra la petición. Vercel corta la función al minuto y cuando corta no
+   se guarda nada: ni la respuesta a medias, ni el crédito bien contado.
+   Terminando por nuestra cuenta ocho segundos antes, lo escrito hasta
+   ahí queda guardado y el usuario sabe por qué se ha parado. */
+const PLAZO_RESPUESTA = 52_000;
+
 export async function POST(req: Request) {
+  const entro = Date.now();
   const supabase = await clienteServidor();
   if (!supabase) return fallo(503, "demo");
 
@@ -543,6 +551,9 @@ export async function POST(req: Request) {
                función tiene un minuto para contestar y la respuesta final
                todavía tiene que escribirse. */
             msParaCandidatos: 22_000,
+            /* Lo que quede del minuto, descontando lo que ya se haya
+               ido en buscar en internet antes de contestar. */
+            msTotales: Math.max(10_000, PLAZO_RESPUESTA - (Date.now() - entro)),
             maxSalida: Math.min(MAX_SALIDA[nivel], 16000),
             /* Los fallos no paran el Mega-Prompt, pero sí se apuntan: un
                modelo sin cuota tiene que quedarse fuera del equipo en el
@@ -563,6 +574,12 @@ export async function POST(req: Request) {
               enviar({ t: "paso", v: paso.v });
             } else if (paso.t === "fuentes") {
               anadirFuentes(paso.fuentes, paso.busquedas);
+            } else if (paso.t === "sin_tiempo") {
+              /* Se ha cortado por tiempo. Lo escrito hasta aquí es bueno
+                 y se guarda igual; lo que no se puede es callarlo y
+                 dejar una respuesta que acaba a media frase sin
+                 explicación. */
+              enviar({ t: "error", v: "sin_tiempo" });
             } else if (paso.t === "texto") {
               if (!(await escribir(paso.v))) {
                 controlador.close();
@@ -659,6 +676,20 @@ export async function POST(req: Request) {
         };
 
         for await (const trozo of trozos) {
+          /* El mismo plazo que en el Mega-Prompt, y por lo mismo: una
+             respuesta larga de Forja también puede pasarse del minuto,
+             y si la corta Vercel no se guarda ni lo que ya estaba
+             escrito. */
+          if (Date.now() - entro > PLAZO_RESPUESTA) {
+            enviar({ t: "error", v: "sin_tiempo" });
+            try {
+              await respuesta.resto.return?.(undefined);
+            } catch {
+              /* ya estaba cerrado */
+            }
+            break;
+          }
+
           /* Las fuentes no son respuesta: no se cobran, no se acumulan
              en el texto y van por su propio aviso. */
           if ("fuentes" in trozo) {

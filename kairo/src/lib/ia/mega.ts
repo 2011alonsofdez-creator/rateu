@@ -36,7 +36,9 @@ export type PasoMega =
   /** En qué va: preguntando, comparando o combinando. */
   | { t: "paso"; v: "consultando" | "comparando" }
   | { t: "fuentes"; fuentes: Fuente[]; busquedas: string[] }
-  | { t: "texto"; v: string };
+  | { t: "texto"; v: string }
+  /** Se ha acabado el tiempo y se ha cortado por lo sano. */
+  | { t: "sin_tiempo" };
 
 export type OpcionesMega = {
   /** La cadena del nivel, ya filtrada por claves y por edad. */
@@ -49,6 +51,15 @@ export type OpcionesMega = {
   msParaCandidatos?: number;
   /** Techo de salida de la respuesta final. */
   maxSalida?: number;
+  /* Cuánto tiempo queda en total, de reloj.
+   *
+   * Una función de servidor tiene un minuto, y cuando se le acaba no
+   * avisa: corta. Si corta a mitad de la respuesta final, el usuario ve
+   * el texto pararse en seco Y ADEMÁS no se guarda nada, porque el
+   * código que guarda no llega a ejecutarse. Sabiendo el plazo, se deja
+   * de leer a tiempo y se termina bien: una respuesta un poco más corta
+   * pero entera, guardada y con su aviso. */
+  msTotales?: number;
   /* Aviso de que un modelo ha fallado, con el error tal cual.
    *
    * Aquí los fallos no paran nada —para eso se pregunta a varios—, pero
@@ -217,12 +228,14 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
   if (!equipo.length) throw new Error("mega: no hay ningún modelo disponible");
 
   const maxSalida = op.maxSalida ?? 16000;
+  /* La hora a la que hay que haber terminado. Sin plazo, no hay prisa. */
+  const plazo = op.msTotales ? Date.now() + op.msTotales : Infinity;
 
   /* Un modelo solo: no hay nada que combinar, así que MEGA se comporta
      como el nivel de siempre con el mejor modelo que haya. */
   if (equipo.length === 1) {
     yield { t: "equipo", modelos: [nombreModelo(equipo[0])], combina: nombreModelo(equipo[0]) };
-    yield* soloUno(equipo[0], op, maxSalida);
+    yield* soloUno(equipo[0], op, maxSalida, plazo);
     return;
   }
 
@@ -256,7 +269,10 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
         },
         rendirse,
       ),
-      op.msParaCandidatos ?? 32_000,
+      /* Y nunca más de lo que quede: si se les da 22 segundos cuando
+         solo quedan 15, la respuesta final nace muerta. Se les deja
+         como mucho la mitad de lo que reste. */
+      Math.min(op.msParaCandidatos ?? 32_000, Math.max(3000, (plazo - Date.now()) / 2)),
     ).catch((e) => {
       /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
          saberlo: es el que aparta al modelo un rato y el que sabe decir
@@ -325,7 +341,7 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
       continue;
     }
 
-    yield* soltar(final);
+    yield* soltar(final, plazo);
     return;
   }
 
@@ -336,7 +352,10 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
 }
 
 /** Va soltando lo que escribe un modelo, trozo a trozo. */
-async function* soltar(arranque: Awaited<ReturnType<typeof arrancar>>): AsyncGenerator<PasoMega> {
+async function* soltar(
+  arranque: Awaited<ReturnType<typeof arrancar>>,
+  plazo: number,
+): AsyncGenerator<PasoMega> {
   const tratar = function* (trozo: Trozo | undefined) {
     if (!trozo) return;
     if ("fuentes" in trozo) {
@@ -350,6 +369,18 @@ async function* soltar(arranque: Awaited<ReturnType<typeof arrancar>>): AsyncGen
 
   yield* tratar(arranque.primero);
   while (true) {
+    /* Se mira el reloj ANTES de pedir el trozo siguiente: cortar aquí
+       deja terminar el guardado; que corte Vercel no deja nada. */
+    if (Date.now() > plazo) {
+      yield { t: "sin_tiempo" };
+      try {
+        await arranque.resto.return?.(undefined);
+      } catch {
+        /* ya se había cerrado por su cuenta */
+      }
+      return;
+    }
+
     const siguiente = await arranque.resto.next();
     if (siguiente.done) return;
     yield* tratar(siguiente.value as Trozo);
@@ -357,7 +388,12 @@ async function* soltar(arranque: Awaited<ReturnType<typeof arrancar>>): AsyncGen
 }
 
 /** Con un solo cerebro conectado, MEGA es el de siempre a todo trapo. */
-async function* soloUno(id: string, op: OpcionesMega, maxSalida: number): AsyncGenerator<PasoMega> {
+async function* soloUno(
+  id: string,
+  op: OpcionesMega,
+  maxSalida: number,
+  plazo: number,
+): AsyncGenerator<PasoMega> {
   const arranque = await arrancar({
     id,
     sistema: op.prompt(id),
@@ -368,5 +404,5 @@ async function* soloUno(id: string, op: OpcionesMega, maxSalida: number): AsyncG
     pensar: 24576,
   });
 
-  yield* soltar(arranque);
+  yield* soltar(arranque, plazo);
 }

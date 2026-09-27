@@ -318,6 +318,8 @@ const dict = {
     "err.clave": "Una de las claves de IA no es válida o ha caducado. Revísalas en Vercel.",
     "err.sobrecargado": "Los servidores de Gemini están saturados ahora mismo. Lo he reintentado sin suerte: prueba otra vez en unos segundos.",
     "err.modelo": "La IA no ha podido responder. Inténtalo otra vez.",
+    "err.tiempo":
+      "Se ha acabado el tiempo y la respuesta se ha quedado a medias. Lo escrito está guardado: pídele que siga.",
     "err.bloqueado": "He preferido no responder a eso. Prueba a preguntarlo de otra forma.",
     "err.nivel": "Tu plan no incluye este nivel. Sube de plan para usarlo.",
     "err.sesion": "Se ha cerrado tu sesión. Vuelve a entrar.",
@@ -697,6 +699,8 @@ const dict = {
     "err.clave": "One of the AI keys is invalid or expired. Check them in Vercel.",
     "err.sobrecargado": "Gemini\u2019s servers are overloaded right now. I retried without luck: give it a few seconds and try again.",
     "err.modelo": "The AI could not answer. Please try again.",
+    "err.tiempo":
+      "Time ran out and the answer is cut short. What was written is saved: ask it to carry on.",
     "err.bloqueado": "I would rather not answer that. Try asking it another way.",
     "err.nivel": "Your plan does not include this level. Upgrade to use it.",
     "err.sesion": "Your session ended. Please log in again.",
