@@ -6,6 +6,9 @@ import type { Adjunto, Fuente } from "./tipos";
 
 export type Level = "fast" | "normal" | "forja" | "mega";
 
+/** Lo que puede elegir la persona: un nivel, o que lo elija Kairo. */
+export type Nivel = Level | "auto";
+
 export const LEVELS: Record<Level, { credits: number; color: string }> = {
   fast: { credits: 1, color: "var(--green)" },
   normal: { credits: 4, color: "var(--acento-2)" },

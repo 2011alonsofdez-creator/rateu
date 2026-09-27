@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
-import { LEVELS, type Level } from "@/lib/mock";
+import { LEVELS, type Level, type Nivel } from "@/lib/mock";
 import { NIVELES_POR_PLAN } from "@/lib/planes";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { escuchar, hayMicrofono } from "@/lib/voz";
@@ -30,8 +30,8 @@ export function Composer({
   onSend,
   busy,
 }: {
-  level: Level;
-  setLevel: (l: Level) => void;
+  level: Nivel;
+  setLevel: (l: Nivel) => void;
   mente: Mente | null;
   setMente: (m: Mente | null) => void;
   onSend: (text: string, adjuntos: Adjunto[]) => void;
@@ -229,7 +229,7 @@ export function Composer({
     setAvisoArchivo(undefined);
   };
 
-  const current = LEVEL_META.find((l) => l.id === level)!;
+  const current = LEVEL_META.find((l) => l.id === level);
 
   return (
     <div className="border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4">
@@ -458,9 +458,12 @@ export function Composer({
                 aria-expanded={menu}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
               >
-                <Bolt className="h-3.5 w-3.5" style={{ color: LEVELS[level].color }} />
-                {t(current.label)}
-                <span className="text-faint">{t(current.esfuerzo)}</span>
+                <Bolt
+                  className="h-3.5 w-3.5"
+                  style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
+                />
+                {current ? t(current.label) : t("app.auto")}
+                {current && <span className="text-faint">{t(current.esfuerzo)}</span>}
                 <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
               </button>
 
@@ -470,6 +473,24 @@ export function Composer({
                     <span>{t("app.level")}</span>
                     <span>{t("effort.title")}</span>
                   </div>
+
+                  {/* Automático, arriba del todo y sin esfuerzo que
+                      enseñar: el esfuerzo lo decide él según preguntes. */}
+                  <button
+                    onClick={() => {
+                      setLevel("auto");
+                      setMenu(false);
+                    }}
+                    className={`flex w-full items-start gap-3 border-b border-line px-3.5 py-3 text-left transition hover:bg-panel-hi ${
+                      level === "auto" ? "bg-panel-hi" : ""
+                    }`}
+                  >
+                    <Bolt className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--acento-2)" }} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13.5px] font-medium">{t("app.auto")}</span>
+                      <span className="block text-[12px] text-faint">{t("app.autoDesc")}</span>
+                    </span>
+                  </button>
 
                   {LEVEL_META.map((l) => {
                     // Un nivel que el plan no incluye no se ofrece como si
@@ -517,7 +538,7 @@ export function Composer({
                   })}
 
                   <p className="border-t border-line px-3.5 py-2.5 text-[11.5px] leading-relaxed text-faint">
-                    {t("effort.note")}
+                    {level === "auto" ? t("app.autoNote") : t("effort.note")}
                   </p>
                 </div>
               )}
