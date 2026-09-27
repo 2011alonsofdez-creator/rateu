@@ -25,6 +25,8 @@ export type Hallazgo = {
   fuentes: Fuente[];
   busquedas: string[];
   modelo: string;
+  /** Si llegó a buscar DE VERDAD. Esto no es un detalle: ver abajo. */
+  busco: boolean;
 };
 
 const SISTEMA = `Eres el buscador de Kairo. No hablas con nadie: recoges datos.
@@ -37,7 +39,10 @@ Te dan una pregunta y devuelves SOLO lo que encuentres buscando, así:
 - Si dos fuentes se contradicen, pon las dos y dilo.
 
 Reglas:
-- Busca siempre. Aunque creas saberlo, búscalo.
+- BUSCA. Siempre, sin excepción, aunque estés convencido de saberlo y
+  aunque la pregunta te parezca absurda o creas que la respuesta es "eso
+  no existe". Una respuesta tuya sin haber usado el buscador no vale
+  para nada y se tira.
 - No contestes a la persona, no saludes, no expliques, no resumas por
   encima: solo los datos.
 - Si buscas y no hay nada sólido, responde exactamente: NADA ENCONTRADO
@@ -62,6 +67,11 @@ export async function buscarHechos(
 
   const ia = new GoogleGenAI({ apiKey: clave });
 
+  /* Lo que se devuelve si NINGÚN modelo llega a buscar: hechos vacíos,
+     que es lo que hace que Kairo diga "he mirado y no lo he
+     encontrado" en vez de soltar lo que recordaba. */
+  let sinBuscar: Hallazgo | null = null;
+
   const hoy = new Intl.DateTimeFormat("es-ES", {
     timeZone: "Europe/Madrid",
     day: "numeric",
@@ -83,7 +93,8 @@ export async function buscarHechos(
                 text:
                   `Hoy es ${hoy}.\n` +
                   (contexto ? `De qué venían hablando: ${contexto}\n` : "") +
-                  `\nBusca lo necesario para contestar a esto:\n${pregunta.slice(0, 1500)}`,
+                  `\nUsa el buscador y dime qué encuentras sobre esto:\n${pregunta.slice(0, 1500)}` +
+                  `\n\nNo contestes de memoria. Busca primero, aunque creas que ya lo sabes.`,
               },
             ],
           },
@@ -91,8 +102,11 @@ export async function buscarHechos(
         config: {
           systemInstruction: SISTEMA,
           safetySettings: ajustesSeguridad(modoEdad),
-          // Sin pensar y con techo corto: esto tiene que ser rápido.
-          thinkingConfig: { thinkingBudget: 0 },
+          /* Que piense un poco. Con el presupuesto a cero contestaba de
+             memoria sin llegar a usar el buscador —que es exactamente
+             el fallo que esto venía a arreglar—, así que se le deja
+             decidir: un segundo más y sí busca. */
+          thinkingConfig: { thinkingBudget: -1 },
           maxOutputTokens: 1500,
           tools: [{ googleSearch: {} }],
         },
@@ -101,23 +115,33 @@ export async function buscarHechos(
       fuentes.anadir(respuesta.candidates?.[0]?.groundingMetadata);
       const texto = (respuesta.text ?? "").trim();
 
-      /* Sin fuentes y sin texto no hay búsqueda que valga: se devuelve
-         null y Kairo contesta como antes, avisando de lo que no sabe.
-         Fingir que se ha buscado sería peor que no buscar. */
-      if (!texto || /^NADA ENCONTRADO/i.test(texto)) {
-        if (!fuentes.fuentes.length) return null;
+      /* ¿Buscó de verdad? La prueba no es lo que diga, es si Google
+         devolvió algo: páginas consultadas o consultas hechas. Si no
+         hay ni una cosa ni la otra, ha contestado de memoria.
+         Y eso NO se puede dar por bueno: su texto llega al prompt
+         anunciado como "lo que acabas de buscar en internet", así que
+         pasarlo tal cual convertiría un recuerdo viejo en un hecho
+         recién comprobado. Es peor que no buscar: es blanquearlo.
+         Se prueba con otro modelo, y si ninguno busca, se dice que no
+         se ha encontrado nada, que es la verdad. */
+      const busco = fuentes.fuentes.length > 0 || fuentes.busquedas.length > 0;
+
+      if (!busco) {
+        sinBuscar = { hechos: "", fuentes: [], busquedas: [], modelo, busco: false };
+        continue;
       }
 
       return {
-        hechos: /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
+        hechos: !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
         fuentes: fuentes.fuentes,
         busquedas: fuentes.busquedas,
         modelo,
+        busco: true,
       };
     } catch {
       // Se prueba con el siguiente modelo de la cadena.
     }
   }
 
-  return null;
+  return sinBuscar;
 }
