@@ -87,13 +87,14 @@ async function migraciones() {
     return faltaColumna(error) ? "FALTA" : `no se sabe: ${error.message.slice(0, 80)}`;
   };
 
-  const [mentes, historial, pagos, fuentes, fichas, papeles] = await Promise.all([
+  const [mentes, historial, pagos, fuentes, fichas, papeles, coworks] = await Promise.all([
     probar("mentes", "id"),
     probar("conversaciones", "actualizada_el"),
     probar("suscripciones", "id"),
     probar("mensajes", "fuentes"),
     probar("fichas", "id"),
     probar("papeles", "fecha_limite"),
+    probar("coworks", "hora"),
   ]);
 
   return {
@@ -106,6 +107,7 @@ async function migraciones() {
        una está y la otra no, eso hay que verlo. */
     "0008_gist_y_paperwork.sql":
       fichas === papeles ? fichas : `fichas: ${fichas} · papeles: ${papeles}`,
+    "0009_coworks.sql": coworks,
     que_pasa_si_falta: {
       "0003_mentes.sql": "no se pueden crear Mentes",
       "0005_historial.sql":
@@ -114,6 +116,7 @@ async function migraciones() {
       "0007_fuentes.sql": "las fuentes se ven al momento pero no al reabrir la conversación",
       "0008_gist_y_paperwork.sql":
         "Gist y Paperwork funcionan, pero cada ficha se pierde al salir de la página",
+      "0009_coworks.sql": "no hay Co-Works: no se puede programar nada para que se haga solo",
     },
   };
 }
@@ -214,6 +217,17 @@ export async function GET() {
       clave_tiene_espacios: crudaKey !== crudaKey.trim(),
       clave_anon_valida: SUPABASE_ANON_KEY.length > 0,
       contesta: salud,
+    },
+
+    /* Lo que hace falta para que algo se ejecute SOLO. Son dos
+       variables y una migración, y sin las tres no hay nada que hacer:
+       el reloj llama, se encuentra la puerta cerrada y se va. */
+    trabajar_solo: {
+      cron_secret_recibida: (process.env.CRON_SECRET ?? "").trim().length > 0,
+      clave_de_administrador: (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim().length > 0,
+      reloj_de_vercel: "kairo/vercel.json · una vez al día a las 06:00 UTC",
+      reloj_de_github: ".github/workflows/kairo-coworks.yml · cada hora, si has puesto los dos secretos",
+      donde_mirar: "docs/kairo/COWORKS.md",
     },
 
     cerebros: {
