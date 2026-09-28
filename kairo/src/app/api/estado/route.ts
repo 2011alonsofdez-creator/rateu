@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase } from "@/lib/supabase/config";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase, pistaDeUrl } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
 import { EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
 import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
@@ -211,6 +211,10 @@ export async function GET() {
       url_caracteres: crudaUrl.length,
       url_tiene_espacios: crudaUrl !== crudaUrl.trim(),
       url_valida: SUPABASE_URL.length > 0,
+      /* Y si no vale, POR QUÉ no vale. Sin esto, "url_valida: false" es
+         un callejón sin salida: sabes que está mal y no sabes qué
+         mirar. */
+      url_problema: pistaDeUrl(crudaUrl),
       dominio,
       clave_recibida: crudaKey.length > 0,
       clave_caracteres: crudaKey.length,
