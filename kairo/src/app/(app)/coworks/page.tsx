@@ -62,6 +62,17 @@ const EJEMPLOS: Cowork[] = [
     creado_el: "",
   },
   {
+    id: "demo-3",
+    nombre: "Vigilante",
+    tipo: "salud",
+    temas: "",
+    hora: 6,
+    zona: "Europe/Madrid",
+    activo: true,
+    ultima_vez: null,
+    creado_el: "",
+  },
+  {
     id: "demo-2",
     nombre: "Lo de mis oposiciones",
     tipo: "brief",
@@ -98,6 +109,7 @@ export default function CoworksPage() {
   const [nombre, setNombre] = useState("");
   const [temas, setTemas] = useState("");
   const [hora, setHora] = useState(7);
+  const [tipo, setTipo] = useState<"brief" | "salud">("brief");
   const [guardando, setGuardando] = useState(false);
 
   const [probando, setProbando] = useState("");
@@ -125,6 +137,7 @@ export default function CoworksPage() {
     setNombre("");
     setTemas("");
     setHora(7);
+    setTipo("brief");
     setAviso(undefined);
   };
 
@@ -133,19 +146,21 @@ export default function CoworksPage() {
     setNombre(c.nombre);
     setTemas(c.temas);
     setHora(c.hora);
+    setTipo(c.tipo === "salud" ? "salud" : "brief");
     setAviso(undefined);
   };
 
   const guardar = async () => {
-    if (!temas.trim() || guardando) return;
+    // El vigilante mira siempre lo mismo, así que no se le piden temas.
+    if ((tipo !== "salud" && !temas.trim()) || guardando) return;
     setGuardando(true);
     setAviso(undefined);
 
     const creando = editando === "nuevo";
     const cuerpo = {
-      ...(creando ? {} : { id: editando }),
-      nombre: nombre.trim() || "Daily Brief",
-      temas: temas.trim(),
+      ...(creando ? { tipo } : { id: editando }),
+      nombre: nombre.trim() || (tipo === "salud" ? "Vigilante" : "Daily Brief"),
+      ...(tipo === "salud" ? {} : { temas: temas.trim() }),
       hora,
       zona: zonaDelNavegador(),
     };
@@ -349,13 +364,17 @@ export default function CoworksPage() {
                   className="min-w-0 flex-1 text-left"
                 >
                   <h2 className="truncate text-[15px] font-medium">{c.nombre}</h2>
-                  <p className="mt-0.5 truncate text-[13px] text-muted">{c.temas}</p>
+                  <p className="mt-0.5 truncate text-[13px] text-muted">
+                    {c.tipo === "salud" ? t("cw.saludWatches") : c.temas}
+                  </p>
                   <p className="mt-1 text-[12px] text-faint">
                     {t("cw.everyDayAt").replace("{h}", String(c.hora))}
                     {" · "}
                     {c.ultima_vez
                       ? t("cw.lastRun").replace("{f}", fecha(c.ultima_vez))
                       : t("cw.never")}
+                    {" · "}
+                    {t(c.tipo === "salud" ? "cw.free" : "cw.cost")}
                   </p>
                 </button>
 
@@ -462,6 +481,39 @@ export default function CoworksPage() {
         {/* El formulario */}
         {editando ? (
           <div className="rounded-2xl border border-line-hi bg-panel p-4">
+            {/* El tipo solo se elige al crear: cambiarlo a mitad de vida
+                dejaría el encargo con los datos del otro. */}
+            {editando === "nuevo" && (
+              <>
+                <span className="mb-1.5 block text-[13px] font-medium">{t("cw.type")}</span>
+                <div className="mb-4 grid gap-2 sm:grid-cols-2">
+                  {(["brief", "salud"] as const).map((op) => (
+                    <button
+                      key={op}
+                      type="button"
+                      onClick={() => setTipo(op)}
+                      aria-pressed={tipo === op}
+                      className={`rounded-xl border p-3 text-left transition ${
+                        tipo === op
+                          ? "border-acento bg-panel-hi"
+                          : "border-line hover:bg-panel-hi"
+                      }`}
+                    >
+                      <span className="block text-[14px] font-medium">
+                        {t(op === "brief" ? "cw.typeBrief" : "cw.typeSalud")}
+                      </span>
+                      <span className="mt-1 block text-[12.5px] leading-relaxed text-muted">
+                        {t(op === "brief" ? "cw.typeBriefDesc" : "cw.typeSaludDesc")}
+                      </span>
+                      <span className="mt-1.5 block text-[12px] text-faint">
+                        {t(op === "salud" ? "cw.free" : "cw.cost")}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
             <label className="mb-1.5 block text-[13px] font-medium" htmlFor="cw-nombre">
               {t("cw.name")}
             </label>
@@ -474,19 +526,27 @@ export default function CoworksPage() {
               className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[14.5px] outline-none transition placeholder:text-faint focus:border-line-hi"
             />
 
-            <label className="mb-1.5 mt-4 block text-[13px] font-medium" htmlFor="cw-temas">
-              {t("cw.topics")}
-            </label>
-            <textarea
-              id="cw-temas"
-              value={temas}
-              onChange={(e) => setTemas(e.target.value)}
-              placeholder={t("cw.topicsPh")}
-              rows={2}
-              maxLength={600}
-              className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[14.5px] outline-none transition placeholder:text-faint focus:border-line-hi"
-            />
-            <p className="mt-1.5 text-[12.5px] text-faint">{t("cw.topicsHelp")}</p>
+            {tipo === "salud" ? (
+              <p className="mt-4 rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[13px] leading-relaxed text-muted">
+                {t("cw.typeSaludDesc")}
+              </p>
+            ) : (
+              <>
+                <label className="mb-1.5 mt-4 block text-[13px] font-medium" htmlFor="cw-temas">
+                  {t("cw.topics")}
+                </label>
+                <textarea
+                  id="cw-temas"
+                  value={temas}
+                  onChange={(e) => setTemas(e.target.value)}
+                  placeholder={t("cw.topicsPh")}
+                  rows={2}
+                  maxLength={600}
+                  className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[14.5px] outline-none transition placeholder:text-faint focus:border-line-hi"
+                />
+                <p className="mt-1.5 text-[12.5px] text-faint">{t("cw.topicsHelp")}</p>
+              </>
+            )}
 
             <label className="mb-1.5 mt-4 block text-[13px] font-medium" htmlFor="cw-hora">
               {t("cw.hour")}
@@ -507,7 +567,7 @@ export default function CoworksPage() {
             <div className="mt-5 flex gap-2">
               <button
                 onClick={guardar}
-                disabled={!temas.trim() || guardando}
+                disabled={(tipo !== "salud" && !temas.trim()) || guardando}
                 className="brand-grad rounded-xl px-4 py-2.5 text-[14px] font-semibold text-on-accent transition enabled:hover:opacity-90 disabled:opacity-40"
               >
                 {editando === "nuevo" ? t("cw.create") : t("cw.save")}

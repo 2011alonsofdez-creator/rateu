@@ -3,6 +3,7 @@ import { clienteAdmin } from "@/lib/supabase/admin";
 import { faltaColumna } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
+import { revisarSalud } from "@/lib/coworks/salud";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -37,6 +38,7 @@ type Cowork = {
   id: string;
   perfil_id: string;
   nombre: string;
+  tipo: string;
   temas: string;
   zona: string;
 };
@@ -52,7 +54,7 @@ export async function POST(req: Request) {
   // Con tu sesión: si el Co-Work no es tuyo, esto no devuelve nada.
   const { data: cowork, error } = await supabase
     .from("coworks")
-    .select("id, perfil_id, nombre, temas, zona")
+    .select("id, perfil_id, nombre, tipo, temas, zona")
     .eq("id", id)
     .maybeSingle<Cowork>();
 
@@ -73,7 +75,11 @@ export async function POST(req: Request) {
     }>();
 
   if (!perfil) return fallo(401, "sin_sesion");
-  if (perfil.creditos + perfil.creditos_extra < COSTE) return fallo(402, "sin_creditos");
+  // El vigilante no llama a ningún modelo, así que tampoco cuesta nada.
+  const gratis = cowork.tipo === "salud";
+  if (!gratis && perfil.creditos + perfil.creditos_extra < COSTE) {
+    return fallo(402, "sin_creditos");
+  }
 
   /* El reparto y la reserva son del servidor: llevan la misma llave que
      usa el reloj. Sin ella no se puede reservar el día, y sin reservar
@@ -118,6 +124,35 @@ export async function POST(req: Request) {
   }
 
   try {
+    /* El vigilante: mira que todo siga en pie y lo cuenta. Ni busca ni
+       escribe nada con un modelo, así que aquí no hay nada que cobrar. */
+    if (gratis) {
+      const revision = await revisarSalud(admin as never, cowork.perfil_id, { yo: cowork.id });
+
+      await admin.rpc("terminar_cowork", {
+        p_resultado: reserva,
+        p_estado: "ok",
+        p_contenido: revision.texto,
+        p_modelo: `Vigilante · ${revision.gravedad}`,
+      });
+
+      return Response.json({
+        ok: true,
+        resultado: {
+          /* El día va DENTRO de `resultado`, que es de donde lo lee el
+             navegador. Fuera se queda sin leer y el navegador lo calcula
+             en UTC, que es justo lo que hay que evitar: en Auckland a las
+             diez de la mañana, para UTC todavía es ayer. */
+          dia,
+          estado: "ok",
+          contenido: revision.texto,
+          modelo: `Vigilante · ${revision.gravedad}`,
+          fuentes: [],
+          conversacion_id: null,
+        },
+      });
+    }
+
     const brief = await redactarBrief({
       temas: cowork.temas,
       duenio: perfil.nombre ?? undefined,
@@ -151,7 +186,11 @@ export async function POST(req: Request) {
       return fallo(402, "sin_creditos");
     }
 
-    const conversacion = await dejarConversacion(supabase, cowork, perfil.id, brief);
+    /* El dueño lo dice el Co-Work, no la consulta de arriba: `perfiles`
+       deja ver también los perfiles hijo que uno tenga a cargo, así que
+       un `limit(1)` sin orden puede devolver el del hijo y la
+       conversación se insertaría a nombre de otro. */
+    const conversacion = await dejarConversacion(supabase, cowork, cowork.perfil_id, brief);
 
     await admin.rpc("terminar_cowork", {
       p_resultado: reserva,
