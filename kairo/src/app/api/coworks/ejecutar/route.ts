@@ -3,6 +3,7 @@ import { clienteAdmin } from "@/lib/supabase/admin";
 import { faltaColumna } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
+import { revisarSalud, tituloDeLaRevision } from "@/lib/coworks/salud";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -122,97 +123,223 @@ async function ejecutar(req: Request) {
   const pendientes = (data ?? []) as Pendiente[];
   const cuenta = { mirados: pendientes.length, hechos: 0, sin_creditos: 0, fallidos: 0, aplazados: 0 };
 
-  for (const c of pendientes) {
+  /* De tres en tres, no de uno en uno.
+   *
+   * Cada Co-Work es independiente del de al lado —tiene su reserva, su
+   * cuenta y su modelo—, así que esperarse unos a otros solo servía
+   * para que en un minuto cupiera uno. Y como casi todo el mundo pone
+   * sus encargos a la misma hora (las 7 de la mañana), de uno en uno el
+   * tercero llegaba a las diez.
+   *
+   * Tres a la vez y no diez: son tres conversaciones con modelos
+   * abiertas al mismo tiempo, y esto corre en una función pequeña. */
+  const LOTE = 3;
+
+  for (let i = 0; i < pendientes.length; i += LOTE) {
+    /* El plazo se mira ANTES de empezar un lote, nunca a mitad: lo que
+       ya está en marcha se termina, porque dejarlo colgado deja una
+       reserva puesta y un usuario sin su resumen. */
     if (Date.now() - entro > PLAZO) {
-      cuenta.aplazados++;
-      continue;
+      cuenta.aplazados += pendientes.length - i;
+      break;
     }
 
-    // Quien no consiga la reserva es que ya la tiene otro. Se pasa.
-    const { data: reserva } = await supabase.rpc("reservar_cowork", {
-      p_cowork: c.id,
-      p_dia: c.dia,
+    const lote = pendientes.slice(i, i + LOTE);
+    const resultados = await Promise.all(lote.map((c) => hacerUno(supabase, c)));
+
+    for (const r of resultados) if (r !== "saltado") cuenta[r]++;
+  }
+
+  return Response.json({ ok: true, ...cuenta, segundos: Math.round((Date.now() - entro) / 1000) });
+}
+
+/* Un Co-Work, de principio a fin. Devuelve en qué acabó, y "saltado"
+   cuando se lo había llevado otro antes. */
+type Final = "hechos" | "sin_creditos" | "fallidos" | "saltado";
+
+async function hacerUno(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  c: Pendiente,
+): Promise<Final> {
+  // Quien no consiga la reserva es que ya la tiene otro. Se pasa.
+  const { data: reserva } = await supabase.rpc("reservar_cowork", {
+    p_cowork: c.id,
+    p_dia: c.dia,
+  });
+  if (!reserva) return "saltado";
+
+  const resultado = String(reserva);
+
+  /* El vigilante va por otro camino y no pasa por caja: no le pregunta
+     nada a ningún modelo, solo mira si todo sigue en pie. Cobrar por
+     comprobar que la casa no se ha caído sería cobrar por respirar. */
+  if (c.tipo === "salud") {
+    return (await vigilar(supabase, c, resultado)) ? "hechos" : "fallidos";
+  }
+
+  // Sin saldo no se trabaja. Y se deja dicho, que si no parece averiado.
+  if ((c.saldo ?? 0) < COSTE) {
+    await supabase.rpc("terminar_cowork", {
+      p_resultado: resultado,
+      p_estado: "sin_creditos",
+      p_contenido: "Hoy no había créditos suficientes para hacerlo.",
     });
-    if (!reserva) continue;
+    return "sin_creditos";
+  }
 
-    const resultado = String(reserva);
+  try {
+    const brief = await redactarBrief({
+      temas: c.temas,
+      duenio: c.duenio ?? undefined,
+      modoEdad: c.modo_edad,
+      tono: c.tono ?? "cercano",
+      zona: c.zona,
+    });
 
-    // Sin saldo no se trabaja. Y se deja dicho, que si no parece averiado.
-    if ((c.saldo ?? 0) < COSTE) {
+    /* Sin brief no se cobra y no se escribe nada. Lo normal aquí es
+       que no se haya podido buscar, y un resumen sin haber buscado no
+       es un resumen: es lo que el modelo recuerde de hace dos años. */
+    if (!brief) {
+      await supabase.rpc("terminar_cowork", {
+        p_resultado: resultado,
+        p_estado: "error",
+        p_contenido: "Hoy no he podido comprobar las novedades. Mañana vuelvo a mirar.",
+      });
+      return "fallidos";
+    }
+
+    // Se cobra cuando ya hay algo escrito, nunca antes.
+    const { error: fallaCobro } = await supabase.rpc("gastar_creditos_de", {
+      p_perfil: c.perfil_id,
+      p_cantidad: COSTE,
+      p_motivo: `Co-Work: ${c.nombre || "Daily Brief"}`,
+    });
+
+    if (fallaCobro) {
       await supabase.rpc("terminar_cowork", {
         p_resultado: resultado,
         p_estado: "sin_creditos",
         p_contenido: "Hoy no había créditos suficientes para hacerlo.",
       });
-      cuenta.sin_creditos++;
-      continue;
+      return "sin_creditos";
     }
 
-    try {
-      const brief = await redactarBrief({
-        temas: c.temas,
-        duenio: c.duenio ?? undefined,
-        modoEdad: c.modo_edad,
-        tono: c.tono ?? "cercano",
-        zona: c.zona,
-      });
+    const conversacion = await dejarConversacion(supabase, c, brief.texto, brief);
 
-      /* Sin brief no se cobra y no se escribe nada. Lo normal aquí es
-         que no se haya podido buscar, y un resumen sin haber buscado no
-         es un resumen: es lo que el modelo recuerde de hace dos años. */
-      if (!brief) {
-        await supabase.rpc("terminar_cowork", {
-          p_resultado: resultado,
-          p_estado: "error",
-          p_contenido: "Hoy no he podido comprobar las novedades. Mañana vuelvo a mirar.",
-        });
-        cuenta.fallidos++;
-        continue;
-      }
+    await supabase.rpc("terminar_cowork", {
+      p_resultado: resultado,
+      p_estado: "ok",
+      p_contenido: brief.texto,
+      p_fuentes: brief.fuentes.length ? brief.fuentes : null,
+      p_modelo: brief.modelo,
+      p_conversacion: conversacion,
+    });
 
-      // Se cobra cuando ya hay algo escrito, nunca antes.
-      const { error: fallaCobro } = await supabase.rpc("gastar_creditos_de", {
-        p_perfil: c.perfil_id,
-        p_cantidad: COSTE,
-        p_motivo: `Co-Work: ${c.nombre || "Daily Brief"}`,
-      });
-
-      if (fallaCobro) {
-        await supabase.rpc("terminar_cowork", {
-          p_resultado: resultado,
-          p_estado: "sin_creditos",
-          p_contenido: "Hoy no había créditos suficientes para hacerlo.",
-        });
-        cuenta.sin_creditos++;
-        continue;
-      }
-
-      const conversacion = await dejarConversacion(supabase, c, brief.texto, brief);
-
-      await supabase.rpc("terminar_cowork", {
+    return "hechos";
+  } catch (e) {
+    console.error("[kairo] Co-Work fallido:", e instanceof Error ? e.message : e);
+    await supabase
+      .rpc("terminar_cowork", {
         p_resultado: resultado,
-        p_estado: "ok",
-        p_contenido: brief.texto,
-        p_fuentes: brief.fuentes.length ? brief.fuentes : null,
-        p_modelo: brief.modelo,
-        p_conversacion: conversacion,
-      });
-
-      cuenta.hechos++;
-    } catch (e) {
-      console.error("[kairo] Co-Work fallido:", e instanceof Error ? e.message : e);
-      await supabase
-        .rpc("terminar_cowork", {
-          p_resultado: resultado,
-          p_estado: "error",
-          p_contenido: "Algo ha fallado al prepararlo. Mañana vuelvo a intentarlo.",
-        })
-        .then(() => {}, () => {});
-      cuenta.fallidos++;
-    }
+        p_estado: "error",
+        p_contenido: "Algo ha fallado al prepararlo. Mañana vuelvo a intentarlo.",
+      })
+      .then(() => {}, () => {});
+    return "fallidos";
   }
+}
 
-  return Response.json({ ok: true, ...cuenta, segundos: Math.round((Date.now() - entro) / 1000) });
+/* La revisión diaria.
+ *
+ * Se guarda SIEMPRE —para poder mirar atrás y ver desde cuándo algo va
+ * mal— pero solo deja conversación en la barra lateral cuando hay algo
+ * que contar. Un aviso diario que casi siempre dice "todo correcto" se
+ * deja de leer a la semana, y el día que dice otra cosa tampoco se lee.
+ */
+async function vigilar(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  c: Pendiente,
+  resultado: string,
+): Promise<boolean> {
+  try {
+    /* De quién es la revisión. Este cliente lleva la llave del servidor
+       y se salta la seguridad a nivel de fila, así que hay que decirlo:
+       sin el perfil el informe se haría con los Co-Works de todo el
+       mundo y le nombraría a uno los de otro. */
+    const revision = await revisarSalud(supabase as never, c.perfil_id, { yo: c.id });
+
+    let conversacion: string | null = null;
+    if (revision.gravedad !== "bien") {
+      conversacion = await dejarAviso(supabase, c, revision.texto, revision.gravedad);
+    }
+
+    await supabase.rpc("terminar_cowork", {
+      p_resultado: resultado,
+      p_estado: "ok",
+      p_contenido: revision.texto,
+      p_modelo: `Vigilante · ${revision.gravedad}`,
+      p_conversacion: conversacion,
+    });
+
+    return true;
+  } catch (e) {
+    console.error("[kairo] vigilante:", e instanceof Error ? e.message : e);
+    await supabase
+      .rpc("terminar_cowork", {
+        p_resultado: resultado,
+        p_estado: "error",
+        p_contenido: "No he podido hacer la revisión de hoy.",
+      })
+      .then(() => {}, () => {});
+    return false;
+  }
+}
+
+/* Cuando algo está roto, el aviso llega donde se mira: al chat. Sin
+   pregunta inventada delante, porque aquí no has preguntado nada. */
+async function dejarAviso(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  c: Pendiente,
+  texto: string,
+  gravedad: string,
+): Promise<string | null> {
+  try {
+    const { data: conv } = await supabase
+      .from("conversaciones")
+      .insert({
+        perfil_id: c.perfil_id,
+        titulo: tituloDeLaRevision(gravedad as "roto", new Date(), c.zona),
+      })
+      .select("id")
+      .maybeSingle<{ id: string }>();
+
+    if (!conv?.id) return null;
+
+    const { error } = await supabase.from("mensajes").insert([
+      {
+        conversacion_id: conv.id,
+        rol: "user",
+        contenido: "¿Está todo bien?",
+      },
+      {
+        conversacion_id: conv.id,
+        rol: "kairo",
+        contenido: texto,
+        modelo_usado: "Vigilante",
+        creditos_gastados: 0,
+      },
+    ]);
+
+    if (error) {
+      console.error("[kairo] no se guardó el aviso del vigilante:", error.message);
+      return null;
+    }
+
+    return conv.id;
+  } catch (e) {
+    console.error("[kairo] aviso del vigilante:", e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 /* El resultado no se queda escondido en una pantalla aparte: se deja una

@@ -77,8 +77,18 @@ export async function POST(req: Request) {
   if (!supabase) return fallo(503, "demo");
 
   const cuerpo = await req.json().catch(() => null);
-  const temas = recortar(cuerpo?.temas, 600);
-  if (!temas) return fallo(400, "sin_temas");
+
+  /* Dos tipos, y la lista está cerrada aquí además de en la base de
+     datos: lo que llegue en el cuerpo y no sea uno de estos dos es un
+     Daily Brief, no un tipo nuevo inventado por quien escribe la
+     petición. */
+  const tipo = cuerpo?.tipo === "salud" ? "salud" : "brief";
+
+  /* El vigilante no tiene temas: mira siempre lo mismo, que es que la
+     casa no se haya caído. Pedirle temas sería pedirle al detector de
+     humo que le digas qué habitación vigilar. */
+  const temas = tipo === "salud" ? "" : recortar(cuerpo?.temas, 600);
+  if (tipo !== "salud" && !temas) return fallo(400, "sin_temas");
 
   const { data: perfil } = await supabase
     .from("perfiles")
@@ -92,7 +102,8 @@ export async function POST(req: Request) {
     .from("coworks")
     .insert({
       perfil_id: perfil.id,
-      nombre: recortar(cuerpo?.nombre, 120) || "Daily Brief",
+      nombre: recortar(cuerpo?.nombre, 120) || (tipo === "salud" ? "Vigilante" : "Daily Brief"),
+      tipo,
       temas,
       hora: horaValida(cuerpo?.hora),
       zona: zonaValida(cuerpo?.zona),
@@ -105,6 +116,13 @@ export async function POST(req: Request) {
     if (faltaColumna(error)) return fallo(503, "falta_migracion");
     // El tope de diez llega como P0001 con su mensaje ya escrito.
     if (error.code === "P0001") return fallo(409, "demasiados");
+    /* La lista cerrada de `tipo` no acepta 'salud' hasta que se pega
+       0010_vigilante.sql. Pasa de verdad: quien puso 0009 antes de esta
+       versión tiene la tabla con la lista vieja. Sin esta línea sale un
+       500 genérico y nadie averigua nunca que falta una migración. */
+    if (error.code === "23514" && /tipo/i.test(error.message)) {
+      return fallo(503, "falta_migracion");
+    }
     console.error("[kairo] no se pudo crear el Co-Work:", error.message);
     return fallo(500, "no_se_ha_podido");
   }
@@ -125,6 +143,9 @@ export async function PATCH(req: Request) {
      los intentos de los curiosos. */
   const cambios: Record<string, unknown> = {};
   if (cuerpo?.nombre !== undefined) cambios.nombre = recortar(cuerpo.nombre, 120) || "Daily Brief";
+  /* El tipo NO está en esta lista y no es un olvido: convertir a mitad
+     de vida un Daily Brief en un vigilante (o al revés) dejaría el
+     encargo con los datos del otro. Si quieres el otro, se crea. */
   if (cuerpo?.temas !== undefined) {
     const temas = recortar(cuerpo.temas, 600);
     if (!temas) return fallo(400, "sin_temas");

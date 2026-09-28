@@ -44,10 +44,18 @@ mentira automática que llega puntual cada mañana.
 
 ### 1. La base de datos
 
-Supabase → **SQL Editor** → pega entero
-`kairo/supabase/migrations/0009_coworks.sql` → **Run**.
+Son **dos** migraciones, y hacen falta las dos. Supabase → **SQL Editor**
+→ pega entero cada archivo → **Run**, en este orden:
 
-Se puede ejecutar dos veces sin romper nada.
+1. `kairo/supabase/migrations/0009_coworks.sql` — las tablas y el reparto.
+2. `kairo/supabase/migrations/0010_vigilante.sql` — sin esta, el
+   **Vigilante** no se puede crear: la tabla solo acepta el tipo `brief`
+   y al pulsar *Crear* sale «No ha podido hacerse».
+
+O de una vez, si vienes de cero:
+`kairo/supabase/migrations/TODO_DE_UNA_VEZ.sql`, que las lleva todas.
+
+Se pueden ejecutar dos veces sin romper nada.
 
 ### 2. Dos variables en Vercel
 
@@ -117,6 +125,7 @@ curl -i -X POST \
 | `503 sin_cron_secret` | Falta la variable `CRON_SECRET` |
 | `503 sin_clave` | Falta `SUPABASE_SERVICE_ROLE_KEY` |
 | `503 sin_reparto` | Falta pegar la migración `0009_coworks.sql` |
+| «No ha podido hacerse» al crear un Vigilante | Falta pegar `0010_vigilante.sql` |
 
 Y en `/api/estado` sale si las claves han llegado, sin enseñar ninguna.
 

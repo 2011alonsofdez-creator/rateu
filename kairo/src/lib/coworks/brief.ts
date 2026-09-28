@@ -109,7 +109,9 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
       texto: sinNovedades(temas),
       fuentes: hallazgo.fuentes,
       busquedas: hallazgo.busquedas,
-      modelo: hallazgo.modelo,
+      // Con su nombre bonito, igual que el otro camino: el identificador
+      // crudo en la etiqueta solo saldría los días sin novedades.
+      modelo: nombreModelo(hallazgo.modelo),
     };
   }
 

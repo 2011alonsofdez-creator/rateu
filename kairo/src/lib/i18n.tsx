@@ -341,6 +341,15 @@ const dict = {
     "cw.lead":
       "Un Co-Work es un encargo con hora. Llega la hora y se hace solo, estés o no delante, y te deja el resultado esperándote.",
     "cw.new": "Nuevo Co-Work",
+    "cw.type": "¿Qué tipo de encargo?",
+    "cw.typeBrief": "Daily Brief",
+    "cw.typeBriefDesc": "Busca cada día las novedades de tus temas y te deja el resumen con sus fuentes.",
+    "cw.typeSalud": "Vigilante",
+    "cw.typeSaludDesc":
+      "Comprueba cada día que todo siga en pie: que Supabase responde, que no se ha pausado, que no falta ninguna migración ni ninguna clave. Solo te escribe cuando algo va mal.",
+    "cw.saludWatches": "Vigila que Supabase, la base de datos y los cerebros sigan en pie",
+    "cw.free": "No gasta créditos",
+    "cw.cost": "4 créditos al día",
     "cw.name": "Nombre",
     "cw.namePh": "Mi resumen de la mañana",
     "cw.topics": "¿De qué quieres que te informe?",
@@ -766,6 +775,15 @@ const dict = {
     "cw.lead":
       "A Co-Work is a job with a time on it. The time comes and it runs itself, whether you are there or not, and leaves the result waiting for you.",
     "cw.new": "New Co-Work",
+    "cw.type": "What kind of job?",
+    "cw.typeBrief": "Daily Brief",
+    "cw.typeBriefDesc": "Searches every day for what is new on your topics and leaves the summary with its sources.",
+    "cw.typeSalud": "Watchdog",
+    "cw.typeSaludDesc":
+      "Checks every day that everything is still standing: that Supabase answers, that it has not been paused, that no migration or key is missing. It only writes to you when something is wrong.",
+    "cw.saludWatches": "Watches that Supabase, the database and the brains are still standing",
+    "cw.free": "Costs no credits",
+    "cw.cost": "4 credits a day",
     "cw.name": "Name",
     "cw.namePh": "My morning briefing",
     "cw.topics": "What should it keep you posted on?",
