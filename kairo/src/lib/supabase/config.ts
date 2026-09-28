@@ -20,8 +20,21 @@ export function limpiarUrl(valor: string | undefined): string {
      intenta—. Y de paso el punto y coma y la coma, que se pegan cuando
      copias la variable con su nombre delante. */
   let texto = (valor ?? "")
+    /* Primero, lo que NO SE VE.
+       Un copiar y pegar desde una página web se trae de regalo espacios
+       de ancho cero, guiones blandos y marcas de orden de bytes. No
+       ocupan nada en pantalla, no son espacios para `trim()`, y sin
+       embargo convierten un dominio perfecto en uno que no existe. Esto
+       es exactamente lo que pasó aquí: 41 caracteres donde debía haber
+       40, sin un solo espacio a la vista. */
+    .replace(/[\u200B-\u200F\u2028\u2029\u2060\uFEFF\u00AD]/g, "")
+    // Comillas y paréntesis angulares de haberla copiado de un ejemplo.
+    .replace(/^[\s"'`<(]+/, "")
+    .replace(/[\s"'`>)]+$/, "")
     .replace(/\s+/g, "")
     .replace(/[;,]+$/, "")
+    // Un punto final: legal en un dominio, pero nadie lo quiere ahí.
+    .replace(/\.+$/, "")
     .replace(/\/+$/, "")
     .replace(/\/rest\/v1$/, "");
   if (!texto) return "";
@@ -56,6 +69,56 @@ export function limpiarUrl(valor: string | undefined): string {
   } catch {
     // Una URL inválida deja la app en modo demo, que es feo pero se ve.
     return "";
+  }
+}
+
+/* Por qué una dirección no vale.
+ *
+ * Esto existe porque perdimos días con un "no se ha podido conectar" que
+ * en realidad era un carácter invisible en una variable de entorno. El
+ * diagnóstico decía "url_valida: false" y ahí se acababa: ni qué
+ * carácter, ni dónde. Ahora lo dice.
+ *
+ * Nunca devuelve el valor entero a ciegas: si alguien se ha equivocado
+ * de variable y ha pegado ahí una clave, enseñarla sería peor que el
+ * fallo que se está arreglando. */
+export function pistaDeUrl(valor: string | undefined): string | null {
+  const cruda = valor ?? "";
+  if (!cruda.trim()) return "no hay nada puesto";
+
+  // Lo primero: ¿es esto una clave disfrazada de dirección?
+  if (/^(sb_|eyJ|sbp_)/.test(cruda.trim())) {
+    return "esto parece una CLAVE, no una dirección. Te has equivocado de variable";
+  }
+
+  if (limpiarUrl(cruda)) return null; // vale, no hay nada que contar
+
+  const invisibles: string[] = [];
+  for (let i = 0; i < cruda.length; i++) {
+    const c = cruda.codePointAt(i) ?? 0;
+    const raro =
+      (c >= 0x200b && c <= 0x200f) || c === 0x2060 || c === 0xfeff || c === 0x00ad || c === 0x2028;
+    if (raro) invisibles.push(`posición ${i + 1} (U+${c.toString(16).toUpperCase().padStart(4, "0")})`);
+  }
+  if (invisibles.length) {
+    return `tiene ${invisibles.length} carácter(es) invisible(s): ${invisibles.join(", ")}. Bórrala y escríbela a mano`;
+  }
+
+  if (/\s/.test(cruda.trim())) return "tiene un espacio en medio";
+  if (/^["'`]/.test(cruda.trim())) return "empieza por una comilla";
+  if (!/^https?:\/\//i.test(cruda.trim())) return "no empieza por https://";
+
+  try {
+    const u = new URL(cruda.trim());
+    if (!u.hostname.includes(".")) return "el dominio no tiene ningún punto: no parece una dirección";
+    const malos = [...u.hostname].filter((ch) => !/[a-z0-9.-]/i.test(ch));
+    if (malos.length) {
+      return `el dominio lleva caracteres que no puede llevar: ${[...new Set(malos)].join(" ")}`;
+    }
+    if (/^-|-$|\.-|-\./.test(u.hostname)) return "el dominio tiene un guion mal puesto";
+    return "el dominio no tiene una forma válida";
+  } catch {
+    return "no se puede interpretar como una dirección web";
   }
 }
 
