@@ -1,0 +1,67 @@
+name: Co-Works de Kairo
+
+# El reloj que despierta a Kairo.
+#
+# Vercel también trae uno (kairo/vercel.json), pero en el plan gratuito
+# solo suena UNA VEZ AL DÍA, y eso solo sirve para los encargos de
+# primera hora. Este suena cada hora, es gratis y es el que hace que un
+# Co-Work puesto a las 21:00 salga de verdad a las 21:00.
+#
+# Que suenen los dos no es un problema: el que llega segundo se encuentra
+# el trabajo cogido (lo impide la base de datos, no el código) y se va
+# sin hacer nada ni cobrar nada.
+#
+# Hacen falta dos secretos en GitHub → Settings → Secrets and variables
+# → Actions:
+#   KAIRO_URL           https://tu-web.vercel.app   (sin barra al final)
+#   KAIRO_CRON_SECRET   el mismo valor que CRON_SECRET en Vercel
+
+on:
+  schedule:
+    # A y cinco de cada hora. No en punto: a esa hora el planificador de
+    # GitHub va cargadísimo y los avisos se retrasan.
+    - cron: "5 * * * *"
+  # Y un botón para lanzarlo a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+# Si un aviso tarda, que no se amontonen dos llamadas a la vez.
+concurrency:
+  group: kairo-coworks
+  cancel-in-progress: false
+
+jobs:
+  despertar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Llamar a Kairo
+        env:
+          KAIRO_URL: ${{ secrets.KAIRO_URL }}
+          KAIRO_CRON_SECRET: ${{ secrets.KAIRO_CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KAIRO_URL}" ] || [ -z "${KAIRO_CRON_SECRET}" ]; then
+            echo "Faltan los secretos KAIRO_URL o KAIRO_CRON_SECRET."
+            echo "GitHub → Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          # --fail-with-body no se usa a propósito: queremos ver el cuerpo
+          # de la respuesta TAMBIÉN cuando falla, porque ahí es donde Kairo
+          # dice qué le falta (la migración, la clave de administrador...).
+          codigo=$(curl -sS --max-time 120 \
+            -o /tmp/respuesta.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${KAIRO_CRON_SECRET}" \
+            -H "content-type: application/json" \
+            "${KAIRO_URL}/api/coworks/ejecutar")
+
+          echo "HTTP ${codigo}"
+          cat /tmp/respuesta.json || true
+          echo
+
+          if [ "${codigo}" != "200" ]; then
+            echo "::error::Kairo ha respondido ${codigo}"
+            exit 1
+          fi
