@@ -49,6 +49,27 @@ Reglas:
 - Jamás te inventes un dato para rellenar. Un sitio, un precio o una
   fecha que no aparezcan en los resultados no existen.`;
 
+/* Lo que como mucho puede tardar la búsqueda entera.
+ *
+ * Buscar antes de contestar es lo que evita que Kairo te diga que el GTA
+ * 6 no tiene fecha. Pero es tiempo que se suma DELANTE de la primera
+ * palabra, y una búsqueda lenta se nota más que una respuesta regular.
+ * Pasado el plazo se contesta sin ella y Kairo dice que no lo ha podido
+ * comprobar, que es la verdad y tarda cero. */
+const PLAZO = 9000;
+
+const conPlazo = <T>(promesa: Promise<T>, ms: number): Promise<T | null> => {
+  let reloj: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    promesa,
+    new Promise<null>((listo) => {
+      reloj = setTimeout(() => listo(null), ms);
+    }),
+  ]).finally(() => {
+    if (reloj !== undefined) clearTimeout(reloj);
+  });
+};
+
 /** Busca en internet lo que haga falta para contestar la pregunta. */
 export async function buscarHechos(
   pregunta: string,
@@ -71,6 +92,7 @@ export async function buscarHechos(
      que es lo que hace que Kairo diga "he mirado y no lo he
      encontrado" en vez de soltar lo que recordaba. */
   let sinBuscar: Hallazgo | null = null;
+  const seAcaba = Date.now() + PLAZO;
 
   const hoy = new Intl.DateTimeFormat("es-ES", {
     timeZone: "Europe/Madrid",
@@ -80,10 +102,14 @@ export async function buscarHechos(
   }).format(new Date());
 
   for (const modelo of modelos) {
+    const queda = seAcaba - Date.now();
+    // Menos de dos segundos no da ni para empezar: mejor contestar ya.
+    if (queda < 2000) break;
+
     try {
       const fuentes = recolectorDeFuentes();
 
-      const respuesta = await ia.models.generateContent({
+      const respuesta = await conPlazo(ia.models.generateContent({
         model: modelo,
         contents: [
           {
@@ -107,10 +133,16 @@ export async function buscarHechos(
              el fallo que esto venía a arreglar—, así que se le deja
              decidir: un segundo más y sí busca. */
           thinkingConfig: { thinkingBudget: -1 },
-          maxOutputTokens: 1500,
+          /* Lo que escribe el buscador no se lee: se funde en el prompt
+             del que contesta. Con 800 caben de sobra las viñetas, y
+             cada token que no escribe es tiempo que no esperas. */
+          maxOutputTokens: 800,
           tools: [{ googleSearch: {} }],
         },
-      });
+      }), queda);
+
+      // Se acabó el tiempo: mejor sin datos que tarde.
+      if (!respuesta) break;
 
       fuentes.anadir(respuesta.candidates?.[0]?.groundingMetadata);
       const texto = (respuesta.text ?? "").trim();
