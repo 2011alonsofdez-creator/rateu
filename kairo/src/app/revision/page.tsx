@@ -32,6 +32,8 @@ type Punto = {
   arreglo?: string;
 };
 
+type Variable = { nombre: string; pinta: string };
+
 type Revision = {
   gravedad: "bien" | "aviso" | "roto";
   puntos: Punto[];
@@ -39,9 +41,23 @@ type Revision = {
   demo: boolean;
   dominio: string | null;
   con_sesion: boolean;
+  variables?: Variable[];
+  de_donde?: { url: string; clave: string };
   commit: string | null;
   cuando: string;
 };
+
+/* Los nombres que la web sabe leer. Lo que aparezca puesto y no esté
+   aquí, por muy parecido que se vea, es una variable que no se lee. */
+const NOMBRES_BUENOS = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PROJECT_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
+  "NEXT_PUBLIC_SUPABASE_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+];
 
 const ICONO = { bien: "✅", aviso: "⚠️", roto: "❌" } as const;
 
@@ -97,6 +113,15 @@ export default function RevisionPage() {
       ...r.puntos.map(
         (p) => `${ICONO[p.gravedad]} ${p.que}: ${p.detalle}${p.arreglo ? `\n   → ${p.arreglo}` : ""}`,
       ),
+      ...(r.variables?.length
+        ? [
+            "",
+            "Variables que le han llegado al servidor:",
+            ...r.variables.map(
+              (v) => `${NOMBRES_BUENOS.includes(v.nombre) ? "·" : "!!"} ${v.nombre} = ${v.pinta}`,
+            ),
+          ]
+        : []),
       ...(r.arreglado.length ? ["", "Arreglado solo:", ...r.arreglado.map((a) => `- ${a}`)] : []),
     ]
       .filter((l) => l !== "")
@@ -193,6 +218,39 @@ export default function RevisionPage() {
                 )}
               </div>
             ))}
+
+            {/* Los nombres de verdad. Es la única forma de ver un nombre
+                mal escrito: en el panel de Vercel se lee lo que uno
+                espera leer, no lo que pone. */}
+            {revision.variables && revision.variables.length > 0 && (
+              <div className="rounded-2xl border border-line bg-panel p-5">
+                <p className="text-[15px] font-semibold">Lo que le ha llegado al servidor</p>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                  Los nombres, no el contenido. Si alguna sale en rojo, es que está escrita de una
+                  forma que Kairo no lee.
+                </p>
+                <ul className="mt-3 space-y-1.5">
+                  {revision.variables.map((v) => {
+                    const buena = NOMBRES_BUENOS.includes(v.nombre);
+                    return (
+                      <li key={v.nombre} className="text-[13px] leading-relaxed">
+                        <code
+                          className={
+                            buena ? "font-medium" : "font-medium text-red-400 line-through"
+                          }
+                        >
+                          {v.nombre}
+                        </code>{" "}
+                        <span className="text-muted">— {v.pinta}</span>
+                        {!buena && (
+                          <span className="ml-1 text-red-400">← este nombre no se lee</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
 
             {revision.arreglado.length > 0 && (
               <div className="rounded-2xl border border-line bg-panel p-5">

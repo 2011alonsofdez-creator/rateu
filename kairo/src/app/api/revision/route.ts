@@ -1,6 +1,6 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { revisarSalud } from "@/lib/coworks/salud";
-import { SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
+import { DE_DONDE, SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -23,6 +23,45 @@ export const preferredRegion = "fra1";
  *
  * Y no devuelve ninguna clave. Solo si están puestas o no.
  */
+
+/* QUÉ VARIABLES HAY PUESTAS DE VERDAD.
+ *
+ * Esto existe por un caso que no se puede resolver de ninguna otra
+ * forma: la variable está puesta, se ve en el panel, y la web sigue sin
+ * encontrarla. Desde fuera solo se puede adivinar, y adivinar con una
+ * persona al otro lado es hacerle perder la tarde.
+ *
+ * Así que se le pregunta al servidor qué nombres le han llegado de
+ * verdad. Si sale uno que no es el que toca —una letra cambiada, un
+ * nombre parecido— se ve en un segundo.
+ *
+ * SALEN LOS NOMBRES Y QUÉ PINTA TIENE EL CONTENIDO. NUNCA EL CONTENIDO.
+ * Una clave no sale de aquí ni troceada ni medida: de las que parecen
+ * clave no se dice ni la longitud, porque esta página se puede abrir sin
+ * sesión (tiene que poder, si no no serviría el día que no puedes
+ * entrar).
+ *
+ * Y solo mira las de Supabase, incluidas las mal escritas: por eso el
+ * filtro es tan ancho, porque lo que se busca es precisamente un nombre
+ * que no es el correcto.
+ */
+function variablesDeSupabase() {
+  return Object.keys(process.env)
+    .filter((n) => /su[pb]+[ae]r?ba[sz]e/i.test(n))
+    .sort()
+    .map((nombre) => {
+      const valor = (process.env[nombre] ?? "").trim();
+
+      if (!valor) return { nombre, pinta: "VACÍA" };
+      if (/^(eyj|sb_|sbp_|sbs_)/i.test(valor)) return { nombre, pinta: "una clave" };
+      if (/supabase\.(co|in)/i.test(valor)) return { nombre, pinta: "una dirección" };
+
+      /* Ni clave ni dirección. De estas sí se dice el tamaño, porque es
+         lo que distingue "me he dejado media pegada" de "he pegado otra
+         cosa", y no son ninguna clave conocida. */
+      return { nombre, pinta: `otra cosa (${valor.length} caracteres)` };
+    });
+}
 
 export async function GET() {
   /* Aquí no se exige sesión, y es a propósito: el momento en que esto
@@ -54,6 +93,10 @@ export async function GET() {
         demo: !hasSupabase,
         dominio: SUPABASE_HOST || null,
         con_sesion: Boolean(perfil),
+        /* Los nombres con los que han llegado las variables, para poder
+           ver de un vistazo si alguna está escrita de otra forma. */
+        variables: variablesDeSupabase(),
+        de_donde: DE_DONDE,
         commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
         cuando: new Date().toISOString(),
       },
