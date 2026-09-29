@@ -19,6 +19,22 @@ import type { Fuente } from "@/lib/tipos";
  * la pregunta lo pide (ver `ahora.ts`).
  */
 
+/* EL DIARIO DE LA BÚSQUEDA.
+ *
+ * Opcional, y solo lo pide la pantalla de revisión. Existe porque este
+ * bucle se come todos los fallos en silencio —tiene que hacerlo: si un
+ * modelo se cae, se prueba el siguiente y el usuario no tiene por qué
+ * enterarse— y eso deja un agujero: cuando NINGUNO funciona, desde
+ * fuera se ve exactamente igual que cuando todo va bien y no había nada
+ * que encontrar.
+ *
+ * Con esto, "sigue desactualizado" deja de ser una sospecha y pasa a ser
+ * una línea que dice qué modelo, cuánto tardó y en qué falló. */
+export type Diario = {
+  modelos: string[];
+  intentos: { modelo: string; ms: number; resultado: string }[];
+};
+
 export type Hallazgo = {
   /** Los hechos encontrados, en viñetas. Vacío si no encontró nada. */
   hechos: string;
@@ -83,16 +99,31 @@ export async function buscarHechos(
   pregunta: string,
   contexto: string,
   modoEdad: ModoEdad | null,
+  diario?: Diario,
 ): Promise<Hallazgo | null> {
   const clave = process.env.GEMINI_API_KEY?.trim();
-  if (!clave) return null;
+  if (!clave) {
+    if (diario) diario.intentos.push({ modelo: "—", ms: 0, resultado: "falta GEMINI_API_KEY" });
+    return null;
+  }
 
   const modelos = cadenaDe("normal", modoEdad)
     .filter((id) => partir(id).proveedor === "gemini")
     .map((id) => partir(id).modelo)
     .slice(0, 3);
 
-  if (!modelos.length) return null;
+  if (diario) diario.modelos = [...modelos];
+
+  if (!modelos.length) {
+    if (diario) {
+      diario.intentos.push({
+        modelo: "—",
+        ms: 0,
+        resultado: "ningún modelo de Gemini en la cadena: no hay con qué buscar",
+      });
+    }
+    return null;
+  }
 
   const ia = new GoogleGenAI({ apiKey: clave });
 
@@ -112,8 +143,12 @@ export async function buscarHechos(
   for (const modelo of modelos) {
     const queda = seAcaba - Date.now();
     // Menos de dos segundos no da ni para empezar: mejor contestar ya.
-    if (queda < 2000) break;
+    if (queda < 2000) {
+      if (diario) diario.intentos.push({ modelo, ms: 0, resultado: "sin tiempo para empezar" });
+      break;
+    }
 
+    const empezo = Date.now();
     try {
       const fuentes = recolectorDeFuentes();
 
@@ -136,21 +171,43 @@ export async function buscarHechos(
         config: {
           systemInstruction: SISTEMA,
           safetySettings: ajustesSeguridad(modoEdad),
-          /* Que piense un poco. Con el presupuesto a cero contestaba de
-             memoria sin llegar a usar el buscador —que es exactamente
-             el fallo que esto venía a arreglar—, así que se le deja
-             decidir: un segundo más y sí busca. */
-          thinkingConfig: { thinkingBudget: -1 },
-          /* Lo que escribe el buscador no se lee: se funde en el prompt
-             del que contesta. Con 800 caben de sobra las viñetas, y
-             cada token que no escribe es tiempo que no esperas. */
-          maxOutputTokens: 800,
+          /* Que piense, pero con la cuenta hecha.
+ 
+             Aquí hay una trampa de Gemini que cuesta cara: lo que el
+             modelo PIENSA se descuenta de `maxOutputTokens`. No son dos
+             presupuestos, es uno. Así que "que piense lo que quiera"
+             (-1) junto a un techo corto es una forma elegante de pedir
+             una respuesta vacía: se gasta el techo entero pensando,
+             llega al límite y devuelve cero texto. Sin error, sin
+             excepción, sin nada. Solo vacío.
+ 
+             Y vacío aquí significa "he buscado y no he encontrado
+             nada", que es mentira: no ha encontrado nada porque no le
+             han dejado escribirlo. La respuesta sale de memoria y con
+             aplomo, que es justo lo que esto venía a impedir.
+ 
+             Con el presupuesto a cero tampoco vale —sin pensar ni
+             siquiera usa el buscador—, así que se le pone una cifra:
+             suficiente para decidir buscar, corta para no eternizarse,
+             y un techo que la deja muy atrás para que lo que escriba
+             quepa entero. */
+          thinkingConfig: { thinkingBudget: 512 },
+          maxOutputTokens: 2500,
           tools: [{ googleSearch: {} }],
         },
       }), queda);
 
       // Se acabó el tiempo: mejor sin datos que tarde.
-      if (!respuesta) break;
+      if (!respuesta) {
+        if (diario) {
+          diario.intentos.push({
+            modelo,
+            ms: Date.now() - empezo,
+            resultado: `se acabó el plazo de ${PLAZO / 1000}s`,
+          });
+        }
+        break;
+      }
 
       fuentes.anadir(respuesta.candidates?.[0]?.groundingMetadata);
       const texto = (respuesta.text ?? "").trim();
@@ -167,8 +224,34 @@ export async function buscarHechos(
       const busco = fuentes.fuentes.length > 0 || fuentes.busquedas.length > 0;
 
       if (!busco) {
+        if (diario) {
+          diario.intentos.push({
+            modelo,
+            ms: Date.now() - empezo,
+            resultado: texto
+              ? "NO buscó: contestó de memoria (se descarta)"
+              : "NO buscó y encima devolvió texto vacío",
+          });
+        }
         sinBuscar = { hechos: "", fuentes: [], busquedas: [], modelo, busco: false };
         continue;
+      }
+
+      if (diario) {
+        diario.intentos.push({
+          modelo,
+          ms: Date.now() - empezo,
+          resultado: !texto
+            ? /* Buscó (hay rastro en Google) pero no escribió nada. Casi
+                 siempre es el techo de tokens: lo que piensa se descuenta
+                 de ahí, y si se lo gasta pensando no le queda para
+                 escribir. Se distingue de "no hay nada" a propósito,
+                 porque se arreglan de forma distinta. */
+              "buscó pero devolvió texto VACÍO (¿techo de tokens?)"
+            : /^NADA ENCONTRADO/i.test(texto)
+              ? "buscó y no encontró nada"
+              : `OK · ${fuentes.fuentes.length} fuentes · ${texto.length} caracteres`,
+        });
       }
 
       return {
@@ -178,10 +261,34 @@ export async function buscarHechos(
         modelo,
         busco: true,
       };
-    } catch {
-      // Se prueba con el siguiente modelo de la cadena.
+    } catch (e) {
+      /* Se prueba con el siguiente modelo de la cadena. El fallo se
+         apunta si alguien está mirando: un identificador de modelo que
+         ya no existe, o una cuenta sin buscador, fallan aquí los tres y
+         desde fuera se ve igual que "no he encontrado nada". */
+      if (diario) {
+        diario.intentos.push({
+          modelo,
+          ms: Date.now() - empezo,
+          resultado: `ERROR · ${limpiarFallo(e)}`,
+        });
+      }
     }
   }
 
   return sinBuscar;
+}
+
+/** El mensaje de un fallo, corto y sin nada que no deba salir.
+ *
+ *  Esto acaba en una pantalla, así que de aquí no puede salir una clave
+ *  por mucho que el mensaje original la traiga: se tacha todo lo que
+ *  tenga pinta de serlo antes de recortar. */
+function limpiarFallo(e: unknown): string {
+  const texto = e instanceof Error ? e.message : String(e);
+
+  return texto
+    .replace(/(key|token|secret|authorization)["\s:=]+[\w.-]+/gi, "$1=***")
+    .replace(/\b(AIza[\w-]{10,}|sk-[\w-]{10,}|eyJ[\w.-]{20,})\b/g, "***")
+    .slice(0, 240);
 }

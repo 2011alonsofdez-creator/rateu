@@ -34,6 +34,19 @@ type Punto = {
 
 type Variable = { nombre: string; pinta: string };
 
+type Prueba = {
+  pregunta: string;
+  dispara_busqueda: boolean;
+  ms: number;
+  modelos: string[];
+  intentos: { modelo: string; ms: number; resultado: string }[];
+  busco: boolean;
+  modelo: string | null;
+  fuentes: string[];
+  busquedas: string[];
+  hechos: string;
+};
+
 type Revision = {
   gravedad: "bien" | "aviso" | "roto";
   puntos: Punto[];
@@ -96,6 +109,12 @@ export default function RevisionPage() {
   const [error, setError] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
+  // La prueba de la búsqueda, que es otra cosa y va aparte.
+  const [pregunta, setPregunta] = useState("¿cuándo sale el GTA 6?");
+  const [prueba, setPrueba] = useState<Prueba | null>(null);
+  const [probando, setProbando] = useState(false);
+  const [falloPrueba, setFalloPrueba] = useState("");
+
   const revisar = useCallback(async () => {
     setCargando(true);
     setError(false);
@@ -155,6 +174,36 @@ export default function RevisionPage() {
       /* Sin permiso para el portapapeles (pasa en algún navegador del
          móvil): se selecciona el texto de abajo y se copia a mano. */
       setCopiado(false);
+    }
+  };
+
+  const probarBusqueda = async () => {
+    if (!pregunta.trim() || probando) return;
+    setProbando(true);
+    setFalloPrueba("");
+    setPrueba(null);
+    try {
+      const r = await fetch("/api/revision/buscar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pregunta }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        setFalloPrueba(
+          j?.error === "espera"
+            ? `Espera ${j.segundos ?? 8} segundos entre pruebas.`
+            : j?.error === "sin_sesion"
+              ? "Hay que haber iniciado sesión para probar la búsqueda."
+              : "No se ha podido probar.",
+        );
+      } else {
+        setPrueba(j as Prueba);
+      }
+    } catch {
+      setFalloPrueba("No se ha podido probar.");
+    } finally {
+      setProbando(false);
     }
   };
 
@@ -305,6 +354,99 @@ export default function RevisionPage() {
               </button>
               {revision.commit && (
                 <span className="text-[12.5px] text-faint">versión {revision.commit}</span>
+              )}
+            </div>
+
+            {/* PROBAR LA BÚSQUEDA.
+                Va después de todo porque no es parte de la revisión: es
+                para cuando Kairo contesta con datos viejos, que es un
+                síntoma con cuatro causas que desde fuera se ven igual. */}
+            <div className="rounded-2xl border border-line bg-panel p-5">
+              <p className="text-[15px] font-semibold">¿Contesta con datos viejos?</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                Escribe aquí la pregunta que te ha salido mal. Se busca de verdad, delante de ti, y
+                te dice qué ha pasado por dentro.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <input
+                  value={pregunta}
+                  onChange={(e) => setPregunta(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void probarBusqueda()}
+                  maxLength={500}
+                  className="min-w-0 flex-1 rounded-xl border border-line bg-bg-soft px-3.5 py-2 text-[14px] outline-none transition placeholder:text-faint focus:border-line-hi"
+                  placeholder="¿cuándo sale el GTA 6?"
+                />
+                <button
+                  onClick={() => void probarBusqueda()}
+                  disabled={probando || !pregunta.trim()}
+                  className="rounded-xl border border-line-hi px-4 py-2 text-[14px] font-medium transition enabled:hover:bg-panel-hi disabled:opacity-40"
+                >
+                  {probando ? "Buscando…" : "Probar"}
+                </button>
+              </div>
+
+              {falloPrueba && <p className="mt-3 text-[13px] text-red-400">{falloPrueba}</p>}
+
+              {prueba && (
+                <div className="mt-4 space-y-3 border-t border-line pt-4">
+                  {/* Lo primero, porque es lo que más veces falla: si la
+                      pregunta ni siquiera dispara la búsqueda, lo demás
+                      da igual. */}
+                  <p className="text-[13.5px] leading-relaxed">
+                    {prueba.dispara_busqueda ? (
+                      <span className="text-emerald-400">
+                        ✅ Esta pregunta SÍ hace que Kairo busque.
+                      </span>
+                    ) : (
+                      <span className="text-red-400">
+                        ❌ Esta pregunta NO hace que Kairo busque en el chat. Aquí se ha buscado a
+                        la fuerza para ver si al menos la búsqueda funciona.
+                      </span>
+                    )}
+                  </p>
+
+                  <p className="text-[13.5px] leading-relaxed">
+                    {prueba.busco ? (
+                      <span className="text-emerald-400">
+                        ✅ Ha buscado de verdad ({prueba.fuentes.length} fuentes, {prueba.ms} ms)
+                      </span>
+                    ) : (
+                      <span className="text-red-400">❌ No ha llegado a buscar ({prueba.ms} ms)</span>
+                    )}
+                  </p>
+
+                  {prueba.intentos.length > 0 && (
+                    <div>
+                      <p className="text-[13px] font-medium">Lo que ha intentado</p>
+                      <ul className="mt-1 space-y-1">
+                        {prueba.intentos.map((i, n) => (
+                          <li key={n} className="text-[12.5px] leading-relaxed text-muted">
+                            <code>{i.modelo}</code> — {i.resultado}{" "}
+                            <span className="text-faint">({i.ms} ms)</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {prueba.busquedas.length > 0 && (
+                    <p className="text-[12.5px] leading-relaxed text-muted">
+                      Buscó: {prueba.busquedas.slice(0, 5).join(" · ")}
+                    </p>
+                  )}
+
+                  {prueba.hechos ? (
+                    <div>
+                      <p className="text-[13px] font-medium">Lo que ha encontrado</p>
+                      <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-words text-[12.5px] leading-relaxed text-muted">
+                        {prueba.hechos}
+                      </pre>
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-muted">No ha traído ningún dato.</p>
+                  )}
+                </div>
               )}
             </div>
 
