@@ -1,5 +1,5 @@
 import { DE_DONDE, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
-import { faltaColumna } from "@/lib/supabase/compat";
+import { faltaColumna, faltaFuncion } from "@/lib/supabase/compat";
 
 /* EL VIGILANTE.
  *
@@ -246,6 +246,29 @@ async function miraMigraciones(admin: Admin): Promise<Punto[]> {
         que: `Migración ${m.archivo}`,
         gravedad: "aviso",
         detalle: `No se ha podido comprobar: ${String((error as { message?: string })?.message ?? "").slice(0, 80)}`,
+      });
+    }
+  }
+
+  /* La 0011 no añade ninguna columna por la que preguntar: añade
+     funciones. Así que se le llama, con un encargo que no existe. Lo
+     que devuelva da igual —va a fallar seguro— y lo único que se mira
+     es CÓMO falla: si la función no está, el error lo dice; si está, el
+     error es otro (que ese encargo no es tuyo) y con eso basta. No toca
+     nada: sin encargo que reservar, no hay nada que escribir. */
+  {
+    const { error } = await admin.rpc("reservar_mi_cowork", {
+      p_cowork: "00000000-0000-0000-0000-000000000000",
+    });
+
+    if (faltaFuncion(error as never)) {
+      puntos.push({
+        que: "Migración 0011_coworks_a_mano.sql",
+        gravedad: "aviso",
+        detalle:
+          "Sin pegar: «Probar ahora» necesita la llave del servidor, y los tipos nuevos de Co-Work no se pueden crear.",
+        arreglo:
+          "Supabase → SQL Editor → pega supabase/migrations/0011_coworks_a_mano.sql → Run.",
       });
     }
   }
@@ -508,22 +531,41 @@ export async function revisarSalud(
   const puntos: Punto[] = [];
   const arreglado: string[] = [];
 
-  puntos.push(await miraSupabase(env));
+  const supabase = await miraSupabase(env);
+  puntos.push(supabase);
   puntos.push(...miraLosNombres());
-  if (admin) puntos.push(...(await miraMigraciones(admin)));
+
+  /* Si Supabase no contesta, preguntarle por las migraciones da seis
+     líneas de "no se ha podido comprobar: fetch failed" que no dicen
+     nada que no diga ya la de arriba. Un diagnóstico con seis líneas
+     de ruido no se lee, y la que importa se pierde entre ellas. */
+  const miroLaBase = Boolean(admin) && supabase.gravedad !== "roto";
+  if (miroLaBase) {
+    puntos.push(...(await miraMigraciones(admin as Admin)));
+  } else if (admin) {
+    /* Pero se dice que no se ha mirado. Callarlo sería peor que el
+       ruido: un proyecto pausado taparía una migración que falta de
+       verdad, y al restaurarlo seguiría sin funcionar sin saber por qué. */
+    puntos.push({
+      que: "La base de datos",
+      gravedad: "aviso",
+      detalle: "No se ha podido comprobar: primero hay que arreglar lo de arriba.",
+    });
+  }
+
   puntos.push(miraCerebros(env));
   puntos.push(...miraAutomatismo(env));
 
   const trabajos =
-    admin && perfil
-      ? await miraLosTrabajos(admin, perfil, env)
+    miroLaBase && perfil
+      ? await miraLosTrabajos(admin as Admin, perfil, env)
       : { puntos: [], arreglado: [] };
   puntos.push(...trabajos.puntos);
   arreglado.push(...trabajos.arreglado);
 
   const gravedad = puntos.reduce<Gravedad>((peorHasta, p) => peor(peorHasta, p.gravedad), "bien");
 
-  const completo = Boolean(admin && perfil);
+  const completo = miroLaBase && Boolean(perfil);
 
   return { gravedad, puntos, texto: informe(puntos, arreglado, gravedad, completo), arreglado };
 }
