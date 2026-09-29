@@ -132,11 +132,25 @@ async function miraSupabase(env: Entorno): Promise<Punto> {
   const buscar = env.buscar ?? fetch;
 
   if (!SUPABASE_URL) {
+    /* Decir cuál de las dos ha llegado y cuál no ahorra media tarde: no
+       es lo mismo "no has puesto nada" que "has puesto una y falta la
+       otra", y desde fuera se ven igual: modo demo. */
+    const hayClave = Boolean(SUPABASE_ANON_KEY);
+
     return {
       que: "Supabase",
       gravedad: "roto",
-      detalle: "No hay dirección configurada: la web está en modo demo.",
-      arreglo: "Pon NEXT_PUBLIC_SUPABASE_URL en Vercel y vuelve a desplegar.",
+      detalle: hayClave
+        ? "La clave sí ha llegado, pero la dirección no. La web está en modo demo."
+        : "No han llegado ni la dirección ni la clave. La web está en modo demo.",
+      /* Y lo de volver a desplegar no es un detalle: estas dos variables
+         se meten DENTRO del código al compilarlo, así que ponerlas y no
+         redesplegar no cambia absolutamente nada. Es el motivo número
+         uno de "ya la he puesto y sigue igual". */
+      arreglo:
+        "Vercel → Settings → Environment Variables → NEXT_PUBLIC_SUPABASE_URL" +
+        (hayClave ? "" : " y NEXT_PUBLIC_SUPABASE_ANON_KEY") +
+        ", con «Production» marcado. Y DESPUÉS vuelve a desplegar (Deployments → los tres puntos → Redeploy): estas dos se meten dentro de la web al compilarla, así que ponerlas sin redesplegar no cambia nada.",
     };
   }
 
