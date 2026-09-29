@@ -59,6 +59,23 @@ const NOMBRES_BUENOS = [
   "SUPABASE_SERVICE_ROLE_KEY",
 ];
 
+/* Qué le pasa a una variable, si es que le pasa algo.
+ *
+ * El nombre correcto no basta, y eso costó días de averiguar: la caja
+ * de la dirección puede llevar dentro una clave, que es lo mismo que
+ * no tener dirección, pero en el panel se ve una variable puesta y
+ * parece que está todo bien. */
+function queLePasa(v: Variable): string | null {
+  if (!NOMBRES_BUENOS.includes(v.nombre)) return "este nombre no se lee";
+  if (v.pinta === "VACÍA") return "está vacía";
+
+  const pideUrl = /_URL$/.test(v.nombre);
+  if (pideUrl && v.pinta === "una clave") return "aquí va la DIRECCIÓN, no una clave";
+  if (!pideUrl && v.pinta === "una dirección") return "aquí va la CLAVE, no la dirección";
+
+  return null;
+}
+
 const ICONO = { bien: "✅", aviso: "⚠️", roto: "❌" } as const;
 
 const TITULO = {
@@ -117,9 +134,10 @@ export default function RevisionPage() {
         ? [
             "",
             "Variables que le han llegado al servidor:",
-            ...r.variables.map(
-              (v) => `${NOMBRES_BUENOS.includes(v.nombre) ? "·" : "!!"} ${v.nombre} = ${v.pinta}`,
-            ),
+            ...r.variables.map((v) => {
+              const fallo = queLePasa(v);
+              return `${fallo ? "!!" : "·"} ${v.nombre} = ${v.pinta}${fallo ? ` ← ${fallo}` : ""}`;
+            }),
           ]
         : []),
       ...(r.arreglado.length ? ["", "Arreglado solo:", ...r.arreglado.map((a) => `- ${a}`)] : []),
@@ -226,25 +244,19 @@ export default function RevisionPage() {
               <div className="rounded-2xl border border-line bg-panel p-5">
                 <p className="text-[15px] font-semibold">Lo que le ha llegado al servidor</p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
-                  Los nombres, no el contenido. Si alguna sale en rojo, es que está escrita de una
-                  forma que Kairo no lee.
+                  Los nombres y qué pinta tiene lo que hay dentro, nunca el contenido. Si alguna
+                  sale en rojo, ahí está el fallo.
                 </p>
                 <ul className="mt-3 space-y-1.5">
                   {revision.variables.map((v) => {
-                    const buena = NOMBRES_BUENOS.includes(v.nombre);
+                    const fallo = queLePasa(v);
                     return (
                       <li key={v.nombre} className="text-[13px] leading-relaxed">
-                        <code
-                          className={
-                            buena ? "font-medium" : "font-medium text-red-400 line-through"
-                          }
-                        >
+                        <code className={fallo ? "font-medium text-red-400" : "font-medium"}>
                           {v.nombre}
                         </code>{" "}
                         <span className="text-muted">— {v.pinta}</span>
-                        {!buena && (
-                          <span className="ml-1 text-red-400">← este nombre no se lee</span>
-                        )}
+                        {fallo && <span className="ml-1 text-red-400">← {fallo}</span>}
                       </li>
                     );
                   })}
