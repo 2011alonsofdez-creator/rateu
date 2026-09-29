@@ -54,9 +54,17 @@ Reglas:
  * Buscar antes de contestar es lo que evita que Kairo te diga que el GTA
  * 6 no tiene fecha. Pero es tiempo que se suma DELANTE de la primera
  * palabra, y una búsqueda lenta se nota más que una respuesta regular.
- * Pasado el plazo se contesta sin ella y Kairo dice que no lo ha podido
- * comprobar, que es la verdad y tarda cero. */
-const PLAZO = 9000;
+ *
+ * Esto estuvo en nueve segundos y era demasiado poco. Una búsqueda con
+ * Google por detrás se va a diez o doce sin que pase nada raro, así que
+ * el tope no recortaba las lentas: recortaba las normales, y cada vez
+ * que recortaba una, Kairo contestaba de memoria. Es decir: el tope
+ * puesto para que fuera más rápido lo que hacía era devolverle el fallo
+ * que veníamos de arreglar, y encima en silencio.
+ *
+ * Dieciocho deja hueco de sobra para las normales y sigue cortando las
+ * que se han colgado, que es lo único que tenía que cortar. */
+const PLAZO = 18_000;
 
 const conPlazo = <T>(promesa: Promise<T>, ms: number): Promise<T | null> => {
   let reloj: ReturnType<typeof setTimeout> | undefined;

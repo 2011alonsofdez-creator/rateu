@@ -89,6 +89,14 @@ const PISTAS: RegExp[] = [
 
   // Normas que cambian
   palabra("(ley|leyes|normativa|plazo|multa|impuesto|iva|irpf|subvencion|ayuda)"),
+
+  palabra("(han (puesto|sacado|subido|anunciado|publicado|estrenado)|acaban de)"),
+
+  /* Y cuando se pide la búsqueda con todas las letras. Parece de cajón,
+     y no estaba: se podía escribir "búscalo en internet" y Kairo
+     contestaba de memoria igualmente. */
+  palabra("(busca(lo|me|s)?|buscar|googlea|mira en (internet|la web|google)|en internet|comprueba(lo)?|verifica|confirma|segun (internet|google)|fuentes)"),
+  palabra("(search|google it|look it up|check online|sources)"),
 ];
 
 /* Pistas flojas: solas no bastan si la pregunta habla de un año viejo.
@@ -97,7 +105,27 @@ const PISTAS: RegExp[] = [
 const DEBILES: RegExp[] = [
   palabra("(que paso|que pasaron)"),
   palabra("(quien gano|quien gana|quien va ganando)"),
+
+  /* "¿Sabes lo del capítulo que han puesto en Netflix?" — así es como se
+     pregunta de verdad por algo que ha pasado hace poco. Casi nunca
+     lleva la palabra "reciente" delante; lleva esto. */
+  palabra("(has (visto|oido|escuchado)|habeis visto|te has enterado|sabes lo (de|del)|conoces lo (de|del)|viste lo (de|del))"),
+
+  /* Un sitio donde el catálogo cambia cada semana: lo que se pregunta es
+     qué hay AHORA, no qué hubo. */
+  palabra("(netflix|hbo|max|disney\\+?|prime video|movistar|filmin|skyshowtime|twitch|youtube|tiktok|spotify|steam|epic games|game ?pass|play ?station|xbox|nintendo)"),
+
+  /* Deporte: un resultado, una plantilla o un calendario de hace dos
+     años es igual de inútil que un precio de hace dos años. */
+  palabra("(formula ?1|f1|gran premio|gp de|motogp|mundial|eurocopa|champions|la liga|premier|nba|balon de oro|fichaje|fichajes|traspaso|circuito)"),
+  palabra("(juega|juegan|gana|ganan|pierde|pierden|clasificad[oa]s?|eliminad[oa]s?)"),
 ];
+
+/* Por qué estas van en las flojas y no arriba: "¿quién ganó el mundial
+   de 1982?" nombra un mundial y no hay nada que buscar, es historia. Las
+   flojas se callan en cuanto aparece un año de hace décadas, y las de
+   arriba no. Pedir la búsqueda con todas las letras («búscalo») sí es
+   fuerte: si la pides, se hace, hables del año que hables. */
 
 /* Un año reciente escrito a mano ("¿qué pasó en 2026?") también cuenta.
    Los años viejos no: "la guerra de 1936" no necesita buscador. */
