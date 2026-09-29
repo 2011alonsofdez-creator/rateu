@@ -6,6 +6,7 @@ import { LEVELS, type Level, type Nivel } from "@/lib/mock";
 import { NIVELES_POR_PLAN } from "@/lib/planes";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { escuchar, hayMicrofono } from "@/lib/voz";
+import { pitido } from "@/lib/sonido";
 import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
 import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
 import { Bolt, Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
@@ -96,6 +97,21 @@ export function Composer({
   // añade detrás en vez de pisarlo.
   const yaEscrito = useRef("");
 
+  /* Al cuadro de escribir, y con el cursor al final de lo dictado: si
+     el foco vuelve al principio, lo siguiente que escribas se cuela
+     delante de lo que acabas de decir. */
+  const enfocarAlFinal = () => {
+    const cuadro = box.current;
+    if (!cuadro) return;
+    cuadro.focus();
+    try {
+      const fin = cuadro.value.length;
+      cuadro.setSelectionRange(fin, fin);
+    } catch {
+      /* algún navegador no deja mover el cursor: con el foco basta */
+    }
+  };
+
   const micro = () => {
     if (escuchando) return parar.current?.();
 
@@ -108,6 +124,13 @@ export function Composer({
       (motivo) => {
         setEscuchando(false);
         parar.current = null;
+        // Un pitido bajando: ya no te oye. Va aquí y no en el botón
+        // porque el micro también se cierra solo —si te callas, si
+        // envías, si se acaba el tiempo— y el aviso vale para todos.
+        pitido("termina");
+        // Y el foco vuelve al cuadro, que es lo que hace que puedas
+        // darle a Enter sin tocar el ratón.
+        enfocarAlFinal();
         // "sin habla" y "cancelado" no son fallos: es que te has callado.
         if (motivo === "not-allowed" || motivo === "service-not-allowed") {
           setSinPermiso(true);
@@ -118,6 +141,13 @@ export function Composer({
     if (!detener) return;
     parar.current = detener;
     setEscuchando(true);
+    pitido("empieza");
+
+    /* El foco se lleva al cuadro de escribir NADA MÁS abrir el micro.
+       Antes se quedaba en el botón, así que al terminar de hablar
+       pulsabas Enter y no pasaba nada: la tecla se la comía el botón.
+       Con el foco aquí, hablas, callas y das a Enter. */
+    enfocarAlFinal();
   };
 
   // Si te vas de la página, que no se quede el micro abierto.

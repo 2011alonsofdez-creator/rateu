@@ -7,6 +7,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { useCredits } from "@/lib/credits";
 import { NOMBRE_PLAN } from "@/lib/planes";
 import { cerrarSesion, guardarAjustes } from "../actions";
+import { haySonido, ponerSonido, pitido } from "@/lib/sonido";
 import { Bolt, Check, Settings, Shield } from "@/components/Icons";
 
 /* El tono elegido aquí se inyecta en el system prompt ({TONO_ELEGIDO})
@@ -76,6 +77,19 @@ export default function AjustesPage() {
       });
   }, [perfil.demo, perfil.plan]);
   const es = lang === "es";
+
+  /* El pitido del micro. Se lee en un efecto y no directamente, porque
+     localStorage no existe mientras el servidor pinta la página. */
+  const [sonido, setSonido] = useState(true);
+  useEffect(() => setSonido(haySonido()), []);
+
+  const cambiarSonido = () => {
+    const nuevo = !sonido;
+    setSonido(nuevo);
+    ponerSonido(nuevo);
+    // Al encenderlo se oye, que si no hay que ir al chat a comprobarlo.
+    if (nuevo) pitido("empieza");
+  };
 
   const elegirTono = (id: string) => {
     setTone(id);
@@ -217,6 +231,36 @@ export default function AjustesPage() {
                 : es ? "Cambiar a tema oscuro" : "Switch to dark theme"}
             </button>
           </div>
+
+          {/* El pitido del micro: útil para saber si te está oyendo sin
+              mirar la pantalla, e insoportable si no se puede apagar. */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+            <div className="min-w-0">
+              <p className="text-[14px] font-medium">
+                {es ? "Sonido del micrófono" : "Microphone sound"}
+              </p>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-muted">
+                {es
+                  ? "Un pitido corto al abrir y al cerrar el micro, para saber si te está oyendo sin mirar."
+                  : "A short beep when the mic opens and closes, so you know it is listening without looking."}
+              </p>
+            </div>
+            <button
+              onClick={cambiarSonido}
+              role="switch"
+              aria-checked={sonido}
+              aria-label={es ? "Sonido del micrófono" : "Microphone sound"}
+              className={`h-6 w-11 shrink-0 rounded-full p-0.5 transition ${
+                sonido ? "brand-grad" : "bg-panel-hi"
+              }`}
+            >
+              <span
+                className={`block h-5 w-5 rounded-full bg-bg transition ${
+                  sonido ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
         </Card>
 
         {/* Plan */}
@@ -269,6 +313,25 @@ export default function AjustesPage() {
               </Link>
             </div>
           </div>
+        </Card>
+
+        {/* ¿Algo va mal?
+            Esto está aquí porque el diagnóstico existía y no se podía
+            encontrar: era una dirección que había que escribir a mano en
+            la barra del navegador. Un botón en Ajustes es donde lo busca
+            cualquiera. */}
+        <Card title={es ? "¿Algo va mal?" : "Something wrong?"}>
+          <p className="text-[13.5px] leading-relaxed text-muted">
+            {es
+              ? "Una revisión de todo lo que Kairo necesita por debajo, con lo que hay que hacer al lado de cada cosa que falle. Y un botón para copiarla y pegársela a quien te ayude."
+              : "A check of everything Kairo needs underneath, with the fix next to anything that is broken. And a button to copy it and paste it to whoever helps you."}
+          </p>
+          <Link
+            href="/revision"
+            className="mt-3 inline-block rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+          >
+            {es ? "Revisar ahora" : "Run the check"}
+          </Link>
         </Card>
 
         {/* Datos */}
