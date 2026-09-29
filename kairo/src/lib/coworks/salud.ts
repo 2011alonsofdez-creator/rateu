@@ -137,6 +137,31 @@ async function miraSupabase(env: Entorno): Promise<Punto> {
        otra", y desde fuera se ven igual: modo demo. */
     const hayClave = Boolean(SUPABASE_ANON_KEY);
 
+    /* Y el caso que de verdad pasa, y que costó días encontrar: en la
+       casilla de la dirección hay una CLAVE. Son dos cajas seguidas y
+       las dos se rellenan pegando; pegar la de al lado es de un
+       segundo. Desde fuera no se distingue de "no la has puesto", pero
+       se arregla distinto, así que hay que decirlo con esas palabras.
+
+       No se puede descruzar sola, ojo: cuando las dos casillas llevan
+       una clave, la dirección no está en ninguna parte. No hay nada que
+       rescatar, solo que pedirla. */
+    const enSuCasilla = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+    const claveEnLaCasillaDeLaUrl = /^(eyj|sb_|sbp_|sbs_)/i.test(enSuCasilla);
+
+    if (claveEnLaCasillaDeLaUrl) {
+      return {
+        que: "Supabase",
+        gravedad: "roto",
+        detalle:
+          "En NEXT_PUBLIC_SUPABASE_URL hay una CLAVE, no una dirección. Por eso la web está en modo demo: no sabe con qué servidor hablar.",
+        arreglo:
+          "Coge la dirección en Supabase → Settings → API → «Project URL» (tiene esta forma: https://algo.supabase.co). " +
+          "En Vercel → Settings → Environment Variables, abre NEXT_PUBLIC_SUPABASE_URL, borra lo que hay y pega ESA dirección. " +
+          "Y después Deployments → los tres puntos → Redeploy.",
+      };
+    }
+
     return {
       que: "Supabase",
       gravedad: "roto",
