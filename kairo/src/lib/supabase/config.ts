@@ -148,7 +148,108 @@ export function pistaDeUrl(valor: string | undefined): string | null {
   }
 }
 
-export const SUPABASE_URL = limpiarUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+/* DE DÓNDE SALEN LAS DOS VARIABLES.
+ *
+ * Debería ser una línea: leer NEXT_PUBLIC_SUPABASE_URL y
+ * NEXT_PUBLIC_SUPABASE_ANON_KEY y listo. Son cinco por dos motivos que
+ * han pasado los dos de verdad.
+ *
+ * Uno: el nombre. Supabase ya no llama "anon public" a su clave —ahora
+ * es "publishable"— y su propia integración con Vercel escribe unos
+ * nombres, la documentación otros y el panel otros. Una clave puesta con
+ * el nombre de al lado deja la web en modo demo sin decir nada.
+ *
+ * Dos: se cruzan. Son dos cajas seguidas en la misma pantalla, y pegar
+ * la dirección en la de la clave es cosa de un segundo. El resultado es
+ * el mismo: modo demo, y ninguna pista de por qué.
+ *
+ * Así que en vez de exigir que estén en su sitio, se mira lo que hay:
+ * una dirección tiene forma de dirección y una clave tiene forma de
+ * clave, y eso se distingue sin preguntarle a nadie. Si están cruzadas,
+ * se descruzan; si están con otro nombre, se encuentran.
+ *
+ * `process.env.NEXT_PUBLIC_*` se escribe entero y a mano en cada línea a
+ * propósito: no es una lectura, es un hueco que Next rellena con el
+ * valor al compilar. Escrito de cualquier otra forma —un bucle, una
+ * variable con el nombre— no se rellena y la app sale a producción en
+ * modo demo.
+ */
+
+/** Lo que tiene pinta de clave y no de dirección. */
+const pareceClave = (valor: string) =>
+  /^(eyj|sb_publishable_|sb_secret_|sbp_|sbs_)/i.test(valor);
+
+/** Una clave, sin lo que no puede llevar dentro.
+ *
+ *  Las de Supabase son letras, números, puntos, guiones y rayas bajas y
+ *  nada más. Todo lo demás —las comillas de un ejemplo, un espacio
+ *  invisible pegado al copiar— sobra, y un solo carácter de más la hace
+ *  inválida con el mismo mensaje que una contraseña equivocada. */
+function limpiarClave(valor: string | undefined): string {
+  return (valor ?? "").replace(/[^A-Za-z0-9._-]/g, "");
+}
+
+/* Los sitios donde puede estar la dirección, en orden de confianza. El
+   último es la caja de la clave: si la dirección está ahí, están
+   cruzadas. */
+const CANDIDATAS_URL: [string, string | undefined][] = [
+  ["NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL],
+  ["NEXT_PUBLIC_SUPABASE_PROJECT_URL", process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL],
+  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY],
+  ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+];
+
+const CANDIDATAS_CLAVE: [string, string | undefined][] = [
+  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY],
+  ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+  [
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+  ],
+  ["NEXT_PUBLIC_SUPABASE_KEY", process.env.NEXT_PUBLIC_SUPABASE_KEY],
+  ["NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL],
+];
+
+function buscarUrl(): { valor: string; de: string } {
+  for (const [nombre, bruto] of CANDIDATAS_URL) {
+    const texto = (bruto ?? "").trim();
+    // Una clave nunca es una dirección, aunque lleve puntos como un dominio.
+    if (!texto || pareceClave(texto)) continue;
+    const limpia = limpiarUrl(texto);
+    if (limpia) return { valor: limpia, de: nombre };
+  }
+  return { valor: "", de: "" };
+}
+
+function buscarClave(usadaParaLaUrl: string): { valor: string; de: string } {
+  for (const [nombre, bruto] of CANDIDATAS_CLAVE) {
+    // La misma variable no puede ser las dos cosas.
+    if (nombre === usadaParaLaUrl) continue;
+    const limpia = limpiarClave(bruto);
+    if (limpia && pareceClave(limpia)) return { valor: limpia, de: nombre };
+  }
+
+  /* Ninguna tiene la forma esperada. Antes de rendirse: la que esté en
+     su caja y no sea una dirección, tal cual. Puede ser una clave de un
+     formato que todavía no existía cuando se escribió esto. */
+  for (const [nombre, bruto] of CANDIDATAS_CLAVE) {
+    if (nombre === usadaParaLaUrl) continue;
+    const limpia = limpiarClave(bruto);
+    if (limpia.length >= 20 && !limpiarUrl(limpia)) return { valor: limpia, de: nombre };
+  }
+
+  return { valor: "", de: "" };
+}
+
+const DIRECCION = buscarUrl();
+const CLAVE = buscarClave(DIRECCION.de);
+
+/** En qué variable se ha encontrado cada cosa. Para poder decirlo en la
+ *  pantalla de revisión: si salen cruzadas o con un nombre raro, funciona
+ *  igual, pero conviene saberlo antes del siguiente despliegue. */
+export const DE_DONDE = { url: DIRECCION.de, clave: CLAVE.de };
+
+export const SUPABASE_URL = DIRECCION.valor;
 
 /** El sitio con el que se intenta hablar. Para poder decirlo en pantalla
  *  cuando no se llega: va dentro del código que se descarga el
@@ -162,7 +263,7 @@ export const SUPABASE_HOST = (() => {
 })();
 
 
-export const SUPABASE_ANON_KEY = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+export const SUPABASE_ANON_KEY = CLAVE.valor;
 
 /* Sin variables configuradas la app sigue funcionando en modo demo, con
    los datos de ejemplo. Así el despliegue nunca se queda en blanco por
