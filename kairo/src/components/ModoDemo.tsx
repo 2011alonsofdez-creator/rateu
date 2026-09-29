@@ -23,6 +23,16 @@ export function ModoDemo() {
         {t("auth.demoCta")}
       </Link>
 
+      {/* El enlace que faltaba. Antes, para saber POR QUÉ estaba en modo
+          demo, había que escribir «/api/estado» a mano en la barra del
+          navegador y saber leer un JSON. Ahora se pulsa. */}
+      <Link
+        href="/revision"
+        className="block rounded-xl border border-line-hi px-4 py-2.5 text-center text-[14px] font-medium transition hover:bg-panel-hi"
+      >
+        {t("auth.demoWhy")}
+      </Link>
+
       <p className="text-center text-[12.5px] text-faint">
         supabase/README.md
       </p>

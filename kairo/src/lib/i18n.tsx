@@ -451,6 +451,7 @@ const dict = {
     "auth.demoTitle": "Modo demo",
     "auth.demoSub": "Supabase todavía no está configurado, así que el registro no funciona. Puedes ver la app con datos de ejemplo.",
     "auth.demoCta": "Ver la demo",
+    "auth.demoWhy": "¿Por qué está en modo demo?",
   },
   en: {
     "nav.product": "Product",
@@ -884,6 +885,7 @@ const dict = {
     "auth.demoTitle": "Demo mode",
     "auth.demoSub": "Supabase is not configured yet, so signing up does not work. You can still explore the app with sample data.",
     "auth.demoCta": "See the demo",
+    "auth.demoWhy": "Why is it in demo mode?",
   },
 } as const;
 

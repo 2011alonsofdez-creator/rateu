@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
+import { DE_DONDE, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 import { faltaColumna } from "@/lib/supabase/compat";
 
 /* EL VIGILANTE.
@@ -179,6 +179,40 @@ async function miraSupabase(env: Entorno): Promise<Punto> {
         "Comprueba NEXT_PUBLIC_SUPABASE_URL en Vercel: tiene que ser https://<tu-proyecto>.supabase.co, sin espacios ni barra final.",
     };
   }
+}
+
+/* --------------------------------------------------------------
+   1 bis. ¿Están las variables donde se espera?
+   -------------------------------------------------------------- */
+
+/* La app encuentra la dirección y la clave aunque estén cruzadas o con
+   otro nombre, así que esto no rompe nada. Pero conviene saberlo: el día
+   que alguien mire la configuración va a ver una cosa donde esperaba
+   otra, y ahí se pierde una tarde. */
+function miraLosNombres(): Punto[] {
+  if (!SUPABASE_URL) return [];
+
+  const enSuSitio =
+    DE_DONDE.url === "NEXT_PUBLIC_SUPABASE_URL" &&
+    DE_DONDE.clave === "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+
+  if (enSuSitio) return [];
+
+  const cruzadas =
+    DE_DONDE.url === "NEXT_PUBLIC_SUPABASE_ANON_KEY" ||
+    DE_DONDE.clave === "NEXT_PUBLIC_SUPABASE_URL";
+
+  return [
+    {
+      que: "Los nombres de las variables",
+      gravedad: "aviso",
+      detalle: cruzadas
+        ? `Están CRUZADAS: la dirección está en ${DE_DONDE.url} y la clave en ${DE_DONDE.clave}. Kairo las ha descruzado él solo y funciona.`
+        : `La dirección está en ${DE_DONDE.url || "ninguna de las conocidas"} y la clave en ${DE_DONDE.clave || "ninguna de las conocidas"}. Funciona, pero no son los nombres de siempre.`,
+      arreglo:
+        "En Vercel → Settings → Environment Variables: la dirección en NEXT_PUBLIC_SUPABASE_URL y la clave en NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    },
+  ];
 }
 
 /* --------------------------------------------------------------
@@ -411,9 +445,19 @@ async function miraLosTrabajos(
 
 const ICONO: Record<Gravedad, string> = { bien: "✅", aviso: "⚠️", roto: "❌" };
 
-function informe(puntos: Punto[], arreglado: string[], gravedad: Gravedad): string {
+function informe(
+  puntos: Punto[],
+  arreglado: string[],
+  gravedad: Gravedad,
+  completo: boolean,
+): string {
   if (gravedad === "bien" && !arreglado.length) {
-    return "Todo en orden. Supabase responde, la base de datos está al día y los encargos se están ejecutando.";
+    /* Y si no se ha podido mirar todo, no se dice que todo está bien: se
+       dice qué se ha mirado. Un "todo en orden" que en realidad
+       significa "lo que he podido ver" es peor que no revisar nada. */
+    return completo
+      ? "Todo en orden. Supabase responde, la base de datos está al día y los encargos se están ejecutando."
+      : "De lo que he podido mirar, todo en orden. La base de datos y los encargos no se pueden comprobar sin la sesión iniciada.";
   }
 
   const roto = puntos.filter((p) => p.gravedad === "roto");
@@ -446,29 +490,42 @@ function informe(puntos: Punto[], arreglado: string[], gravedad: Gravedad): stri
 
 /** Mira que todo siga en pie y cuenta qué ha encontrado.
  *
- *  `perfil` no es opcional a propósito: el cliente que se pasa aquí lleva
- *  la llave del servidor y se salta la seguridad a nivel de fila, así que
- *  quien llama tiene que decir de quién es la revisión. */
+ *  `perfil` va aparte del cliente a propósito: cuando el que se pasa es
+ *  el del reloj, lleva la llave del servidor y se salta la seguridad a
+ *  nivel de fila, así que quien llama tiene que decir de quién es la
+ *  revisión o el informe saldría con los Co-Works de todo el mundo.
+ *
+ *  Y los dos admiten nulo, que es el caso que más falta hace: cuando la
+ *  web está en modo demo no hay base de datos a la que preguntar, y es
+ *  justo entonces cuando uno necesita que algo le diga por qué. Sin
+ *  cliente se mira lo que no necesita base de datos —que es dónde está
+ *  el fallo cuando no hay base de datos— y se calla el resto. */
 export async function revisarSalud(
-  admin: Admin,
-  perfil: string,
+  admin: Admin | null,
+  perfil: string | null,
   env: Entorno = {},
 ): Promise<Revision> {
   const puntos: Punto[] = [];
   const arreglado: string[] = [];
 
   puntos.push(await miraSupabase(env));
-  puntos.push(...(await miraMigraciones(admin)));
+  puntos.push(...miraLosNombres());
+  if (admin) puntos.push(...(await miraMigraciones(admin)));
   puntos.push(miraCerebros(env));
   puntos.push(...miraAutomatismo(env));
 
-  const trabajos = await miraLosTrabajos(admin, perfil, env);
+  const trabajos =
+    admin && perfil
+      ? await miraLosTrabajos(admin, perfil, env)
+      : { puntos: [], arreglado: [] };
   puntos.push(...trabajos.puntos);
   arreglado.push(...trabajos.arreglado);
 
   const gravedad = puntos.reduce<Gravedad>((peorHasta, p) => peor(peorHasta, p.gravedad), "bien");
 
-  return { gravedad, puntos, texto: informe(puntos, arreglado, gravedad), arreglado };
+  const completo = Boolean(admin && perfil);
+
+  return { gravedad, puntos, texto: informe(puntos, arreglado, gravedad, completo), arreglado };
 }
 
 /** El título de la conversación que deja cuando hay algo que contar. */

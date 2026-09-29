@@ -315,6 +315,25 @@ export default function AjustesPage() {
           </div>
         </Card>
 
+        {/* ¿Algo va mal?
+            Esto está aquí porque el diagnóstico existía y no se podía
+            encontrar: era una dirección que había que escribir a mano en
+            la barra del navegador. Un botón en Ajustes es donde lo busca
+            cualquiera. */}
+        <Card title={es ? "¿Algo va mal?" : "Something wrong?"}>
+          <p className="text-[13.5px] leading-relaxed text-muted">
+            {es
+              ? "Una revisión de todo lo que Kairo necesita por debajo, con lo que hay que hacer al lado de cada cosa que falle. Y un botón para copiarla y pegársela a quien te ayude."
+              : "A check of everything Kairo needs underneath, with the fix next to anything that is broken. And a button to copy it and paste it to whoever helps you."}
+          </p>
+          <Link
+            href="/revision"
+            className="mt-3 inline-block rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+          >
+            {es ? "Revisar ahora" : "Run the check"}
+          </Link>
+        </Card>
+
         {/* Datos */}
         <Card title={es ? "Tus datos" : "Your data"}>
           <div className="flex flex-wrap gap-3">
