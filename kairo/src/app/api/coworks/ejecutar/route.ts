@@ -4,6 +4,7 @@ import { faltaColumna } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
 import { revisarSalud, tituloDeLaRevision } from "@/lib/coworks/salud";
+import { esGratis, recetaDe, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -173,7 +174,7 @@ async function hacerUno(
   /* El vigilante va por otro camino y no pasa por caja: no le pregunta
      nada a ningún modelo, solo mira si todo sigue en pie. Cobrar por
      comprobar que la casa no se ha caído sería cobrar por respirar. */
-  if (c.tipo === "salud") {
+  if (esGratis(c.tipo)) {
     return (await vigilar(supabase, c, resultado)) ? "hechos" : "fallidos";
   }
 
@@ -189,21 +190,23 @@ async function hacerUno(
 
   try {
     const brief = await redactarBrief({
+      tipo: c.tipo as Tipo,
       temas: c.temas,
       duenio: c.duenio ?? undefined,
       modoEdad: c.modo_edad,
       tono: c.tono ?? "cercano",
       zona: c.zona,
+      anteriores: await loDeAntes(supabase, c.id),
     });
 
-    /* Sin brief no se cobra y no se escribe nada. Lo normal aquí es
-       que no se haya podido buscar, y un resumen sin haber buscado no
-       es un resumen: es lo que el modelo recuerde de hace dos años. */
+    /* Sin nada escrito no se cobra y no se guarda nada. Lo normal aquí
+       es que no se haya podido buscar, y un resumen sin haber buscado
+       no es un resumen: es lo que el modelo recuerde de hace dos años. */
     if (!brief) {
       await supabase.rpc("terminar_cowork", {
         p_resultado: resultado,
         p_estado: "error",
-        p_contenido: "Hoy no he podido comprobar las novedades. Mañana vuelvo a mirar.",
+        p_contenido: "Hoy no he podido prepararlo. Mañana vuelvo a intentarlo.",
       });
       return "fallidos";
     }
@@ -212,7 +215,7 @@ async function hacerUno(
     const { error: fallaCobro } = await supabase.rpc("gastar_creditos_de", {
       p_perfil: c.perfil_id,
       p_cantidad: COSTE,
-      p_motivo: `Co-Work: ${c.nombre || "Daily Brief"}`,
+      p_motivo: `Co-Work: ${c.nombre || recetaDe(c.tipo).nombre}`,
     });
 
     if (fallaCobro) {
@@ -368,7 +371,7 @@ async function dejarConversacion(
     const pregunta = {
       conversacion_id: conv.id,
       rol: "user",
-      contenido: `Novedades de hoy sobre: ${c.temas}`,
+      contenido: recetaDe(c.tipo).paraElChat(c.temas),
     };
 
     const respuesta: Record<string, unknown> = {
@@ -407,6 +410,29 @@ async function dejarConversacion(
     console.error("[kairo] conversación del Co-Work:", e instanceof Error ? e.message : e);
     return null;
   }
+}
+
+/** Lo último que se escribió para este encargo.
+ *
+ *  Un repaso diario que empieza cada día por el principio no es un
+ *  repaso: es la misma página cinco veces. Esto es toda la memoria que
+ *  tiene un Co-Work, y con esto basta. Se filtra por el encargo, así que
+ *  solo trae lo suyo aunque este cliente lleve la llave del servidor. */
+async function loDeAntes(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  cowork: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("cowork_resultados")
+    .select("contenido")
+    .eq("cowork_id", cowork)
+    .eq("estado", "ok")
+    .order("dia", { ascending: false })
+    .limit(5);
+
+  return ((data ?? []) as { contenido: string | null }[])
+    .map((r) => r.contenido ?? "")
+    .filter(Boolean);
 }
 
 /* Vercel Cron llama con GET; un disparador propio suele mandar POST.

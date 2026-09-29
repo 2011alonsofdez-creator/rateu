@@ -1,9 +1,10 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { clienteAdmin } from "@/lib/supabase/admin";
-import { faltaColumna } from "@/lib/supabase/compat";
+import { faltaColumna, faltaFuncion } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
 import { revisarSalud } from "@/lib/coworks/salud";
+import { esGratis, recetaDe, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -26,10 +27,21 @@ export const preferredRegion = "fra1";
  * Quién es el dueño lo decide la base de datos, no esta ruta: el Co-Work
  * se busca con TU sesión, así que si no es tuyo, sencillamente no
  * aparece.
+ *
+ * LO DE LA LLAVE. Este botón exigía SUPABASE_SERVICE_ROLE_KEY, y era una
+ * tontería: la llave del servidor es para el reloj, que trabaja sin
+ * nadie delante. Para probar un encargo TUYO, estando TÚ delante, sobra.
+ * Desde la migración 0011 hay dos funciones gemelas que comprueban el
+ * dueño ellas mismas, así que esto va con tu sesión y la llave solo hace
+ * falta si esa migración todavía no está pegada.
  */
 
 const COSTE = CREDITOS.normal;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Cuántos resultados anteriores se le enseñan al que escribe, para que
+ *  el repaso de hoy no sea el de ayer otra vez. */
+const MEMORIA = 5;
 
 const fallo = (estado: number, motivo: string, pista?: string) =>
   Response.json(pista ? { error: motivo, pista } : { error: motivo }, { status: estado });
@@ -42,6 +54,15 @@ type Cowork = {
   temas: string;
   zona: string;
 };
+
+type Sesion = NonNullable<Awaited<ReturnType<typeof clienteServidor>>>;
+type Admin = NonNullable<ReturnType<typeof clienteAdmin>>;
+
+/** Quién puede reservar y cerrar el trabajo, y por qué camino. */
+type Manos =
+  | { como: "sesion" }
+  | { como: "llave"; admin: Admin }
+  | { como: "no_se_puede"; motivo: string; pista?: string };
 
 export async function POST(req: Request) {
   const supabase = await clienteServidor();
@@ -76,27 +97,23 @@ export async function POST(req: Request) {
 
   if (!perfil) return fallo(401, "sin_sesion");
   // El vigilante no llama a ningún modelo, así que tampoco cuesta nada.
-  const gratis = cowork.tipo === "salud";
+  const gratis = esGratis(cowork.tipo);
   if (!gratis && perfil.creditos + perfil.creditos_extra < COSTE) {
     return fallo(402, "sin_creditos");
   }
 
-  /* El reparto y la reserva son del servidor: llevan la misma llave que
-     usa el reloj. Sin ella no se puede reservar el día, y sin reservar
-     el día esto podría duplicar el trabajo. */
-  const admin = clienteAdmin();
-  if (!admin) {
-    return fallo(503, "sin_clave", "Falta SUPABASE_SERVICE_ROLE_KEY en Vercel");
+  /* Reservar el día, para que esto no se haga dos veces. Primero con tu
+     sesión; la llave del servidor solo entra si la migración que lo
+     permite todavía no está puesta. */
+  const reserva = await reservar(supabase, cowork.id, cowork.zona);
+  if (reserva.estado === "no_se_puede") {
+    return fallo(503, reserva.motivo, reserva.pista);
   }
 
-  // El día, en TU zona. Que lo calcule la base de datos, que es quien
-  // luego compara: así no hay dos "hoy" distintos.
-  const { data: diaHoy } = await admin.rpc("hora_local", { p_zona: cowork.zona });
-  const dia = String(diaHoy ?? "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+  const { manos, dia } = reserva;
+  let resultado = reserva.resultado;
 
-  let reserva = await reservar(admin, cowork.id, dia);
-
-  if (!reserva) {
+  if (!resultado) {
     // Ya hay algo de hoy: o se está haciendo, o salió bien, o salió mal.
     const { data: deHoy } = await supabase
       .from("cowork_resultados")
@@ -119,22 +136,29 @@ export async function POST(req: Request) {
     /* Salió mal (o sin créditos): se borra y se reintenta. Borrar es
        cosa tuya —es tu fila— y por eso va con tu sesión. */
     if (deHoy?.id) await supabase.from("cowork_resultados").delete().eq("id", deHoy.id);
-    reserva = await reservar(admin, cowork.id, dia);
-    if (!reserva) return Response.json({ en_marcha: true });
+
+    const otra = await reservar(supabase, cowork.id, cowork.zona);
+    if (otra.estado === "no_se_puede" || !otra.resultado) {
+      return Response.json({ en_marcha: true });
+    }
+    resultado = otra.resultado;
   }
+
+  const cerrar = (
+    estado: string,
+    contenido: string,
+    extra?: { fuentes?: Fuente[] | null; modelo?: string | null; conversacion?: string | null },
+  ) => terminar(supabase, manos, resultado, estado, contenido, extra);
 
   try {
     /* El vigilante: mira que todo siga en pie y lo cuenta. Ni busca ni
-       escribe nada con un modelo, así que aquí no hay nada que cobrar. */
+       escribe nada con un modelo, así que aquí no hay nada que cobrar.
+       Y mira con TU sesión: la seguridad a nivel de fila le enseña lo
+       tuyo y nada más, que es justo lo que tiene que mirar. */
     if (gratis) {
-      const revision = await revisarSalud(admin as never, cowork.perfil_id, { yo: cowork.id });
+      const revision = await revisarSalud(supabase as never, cowork.perfil_id, { yo: cowork.id });
 
-      await admin.rpc("terminar_cowork", {
-        p_resultado: reserva,
-        p_estado: "ok",
-        p_contenido: revision.texto,
-        p_modelo: `Vigilante · ${revision.gravedad}`,
-      });
+      await cerrar("ok", revision.texto, { modelo: `Vigilante · ${revision.gravedad}` });
 
       return Response.json({
         ok: true,
@@ -154,19 +178,17 @@ export async function POST(req: Request) {
     }
 
     const brief = await redactarBrief({
+      tipo: cowork.tipo as Tipo,
       temas: cowork.temas,
       duenio: perfil.nombre ?? undefined,
       modoEdad: perfil.modo_edad,
       tono: perfil.tono ?? "cercano",
       zona: cowork.zona,
+      anteriores: await loDeAntes(supabase, cowork.id),
     });
 
     if (!brief) {
-      await admin.rpc("terminar_cowork", {
-        p_resultado: reserva,
-        p_estado: "error",
-        p_contenido: "No he podido comprobar las novedades ahora mismo.",
-      });
+      await cerrar("error", "No he podido prepararlo ahora mismo.");
       return fallo(502, "no_se_ha_podido");
     }
 
@@ -174,15 +196,11 @@ export async function POST(req: Request) {
        el apunte del historial lleva tu nombre y no el del reloj. */
     const { error: errorCobro } = await supabase.rpc("gastar_creditos", {
       p_cantidad: COSTE,
-      p_motivo: `Co-Work: ${cowork.nombre || "Daily Brief"}`,
+      p_motivo: `Co-Work: ${cowork.nombre || recetaDe(cowork.tipo).nombre}`,
     });
 
     if (errorCobro) {
-      await admin.rpc("terminar_cowork", {
-        p_resultado: reserva,
-        p_estado: "sin_creditos",
-        p_contenido: "No había créditos suficientes.",
-      });
+      await cerrar("sin_creditos", "No había créditos suficientes.");
       return fallo(402, "sin_creditos");
     }
 
@@ -192,13 +210,10 @@ export async function POST(req: Request) {
        conversación se insertaría a nombre de otro. */
     const conversacion = await dejarConversacion(supabase, cowork, cowork.perfil_id, brief);
 
-    await admin.rpc("terminar_cowork", {
-      p_resultado: reserva,
-      p_estado: "ok",
-      p_contenido: brief.texto,
-      p_fuentes: brief.fuentes.length ? brief.fuentes : null,
-      p_modelo: brief.modelo,
-      p_conversacion: conversacion,
+    await cerrar("ok", brief.texto, {
+      fuentes: brief.fuentes.length ? brief.fuentes : null,
+      modelo: brief.modelo,
+      conversacion,
     });
 
     return Response.json({
@@ -217,29 +232,126 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     console.error("[kairo] probar Co-Work:", e instanceof Error ? e.message : e);
-    await admin
-      .rpc("terminar_cowork", {
-        p_resultado: reserva,
-        p_estado: "error",
-        p_contenido: "Algo ha fallado al prepararlo.",
-      })
-      .then(() => {}, () => {});
+    await cerrar("error", "Algo ha fallado al prepararlo.").catch(() => {});
     return fallo(502, "no_se_ha_podido");
   }
 }
 
-async function reservar(
-  admin: NonNullable<ReturnType<typeof clienteAdmin>>,
-  cowork: string,
-  dia: string,
-): Promise<string | null> {
-  const { data } = await admin.rpc("reservar_cowork", { p_cowork: cowork, p_dia: dia });
-  return data ? String(data) : null;
+/* --------------------------------------------------------------
+   Reservar el día
+   -------------------------------------------------------------- */
+
+type Reserva =
+  | { estado: "hecha"; manos: Manos; resultado: string | null; dia: string }
+  | { estado: "no_se_puede"; motivo: string; pista?: string };
+
+/** Coge el hueco de hoy, con la sesión si se puede y con la llave si no.
+ *
+ *  `resultado` nulo no es un fallo: es que el hueco ya estaba cogido.
+ *  El día viene siempre, porque quien llama lo necesita para ir a buscar
+ *  lo que se hizo. */
+async function reservar(supabase: Sesion, cowork: string, zona: string): Promise<Reserva> {
+  /* Con tu sesión. El día NO lo elige esta ruta: lo calcula la propia
+     función con la zona del encargo, que es lo que impide pedir el de
+     mañana, el de pasado y el del mes que viene. */
+  const { data, error } = await supabase
+    .rpc("reservar_mi_cowork", { p_cowork: cowork })
+    .maybeSingle<{ resultado: string | null; dia: string }>();
+
+  if (!error && data) {
+    return {
+      estado: "hecha",
+      manos: { como: "sesion" },
+      resultado: data.resultado ? String(data.resultado) : null,
+      dia: String(data.dia).slice(0, 10),
+    };
+  }
+
+  /* La 0011 todavía no está pegada. Se hace por el camino viejo, que
+     necesita la llave del servidor. */
+  if (error && !faltaFuncion(error)) {
+    console.error("[kairo] reservar con sesión:", error.message);
+  }
+
+  const admin = clienteAdmin();
+  if (!admin) {
+    return {
+      estado: "no_se_puede",
+      motivo: "falta_migracion",
+      pista:
+        "Pega supabase/migrations/0011_coworks_a_mano.sql en Supabase → SQL Editor. " +
+        "(O pon SUPABASE_SERVICE_ROLE_KEY en Vercel, pero con la migración no hace falta.)",
+    };
+  }
+
+  /* El día, en la zona del encargo. Que lo calcule la base de datos,
+     que es quien luego compara: así no hay dos "hoy" distintos. */
+  const { data: diaHoy } = await admin.rpc("hora_local", { p_zona: zona });
+  const dia = String(diaHoy ?? "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+
+  const { data: vieja } = await admin.rpc("reservar_cowork", { p_cowork: cowork, p_dia: dia });
+
+  return {
+    estado: "hecha",
+    manos: { como: "llave", admin },
+    resultado: vieja ? String(vieja) : null,
+    dia,
+  };
+}
+
+/** Apunta cómo acabó, por el mismo camino por el que se reservó. */
+async function terminar(
+  supabase: Sesion,
+  manos: Manos,
+  resultado: string,
+  estado: string,
+  contenido: string,
+  extra?: { fuentes?: Fuente[] | null; modelo?: string | null; conversacion?: string | null },
+): Promise<void> {
+  const args = {
+    p_resultado: resultado,
+    p_estado: estado,
+    p_contenido: contenido,
+    p_fuentes: extra?.fuentes ?? null,
+    p_modelo: extra?.modelo ?? null,
+    p_conversacion: extra?.conversacion ?? null,
+  };
+
+  const { error } =
+    manos.como === "llave"
+      ? await manos.admin.rpc("terminar_cowork", args)
+      : await supabase.rpc("terminar_mi_cowork", args);
+
+  if (error) console.error("[kairo] cerrar Co-Work:", error.message);
+}
+
+/* --------------------------------------------------------------
+   Lo de los días anteriores
+   -------------------------------------------------------------- */
+
+/** Lo último que se escribió para este encargo.
+ *
+ *  Un repaso diario que empieza cada día por el principio no es un
+ *  repaso: es la misma página cinco veces. Esto es toda la memoria que
+ *  tiene, y con esto basta. Va con tu sesión, así que solo puede leer lo
+ *  tuyo aunque se le pida otra cosa. */
+async function loDeAntes(supabase: Sesion, cowork: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("cowork_resultados")
+    .select("contenido, estado, dia")
+    .eq("cowork_id", cowork)
+    .eq("estado", "ok")
+    .order("dia", { ascending: false })
+    .limit(MEMORIA);
+
+  return ((data ?? []) as { contenido: string | null }[])
+    .map((r) => r.contenido ?? "")
+    .filter(Boolean);
 }
 
 /** La misma conversación que deja el reloj, para que las dos se lean igual. */
 async function dejarConversacion(
-  supabase: NonNullable<Awaited<ReturnType<typeof clienteServidor>>>,
+  supabase: Sesion,
   cowork: Cowork,
   perfilId: string,
   brief: { texto: string; fuentes: Fuente[]; busquedas: string[]; modelo: string },
@@ -259,7 +371,7 @@ async function dejarConversacion(
     const pregunta = {
       conversacion_id: conv.id,
       rol: "user",
-      contenido: `Novedades de hoy sobre: ${cowork.temas}`,
+      contenido: recetaDe(cowork.tipo).paraElChat(cowork.temas),
     };
     const respuesta: Record<string, unknown> = {
       conversacion_id: conv.id,

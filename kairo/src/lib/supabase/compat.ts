@@ -26,3 +26,19 @@ export function faltaColumna(
   if (error.code && CODIGOS.has(error.code)) return true;
   return TEXTO.test(error.message ?? "");
 }
+
+/** Y lo mismo con una función que todavía no está en la base de datos.
+ *
+ *  PGRST202: PostgREST no encuentra esa función.
+ *  42883:    PostgreSQL tampoco.
+ *
+ *  Se distingue de `faltaColumna` porque las dos cosas se arreglan
+ *  distinto: una columna que falta se esquiva pidiendo menos, y una
+ *  función que falta se esquiva haciendo el trabajo por otro camino. */
+export function faltaFuncion(
+  error: { code?: string | null; message?: string | null } | null | undefined,
+): boolean {
+  if (!error) return false;
+  if (error.code === "PGRST202" || error.code === "42883") return true;
+  return /could not find the function|function .* does not exist/i.test(error.message ?? "");
+}

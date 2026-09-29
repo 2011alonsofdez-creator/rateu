@@ -41,9 +41,12 @@ Ve a **Project Settings → API** (en los paneles nuevos, *Data API*) y copia:
 ### El atajo
 
 Si vas a ponerlos todos de golpe, `migrations/TODO_DE_UNA_VEZ.sql` son
-los seis archivos de la 0003 a la 0008 pegados en orden: una sola
+los nueve archivos de la 0003 a la 0011 pegados en orden: una sola
 consulta, un solo **Run**. Hace exactamente lo mismo que pegarlos uno a
 uno, y también se puede ejecutar dos veces sin romper nada.
+
+Esto es lo más rápido: pega 0001, pega 0002 y pega este. Tres **Run** y
+la base de datos está entera.
 
 ### O uno a uno
 
@@ -58,8 +61,11 @@ En Supabase, **SQL Editor** → **New query**:
 6. Nueva consulta, pega `migrations/0006_pagos.sql` → **Run**.
 7. Nueva consulta, pega `migrations/0007_fuentes.sql` → **Run**.
 8. Nueva consulta, pega `migrations/0008_gist_y_paperwork.sql` → **Run**.
+9. Nueva consulta, pega `migrations/0009_coworks.sql` → **Run**.
+10. Nueva consulta, pega `migrations/0010_vigilante.sql` → **Run**.
+11. Nueva consulta, pega `migrations/0011_coworks_a_mano.sql` → **Run**.
 
-Los ocho archivos se pueden ejecutar varias veces sin romper nada.
+Los once archivos se pueden ejecutar varias veces sin romper nada.
 
 ## 5. Activar la recarga diaria (1 min)
 
@@ -164,3 +170,6 @@ se montará en el Paso 3.
 | `migrations/0006_pagos.sql` | `suscripciones`, `eventos_pago` y las funciones que mueven plan y créditos. Ninguna la puede llamar el navegador |
 | `migrations/0007_fuentes.sql` | Guarda con cada respuesta las páginas que Kairo consultó, para que las fuentes sigan ahí al reabrir la conversación |
 | `migrations/0008_gist_y_paperwork.sql` | Las fichas de Gist (resúmenes de enlaces) y la bandeja de Paperwork (papeles con su fecha límite) |
+| `migrations/0009_coworks.sql` | Los Co-Works: la tabla, el candado que impide hacer el mismo trabajo dos veces y las funciones del reparto, que son solo del servidor |
+| `migrations/0010_vigilante.sql` | El Co-Work que vigila que todo siga en pie, y soltar los trabajos que se quedaron a medias |
+| `migrations/0011_coworks_a_mano.sql` | Los demás tipos de Co-Work (repaso, precios, idioma) y poder pulsar «Probar ahora» sin la llave del servidor |

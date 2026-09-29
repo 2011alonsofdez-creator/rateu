@@ -1,5 +1,6 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { faltaColumna } from "@/lib/supabase/compat";
+import { esTipo, necesitaTemas, recetaDe } from "@/lib/coworks/recetas";
 
 export const runtime = "nodejs";
 export const preferredRegion = "fra1";
@@ -78,17 +79,16 @@ export async function POST(req: Request) {
 
   const cuerpo = await req.json().catch(() => null);
 
-  /* Dos tipos, y la lista está cerrada aquí además de en la base de
-     datos: lo que llegue en el cuerpo y no sea uno de estos dos es un
-     Daily Brief, no un tipo nuevo inventado por quien escribe la
-     petición. */
-  const tipo = cuerpo?.tipo === "salud" ? "salud" : "brief";
+  /* La lista de tipos está cerrada aquí además de en la base de datos:
+     lo que llegue en el cuerpo y no esté en ella es un Daily Brief, no
+     un tipo nuevo inventado por quien escribe la petición. */
+  const tipo = esTipo(cuerpo?.tipo) ? cuerpo.tipo : "brief";
 
   /* El vigilante no tiene temas: mira siempre lo mismo, que es que la
      casa no se haya caído. Pedirle temas sería pedirle al detector de
      humo que le digas qué habitación vigilar. */
-  const temas = tipo === "salud" ? "" : recortar(cuerpo?.temas, 600);
-  if (tipo !== "salud" && !temas) return fallo(400, "sin_temas");
+  const temas = necesitaTemas(tipo) ? recortar(cuerpo?.temas, 600) : "";
+  if (necesitaTemas(tipo) && !temas) return fallo(400, "sin_temas");
 
   const { data: perfil } = await supabase
     .from("perfiles")
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
     .from("coworks")
     .insert({
       perfil_id: perfil.id,
-      nombre: recortar(cuerpo?.nombre, 120) || (tipo === "salud" ? "Vigilante" : "Daily Brief"),
+      nombre: recortar(cuerpo?.nombre, 120) || (tipo === "salud" ? "Vigilante" : recetaDe(tipo).nombre),
       tipo,
       temas,
       hora: horaValida(cuerpo?.hora),
@@ -142,7 +142,13 @@ export async function PATCH(req: Request) {
      aunque venga en el cuerpo: `perfil_id` viaja por aquí a diario en
      los intentos de los curiosos. */
   const cambios: Record<string, unknown> = {};
-  if (cuerpo?.nombre !== undefined) cambios.nombre = recortar(cuerpo.nombre, 120) || "Daily Brief";
+  if (cuerpo?.nombre !== undefined) {
+    /* Si lo dejas en blanco se queda como estaba: un Co-Work sin nombre
+       en la lista es una tarjeta que no se sabe cuál es, y poner aquí
+       "Daily Brief" le cambiaría el nombre a un repaso. */
+    const nombre = recortar(cuerpo.nombre, 120);
+    if (nombre) cambios.nombre = nombre;
+  }
   /* El tipo NO está en esta lista y no es un olvido: convertir a mitad
      de vida un Daily Brief en un vigilante (o al revés) dejaría el
      encargo con los datos del otro. Si quieres el otro, se crea. */
