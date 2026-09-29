@@ -14,62 +14,88 @@
  *  de ser una variable mal pegada y pasa a ser un "no se ha podido
  *  conectar" que nadie sabe de dónde sale. */
 export function limpiarUrl(valor: string | undefined): string {
-  /* Los espacios se van TODOS, no solo los de los extremos: al copiar y
-     pegar en el panel de Vercel se cuela alguno en medio, y una
-     dirección con un espacio dentro no existe —el navegador ni lo
-     intenta—. Y de paso el punto y coma y la coma, que se pegan cuando
-     copias la variable con su nombre delante. */
   let texto = (valor ?? "")
-    /* Primero, lo que NO SE VE.
-       Un copiar y pegar desde una página web se trae de regalo espacios
-       de ancho cero, guiones blandos y marcas de orden de bytes. No
-       ocupan nada en pantalla, no son espacios para `trim()`, y sin
-       embargo convierten un dominio perfecto en uno que no existe. Esto
-       es exactamente lo que pasó aquí: 41 caracteres donde debía haber
-       40, sin un solo espacio a la vista. */
+    /* 1. Lo que NO SE VE.
+       Copiar y pegar desde una página web se trae de regalo espacios de
+       ancho cero, guiones blandos y marcas de orden de bytes. No ocupan
+       nada en pantalla, `trim()` no los considera espacios, y convierten
+       un dominio perfecto en uno que no existe. Esto no es teoría: pasó
+       aquí, 41 caracteres donde debía haber 40, y tres días buscando el
+       fallo en la contraseña. */
     .replace(/[\u200B-\u200F\u2028\u2029\u2060\uFEFF\u00AD]/g, "")
-    // Comillas y paréntesis angulares de haberla copiado de un ejemplo.
-    .replace(/^[\s"'`<(]+/, "")
-    .replace(/[\s"'`>)]+$/, "")
-    .replace(/\s+/g, "")
-    .replace(/[;,]+$/, "")
-    // Un punto final: legal en un dominio, pero nadie lo quiere ahí.
-    .replace(/\.+$/, "")
+    /* 2. Y ya puestos, TODO lo que una dirección no puede llevar.
+       En una dirección de Supabase solo caben letras, números, punto,
+       guion, dos puntos y barra. Cualquier otra cosa —una comilla, un
+       paréntesis, un carácter raro de otro alfabeto— es basura del
+       pegado. Fuera, sin preguntar: es la red que atrapa lo que las
+       reglas de arriba no vieron venir. */
+    .replace(/[^A-Za-z0-9.:/_[\]-]/g, "")
+    // 3. Y las formas de escribirla mal que sí tienen arreglo.
+    .replace(/^(https?):\/+/i, "$1://")  // https:/ con una sola barra
+    .replace(/\.{2,}/g, ".")             // dos puntos seguidos
+    .replace(/[.;,]+$/, "")               // puntuación al final
     .replace(/\/+$/, "")
     .replace(/\/rest\/v1$/, "");
+
   if (!texto) return "";
   // Copiada a mano es fácil que venga sin el https:// delante.
   if (!/^https?:\/\//i.test(texto)) texto = `https://${texto}`;
+
   try {
     const u = new URL(texto);
-    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+    if (u.protocol !== "https:" && u.protocol !== "http:") return rescatar(texto);
 
-    /* Y tiene que parecer una dirección de verdad.
-       Quitando los espacios, una frase cualquiera ("pon aquí tu url") se
-       convierte en algo que el navegador acepta como dominio, y entonces
-       la app cree que está configurada y se pasa la vida sin poder
-       conectar. Un dominio lleva un punto; en tu ordenador, no. */
+    /* Tiene que parecer una dirección de verdad. Sin esto, una frase
+       cualquiera ("pon aquí tu url") se queda en algo que el navegador
+       acepta como dominio, y la app cree que está configurada mientras
+       se pasa la vida sin poder conectar. Un dominio lleva un punto; en
+       tu ordenador, no. */
     const enCasaLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(u.hostname);
-    if (!enCasaLocal && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(u.hostname)) {
-      return "";
+    const formaDeDominio = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+    if (!enCasaLocal && !formaDeDominio.test(u.hostname)) return rescatar(texto);
+
+    /* Y http:// se sube a https://, salvo en tu propio ordenador. Esto
+       no es manía: un navegador NO deja que una página https pida nada
+       por http. Lo bloquea sin preguntar, y lo que se ve es "no se ha
+       podido conectar con el servidor", igual que si estuviera caído. */
+    if (u.protocol === "http:" && !enCasaLocal) u.protocol = "https:";
+
+    /* Todo lo que cuelgue de supabase.co se reduce a su forma de
+       siempre. El subdominio `db.` es el de la base de datos, no el de
+       la API: puesto aquí falla de una forma incomprensible, y es lo que
+       copia quien entra por "Database" en vez de por "API". */
+    if (/\.supabase\.(co|in)$/i.test(u.hostname)) {
+      const canonica = rescatar(u.hostname);
+      if (canonica) return canonica;
     }
 
-    /* Y http:// se sube a https://, salvo en tu propio ordenador.
-       Esto no es manía: la web va por https, y un navegador NO deja que
-       una página https pida nada por http. Lo bloquea sin preguntar, y
-       lo que se ve es "no se ha podido conectar con el servidor",
-       exactamente igual que si el servidor estuviera caído. Una letra de
-       más en una variable, y a buscar el fallo donde no está. */
-    if (u.protocol === "http:" && !enCasaLocal) {
-      u.protocol = "https:";
-      return u.toString().replace(/\/+$/, "");
-    }
-
-    return texto;
+    /* Y se devuelve lo que ha entendido el navegador, no el texto tal
+       cual: eso deja el dominio en minúsculas y sin nada colgando
+       detrás, que es como tiene que viajar. */
+    return u.origin;
   } catch {
-    // Una URL inválida deja la app en modo demo, que es feo pero se ve.
-    return "";
+    return rescatar(texto);
   }
+}
+
+/* EL RESCATE: la última carta antes de rendirse.
+ *
+ * Una dirección de Supabase tiene siempre la misma forma:
+ *
+ *     https://<veinte letras>.supabase.co
+ *
+ * Así que cuando lo que llega no vale ni después de limpiarlo, todavía
+ * se puede buscar ese identificador ahí dentro —quitando TODO lo que no
+ * sea letra o número, da igual lo que se haya colado en medio— y
+ * reconstruir la dirección entera desde cero.
+ *
+ * Vale más una dirección reconstruida que una web en modo demo por un
+ * carácter que nadie puede ver. Y si no hay identificador que valga,
+ * devuelve vacío y la app lo dice en la cara en vez de fingir. */
+function rescatar(valor: string): string {
+  const soloLetras = valor.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const proyecto = soloLetras.match(/([a-z0-9]{20})supabaseco/);
+  return proyecto ? `https://${proyecto[1]}.supabase.co` : "";
 }
 
 /* Por qué una dirección no vale.
