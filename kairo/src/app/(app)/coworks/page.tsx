@@ -9,6 +9,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Marca } from "@/components/Logo";
 import { Section } from "@/components/Section";
 import { Chat as ChatIcon, Clock, Pencil, Play, Plus, Trash } from "@/components/Icons";
+import { esTipo, type Tipo } from "@/lib/coworks/recetas";
 import type { Fuente } from "@/lib/tipos";
 
 /* Co-Works: los encargos que se ejecutan solos.
@@ -48,6 +49,103 @@ type Resultado = {
   creado_el: string;
 };
 
+/* QUÉ SE PUEDE MANDAR HACER.
+ *
+ * Esto es lo que se ve; las instrucciones que recibe el modelo están en
+ * recetas.ts, y están separadas a propósito: se puede cambiar cómo se
+ * explica un Co-Work sin tocar cómo lo hace.
+ *
+ * Y lo que NO hay, con su nombre, porque preguntarlo es lo primero que
+ * hace todo el mundo: leer tu Gmail, tu Drive o tu calendario. Eso no
+ * necesita una receta, necesita permiso para entrar en tu cuenta, y
+ * hasta que no se conecte (pantalla Conectores) no hay nada que leer.
+ * Un encargo que dijera "he mirado tu correo" sin haberlo mirado sería
+ * lo peor que puede hacer esta pantalla.
+ */
+type TipoUi = {
+  id: Tipo;
+  gratis?: boolean;
+  es: { n: string; d: string; ph?: string; ay?: string };
+  en: { n: string; d: string; ph?: string; ay?: string };
+};
+
+const TIPOS_UI: TipoUi[] = [
+  {
+    id: "brief",
+    es: {
+      n: "Resumen de tus temas",
+      d: "Cada día busca las novedades de lo que le digas y te las deja escritas.",
+      ph: "IA, GTA 6, ofertas de PS5",
+      ay: "Separa los temas con comas. Cuanto más concreto, mejor.",
+    },
+    en: {
+      n: "Your topics, daily",
+      d: "Every day it looks up what is new on your topics and writes it down.",
+      ph: "AI, GTA 6, PS5 deals",
+      ay: "Separate topics with commas. The more specific, the better.",
+    },
+  },
+  {
+    id: "repaso",
+    es: {
+      n: "Repaso de estudio",
+      d: "Un trozo de lo que estás estudiando cada día, con tres preguntas y las respuestas al final.",
+      ph: "la Segunda Guerra Mundial, ecuaciones de segundo grado",
+      ay: "Pon las asignaturas o los temas. Coge uno distinto cada día, no te lo suelta todo de golpe.",
+    },
+    en: {
+      n: "Study revision",
+      d: "One piece of what you are studying each day, with three questions and the answers at the end.",
+      ph: "World War II, quadratic equations",
+      ay: "List the subjects or topics. It takes a different one each day instead of dumping everything.",
+    },
+  },
+  {
+    id: "idioma",
+    es: {
+      n: "Inglés cada día",
+      d: "Ocho frases que se dicen de verdad, un ejercicio y el fallo típico de los españoles.",
+      ph: "inglés nivel medio, para viajar y para el trabajo",
+      ay: "Di el idioma y más o menos tu nivel. Si no pones idioma, será inglés.",
+    },
+    en: {
+      n: "A language every day",
+      d: "Eight phrases people actually say, one exercise and the mistake your language makes you make.",
+      ph: "intermediate English, for travel and work",
+      ay: "Say the language and roughly your level. With no language given, it is English.",
+    },
+  },
+  {
+    id: "precio",
+    es: {
+      n: "Chivato de precios",
+      d: "Mira lo que cuestan hoy las cosas que le digas y te avisa si algo ha bajado.",
+      ph: "PS5 Slim, Nintendo Switch 2, AirPods Pro",
+      ay: "Pon el nombre exacto del producto, con el modelo. «Un portátil» no sirve.",
+    },
+    en: {
+      n: "Price watch",
+      d: "Checks what your things cost today and tells you when something has dropped.",
+      ph: "PS5 Slim, Nintendo Switch 2, AirPods Pro",
+      ay: "Use the exact product name, with the model. \"A laptop\" will not do.",
+    },
+  },
+  {
+    id: "salud",
+    gratis: true,
+    es: {
+      n: "Vigilante",
+      d: "Mira cada día que Kairo siga en pie y solo te escribe cuando algo va mal.",
+    },
+    en: {
+      n: "Watchdog",
+      d: "Checks every day that Kairo is still standing, and only writes when something is wrong.",
+    },
+  },
+];
+
+const tipoUi = (id: string): TipoUi => TIPOS_UI.find((x) => x.id === id) ?? TIPOS_UI[0];
+
 /** Los de mentira, solo para que en modo demo se vea de qué va esto. */
 const EJEMPLOS: Cowork[] = [
   {
@@ -67,6 +165,17 @@ const EJEMPLOS: Cowork[] = [
     tipo: "salud",
     temas: "",
     hora: 6,
+    zona: "Europe/Madrid",
+    activo: true,
+    ultima_vez: null,
+    creado_el: "",
+  },
+  {
+    id: "demo-4",
+    nombre: "Repaso",
+    tipo: "repaso",
+    temas: "la Segunda Guerra Mundial, ecuaciones de segundo grado",
+    hora: 17,
     zona: "Europe/Madrid",
     activo: true,
     ultima_vez: null,
@@ -95,6 +204,9 @@ const zonaDelNavegador = () => {
 
 export default function CoworksPage() {
   const { t, lang } = useUi();
+  const es = lang === "es";
+  /** Lo que se enseña de un tipo, en el idioma de quien mira. */
+  const texto = (id: string) => tipoUi(id)[es ? "es" : "en"];
   const perfil = usePerfil();
   const router = useRouter();
 
@@ -109,7 +221,7 @@ export default function CoworksPage() {
   const [nombre, setNombre] = useState("");
   const [temas, setTemas] = useState("");
   const [hora, setHora] = useState(7);
-  const [tipo, setTipo] = useState<"brief" | "salud">("brief");
+  const [tipo, setTipo] = useState<Tipo>("brief");
   const [guardando, setGuardando] = useState(false);
 
   const [probando, setProbando] = useState("");
@@ -146,7 +258,7 @@ export default function CoworksPage() {
     setNombre(c.nombre);
     setTemas(c.temas);
     setHora(c.hora);
-    setTipo(c.tipo === "salud" ? "salud" : "brief");
+    setTipo(esTipo(c.tipo) ? c.tipo : "brief");
     setAviso(undefined);
   };
 
@@ -159,7 +271,7 @@ export default function CoworksPage() {
     const creando = editando === "nuevo";
     const cuerpo = {
       ...(creando ? { tipo } : { id: editando }),
-      nombre: nombre.trim() || (tipo === "salud" ? "Vigilante" : "Daily Brief"),
+      nombre: nombre.trim() || tipoUi(tipo)[es ? "es" : "en"].n,
       ...(tipo === "salud" ? {} : { temas: temas.trim() }),
       hora,
       zona: zonaDelNavegador(),
@@ -374,7 +486,7 @@ export default function CoworksPage() {
                       ? t("cw.lastRun").replace("{f}", fecha(c.ultima_vez))
                       : t("cw.never")}
                     {" · "}
-                    {t(c.tipo === "salud" ? "cw.free" : "cw.cost")}
+                    {t(tipoUi(c.tipo).gratis ? "cw.free" : "cw.cost")}
                   </p>
                 </button>
 
@@ -487,26 +599,24 @@ export default function CoworksPage() {
               <>
                 <span className="mb-1.5 block text-[13px] font-medium">{t("cw.type")}</span>
                 <div className="mb-4 grid gap-2 sm:grid-cols-2">
-                  {(["brief", "salud"] as const).map((op) => (
+                  {TIPOS_UI.map((op) => (
                     <button
-                      key={op}
+                      key={op.id}
                       type="button"
-                      onClick={() => setTipo(op)}
-                      aria-pressed={tipo === op}
+                      onClick={() => setTipo(op.id)}
+                      aria-pressed={tipo === op.id}
                       className={`rounded-xl border p-3 text-left transition ${
-                        tipo === op
+                        tipo === op.id
                           ? "border-acento bg-panel-hi"
                           : "border-line hover:bg-panel-hi"
                       }`}
                     >
-                      <span className="block text-[14px] font-medium">
-                        {t(op === "brief" ? "cw.typeBrief" : "cw.typeSalud")}
-                      </span>
+                      <span className="block text-[14px] font-medium">{texto(op.id).n}</span>
                       <span className="mt-1 block text-[12.5px] leading-relaxed text-muted">
-                        {t(op === "brief" ? "cw.typeBriefDesc" : "cw.typeSaludDesc")}
+                        {texto(op.id).d}
                       </span>
                       <span className="mt-1.5 block text-[12px] text-faint">
-                        {t(op === "salud" ? "cw.free" : "cw.cost")}
+                        {t(op.gratis ? "cw.free" : "cw.cost")}
                       </span>
                     </button>
                   ))}
@@ -528,7 +638,7 @@ export default function CoworksPage() {
 
             {tipo === "salud" ? (
               <p className="mt-4 rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[13px] leading-relaxed text-muted">
-                {t("cw.typeSaludDesc")}
+                {texto("salud").d}
               </p>
             ) : (
               <>
@@ -539,12 +649,16 @@ export default function CoworksPage() {
                   id="cw-temas"
                   value={temas}
                   onChange={(e) => setTemas(e.target.value)}
-                  placeholder={t("cw.topicsPh")}
+                  /* El ejemplo es el del tipo elegido: «IA, GTA 6» no
+                     ayuda nada si lo que estás creando es un repaso. */
+                  placeholder={texto(tipo).ph ?? t("cw.topicsPh")}
                   rows={2}
                   maxLength={600}
                   className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[14.5px] outline-none transition placeholder:text-faint focus:border-line-hi"
                 />
-                <p className="mt-1.5 text-[12.5px] text-faint">{t("cw.topicsHelp")}</p>
+                <p className="mt-1.5 text-[12.5px] text-faint">
+                  {texto(tipo).ay ?? t("cw.topicsHelp")}
+                </p>
               </>
             )}
 
