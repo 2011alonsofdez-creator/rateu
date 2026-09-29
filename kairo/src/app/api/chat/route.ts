@@ -505,6 +505,21 @@ export async function POST(req: Request) {
             if (fuentes.length || busquedas.length) {
               enviar({ t: "fuentes", v: fuentes, busquedas });
             }
+          } else {
+            /* La búsqueda no ha salido: se ha caído, se ha acabado el
+               tiempo o no había con qué buscar. Lo que NO se puede hacer
+               es callarlo y seguir, que es lo que se hacía: se dejaba
+               `hechos` sin poner, el prompt no llevaba ningún bloque, y
+               el modelo contestaba tan tranquilo con lo que recordaba de
+               hace dos años. Con el mismo aplomo que si lo hubiera
+               mirado.
+ 
+               La cadena vacía no es lo mismo que no poner nada: significa
+               "he mirado y no he encontrado", y el prompt entonces le
+               obliga a decirlo y a avisar de que lo suyo puede estar
+               desfasado. Un "no lo he podido comprobar" es una respuesta;
+               un dato viejo dicho con seguridad, no. */
+            hechos = "";
           }
         }
 
