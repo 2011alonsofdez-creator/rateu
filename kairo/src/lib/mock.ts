@@ -42,6 +42,10 @@ export type Message = {
   fuentes?: Fuente[];
   /** Lo que buscó. Se enseña debajo de las fuentes. */
   busquedas?: string[];
+  /** Por qué NO pudo buscar, cuando iba a hacerlo y no pudo. Se enseña
+   *  encima de la respuesta: sin esto, una respuesta de memoria y una
+   *  comprobada se leen exactamente igual. */
+  sinBusqueda?: "cuota" | "otro";
 };
 
 export const thread: Message[] = [

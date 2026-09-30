@@ -19,7 +19,7 @@ import {
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
-import { buscarHechos } from "@/lib/ia/buscar";
+import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { correrMega } from "@/lib/ia/mega";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { construirPrompt } from "@/lib/ia/prompt";
@@ -500,7 +500,16 @@ export async function POST(req: Request) {
             .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
             .join("\n");
 
-          const hallazgo = await buscarHechos(ultima, contexto, perfil.modo_edad).catch(() => null);
+          /* El diario no es para depurar: es para poder DECIR por qué no
+             se ha buscado. Sin él, "no he podido comprobarlo" y "no hay
+             nada" se leen igual en pantalla. */
+          const diario: Diario = { modelos: [], intentos: [] };
+          const hallazgo = await buscarHechos(
+            ultima,
+            contexto,
+            perfil.modo_edad,
+            diario,
+          ).catch(() => null);
 
           if (hallazgo) {
             hechos = hallazgo.hechos;
@@ -525,6 +534,13 @@ export async function POST(req: Request) {
                un dato viejo dicho con seguridad, no. */
             hechos = "";
             busquedaFallida = true;
+
+            /* Y se dice en pantalla, no solo en el prompt. Una respuesta
+               sacada de memoria y una comprobada hace un segundo se leen
+               igual de seguras; si no se avisa, la única forma de
+               enterarse es pillarle un dato viejo. */
+            const porCuota = diario.intentos.some((i) => /CUOTA AGOTADA/.test(i.resultado));
+            enviar({ t: "sin_busqueda", motivo: porCuota ? "cuota" : "otro" });
           }
         }
 

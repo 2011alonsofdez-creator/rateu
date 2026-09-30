@@ -576,6 +576,17 @@ function Chat() {
 
           if (ev.t === "buscando") {
             setBuscando(true);
+          } else if (ev.t === "sin_busqueda") {
+            /* Iba a buscar y no ha podido. Se cuelga del mensaje que se
+               está escribiendo para que el aviso salga PEGADO a la
+               respuesta afectada y no como un error suelto de la app:
+               lo que hay debajo puede estar viejo, y eso solo se
+               entiende al lado. */
+            setBuscando(false);
+            const motivo = ev.motivo === "cuota" ? "cuota" : "otro";
+            setMessages((m) =>
+              m.map((x) => (x.id === idK ? { ...x, sinBusqueda: motivo } : x)),
+            );
           } else if (ev.t === "paso") {
             const v = String(ev.v);
             if (v === "consultando" || v === "comparando") {
@@ -1097,6 +1108,19 @@ function KairoMessage({
       <Marca className="mt-0.5 h-8 w-8 shrink-0" animada={viva} />
 
       <div className="min-w-0 flex-1">
+        {/* ENCIMA de la respuesta, no debajo: es la advertencia de cómo
+            hay que leer lo que viene, y leerla después no sirve. */}
+        {m.sinBusqueda && (
+          <div className="mb-3 rounded-xl border border-gold/30 bg-gold/10 px-3 py-2 text-[13px] leading-relaxed text-gold">
+            {m.sinBusqueda === "cuota"
+              ? "No he podido buscar en internet: se ha agotado la cuota de hoy. Lo de abajo sale de lo que recuerdo y puede estar desfasado."
+              : "No he podido buscar en internet ahora mismo. Lo de abajo sale de lo que recuerdo y puede estar desfasado."}{" "}
+            <Link href="/revision" className="underline underline-offset-2">
+              Ver qué pasa
+            </Link>
+          </div>
+        )}
+
         <Markdown text={texto} />
 
         <Fuentes fuentes={m.fuentes} busquedas={m.busquedas} />
