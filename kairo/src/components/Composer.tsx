@@ -97,6 +97,20 @@ export function Composer({
   // añade detrás en vez de pisarlo.
   const yaEscrito = useRef("");
 
+  /* EL NÚMERO DE LA APERTURA DEL MICRO.
+   *
+   * Cada vez que se abre el micro, esto sube. Lo que llegue del dictado
+   * con un número viejo se tira.
+   *
+   * Existe por un fallo que se veía rarísimo y tenía una explicación
+   * sencilla: dictabas, dabas a Enter, el mensaje se enviaba... y el
+   * texto volvía a aparecer solo en la caja. Al cerrar el micro, el
+   * navegador suelta UN ÚLTIMO resultado con lo que tenía pendiente, y
+   * ese resultado llegaba después de haber vaciado la caja y la
+   * rellenaba otra vez. La caja se vaciaba bien; lo que fallaba es que
+   * alguien escribía en ella después. */
+  const vozId = useRef(0);
+
   /* Al cuadro de escribir, y con el cursor al final de lo dictado: si
      el foco vuelve al principio, lo siguiente que escribas se cuela
      delante de lo que acabas de decir. */
@@ -118,9 +132,15 @@ export function Composer({
     setSinPermiso(false);
     yaEscrito.current = text.trim() ? `${text.trimEnd()} ` : "";
 
+    const mia = ++vozId.current;
+
     const detener = escuchar(
       lang,
-      (dictado) => setText(yaEscrito.current + dictado),
+      // Solo si sigue siendo esta apertura del micro: lo que llegue de
+      // una que ya se cerró al enviar no tiene dónde ir.
+      (dictado) => {
+        if (vozId.current === mia) setText(yaEscrito.current + dictado);
+      },
       (motivo) => {
         setEscuchando(false);
         parar.current = null;
@@ -252,7 +272,15 @@ export function Composer({
     // Con un archivo delante, "mira esto" puede ir sin texto: la propia
     // foto es la pregunta. Sin archivo, un mensaje vacío no se manda.
     if ((!value && !adjuntos.length) || busy || leyendo) return;
+
+    /* El orden importa. Primero se invalida el dictado y DESPUÉS se
+       cierra el micro, porque cerrarlo es justo lo que provoca el último
+       resultado: si se cierra antes de invalidar, ese resultado todavía
+       se considera bueno y vuelve a escribir la pregunta en la caja. */
+    vozId.current++;
+    yaEscrito.current = "";
     parar.current?.(); // enviar cierra el micro
+
     onSend(value, adjuntos);
     setText("");
     setAdjuntos([]);
