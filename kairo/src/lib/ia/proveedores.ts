@@ -5,6 +5,7 @@ import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
 import type { ModoEdad } from "@/lib/planes";
 import { esImagen, type Adjunto, type Fuente } from "@/lib/tipos";
+import { claveDeGemini } from "./claves";
 
 /* Los tres cerebros, detrás de una sola puerta.
  *
@@ -52,7 +53,8 @@ export function partir(id: string): { proveedor: Proveedor; modelo: string } {
 }
 
 const CLAVES: Record<Proveedor, () => string | undefined> = {
-  gemini: () => process.env.GEMINI_API_KEY,
+  // La primera de las que haya: ver claves.ts.
+  gemini: () => claveDeGemini(),
   claude: () => process.env.ANTHROPIC_API_KEY,
   gpt: () => process.env.OPENAI_API_KEY,
   extra: () => process.env.KAIRO_EXTRA_KEY,

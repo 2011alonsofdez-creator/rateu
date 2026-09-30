@@ -175,3 +175,28 @@ se montará en el Paso 3.
 | `migrations/0010_vigilante.sql` | El Co-Work que vigila que todo siga en pie, y soltar los trabajos que se quedaron a medias |
 | `migrations/0011_coworks_a_mano.sql` | Los demás tipos de Co-Work (repaso, precios, idioma) y poder pulsar «Probar ahora» sin la llave del servidor |
 | `migrations/0012_memoria.sql` | La memoria: lo que Kairo recuerda de ti, con su tope por persona y la seguridad para que sea solo tuya |
+
+
+## Varias claves de Gemini
+
+En la capa gratuita de Gemini la cuota va **por clave y por modelo**, así que
+con una sola clave hay un momento del día en que Kairo deja de poder buscar y
+contesta de memoria. Si tienes más de una clave, se ponen así en Vercel:
+
+| Variable | Qué es |
+|---|---|
+| `GEMINI_API_KEY` | La de siempre. Es la que se usa primero. |
+| `GEMINI_API_KEY_2` | La segunda. Solo se prueba si la primera se ha quedado sin cuota. |
+| `GEMINI_API_KEY_3` | La tercera, igual. |
+| `GEMINI_API_KEYS` | Varias de golpe, separadas por comas. Se suman a las de arriba. |
+
+Se cambia de clave **solo** cuando el fallo es de cuota (429). Si el fallo es
+otro —un modelo que ya no existe, una petición mal formada— se pasa al
+siguiente modelo, porque ese error va a dar igual con todas las claves.
+
+Poner la misma clave dos veces no sirve de nada: se detecta y se cuenta una
+sola vez. Lo que hace falta son claves de proyectos distintos, cada una con su
+propio cupo.
+
+Cuántas hay puestas se ve en **Ajustes → ¿Algo va mal? → Revisar ahora**, en la
+línea de «Cerebros».
