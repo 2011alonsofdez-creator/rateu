@@ -165,8 +165,26 @@ QUÉ DÍA ES HOY
  *
  * Y va delimitado como el bloque de la Mente y el de los archivos, por
  * lo mismo: es texto que viene de fuera, no una orden. */
-function bloqueHechos(hechos: string, hubo: boolean): string {
+function bloqueHechos(hechos: string, hubo: boolean, fallo: boolean): string {
   if (!hubo) return "";
+
+  /* NO ES LO MISMO "no hay nada" QUE "no he podido mirar".
+     Lo primero es una respuesta: he mirado, no está. Lo segundo es una
+     avería —la cuota agotada, el buscador caído— y decirlo como si
+     fuera lo primero es contar una mentira pequeña que sostiene una
+     grande: que lo que viene detrás está comprobado. */
+  if (fallo) {
+    return `
+
+NO HAS PODIDO COMPROBARLO
+Ibas a buscarlo en internet y la búsqueda ha fallado (no es que no
+hubiera nada: es que no se ha podido hacer).
+- Empieza diciéndolo: no has podido comprobarlo ahora mismo.
+- Puedes contar lo que sepas, pero avisando SIEMPRE de que es de tu
+  memoria y de que puede estar desfasado. Nunca lo des por actual.
+- Nada de fechas, precios ni cifras dichas como si fueran de hoy.
+- Y di dónde puede mirarlo la persona por su cuenta.`;
+  }
 
   if (!hechos.trim()) {
     return `
@@ -321,6 +339,7 @@ export function construirPrompt({
   conArchivos = false,
   zonaHoraria,
   hechos,
+  busquedaFallida = false,
 }: {
   modoEdad: ModoEdad | null;
   tono: string;
@@ -335,6 +354,9 @@ export function construirPrompt({
   zonaHoraria?: string;
   /** Lo que se buscó antes de contestar. undefined = no se buscó. */
   hechos?: string;
+  /** La búsqueda se intentó y se rompió. No es lo mismo que no haber
+   *  encontrado nada, y la respuesta tiene que decirlo de otra forma. */
+  busquedaFallida?: boolean;
 }): string {
   // Si la Mente trae tono propio, manda el suyo; si no, el de los ajustes.
   const estilo = TONOS[mente?.tono ?? tono] ?? TONOS.cercano;
@@ -347,7 +369,7 @@ export function construirPrompt({
 
   prompt += bloqueFecha(zonaValida(zonaHoraria));
 
-  prompt += bloqueHechos(hechos ?? "", hechos !== undefined);
+  prompt += bloqueHechos(hechos ?? "", hechos !== undefined, busquedaFallida);
 
   prompt += conBusqueda ? CON_INTERNET : SIN_INTERNET;
 
