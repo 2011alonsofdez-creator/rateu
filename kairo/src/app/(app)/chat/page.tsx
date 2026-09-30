@@ -521,6 +521,23 @@ function Chat() {
          existía y el aviso no se repite. */
       let fuentesEnEspera: { lista: Fuente[]; buscado: string[] } | null = null;
 
+      /* Y lo mismo para las otras dos marcas del mensaje.
+         Las tres llegan ANTES de la primera palabra —la memoria se
+         guarda antes de empezar a escribir, y el aviso de que no se
+         pudo buscar viene de la búsqueda, que va delante— así que si se
+         cuelgan a la brava del mensaje se pierden: el mensaje todavía no
+         existe, `map` no encuentra nada y no hay segundo aviso. Es la
+         misma trampa de las fuentes, y la misma solución. */
+      let marcasEnEspera: { recordado?: string; sinBusqueda?: "cuota" | "otro" } = {};
+
+      const marcar = (marca: { recordado?: string; sinBusqueda?: "cuota" | "otro" }) => {
+        if (!abierto) {
+          marcasEnEspera = { ...marcasEnEspera, ...marca };
+          return;
+        }
+        setMessages((m) => m.map((x) => (x.id === idK ? { ...x, ...marca } : x)));
+      };
+
       const colgarFuentes = (lista: Fuente[], buscado: string[]) => {
         setMessages((m) =>
           m.map((x) =>
@@ -583,15 +600,10 @@ function Chat() {
                lo que hay debajo puede estar viejo, y eso solo se
                entiende al lado. */
             setBuscando(false);
-            const motivo = ev.motivo === "cuota" ? "cuota" : "otro";
-            setMessages((m) =>
-              m.map((x) => (x.id === idK ? { ...x, sinBusqueda: motivo } : x)),
-            );
+            marcar({ sinBusqueda: ev.motivo === "cuota" ? "cuota" : "otro" });
           } else if (ev.t === "recordado") {
             const v = String(ev.v ?? "");
-            if (v) {
-              setMessages((m) => m.map((x) => (x.id === idK ? { ...x, recordado: v } : x)));
-            }
+            if (v) marcar({ recordado: v });
           } else if (ev.t === "paso") {
             const v = String(ev.v);
             if (v === "consultando" || v === "comparando") {
@@ -651,10 +663,15 @@ function Chat() {
                 },
               ]);
 
-              // Ya hay mensaje: las fuentes que esperaban se cuelgan de él.
+              // Ya hay mensaje: lo que esperaba se cuelga de él.
               if (fuentesEnEspera) {
                 colgarFuentes(fuentesEnEspera.lista, fuentesEnEspera.buscado);
                 fuentesEnEspera = null;
+              }
+              if (marcasEnEspera.recordado || marcasEnEspera.sinBusqueda) {
+                const pendientes = marcasEnEspera;
+                marcasEnEspera = {};
+                setMessages((m) => m.map((x) => (x.id === idK ? { ...x, ...pendientes } : x)));
               }
             }
             setBuscando(false);

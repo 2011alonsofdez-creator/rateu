@@ -102,7 +102,8 @@ export async function POST(req: Request) {
     .from("coworks")
     .insert({
       perfil_id: perfil.id,
-      nombre: recortar(cuerpo?.nombre, 120) || (tipo === "salud" ? "Vigilante" : recetaDe(tipo).nombre),
+      // Ya no hace falta tratar al vigilante aparte: tiene su receta.
+      nombre: recortar(cuerpo?.nombre, 120) || recetaDe(tipo).nombre,
       tipo,
       temas,
       hora: horaValida(cuerpo?.hora),

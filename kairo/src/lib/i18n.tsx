@@ -98,7 +98,6 @@ const dict = {
     "app.newChat": "Nuevo chat",
     "app.chats": "Chats",
     "app.mentes": "Mentes",
-    "app.memory": "Memoria",
     "app.team": "Team",
     "app.coworks": "Co-Works",
     "app.code": "Código",
@@ -383,7 +382,7 @@ const dict = {
     "cw.noCredits": "No te quedan créditos suficientes.",
     "cw.limit": "Has llegado al máximo de 10 Co-Works.",
     "cw.needsMigration":
-      "Falta pegar en Supabase la migración 0009_coworks.sql. Hasta que la pegues, esto no se puede guardar.",
+      "Falta pegar una migración en Supabase. Hasta que la pegues, esto no se puede guardar.",
     "cw.needsKey":
       "Falta la variable SUPABASE_SERVICE_ROLE_KEY en Vercel. Sin ella, Kairo no puede ejecutar nada por su cuenta.",
     "cw.demo": "En modo demo no se pueden crear: esto es un ejemplo de cómo se ven.",
@@ -534,7 +533,6 @@ const dict = {
     "app.newChat": "New chat",
     "app.chats": "Chats",
     "app.mentes": "Minds",
-    "app.memory": "Memory",
     "app.team": "Team",
     "app.coworks": "Co-Works",
     "app.code": "Code",
@@ -819,7 +817,7 @@ const dict = {
     "cw.noCredits": "You do not have enough credits left.",
     "cw.limit": "You have reached the maximum of 10 Co-Works.",
     "cw.needsMigration":
-      "The 0009_coworks.sql migration still has to be pasted into Supabase. Until you do, this cannot be saved.",
+      "A migration still has to be pasted into Supabase. Until you do, this cannot be saved.",
     "cw.needsKey":
       "The SUPABASE_SERVICE_ROLE_KEY variable is missing in Vercel. Without it, Kairo cannot run anything on its own.",
     "cw.demo": "You cannot create them in demo mode: this is an example of how they look.",

@@ -122,7 +122,16 @@ export async function buscarHechos(
      sin usar— por un `return` colocado demasiado arriba. */
   if (!clave) {
     if (diario) diario.intentos.push({ modelo: "—", ms: 0, resultado: "sin GEMINI_API_KEY" });
-    return (await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario)) ?? null;
+    /* Aquí Gemini no ha gastado nada, así que el repuesto se lleva el
+       plazo entero. Pero se lo lleva CON plazo: una llamada colgada sin
+       techo se come el minuto de la función y deja al usuario sin
+       respuesta en vez de con una peor. */
+    return (
+      (await conPlazo(
+        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+        PLAZO,
+      )) ?? null
+    );
   }
 
   /* TODA la cadena de Gemini, no los tres primeros.
@@ -154,7 +163,16 @@ export async function buscarHechos(
         resultado: "ningún modelo de Gemini en la cadena",
       });
     }
-    return (await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario)) ?? null;
+    /* Aquí Gemini no ha gastado nada, así que el repuesto se lleva el
+       plazo entero. Pero se lo lleva CON plazo: una llamada colgada sin
+       techo se come el minuto de la función y deja al usuario sin
+       respuesta en vez de con una peor. */
+    return (
+      (await conPlazo(
+        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+        PLAZO,
+      )) ?? null
+    );
   }
 
   const ia = new GoogleGenAI({ apiKey: clave });
@@ -309,8 +327,27 @@ export async function buscarHechos(
    * arriba ha fallado del todo: cuesta dinero de verdad (la búsqueda se
    * factura aparte), así que es la red, no la primera opción. */
   if (!sinBuscar || !sinBuscar.busco) {
-    const conClaude = await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario);
-    if (conClaude) return conClaude;
+    /* Con lo que quede del plazo, y con un mínimo: el repuesto también
+       tiene techo. Sin esto, el plazo de dieciocho segundos gobernaba
+       solo a Gemini y Claude arrancaba después sin ninguno —tres
+       búsquedas de servidor más la redacción se van a treinta segundos
+       de sobra—, así que entre las dos se podían comer el minuto entero
+       de la función ANTES de llamar al modelo que contesta. El usuario
+       no recibía una respuesta peor: se quedaba sin respuesta. */
+    const queda = Math.max(seAcaba - Date.now(), 0);
+    if (queda >= 4000) {
+      const conClaude = await conPlazo(
+        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+        queda,
+      );
+      if (conClaude) return conClaude;
+    } else if (diario) {
+      diario.intentos.push({
+        modelo: "claude (repuesto)",
+        ms: 0,
+        resultado: "sin tiempo para el repuesto",
+      });
+    }
   }
 
   return sinBuscar;

@@ -95,7 +95,10 @@ const PISTAS: RegExp[] = [
   /* Y cuando se pide la búsqueda con todas las letras. Parece de cajón,
      y no estaba: se podía escribir "búscalo en internet" y Kairo
      contestaba de memoria igualmente. */
-  palabra("(busca(lo|me|s)?|buscar|googlea|mira en (internet|la web|google)|en internet|comprueba(lo)?|verifica|confirma|segun (internet|google)|fuentes)"),
+  /* Sin "buscar" a secas: casaba con "quiero buscar trabajo" y encima
+     como pista fuerte, que no la apaga ni hablar de 1980. Lo que se
+     quería reconocer es la ORDEN, y una orden lleva el qué detrás. */
+  palabra("(buscalo|buscame|busca (en|eso|esto|si|cuanto|cuando|quien|que|el|la|los|las)|googlea|mira en (internet|la web|google)|en internet|compruebalo|comprueba si|verifica|confirma|segun (internet|google)|dame fuentes)"),
   palabra("(search|google it|look it up|check online|sources)"),
 ];
 
@@ -113,11 +116,11 @@ const DEBILES: RegExp[] = [
 
   /* Un sitio donde el catálogo cambia cada semana: lo que se pregunta es
      qué hay AHORA, no qué hubo. */
-  palabra("(netflix|hbo|max|disney\\+?|prime video|movistar|filmin|skyshowtime|twitch|youtube|tiktok|spotify|steam|epic games|game ?pass|play ?station|xbox|nintendo)"),
+  palabra("(netflix|hbo( ?max)?|disney\\+?|prime video|movistar|filmin|skyshowtime|twitch|youtube|tiktok|spotify|steam|epic games|game ?pass|play ?station|xbox|nintendo)"),
 
   /* Deporte: un resultado, una plantilla o un calendario de hace dos
      años es igual de inútil que un precio de hace dos años. */
-  palabra("(formula ?1|f1|gran premio|gp de|motogp|mundial|eurocopa|champions|la liga|premier|nba|balon de oro|fichaje|fichajes|traspaso|circuito)"),
+  palabra("(formula ?1|f1|gran premio|gp de|motogp|(el |del )mundial|eurocopa|champions|la liga|premier|nba|balon de oro|fichaje|fichajes|traspaso|circuito)"),
   palabra("(juega|juegan|gana|ganan|pierde|pierden|clasificad[oa]s?|eliminad[oa]s?)"),
 ];
 

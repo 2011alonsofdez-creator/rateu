@@ -134,6 +134,16 @@ export function Composer({
 
     const mia = ++vozId.current;
 
+    /* El cierre se atiende UNA vez.
+ 
+       El navegador avisa dos veces de lo mismo: cuando dejas de hablar
+       manda `error: no-speech` y a continuación `end`, y las dos llaman
+       aquí. Dos pitidos a la vez no suenan a dos pitidos: suenan a uno
+       roto, porque se solapan en el mismo instante y se suman. Y el foco
+       se robaba dos veces, incluso si mientras tanto te habías ido a
+       pulsar otro botón. */
+    let yaCerrado = false;
+
     const detener = escuchar(
       lang,
       // Solo si sigue siendo esta apertura del micro: lo que llegue de
@@ -144,13 +154,18 @@ export function Composer({
       (motivo) => {
         setEscuchando(false);
         parar.current = null;
+
+        if (yaCerrado) return;
+        yaCerrado = true;
         // Un pitido bajando: ya no te oye. Va aquí y no en el botón
         // porque el micro también se cierra solo —si te callas, si
         // envías, si se acaba el tiempo— y el aviso vale para todos.
         pitido("termina");
-        // Y el foco vuelve al cuadro, que es lo que hace que puedas
-        // darle a Enter sin tocar el ratón.
-        enfocarAlFinal();
+        /* Y el foco vuelve al cuadro, que es lo que hace que puedas
+           darle a Enter sin tocar el ratón. Salvo si el micro se cerró
+           al ENVIAR: ahí el número ya ha subido, el cuadro está vacío, y
+           moverte el foco te sacaría de donde hayas ido después. */
+        if (vozId.current === mia) enfocarAlFinal();
         // "sin habla" y "cancelado" no son fallos: es que te has callado.
         if (motivo === "not-allowed" || motivo === "service-not-allowed") {
           setSinPermiso(true);
