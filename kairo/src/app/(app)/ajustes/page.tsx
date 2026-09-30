@@ -315,6 +315,27 @@ export default function AjustesPage() {
           </div>
         </Card>
 
+        {/* La memoria.
+            Aquí y no en el menú lateral: es de las cosas que se miran
+            dos veces al año, y una entrada fija en el menú por algo que
+            se usa dos veces al año es sitio robado a lo de todos los
+            días. Pero tiene que seguir estando a un clic: una lista de
+            cosas ciertas sobre alguien que ese alguien no puede leer y
+            borrar no es una memoria, es una ficha. */}
+        <Card title={es ? "Memoria" : "Memory"}>
+          <p className="text-[13.5px] leading-relaxed text-muted">
+            {es
+              ? "Lo que Kairo recuerda de ti y usa en cada respuesta. Se lo dices en el chat («recuerda que…») y él solo apunta lo que le pidas."
+              : "What Kairo remembers about you and uses in every answer. You tell it in the chat (\u201cremember that\u2026\u201d) and it only notes down what you ask it to."}
+          </p>
+          <Link
+            href="/memoria"
+            className="mt-3 inline-block rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+          >
+            {es ? "Ver y borrar lo que recuerda" : "See and delete what it remembers"}
+          </Link>
+        </Card>
+
         {/* ¿Algo va mal?
             Esto está aquí porque el diagnóstico existía y no se podía
             encontrar: era una dirección que había que escribir a mano en
