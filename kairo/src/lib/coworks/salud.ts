@@ -87,6 +87,12 @@ const MIGRACIONES: { archivo: string; tabla: string; columna: string; si_falta: 
     columna: "hora",
     si_falta: "no hay Co-Works: nada se ejecuta solo",
   },
+  {
+    archivo: "0012_memoria.sql",
+    tabla: "recuerdos",
+    columna: "texto",
+    si_falta: "Kairo no puede acordarse de nada tuyo",
+  },
 ];
 
 /** Una consulta a medio construir. Se puede filtrar, ordenar y cortar, y
