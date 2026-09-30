@@ -584,10 +584,18 @@ export async function revisarSalud(
      líneas de "no se ha podido comprobar: fetch failed" que no dicen
      nada que no diga ya la de arriba. Un diagnóstico con seis líneas
      de ruido no se lee, y la que importa se pierde entre ellas. */
-  const miroLaBase = Boolean(admin) && supabase.gravedad !== "roto";
+  /* Y sin sesión tampoco se le pregunta a la base de datos.
+ 
+     Esta pantalla se abre a propósito sin haber entrado —el día que
+     hace falta es justo el día que no puedes entrar— y `anon` no tiene
+     permiso sobre estas tablas. Preguntárselo igual devuelve "permission
+     denied", que no es "falta la migración" pero tampoco se distingue de
+     ella: salían seis avisos amarillos y un "conviene mirarlo" en una
+     instalación perfectamente sana. */
+  const miroLaBase = Boolean(admin) && Boolean(perfil) && supabase.gravedad !== "roto";
   if (miroLaBase) {
     puntos.push(...(await miraMigraciones(admin as Admin)));
-  } else if (admin) {
+  } else if (admin && perfil) {
     /* Pero se dice que no se ha mirado. Callarlo sería peor que el
        ruido: un proyecto pausado taparía una migración que falta de
        verdad, y al restaurarlo seguiría sin funcionar sin saber por qué. */
@@ -610,7 +618,7 @@ export async function revisarSalud(
 
   const gravedad = puntos.reduce<Gravedad>((peorHasta, p) => peor(peorHasta, p.gravedad), "bien");
 
-  const completo = miroLaBase && Boolean(perfil);
+  const completo = miroLaBase;
 
   return { gravedad, puntos, texto: informe(puntos, arreglado, gravedad, completo), arreglado };
 }

@@ -27,6 +27,28 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fallo = (estado: number, motivo: string) =>
   Response.json({ error: motivo }, { status: estado });
 
+/** TU perfil, no uno cualquiera de los que puedes ver.
+ *
+ *  `perfiles` deja ver también los perfiles hijo que uno tenga a cargo,
+ *  así que un `limit(1)` sin orden puede devolver el del hijo. Se lo
+ *  pregunta a la base de datos, que lo saca del token y no se equivoca.
+ *  Si esa función no estuviera, se cae al camino de antes en vez de
+ *  dejar de funcionar. */
+async function miPerfil(
+  supabase: NonNullable<Awaited<ReturnType<typeof clienteServidor>>>,
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc("mi_perfil_id");
+  if (!error && data) return String(data);
+
+  const { data: fila } = await supabase
+    .from("perfiles")
+    .select("id")
+    .limit(1)
+    .maybeSingle<{ id: string }>();
+
+  return fila?.id ?? null;
+}
+
 export async function GET() {
   const supabase = await clienteServidor();
   if (!supabase) return Response.json({ recuerdos: [] });
@@ -55,13 +77,8 @@ export async function POST(req: Request) {
   const texto = limpiarRecuerdo(typeof cuerpo?.texto === "string" ? cuerpo.texto : "");
   if (!texto) return fallo(400, "sin_texto");
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id")
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-
-  if (!perfil) return fallo(401, "sin_sesion");
+  const mio = await miPerfil(supabase);
+  if (!mio) return fallo(401, "sin_sesion");
 
   /* Ya lo sabía. No es un error: es que lo has dicho dos veces, y
      guardarlo otra vez sería tener el mismo dato dos veces ocupando dos
@@ -75,7 +92,7 @@ export async function POST(req: Request) {
   const { data, error } = await supabase
     .from("recuerdos")
     .insert({
-      perfil_id: perfil.id,
+      perfil_id: mio,
       texto,
       origen: cuerpo?.origen === "chat" ? "chat" : "mano",
     })
@@ -133,15 +150,17 @@ export async function DELETE(req: Request) {
   /* Borrarlo todo de una vez. Tiene que ser fácil: si irse cuesta más
      que entrar, la memoria deja de ser tuya. */
   if (url.searchParams.get("todo") === "1") {
-    const { data: perfil } = await supabase
-      .from("perfiles")
-      .select("id")
-      .limit(1)
-      .maybeSingle<{ id: string }>();
+    /* Sin preguntar quién eres, y es más seguro así: la seguridad a
+       nivel de fila ya solo deja borrar lo tuyo, mientras que averiguar
+       el perfil con un `limit(1)` sin orden podía devolver el de un
+       perfil hijo a cargo —`perfiles` deja verlos— y entonces el borrado
+       filtraba por una cuenta que no es la tuya: cero filas borradas,
+       ningún error, y la pantalla diciendo que ya no queda nada. */
+    const { error } = await supabase
+      .from("recuerdos")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
 
-    if (!perfil) return fallo(401, "sin_sesion");
-
-    const { error } = await supabase.from("recuerdos").delete().eq("perfil_id", perfil.id);
     if (error) return fallo(500, "no_se_ha_podido");
     return Response.json({ ok: true });
   }

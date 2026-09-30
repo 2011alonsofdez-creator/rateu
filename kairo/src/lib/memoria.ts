@@ -67,7 +67,18 @@ const sinTildes = (texto: string) =>
  *  Un recuerdo escrito sin tildes se le enseñaría así al modelo y se lo
  *  leerías así en la pantalla. */
 export function detectarRecuerdo(mensaje: string): string | null {
-  const original = mensaje.trim();
+  /* A forma compuesta ANTES de nada.
+ 
+     Lo de abajo corta el texto original por donde acaba la orden, usando
+     la longitud medida sobre la versión sin tildes. Eso solo cuadra si
+     las dos cadenas van a la par carácter a carácter, y eso solo pasa si
+     la tilde viene pegada a su letra. Un texto pegado desde un Mac —o
+     escrito con según qué teclado de Android— llega con la tilde aparte,
+     ocupando su propio hueco: la versión sin tildes se queda más corta,
+     el corte cae a mitad de palabra, y lo que se guarda es un trozo
+     («e soy de Ceuta») que además se le repite al modelo en TODAS las
+     respuestas a partir de ese día. */
+  const original = mensaje.normalize("NFC").trim();
   if (!original) return null;
 
   // Una pregunta no es una orden, por mucho que empiece igual.

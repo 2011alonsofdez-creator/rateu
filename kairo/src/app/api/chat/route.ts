@@ -544,7 +544,18 @@ export async function POST(req: Request) {
         let busquedaFallida = false;
 
         const ultima = historial[historial.length - 1]?.texto ?? "";
-        if (esDeAhora(ultima)) {
+
+        /* Con un archivo delante NO se busca, diga lo que diga la
+           pregunta. Cuando alguien sube una foto o un PDF y pregunta por
+           "la información de la tabla" o "los datos de la foto", lo que
+           quiere es que mires el archivo, no internet: buscarlo son
+           dieciocho segundos de espera y un trozo de cuota gastados en
+           algo que no tenía nada que ver, y encima puede acabar con un
+           "no he podido comprobarlo" encima de una respuesta que no
+           necesitaba comprobar nada. */
+        const conArchivos = archivos.adjuntos.length > 0 || archivos.texto.length > 0;
+
+        if (!conArchivos && esDeAhora(ultima)) {
           enviar({ t: "buscando" });
 
           // De qué venían hablando, para que "¿y el horario?" se entienda.
@@ -564,7 +575,17 @@ export async function POST(req: Request) {
             diario,
           ).catch(() => null);
 
-          if (hallazgo) {
+          /* `busco` es la condición, no que haya devuelto algo.
+ 
+             `buscarHechos` devuelve un objeto también cuando NINGÚN
+             modelo llegó a tocar el buscador y contestó de memoria: eso
+             viene con `busco: false` y hechos vacíos. Mirar solo si hay
+             objeto trata ese caso como "busqué y no había nada", que es
+             mentira, y mete en el prompt "acabas de buscar esto y no has
+             encontrado nada sólido" cuando no se ha buscado. brief.ts ya
+             lo hacía bien (`if (!hallazgo || !hallazgo.busco)`); esto
+             no. */
+          if (hallazgo?.busco) {
             hechos = hallazgo.hechos;
             fuentes = hallazgo.fuentes;
             busquedas = hallazgo.busquedas;

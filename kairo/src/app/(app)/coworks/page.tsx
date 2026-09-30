@@ -215,6 +215,9 @@ export default function CoworksPage() {
   const [cargando, setCargando] = useState(true);
   const [falta, setFalta] = useState(false);
   const [aviso, setAviso] = useState<string>();
+  /* El servidor sabe QUÉ archivo falta; la traducción de aquí no, y
+     nombraba siempre el 0009. Cuando manda una pista, manda ella. */
+  const [pista, setPista] = useState<string>();
 
   // El formulario: vacío = cerrado, "nuevo" = creando, un id = editando.
   const [editando, setEditando] = useState<"" | "nuevo" | string>("");
@@ -251,6 +254,7 @@ export default function CoworksPage() {
     setHora(7);
     setTipo("brief");
     setAviso(undefined);
+    setPista(undefined);
   };
 
   const abrirEditar = (c: Cowork) => {
@@ -271,7 +275,16 @@ export default function CoworksPage() {
     const creando = editando === "nuevo";
     const cuerpo = {
       ...(creando ? { tipo } : { id: editando }),
-      nombre: nombre.trim() || tipoUi(tipo)[es ? "es" : "en"].n,
+      /* Al CREAR, si lo dejas en blanco se le pone el nombre del tipo.
+         Al EDITAR no se manda: el servidor deja el que ya tenía. Antes
+         se mandaba siempre, así que cambiarle la hora a un Co-Work que
+         habías llamado "Lo de mis oposiciones" se lo renombraba a
+         "Resumen de tus temas" de paso. */
+      ...(creando
+        ? { nombre: nombre.trim() || tipoUi(tipo)[es ? "es" : "en"].n }
+        : nombre.trim()
+          ? { nombre: nombre.trim() }
+          : {}),
       ...(tipo === "salud" ? {} : { temas: temas.trim() }),
       hora,
       zona: zonaDelNavegador(),
@@ -293,6 +306,7 @@ export default function CoworksPage() {
               ? "cw.needsMigration"
               : "cw.failed",
         );
+        setPista(typeof j?.pista === "string" ? j.pista : undefined);
         if (j?.error === "falta_migracion") setFalta(true);
         return;
       }
@@ -370,6 +384,7 @@ export default function CoworksPage() {
                 ? "cw.needsMigration"
                 : "cw.failed",
         );
+        setPista(typeof j?.pista === "string" ? j.pista : undefined);
         return;
       }
 
@@ -455,6 +470,7 @@ export default function CoworksPage() {
       {aviso && (
         <p className="mb-4 rounded-xl border border-gold/40 bg-gold/10 px-4 py-2.5 text-[13.5px] leading-relaxed text-gold">
           {t(aviso as "cw.failed")}
+          {pista && <span className="mt-1 block text-gold/80">{pista}</span>}
         </p>
       )}
 

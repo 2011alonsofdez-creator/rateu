@@ -161,7 +161,11 @@ export default function RevisionPage() {
         : []),
       ...(r.arreglado.length ? ["", "Arreglado solo:", ...r.arreglado.map((a) => `- ${a}`)] : []),
     ]
-      .filter((l) => l !== "")
+      /* Las líneas en blanco se quedan: son los huecos entre apartados,
+         puestos a mano. El filtro estaba para quitar el hueco que deja
+         la versión cuando no la hay, así que se quita SOLO ese: uno al
+         final, no todos. */
+      .filter((l, i, todas) => l !== "" || (todas[i + 1] ?? "") !== "")
       .join("\n");
 
   const copiar = async (r: Revision) => {

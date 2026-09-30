@@ -30,6 +30,19 @@ export const preferredRegion = "fra1";
  */
 
 const ESPERA = 8000;
+
+/* La espera entre pruebas, y lo que NO es.
+ *
+ * Esto vive en la memoria de una función que se levanta y se muere, y
+ * hay varias a la vez: dos peticiones seguidas pueden caer en dos
+ * copias distintas, cada una con su mapa vacío. O sea que no es un
+ * candado: es un freno para el dedo nervioso que pulsa "Probar" cinco
+ * veces seguidas, que es el caso real. El candado de verdad es que hay
+ * que haber iniciado sesión.
+ *
+ * Y con tope de tamaño, porque una copia caliente atendiendo a mucha
+ * gente iría acumulando una entrada por persona para siempre. */
+const ESPERAS_MAX = 500;
 const ultima = new Map<string, number>();
 
 export async function POST(req: Request) {
@@ -48,11 +61,16 @@ export async function POST(req: Request) {
   if (Date.now() - desde < ESPERA) {
     return Response.json({ error: "espera", segundos: Math.ceil(ESPERA / 1000) }, { status: 429 });
   }
-  ultima.set(perfil.id, Date.now());
 
   const cuerpo = await req.json().catch(() => null);
   const pregunta = (typeof cuerpo?.pregunta === "string" ? cuerpo.pregunta : "").trim().slice(0, 500);
   if (!pregunta) return Response.json({ error: "sin_pregunta" }, { status: 400 });
+
+  /* El reloj se pone DESPUÉS de comprobar la pregunta: una petición mal
+     formada no gasta nada, así que castigarla con ocho segundos de
+     espera es castigar por nada. */
+  if (ultima.size >= ESPERAS_MAX) ultima.clear();
+  ultima.set(perfil.id, Date.now());
 
   /* Lo primero, y lo que más veces es la respuesta: ¿esta pregunta
      llega siquiera a disparar una búsqueda? Si esto sale "no", lo demás

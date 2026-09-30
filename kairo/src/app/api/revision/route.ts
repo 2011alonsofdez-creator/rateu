@@ -56,10 +56,17 @@ function variablesDeSupabase() {
       if (/^(eyj|sb_|sbp_|sbs_)/i.test(valor)) return { nombre, pinta: "una clave" };
       if (/supabase\.(co|in)/i.test(valor)) return { nombre, pinta: "una dirección" };
 
-      /* Ni clave ni dirección. De estas sí se dice el tamaño, porque es
-         lo que distingue "me he dejado media pegada" de "he pegado otra
-         cosa", y no son ninguna clave conocida. */
-      return { nombre, pinta: `otra cosa (${valor.length} caracteres)` };
+      /* Ni clave ni dirección: no se dice NADA de lo que hay dentro, ni
+         siquiera cuánto mide.
+ 
+         Se decía el tamaño, con el argumento de que distinguía "me he
+         dejado media pegada" de "he pegado otra cosa". Pero "no empieza
+         como una clave conocida" no significa que no sea un secreto:
+         SUPABASE_DB_PASSWORD entra por este mismo filtro —lleva
+         "supabase" en el nombre— y su longitud acabaría publicada en una
+         página que se abre sin sesión. Saber que hay algo raro puesto ya
+         basta para ir a mirarlo. */
+      return { nombre, pinta: "otra cosa (ni dirección ni clave conocida)" };
     });
 }
 
