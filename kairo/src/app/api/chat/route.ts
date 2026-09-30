@@ -485,6 +485,10 @@ export async function POST(req: Request) {
          *
          * Si la búsqueda falla, no pasa nada: se sigue como antes. */
         let hechos: string | undefined;
+        /* La búsqueda se intentó y se rompió, que no es lo mismo que no
+           haber encontrado nada: lo primero es una avería y lo segundo
+           una respuesta. */
+        let busquedaFallida = false;
 
         const ultima = historial[historial.length - 1]?.texto ?? "";
         if (esDeAhora(ultima)) {
@@ -520,6 +524,7 @@ export async function POST(req: Request) {
                desfasado. Un "no lo he podido comprobar" es una respuesta;
                un dato viejo dicho con seguridad, no. */
             hechos = "";
+            busquedaFallida = true;
           }
         }
 
@@ -538,6 +543,7 @@ export async function POST(req: Request) {
             conArchivos: archivos.adjuntos.length > 0 || archivos.texto.length > 0,
             zonaHoraria,
             hechos,
+            busquedaFallida,
           });
 
         /* El Mega-Prompt: varios cerebros a la vez.

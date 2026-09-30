@@ -107,10 +107,24 @@ export async function buscarHechos(
     return null;
   }
 
+  /* TODA la cadena de Gemini, no los tres primeros.
+   *
+   * Los tres primeros era un apaño para no tardar, y el apaño se basaba
+   * en que un intento cuesta tiempo. No es verdad: un intento que FALLA
+   * cuesta ciento cincuenta milisegundos. Los que cuestan son los que
+   * funcionan, y de esos solo hace falta uno.
+   *
+   * Y falla más de lo que parecía. En la capa gratuita de Gemini la
+   * cuota es POR MODELO, así que un día normal hay media cadena agotada;
+   * si además alguno ha dejado de existir, con tres intentos se acaban
+   * las balas antes de llegar a uno vivo. Y entonces no se busca, y
+   * entonces Kairo contesta de memoria.
+   *
+   * Ocho intentos fallidos son poco más de un segundo. Vale la pena. */
   const modelos = cadenaDe("normal", modoEdad)
     .filter((id) => partir(id).proveedor === "gemini")
     .map((id) => partir(id).modelo)
-    .slice(0, 3);
+    .slice(0, 8);
 
   if (diario) diario.modelos = [...modelos];
 
@@ -279,16 +293,35 @@ export async function buscarHechos(
   return sinBuscar;
 }
 
-/** El mensaje de un fallo, corto y sin nada que no deba salir.
+/** El mensaje de un fallo, en castellano y sin nada que no deba salir.
  *
- *  Esto acaba en una pantalla, así que de aquí no puede salir una clave
- *  por mucho que el mensaje original la traiga: se tacha todo lo que
- *  tenga pinta de serlo antes de recortar. */
+ *  Google contesta con un JSON de doscientos caracteres que empieza por
+ *  {"error":{"code":429... y nadie sabe qué hacer con eso. Los cuatro
+ *  fallos que pasan de verdad se traducen a una frase que sí dice qué
+ *  hacer; el resto se enseña en crudo, recortado.
+ *
+ *  Y de aquí no puede salir una clave por mucho que el mensaje original
+ *  la traiga: se tacha todo lo que tenga pinta de serlo. */
 function limpiarFallo(e: unknown): string {
-  const texto = e instanceof Error ? e.message : String(e);
-
-  return texto
+  const texto = (e instanceof Error ? e.message : String(e))
     .replace(/(key|token|secret|authorization)["\s:=]+[\w.-]+/gi, "$1=***")
-    .replace(/\b(AIza[\w-]{10,}|sk-[\w-]{10,}|eyJ[\w.-]{20,})\b/g, "***")
-    .slice(0, 240);
+    .replace(/\b(AIza[\w-]{10,}|sk-[\w-]{10,}|eyJ[\w.-]{20,})\b/g, "***");
+
+  if (/\b429\b|quota|rate limit/i.test(texto)) {
+    return "CUOTA AGOTADA (429) · este modelo no admite más peticiones por ahora";
+  }
+  if (/\b404\b|no longer available|not found/i.test(texto)) {
+    return "ESE MODELO YA NO EXISTE (404) · hay que quitarlo de la lista";
+  }
+  if (/\b403\b|permission|not enabled/i.test(texto)) {
+    return "LA CLAVE NO TIENE PERMISO (403) · revisa la clave de Gemini";
+  }
+  if (/\b401\b|api key not valid|invalid.*key/i.test(texto)) {
+    return "CLAVE NO VÁLIDA (401) · la GEMINI_API_KEY está mal";
+  }
+  if (/\b400\b/.test(texto)) {
+    return `PETICIÓN RECHAZADA (400) · ${texto.slice(0, 120)}`;
+  }
+
+  return texto.slice(0, 200);
 }

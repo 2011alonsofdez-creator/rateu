@@ -46,26 +46,39 @@ export const CADENAS: Record<Level, string[]> = {
   // Rápido: lo que importa es que conteste ya.
   fast: [
     "gemini-flash-lite-latest",
-    "gemini-2.5-flash-lite", // otra generación → otra cuota
+    "gemini-3.1-flash-lite", // otra generación → otra cuota
     "gemini-flash-latest", // otra familia → otra cuota
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash",
     "gemini-3.5-flash-lite", // suele ser al que apunta el alias: el último
+    /* Los 2.5 van al final desde que una cuenta nueva contestó
+       «no longer available to new users» (404). En una cuenta vieja
+       siguen yendo, así que no se borran; pero delante gastaban un
+       intento y un turno de la cadena para nada. */
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
     "gpt:gpt-5-mini",
     "claude:claude-haiku-4-5",
   ],
 
   // Normal: redactar, resumir, explicar.
+  /* De esta cadena sale también la lista del BUSCADOR (ver buscar.ts:
+     se filtran los de Gemini y se prueban en orden). Así que el orden de
+     aquí decide si Kairo se entera de lo que pasó ayer: con media cadena
+     con la cuota agotada —que en la capa gratuita es un martes
+     cualquiera— lo que importa es cuántos depósitos distintos hay antes
+     de rendirse. Por eso van seguidos y sin repetir generación. */
   normal: [
     "gemini-flash-latest",
-    "gemini-2.5-flash", // otra generación
+    "gemini-3.8-flash", // el que recomienda Google desde que el 2.5 cerró
     "gemini-3.7-flash",
-    "gemini-3.5-flash",
-    "gemini-3.8-flash",
     "gemini-3.6-flash",
+    "gemini-3.5-flash",
     // Bajar a Flash-Lite es peor respuesta, sí. Pero peor todavía es no
     // contestar, y en la capa gratuita es el que más cuota suele tener.
     "gemini-flash-lite-latest",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    // Los 2.5, al final: en una cuenta nueva devuelven 404.
+    "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
     "gpt:gpt-5",
     "claude:claude-sonnet-5",
@@ -83,9 +96,9 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-3.1-pro-preview",
     "gemini-flash-latest",
     "gemini-3.8-flash",
-    "gemini-2.5-flash",
     "gemini-3.6-flash",
     "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
   ],
 
   // MEGA: lo más capaz de cada casa, en ese orden.
@@ -97,7 +110,7 @@ export const CADENAS: Record<Level, string[]> = {
     "claude:claude-sonnet-5",
     "gemini-flash-latest",
     "gemini-3.8-flash",
-    "gemini-2.5-flash",
+    "gemini-3.6-flash",
   ],
 };
 
