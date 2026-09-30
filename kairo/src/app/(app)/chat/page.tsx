@@ -587,6 +587,11 @@ function Chat() {
             setMessages((m) =>
               m.map((x) => (x.id === idK ? { ...x, sinBusqueda: motivo } : x)),
             );
+          } else if (ev.t === "recordado") {
+            const v = String(ev.v ?? "");
+            if (v) {
+              setMessages((m) => m.map((x) => (x.id === idK ? { ...x, recordado: v } : x)));
+            }
           } else if (ev.t === "paso") {
             const v = String(ev.v);
             if (v === "consultando" || v === "comparando") {
@@ -1122,6 +1127,22 @@ function KairoMessage({
         )}
 
         <Markdown text={texto} />
+
+        {/* Lo que se acaba de guardar, con su enlace para verlo o
+            quitarlo. Una memoria en la que no sabes si algo entró no
+            sirve: la única forma de comprobarlo sería preguntárselo
+            mañana y esperar a ver. */}
+        {m.recordado && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-panel px-3 py-2 text-[13px] leading-relaxed text-muted">
+            <span className="text-acento">✓</span>
+            <span className="min-w-0 flex-1">
+              Guardado en mi memoria: <span className="text-fg">{m.recordado}</span>
+            </span>
+            <Link href="/memoria" className="shrink-0 underline underline-offset-2 hover:text-fg">
+              Ver memoria
+            </Link>
+          </div>
+        )}
 
         <Fuentes fuentes={m.fuentes} busquedas={m.busquedas} />
 

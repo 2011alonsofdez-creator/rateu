@@ -41,7 +41,7 @@ Ve a **Project Settings → API** (en los paneles nuevos, *Data API*) y copia:
 ### El atajo
 
 Si vas a ponerlos todos de golpe, `migrations/TODO_DE_UNA_VEZ.sql` son
-los nueve archivos de la 0003 a la 0011 pegados en orden: una sola
+los diez archivos de la 0003 a la 0012 pegados en orden: una sola
 consulta, un solo **Run**. Hace exactamente lo mismo que pegarlos uno a
 uno, y también se puede ejecutar dos veces sin romper nada.
 
@@ -64,8 +64,9 @@ En Supabase, **SQL Editor** → **New query**:
 9. Nueva consulta, pega `migrations/0009_coworks.sql` → **Run**.
 10. Nueva consulta, pega `migrations/0010_vigilante.sql` → **Run**.
 11. Nueva consulta, pega `migrations/0011_coworks_a_mano.sql` → **Run**.
+12. Nueva consulta, pega `migrations/0012_memoria.sql` → **Run**.
 
-Los once archivos se pueden ejecutar varias veces sin romper nada.
+Los doce archivos se pueden ejecutar varias veces sin romper nada.
 
 ## 5. Activar la recarga diaria (1 min)
 
@@ -173,3 +174,4 @@ se montará en el Paso 3.
 | `migrations/0009_coworks.sql` | Los Co-Works: la tabla, el candado que impide hacer el mismo trabajo dos veces y las funciones del reparto, que son solo del servidor |
 | `migrations/0010_vigilante.sql` | El Co-Work que vigila que todo siga en pie, y soltar los trabajos que se quedaron a medias |
 | `migrations/0011_coworks_a_mano.sql` | Los demás tipos de Co-Work (repaso, precios, idioma) y poder pulsar «Probar ahora» sin la llave del servidor |
+| `migrations/0012_memoria.sql` | La memoria: lo que Kairo recuerda de ti, con su tope por persona y la seguridad para que sea solo tuya |

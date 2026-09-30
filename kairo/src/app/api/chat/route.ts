@@ -18,6 +18,7 @@ import {
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
+import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memoria";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { correrMega } from "@/lib/ia/mega";
@@ -294,12 +295,59 @@ export async function POST(req: Request) {
         .maybeSingle<Mente>()
     : null;
 
-  const [resPerfil, resMente] = await Promise.all([consultaPerfil, consultaMente]);
+  /* La memoria sale en el mismo viaje que el perfil. Es lo que hace que
+     acordarse de ti no cueste ni un milisegundo de espera: si fuera una
+     consulta aparte, cada respuesta empezaría más tarde por saber quién
+     eres, y eso se nota más que lo que aporta. */
+  const consultaMemoria = supabase
+    .from("recuerdos")
+    .select("texto")
+    .order("creado_el", { ascending: false })
+    .limit(RECUERDOS_EN_PROMPT);
+
+  const [resPerfil, resMente, resMemoria] = await Promise.all([
+    consultaPerfil,
+    consultaMente,
+    consultaMemoria,
+  ]);
   const perfil = resPerfil.data;
   const mente = resMente?.data ?? null;
 
+  /* Sin la migración 0012 esta tabla no existe, y eso NO puede tirar el
+     chat: se contesta sin memoria, como se contestaba antes. */
+  const recuerdos = ((resMemoria.data ?? []) as { texto: string }[]).map((r) => r.texto);
+
   if (!perfil) return fallo(401, "sin_sesion");
   if (!entradas.length) return fallo(400, "sin_mensaje");
+
+  /* "RECUERDA QUE...".
+   *
+   * La única puerta de entrada a la memoria, y es estrecha a propósito:
+   * aquí solo entra lo que has pedido que entre. Un Kairo que va
+   * apuntando solo lo que él cree importante acaba teniendo una ficha
+   * tuya que tú no escribiste, no viste venir y se equivoca en silencio.
+   *
+   * Se guarda ANTES de contestar y se mete en la lista de este mismo
+   * mensaje: si no, al decirle "recuerda que me llamo Alonso" te
+   * contestaría sin saber todavía cómo te llamas, que es exactamente lo
+   * que no puede pasar la primera vez que alguien prueba esto. */
+  const loQueMePides = detectarRecuerdo(entradas[entradas.length - 1]?.texto ?? "");
+  let recordadoAhora: string | null = null;
+
+  if (loQueMePides && !recuerdos.some((r) => mismoRecuerdo(r, loQueMePides))) {
+    const { error: falloMemoria } = await supabase
+      .from("recuerdos")
+      .insert({ perfil_id: perfil.id, texto: loQueMePides, origen: "chat" });
+
+    /* Si no se puede guardar —falta la migración, o has llegado al tope
+       de 200— se contesta igual y no se dice nada por aquí: el aviso
+       está en la pantalla de la memoria, y reventar una respuesta por
+       una nota que no cupo sería desproporcionado. */
+    if (!falloMemoria) {
+      recuerdos.unshift(loQueMePides);
+      recordadoAhora = loQueMePides;
+    }
+  }
 
   const permitidos = NIVELES_POR_PLAN[perfil.plan];
   const saldo = perfil.creditos + perfil.creditos_extra;
@@ -386,6 +434,11 @@ export async function POST(req: Request) {
         // Solo cuando lo ha elegido él: así la etiqueta puede decirlo.
         ...(eleccion ? { auto: true, motivo: eleccion.motivo } : {}),
       });
+
+      /* Y que se vea que se ha guardado. Una memoria en la que no sabes
+         si algo entró no sirve de nada: la única forma de comprobarlo
+         sería preguntárselo mañana. */
+      if (recordadoAhora) enviar({ t: "recordado", v: recordadoAhora });
 
       let cobrado = false;
       let algoEscrito = false;
@@ -560,6 +613,7 @@ export async function POST(req: Request) {
             zonaHoraria,
             hechos,
             busquedaFallida,
+            recuerdos,
           });
 
         /* El Mega-Prompt: varios cerebros a la vez.
