@@ -81,13 +81,13 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
     "gpt:gpt-5",
-    "claude:claude-sonnet-5",
+    "claude:claude-sonnet-5-5",
   ],
 
   // Forja: programar, analizar, crear. Aquí manda Claude.
   forja: [
-    "claude:claude-opus-5",
-    "claude:claude-sonnet-5",
+    "claude:claude-opus-5-5",
+    "claude:claude-sonnet-5-5",
     "gpt:gpt-5",
     "gemini-pro-latest",
     // Los Pro salieron de la capa gratuita, pero las versiones "preview"
@@ -103,11 +103,11 @@ export const CADENAS: Record<Level, string[]> = {
 
   // MEGA: lo más capaz de cada casa, en ese orden.
   mega: [
-    "claude:claude-opus-5",
+    "claude:claude-opus-5-5",
     "gpt:gpt-5",
     "gemini-pro-latest",
     "gemini-3.1-pro-preview",
-    "claude:claude-sonnet-5",
+    "claude:claude-sonnet-5-5",
     "gemini-flash-latest",
     "gemini-3.8-flash",
     "gemini-3.6-flash",
@@ -115,7 +115,7 @@ export const CADENAS: Record<Level, string[]> = {
 };
 
 /** Una variable de entorno, si existe, manda por delante de todo.
- *  Lleva el proveedor delante igual que las cadenas: "claude:claude-opus-5". */
+ *  Lleva el proveedor delante igual que las cadenas: "claude:claude-opus-5-5". */
 const FORZADO: Partial<Record<Level, string | undefined>> = {
   fast: process.env.KAIRO_MODELO_RAPIDO,
   normal: process.env.KAIRO_MODELO_ESTANDAR,

@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import Anthropic from "@anthropic-ai/sdk";
 import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
 import { cadenaDe } from "./config";
@@ -101,10 +102,27 @@ export async function buscarHechos(
   modoEdad: ModoEdad | null,
   diario?: Diario,
 ): Promise<Hallazgo | null> {
+  const hoy = new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  /* Lo que se devuelve si NINGÚN modelo llega a buscar: hechos vacíos,
+     que es lo que hace que Kairo diga "he mirado y no lo he
+     encontrado" en vez de soltar lo que recordaba. */
+  let sinBuscar: Hallazgo | null = null;
+
   const clave = process.env.GEMINI_API_KEY?.trim();
+
+  /* Sin clave de Gemini no se abandona: se baja directo al de repuesto.
+     Antes se devolvía null aquí mismo, y eso dejaba una casa montada con
+     Claude y sin Gemini completamente ciega —buscador puesto, pagado y
+     sin usar— por un `return` colocado demasiado arriba. */
   if (!clave) {
-    if (diario) diario.intentos.push({ modelo: "—", ms: 0, resultado: "falta GEMINI_API_KEY" });
-    return null;
+    if (diario) diario.intentos.push({ modelo: "—", ms: 0, resultado: "sin GEMINI_API_KEY" });
+    return (await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario)) ?? null;
   }
 
   /* TODA la cadena de Gemini, no los tres primeros.
@@ -133,26 +151,15 @@ export async function buscarHechos(
       diario.intentos.push({
         modelo: "—",
         ms: 0,
-        resultado: "ningún modelo de Gemini en la cadena: no hay con qué buscar",
+        resultado: "ningún modelo de Gemini en la cadena",
       });
     }
-    return null;
+    return (await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario)) ?? null;
   }
 
   const ia = new GoogleGenAI({ apiKey: clave });
 
-  /* Lo que se devuelve si NINGÚN modelo llega a buscar: hechos vacíos,
-     que es lo que hace que Kairo diga "he mirado y no lo he
-     encontrado" en vez de soltar lo que recordaba. */
-  let sinBuscar: Hallazgo | null = null;
   const seAcaba = Date.now() + PLAZO;
-
-  const hoy = new Intl.DateTimeFormat("es-ES", {
-    timeZone: "Europe/Madrid",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
 
   for (const modelo of modelos) {
     const queda = seAcaba - Date.now();
@@ -290,7 +297,187 @@ export async function buscarHechos(
     }
   }
 
+  /* Y si Gemini no ha podido, Claude.
+   *
+   * Esto existe por un día concreto: los tres modelos de Gemini
+   * contestaron 429 y 404, no se buscó nada, y Kairo contestó de memoria
+   * como si tal cosa. La capa gratuita de Gemini tiene un tope y el tope
+   * se acaba; un buscador que depende de una sola casa se queda mudo el
+   * día que esa casa dice basta.
+   *
+   * Solo entra si hay clave de Anthropic puesta, y solo cuando lo de
+   * arriba ha fallado del todo: cuesta dinero de verdad (la búsqueda se
+   * factura aparte), así que es la red, no la primera opción. */
+  if (!sinBuscar || !sinBuscar.busco) {
+    const conClaude = await buscarConClaude(pregunta, contexto, hoy, modoEdad, diario);
+    if (conClaude) return conClaude;
+  }
+
   return sinBuscar;
+}
+
+/* EL BUSCADOR DE REPUESTO.
+ *
+ * Claude busca de otra forma: en Gemini se hace una llamada y se le mira
+ * el rastro para saber si buscó de verdad; aquí la búsqueda es una
+ * herramienta del servidor de Anthropic, así que el rastro viene en la
+ * propia respuesta, en bloques aparte. Si no hay ni un bloque de
+ * resultados, no ha buscado, y se trata igual que allí: no cuela.
+ */
+async function buscarConClaude(
+  pregunta: string,
+  contexto: string,
+  hoy: string,
+  modoEdad: ModoEdad | null,
+  diario?: Diario,
+): Promise<Hallazgo | null> {
+  const clave = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!clave) return null;
+
+  /* A los menores no se les cambia de casa por la puerta de atrás: la
+     cadena de Gemini se eligió para ellos porque es la única que acepta
+     un filtro de contenido por petición (ver config.ts), y saltárselo
+     aquí sería vaciar esa decisión sin que nadie la revise. */
+  if (modoEdad === "nino" || modoEdad === null) return null;
+
+  const modelo = "claude-sonnet-5-5";
+  const empezo = Date.now();
+
+  try {
+    const cliente = new Anthropic({ apiKey: clave });
+
+    const respuesta = await cliente.messages.create({
+      model: modelo,
+      max_tokens: 2000,
+      system: SISTEMA,
+      // Bajo a propósito: esto recoge datos, no razona sobre ellos.
+      output_config: { effort: "low" },
+      messages: [
+        {
+          role: "user",
+          content:
+            `Hoy es ${hoy}.\n` +
+            (contexto ? `De qué venían hablando: ${contexto}\n` : "") +
+            `\nBusca en internet y dime qué encuentras sobre esto:\n${pregunta.slice(0, 1500)}` +
+            `\n\nNo contestes de memoria. Busca primero, aunque creas que ya lo sabes.`,
+        },
+      ],
+      /* `max_uses` es el freno de mano: cada búsqueda se factura, y una
+         pregunta abierta puede irse a diez sin darse cuenta. */
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }],
+    } as never);
+
+    const { texto, fuentes, busquedas } = leerLoDeClaude(respuesta);
+
+    if (!busquedas.length && !fuentes.length) {
+      if (diario) {
+        diario.intentos.push({
+          modelo,
+          ms: Date.now() - empezo,
+          resultado: "NO buscó: contestó de memoria (se descarta)",
+        });
+      }
+      return { hechos: "", fuentes: [], busquedas: [], modelo, busco: false };
+    }
+
+    if (diario) {
+      diario.intentos.push({
+        modelo,
+        ms: Date.now() - empezo,
+        resultado: `OK · ${fuentes.length} fuentes · ${texto.length} caracteres`,
+      });
+    }
+
+    return {
+      hechos: !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
+      fuentes,
+      busquedas,
+      modelo,
+      busco: true,
+    };
+  } catch (e) {
+    if (diario) {
+      diario.intentos.push({
+        modelo,
+        ms: Date.now() - empezo,
+        resultado: `ERROR · ${limpiarFallo(e)}`,
+      });
+    }
+    return null;
+  }
+}
+
+/** Lo que viene en la respuesta de Claude, ordenado.
+ *
+ *  Tres tipos de bloque interesan: el texto (los datos), el resultado de
+ *  cada búsqueda (las páginas) y la llamada a la herramienta (lo que
+ *  escribió en el buscador). El resto se ignora. */
+function leerLoDeClaude(respuesta: unknown): {
+  texto: string;
+  fuentes: Fuente[];
+  busquedas: string[];
+} {
+  const bloques = (respuesta as { content?: unknown[] })?.content ?? [];
+  let texto = "";
+  const fuentes: Fuente[] = [];
+  const busquedas: string[] = [];
+  const vistas = new Set<string>();
+
+  const meter = (b: unknown) => {
+    const bloque = b as {
+      type?: string;
+      text?: string;
+      name?: string;
+      input?: { query?: string };
+      content?: unknown;
+    };
+
+    if (bloque.type === "text" && bloque.text) texto += bloque.text;
+
+    if (bloque.type === "server_tool_use" && bloque.name === "web_search") {
+      const q = bloque.input?.query;
+      if (q && !busquedas.includes(q)) busquedas.push(q);
+    }
+
+    if (bloque.type === "web_search_tool_result") {
+      /* Cuando la búsqueda falla, `content` es UN objeto de error en vez
+         de una lista. Recorrer un objeto como si fuera lista no da error:
+         da cero fuentes en silencio, que es peor. */
+      const lista = Array.isArray(bloque.content) ? bloque.content : [];
+      for (const r of lista) {
+        const res = r as { type?: string; url?: string; title?: string };
+        if (res.type !== "web_search_result" || !res.url || vistas.has(res.url)) continue;
+        vistas.add(res.url);
+
+        let dominio = "";
+        try {
+          dominio = new URL(res.url).hostname.replace(/^www\./, "");
+        } catch {
+          dominio = "";
+        }
+
+        fuentes.push({
+          titulo: (res.title || dominio || res.url).slice(0, 160),
+          url: res.url,
+          dominio,
+          tipo: "web",
+        });
+      }
+    }
+
+    /* Con el filtrado dinámico, las búsquedas van DENTRO de bloques de
+       ejecución de código, así que hay que bajar un piso a buscarlas. */
+    if (Array.isArray(bloque.content)) {
+      for (const dentro of bloque.content) {
+        const d = dentro as { type?: string };
+        if (d?.type && d.type !== "web_search_result") meter(dentro);
+      }
+    }
+  };
+
+  for (const b of bloques) meter(b);
+
+  return { texto: texto.trim(), fuentes: fuentes.slice(0, 12), busquedas };
 }
 
 /** El mensaje de un fallo, en castellano y sin nada que no deba salir.
