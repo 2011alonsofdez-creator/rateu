@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
 import { cadenaDe } from "./config";
+import { clavesDeGemini, esDeCuota } from "./claves";
 import { partir } from "./proveedores";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
@@ -114,14 +115,19 @@ export async function buscarHechos(
      encontrado" en vez de soltar lo que recordaba. */
   let sinBuscar: Hallazgo | null = null;
 
-  const clave = process.env.GEMINI_API_KEY?.trim();
+  const claves = clavesDeGemini();
 
   /* Sin clave de Gemini no se abandona: se baja directo al de repuesto.
      Antes se devolvía null aquí mismo, y eso dejaba una casa montada con
      Claude y sin Gemini completamente ciega —buscador puesto, pagado y
      sin usar— por un `return` colocado demasiado arriba. */
-  if (!clave) {
-    if (diario) diario.intentos.push({ modelo: "—", ms: 0, resultado: "sin GEMINI_API_KEY" });
+  if (!claves.length) {
+    if (diario)
+      diario.intentos.push({
+        modelo: "—",
+        ms: 0,
+        resultado: "sin GEMINI_API_KEY",
+      });
     /* Aquí Gemini no ha gastado nada, así que el repuesto se lleva el
        plazo entero. Pero se lo lleva CON plazo: una llamada colgada sin
        techo se come el minuto de la función y deja al usuario sin
@@ -175,15 +181,102 @@ export async function buscarHechos(
     );
   }
 
-  const ia = new GoogleGenAI({ apiKey: clave });
+  /* Un cliente por clave, creados una vez. Si solo hay una, esto es
+     exactamente lo de antes. */
+  const motores = claves.map((c) => new GoogleGenAI({ apiKey: c }));
 
   const seAcaba = Date.now() + PLAZO;
+
+  /* La misma petición, con el motor que se le dé. Está aquí dentro y no
+     fuera porque necesita la pregunta, el contexto y el día, que son de
+     esta llamada. */
+  const preguntarA = (motor: GoogleGenAI, modelo: string) =>
+    motor.models.generateContent({
+      model: modelo,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text:
+                `Hoy es ${hoy}.\n` +
+                (contexto ? `De qué venían hablando: ${contexto}\n` : "") +
+                `\nUsa el buscador y dime qué encuentras sobre esto:\n${pregunta.slice(0, 1500)}` +
+                `\n\nNo contestes de memoria. Busca primero, aunque creas que ya lo sabes.`,
+            },
+          ],
+        },
+      ],
+      config: {
+        systemInstruction: SISTEMA,
+        safetySettings: ajustesSeguridad(modoEdad),
+        /* Que piense, pero con la cuenta hecha.
+ 
+               Aquí hay una trampa de Gemini que cuesta cara: lo que el
+               modelo PIENSA se descuenta de `maxOutputTokens`. No son dos
+               presupuestos, es uno. Así que "que piense lo que quiera"
+               (-1) junto a un techo corto es una forma elegante de pedir
+               una respuesta vacía: se gasta el techo entero pensando,
+               llega al límite y devuelve cero texto. Sin error, sin
+               excepción, sin nada. Solo vacío.
+ 
+               Y vacío aquí significa "he buscado y no he encontrado
+               nada", que es mentira: no ha encontrado nada porque no le
+               han dejado escribirlo. La respuesta sale de memoria y con
+               aplomo, que es justo lo que esto venía a impedir.
+ 
+               Con el presupuesto a cero tampoco vale —sin pensar ni
+               siquiera usa el buscador—, así que se le pone una cifra:
+               suficiente para decidir buscar, corta para no eternizarse,
+               y un techo que la deja muy atrás para que lo que escriba
+               quepa entero. */
+        thinkingConfig: { thinkingBudget: 512 },
+        maxOutputTokens: 2500,
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+  /* Y probándola con cada clave.
+ 
+     Solo se cambia de clave si el fallo es de CUOTA: un 404 —ese modelo
+     ya no existe— o un 400 —la petición está mal— van a fallar igual con
+     todas, y recorrerlas enteras solo sirve para tardar cinco veces más
+     en dar el mismo error. */
+  const conLasClaves = async (modelo: string, plazo: number) => {
+    let fallo: unknown = null;
+
+    for (let k = 0; k < motores.length; k++) {
+      try {
+        return {
+          respuesta: await conPlazo(preguntarA(motores[k], modelo), plazo),
+          clave: k,
+        };
+      } catch (e) {
+        fallo = e;
+        if (!esDeCuota(e) || k === motores.length - 1) break;
+        if (diario) {
+          diario.intentos.push({
+            modelo,
+            ms: 0,
+            resultado: `clave ${k + 1} sin cuota, probando con la ${k + 2}`,
+          });
+        }
+      }
+    }
+
+    throw fallo;
+  };
 
   for (const modelo of modelos) {
     const queda = seAcaba - Date.now();
     // Menos de dos segundos no da ni para empezar: mejor contestar ya.
     if (queda < 2000) {
-      if (diario) diario.intentos.push({ modelo, ms: 0, resultado: "sin tiempo para empezar" });
+      if (diario)
+        diario.intentos.push({
+          modelo,
+          ms: 0,
+          resultado: "sin tiempo para empezar",
+        });
       break;
     }
 
@@ -191,50 +284,7 @@ export async function buscarHechos(
     try {
       const fuentes = recolectorDeFuentes();
 
-      const respuesta = await conPlazo(ia.models.generateContent({
-        model: modelo,
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text:
-                  `Hoy es ${hoy}.\n` +
-                  (contexto ? `De qué venían hablando: ${contexto}\n` : "") +
-                  `\nUsa el buscador y dime qué encuentras sobre esto:\n${pregunta.slice(0, 1500)}` +
-                  `\n\nNo contestes de memoria. Busca primero, aunque creas que ya lo sabes.`,
-              },
-            ],
-          },
-        ],
-        config: {
-          systemInstruction: SISTEMA,
-          safetySettings: ajustesSeguridad(modoEdad),
-          /* Que piense, pero con la cuenta hecha.
- 
-             Aquí hay una trampa de Gemini que cuesta cara: lo que el
-             modelo PIENSA se descuenta de `maxOutputTokens`. No son dos
-             presupuestos, es uno. Así que "que piense lo que quiera"
-             (-1) junto a un techo corto es una forma elegante de pedir
-             una respuesta vacía: se gasta el techo entero pensando,
-             llega al límite y devuelve cero texto. Sin error, sin
-             excepción, sin nada. Solo vacío.
- 
-             Y vacío aquí significa "he buscado y no he encontrado
-             nada", que es mentira: no ha encontrado nada porque no le
-             han dejado escribirlo. La respuesta sale de memoria y con
-             aplomo, que es justo lo que esto venía a impedir.
- 
-             Con el presupuesto a cero tampoco vale —sin pensar ni
-             siquiera usa el buscador—, así que se le pone una cifra:
-             suficiente para decidir buscar, corta para no eternizarse,
-             y un techo que la deja muy atrás para que lo que escriba
-             quepa entero. */
-          thinkingConfig: { thinkingBudget: 512 },
-          maxOutputTokens: 2500,
-          tools: [{ googleSearch: {} }],
-        },
-      }), queda);
+      const { respuesta, clave: queClave } = await conLasClaves(modelo, queda);
 
       // Se acabó el tiempo: mejor sin datos que tarde.
       if (!respuesta) {
@@ -272,7 +322,13 @@ export async function buscarHechos(
               : "NO buscó y encima devolvió texto vacío",
           });
         }
-        sinBuscar = { hechos: "", fuentes: [], busquedas: [], modelo, busco: false };
+        sinBuscar = {
+          hechos: "",
+          fuentes: [],
+          busquedas: [],
+          modelo,
+          busco: false,
+        };
         continue;
       }
 
@@ -289,12 +345,14 @@ export async function buscarHechos(
               "buscó pero devolvió texto VACÍO (¿techo de tokens?)"
             : /^NADA ENCONTRADO/i.test(texto)
               ? "buscó y no encontró nada"
-              : `OK · ${fuentes.fuentes.length} fuentes · ${texto.length} caracteres`,
+              : `OK · ${fuentes.fuentes.length} fuentes · ${texto.length} caracteres` +
+                (motores.length > 1 ? ` · clave ${queClave + 1}` : ""),
         });
       }
 
       return {
-        hechos: !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
+        hechos:
+          !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
         fuentes: fuentes.fuentes,
         busquedas: fuentes.busquedas,
         modelo,
@@ -426,7 +484,8 @@ async function buscarConClaude(
     }
 
     return {
-      hechos: !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
+      hechos:
+        !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
       fuentes,
       busquedas,
       modelo,
@@ -483,7 +542,8 @@ function leerLoDeClaude(respuesta: unknown): {
       const lista = Array.isArray(bloque.content) ? bloque.content : [];
       for (const r of lista) {
         const res = r as { type?: string; url?: string; title?: string };
-        if (res.type !== "web_search_result" || !res.url || vistas.has(res.url)) continue;
+        if (res.type !== "web_search_result" || !res.url || vistas.has(res.url))
+          continue;
         vistas.add(res.url);
 
         let dominio = "";

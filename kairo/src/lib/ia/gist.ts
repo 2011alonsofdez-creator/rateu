@@ -5,6 +5,7 @@ import { cadenaDe } from "./config";
 import { partir } from "./proveedores";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
+import { claveDeGemini } from "./claves";
 
 /* Gist: pegas un enlace y sales con los apuntes.
  *
@@ -161,7 +162,7 @@ export async function resumir(
   tipo: "video" | "web",
   modoEdad: ModoEdad | null,
 ): Promise<Resumen> {
-  const clave = process.env.GEMINI_API_KEY?.trim();
+  const clave = claveDeGemini();
   if (!clave) throw new Error("sin_clave");
 
   const ia = new GoogleGenAI({ apiKey: clave });

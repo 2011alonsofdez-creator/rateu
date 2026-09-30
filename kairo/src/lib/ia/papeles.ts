@@ -4,6 +4,7 @@ import { cadenaDe } from "./config";
 import { partir } from "./proveedores";
 import type { ModoEdad } from "@/lib/planes";
 import type { Adjunto } from "@/lib/tipos";
+import { claveDeGemini } from "./claves";
 
 /* Paperwork: qué es este papel y para cuándo.
  *
@@ -141,7 +142,7 @@ export async function mirarPapel(
   nota: string,
   modoEdad: ModoEdad | null,
 ): Promise<Analisis> {
-  const clave = process.env.GEMINI_API_KEY?.trim();
+  const clave = claveDeGemini();
   if (!clave) throw new Error("sin_clave");
 
   const ia = new GoogleGenAI({ apiKey: clave });

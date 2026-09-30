@@ -339,8 +339,20 @@ async function miraMigraciones(admin: Admin): Promise<Punto[]> {
 
 function miraCerebros(env: Entorno): Punto {
   const claves = env.claves ?? process.env;
+
+  /* Cuántas claves de Gemini hay. En la capa gratuita la cuota va por
+     clave, así que tener una sola es tener un momento del día en que
+     Kairo se queda sin buscar. Decirlo aquí es la única forma de que se
+     entere alguien antes de que pase. */
+  const deGemini = [
+    claves.GEMINI_API_KEY,
+    claves.GEMINI_API_KEY_2,
+    claves.GEMINI_API_KEY_3,
+    ...(claves.GEMINI_API_KEYS ?? "").split(","),
+  ].filter((v) => { const t = (v ?? "").trim(); return t.length > 0 && !/\s/.test(t); }).length;
+
   const puestos = [
-    ["Gemini", claves.GEMINI_API_KEY],
+    ["Gemini" + (deGemini > 1 ? ` (${deGemini} claves)` : ""), claves.GEMINI_API_KEY],
     ["Claude", claves.ANTHROPIC_API_KEY],
     ["GPT", claves.OPENAI_API_KEY],
     ["el de repuesto", claves.KAIRO_EXTRA_KEY],
@@ -358,7 +370,11 @@ function miraCerebros(env: Entorno): Punto {
   return {
     que: "Cerebros",
     gravedad: "bien",
-    detalle: `Conectados: ${puestos.map(([n]) => n).join(", ")}.`,
+    detalle:
+      `Conectados: ${puestos.map(([n]) => n).join(", ")}.` +
+      (deGemini === 1 && !(claves.ANTHROPIC_API_KEY ?? "").trim()
+        ? " Con una sola clave de Gemini y sin Claude, el día que se agote la cuota gratuita Kairo deja de poder buscar."
+        : ""),
   };
 }
 
