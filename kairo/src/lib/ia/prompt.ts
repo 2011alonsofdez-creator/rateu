@@ -1,6 +1,7 @@
 import type { ModoEdad } from "@/lib/planes";
 import type { Level } from "@/lib/mock";
 import type { Mente } from "@/lib/tipos";
+import { bloqueDeMemoria } from "@/lib/memoria";
 
 /* El system prompt de Kairo. Sale del documento de especificación,
    sección 6, y se arma en tres piezas: base + tono elegido + añadido
@@ -340,6 +341,7 @@ export function construirPrompt({
   zonaHoraria,
   hechos,
   busquedaFallida = false,
+  recuerdos,
 }: {
   modoEdad: ModoEdad | null;
   tono: string;
@@ -357,6 +359,8 @@ export function construirPrompt({
   /** La búsqueda se intentó y se rompió. No es lo mismo que no haber
    *  encontrado nada, y la respuesta tiene que decirlo de otra forma. */
   busquedaFallida?: boolean;
+  /** Lo que esta persona te pidió que recordaras, de otros días. */
+  recuerdos?: string[];
 }): string {
   // Si la Mente trae tono propio, manda el suyo; si no, el de los ajustes.
   const estilo = TONOS[mente?.tono ?? tono] ?? TONOS.cercano;
@@ -370,6 +374,12 @@ export function construirPrompt({
   prompt += bloqueFecha(zonaValida(zonaHoraria));
 
   prompt += bloqueHechos(hechos ?? "", hechos !== undefined, busquedaFallida);
+
+  /* La memoria va al final, después de los hechos buscados, y el orden
+     es a propósito: lo último que se lee pesa más, y entre "lo que sabes
+     de esta persona" y "lo que acabas de encontrar en internet", lo que
+     no puede perder nunca es de quién se está hablando. */
+  prompt += bloqueDeMemoria(recuerdos ?? []);
 
   prompt += conBusqueda ? CON_INTERNET : SIN_INTERNET;
 

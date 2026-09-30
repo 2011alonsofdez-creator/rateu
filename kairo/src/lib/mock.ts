@@ -46,6 +46,8 @@ export type Message = {
    *  encima de la respuesta: sin esto, una respuesta de memoria y una
    *  comprobada se leen exactamente igual. */
   sinBusqueda?: "cuota" | "otro";
+  /** Lo que acaba de guardar en su memoria por este mensaje. */
+  recordado?: string;
 };
 
 export const thread: Message[] = [

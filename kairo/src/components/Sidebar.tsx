@@ -19,6 +19,7 @@ import {
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/chat", label: "app.chats", icon: Chat },
   { href: "/mentes", label: "app.mentes", icon: Brain },
+  { href: "/memoria", label: "app.memory", icon: Fichas },
   { href: "/gist", label: "app.gist", icon: Fichas },
   { href: "/paperwork", label: "app.paperwork", icon: Papel },
   { href: "/team", label: "app.team", icon: Team },

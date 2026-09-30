@@ -273,6 +273,7 @@ export const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 export const RUTAS_PRIVADAS = [
   "/chat",
   "/mentes",
+  "/memoria",
   "/coworks",
   "/codigo",
   "/conectores",
