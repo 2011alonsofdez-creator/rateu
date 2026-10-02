@@ -1091,7 +1091,12 @@ function Chat() {
         mente={mente}
         setMente={setMente}
         onSend={send}
-        busy={busy}
+        /* También mientras se ve un vídeo. Ver uno tarda casi un minuto
+           con `busy` apagado, y en ese rato se podía mandar otra
+           pregunta: la respuesta se ponía a escribirse y el resumen
+           caía después, detrás de una conversación que no tenía nada que
+           ver y pisando el mensaje que se estaba escribiendo. */
+        busy={busy || resumiendo}
       />
 
       {noCredits && <NoCreditsModal onClose={() => setNoCredits(false)} />}

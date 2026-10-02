@@ -3,15 +3,24 @@
 import { useState, type ReactNode } from "react";
 import { useUi } from "@/lib/i18n";
 import { Check, Copy } from "./Icons";
+import { enlaceSeguro, titulo } from "@/lib/markdown";
 
-/* Renderizador de markdown mínimo: negrita, código en línea, listas y
-   bloques de código. Nada de innerHTML — todo se pinta como texto, así
-   que un mensaje no puede inyectar HTML en la página. En el Paso 3,
-   cuando el contenido venga del modelo, esto pasa a ser importante. */
+/* Renderizador de markdown mínimo: títulos, negrita, código en línea,
+   enlaces, listas y bloques de código. Nada de innerHTML — todo se pinta
+   como texto, así que un mensaje no puede inyectar HTML en la página.
+   Como el contenido lo escribe un modelo, eso no es un detalle.
+
+   Los títulos y los enlaces llegaron tarde, y mientras no estuvieron
+   cualquier respuesta con un "## Apartado" o un enlace se leía con los
+   símbolos a la vista. Se notó al enseñar un vídeo contado por partes,
+   donde cada parte es un título con el minuto enlazado, pero pasaba en
+   cualquier respuesta larga. */
 
 function inline(text: string, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  /* El enlace va el primero: su texto puede llevar negrita o código
+     dentro, y si se partiera antes se quedaría a medias. */
+  const re = /(\[[^\]\n]*\]\([^)\s]*\)|\*\*[^*]+\*\*|`[^`]+`)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let i = 0;
@@ -19,7 +28,32 @@ function inline(text: string, keyBase: string): ReactNode[] {
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(text.slice(last, m.index));
     const tok = m[0];
-    if (tok.startsWith("**")) {
+
+    if (tok.startsWith("[")) {
+      const corte = tok.lastIndexOf("](");
+      const etiqueta = tok.slice(1, corte);
+      const destino = enlaceSeguro(tok.slice(corte + 2, -1));
+
+      if (!destino) {
+        // Un enlace que no se puede abrir se queda como texto normal.
+        out.push(...inline(etiqueta || tok, `${keyBase}-x${i}`));
+      } else {
+        const fuera = destino.startsWith("http");
+        out.push(
+          <a
+            key={`${keyBase}-a${i}`}
+            href={destino}
+            /* Una dirección de fuera se abre en otra pestaña y sin poder
+               tocar la de Kairo. Una página de Kairo, aquí mismo. */
+            target={fuera ? "_blank" : undefined}
+            rel={fuera ? "noreferrer noopener" : undefined}
+            className="text-acento underline decoration-acento/40 underline-offset-2 transition hover:decoration-acento"
+          >
+            {inline(etiqueta, `${keyBase}-a${i}t`)}
+          </a>,
+        );
+      }
+    } else if (tok.startsWith("**")) {
       out.push(
         <strong key={`${keyBase}-b${i}`} className="font-semibold text-fg">
           {tok.slice(2, -2)}
@@ -41,6 +75,18 @@ function inline(text: string, keyBase: string): ReactNode[] {
   if (last < text.length) out.push(text.slice(last));
   return out;
 }
+
+/* Lo grande que se pinta cada nivel de título. Un "######" no puede
+   quedar más pequeño que el texto de al lado: entonces no es un título,
+   es un renglón raro. */
+const TITULOS = [
+  "text-[21px] font-semibold tracking-tight text-fg",
+  "text-[19px] font-semibold tracking-tight text-fg",
+  "text-[17px] font-semibold text-fg",
+  "text-[15.5px] font-semibold text-fg",
+  "text-[15px] font-semibold text-fg",
+  "text-[15px] font-semibold text-fg",
+] as const;
 
 function CodeBlock({ code, lang }: { code: string; lang: string }) {
   const { t } = useUi();
@@ -97,6 +143,26 @@ export function Markdown({ text }: { text: string }) {
           .map((block, bi) => {
             const lines = block.split("\n").filter((l) => l.trim());
             const key = `${idx}-${bi}`;
+
+            /* Un título. Va antes que las listas porque "# - algo" es un
+               título, no una viñeta. */
+            const cabecera = titulo(lines[0]);
+            if (cabecera) {
+              const { nivel } = cabecera;
+              const Etiqueta = `h${Math.min(nivel + 1, 6)}` as "h2";
+              return (
+                <div key={key}>
+                  <Etiqueta className={`mt-5 mb-2 first:mt-0 ${TITULOS[nivel - 1]}`}>
+                    {inline(cabecera.texto, `${key}-h`)}
+                  </Etiqueta>
+                  {/* Lo que venga pegado debajo sin línea en blanco es el
+                      párrafo del título, no otro bloque. */}
+                  {lines.length > 1 && (
+                    <p className="my-3">{inline(lines.slice(1).join("\n"), `${key}-p`)}</p>
+                  )}
+                </div>
+              );
+            }
 
             if (lines.every((l) => /^\s*[-*]\s+/.test(l))) {
               return (

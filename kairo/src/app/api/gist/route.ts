@@ -102,12 +102,17 @@ export async function POST(req: Request) {
 
   /* El saldo que queda, para que la pantalla lo ponga al día sin tener
      que recargarla. Lo dice la base de datos después de cobrar, que es
-     la única que sabe cuánto queda de verdad. */
+     la única que sabe cuánto queda de verdad.
+ 
+     Y si no lo dice, NO se manda. Una respuesta vacía no es un saldo de
+     cero: poniendo cero "por si acaso", la pantalla se quedaría creyendo
+     que no te quedan créditos y te bloquearía el siguiente mensaje con
+     el saldo intacto en la base de datos. */
   const fila = Array.isArray(cobro) ? cobro[0] : cobro;
-  const saldo = {
-    creditos: fila?.creditos ?? 0,
-    creditosExtra: fila?.creditos_extra ?? 0,
-  };
+  const saldo =
+    typeof fila?.creditos === "number"
+      ? { creditos: fila.creditos, creditosExtra: fila.creditos_extra ?? 0 }
+      : null;
 
   const f: Ficha = resultado.ficha;
   const { data, error } = await supabase

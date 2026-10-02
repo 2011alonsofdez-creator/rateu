@@ -84,21 +84,24 @@ export function ChatDeApunte({
     setError(false);
     setTrabajando(true);
 
-    const { mensajes, paraElModelo } = paraElServidor(turnos, pregunta, apunte);
+    const { mensajes } = paraElServidor(turnos, pregunta, apunte);
 
     setTexto("");
-    setTurnos((v) => [
-      ...v,
-      { rol: "user", texto: pregunta, modelo: paraElModelo },
-      { rol: "kairo", texto: "" },
-    ]);
+    setTurnos((v) => [...v, { rol: "user", texto: pregunta }, { rol: "kairo", texto: "" }]);
 
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          nivel: "auto",
+          /* Nivel fijo y no "automático".
+ 
+             En automático lo elige el servidor por el texto, y aquí el
+             texto va a ser casi siempre una pregunta corta sobre un
+             resumen largo: saldría el nivel más barato justo cuando hay
+             doce mil caracteres que leer con cuidado. Estándar es el
+             mismo que cuesta hacer la ficha, así que no hay sorpresa. */
+          nivel: "normal",
           conversacionId: conversacion,
           mensajes,
         }),

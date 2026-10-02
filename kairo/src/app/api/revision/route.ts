@@ -79,13 +79,20 @@ export async function GET() {
   const supabase = await clienteServidor().catch(() => null);
 
   let perfil: string | null = null;
+  /* El modo de edad, que decide algo que no se ve por ningún lado: con
+     él sin fijar, Kairo descarta todos los modelos que no son de Gemini.
+     Es decir, se puede pagar una clave de Claude, ponerla bien, y que no
+     se use nunca sin que nada lo diga. */
+  let modoEdad: string | null = null;
+
   if (supabase) {
     const { data } = await supabase
       .from("perfiles")
-      .select("id")
+      .select("id, modo_edad")
       .limit(1)
-      .maybeSingle<{ id: string }>();
+      .maybeSingle<{ id: string; modo_edad: string | null }>();
     perfil = data?.id ?? null;
+    modoEdad = data?.modo_edad ?? null;
   }
 
   try {
@@ -101,6 +108,7 @@ export async function GET() {
         demo: !hasSupabase,
         dominio: SUPABASE_HOST || null,
         con_sesion: Boolean(perfil),
+        modo_edad: modoEdad,
         /* Los nombres con los que han llegado las variables, para poder
            ver de un vistazo si alguna está escrita de otra forma. */
         variables: variablesDeSupabase(),
