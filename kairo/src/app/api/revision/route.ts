@@ -1,6 +1,7 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { revisarSalud } from "@/lib/coworks/salud";
 import { DE_DONDE, SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
+import { mirarCerebros } from "@/lib/ia/cerebros";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -103,6 +104,12 @@ export async function GET() {
         /* Los nombres con los que han llegado las variables, para poder
            ver de un vistazo si alguna está escrita de otra forma. */
         variables: variablesDeSupabase(),
+        /* Qué cerebros hay puestos y con qué modelo. De las claves solo
+           si están; del nombre del modelo sí el valor, porque el fallo
+           que hay que cazar es precisamente ese y sin verlo escrito no
+           se caza. Lo que no tenga pinta de nombre de modelo no sale:
+           ver cerebros.ts. */
+        cerebros: mirarCerebros(),
         de_donde: DE_DONDE,
         commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
         cuando: new Date().toISOString(),

@@ -8,10 +8,19 @@ import { useCredits } from "@/lib/credits";
 import { Markdown } from "@/components/Markdown";
 import { Fuentes } from "@/components/Fuentes";
 import { Marca } from "@/components/Logo";
-import { Arrow, Chat as ChatIcon, Close, Fichas as IconoFichas, Trash } from "@/components/Icons";
+import {
+  Arrow,
+  Chat as ChatIcon,
+  Close,
+  Copy,
+  Descarga,
+  Fichas as IconoFichas,
+  Trash,
+} from "@/components/Icons";
 import type { Fuente } from "@/lib/tipos";
-import { GistChat } from "@/components/GistChat";
-import { comienzoDe, enlaceConMinuto, idDeYoutube } from "@/lib/fichas";
+import { ChatDeApunte } from "@/components/ChatDeApunte";
+import { comienzoDe, enlaceConMinuto, idDeYoutube, textoDeFicha } from "@/lib/fichas";
+import { copiarTexto, descargarTexto } from "@/lib/copiar";
 
 /* Gist: los apuntes de un enlace, guardados.
  *
@@ -96,6 +105,7 @@ export default function GistPage() {
   const [error, setError] = useState<string>();
   const [falta, setFalta] = useState(false);
   const [abierta, setAbierta] = useState<Ficha | null>(null);
+  const [copiado, setCopiado] = useState(false);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -188,6 +198,17 @@ export default function GistPage() {
 
   /** La marca de tiempo. En un vídeo es un botón que salta a ese
    *  momento; en una página es solo la etiqueta del apartado. */
+  /* Llevarse los apuntes fuera de Kairo. Un resumen que solo se puede
+     leer aquí dentro sirve la mitad: lo normal es quererlo en los
+     apuntes, en un documento o pegado en un mensaje. */
+  const copiarFicha = async () => {
+    if (!abierta) return;
+    if (await copiarTexto(textoDeFicha(abierta))) {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  };
+
   const minuto = (marca: string) => {
     if (!abierta) return null;
     const salta = esVideo && comienzoDe(marca) !== null;
@@ -387,6 +408,20 @@ export default function GistPage() {
                   {t("gist.ask")}
                 </button>
                 <button
+                  onClick={() => void copiarFicha()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-muted transition hover:border-line-hi hover:text-fg"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {copiado ? t("gist.copied") : t("gist.copy")}
+                </button>
+                <button
+                  onClick={() => descargarTexto(abierta.titulo, textoDeFicha(abierta))}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-muted transition hover:border-line-hi hover:text-fg"
+                >
+                  <Descarga className="h-3.5 w-3.5" />
+                  {t("gist.download")}
+                </button>
+                <button
                   onClick={() => borrar(abierta)}
                   className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-faint transition hover:border-line-hi hover:text-fg"
                 >
@@ -465,13 +500,19 @@ export default function GistPage() {
 
               {/* Preguntar donde está el resumen, sin tener que irse al
                   chat a explicarle otra vez de qué vídeo hablas. */}
-              {perfil.demo ? (
+              {perfil.demo && (
                 <p className="mt-6 rounded-xl border border-gold/30 bg-gold/10 p-3.5 text-[13px] leading-relaxed text-gold">
                   {t("gist.demoCard")}
                 </p>
-              ) : (
-                <GistChat ficha={abierta} />
               )}
+              <ChatDeApunte
+                id={abierta.id || abierta.url}
+                apunte={{
+                  titulo: abierta.titulo,
+                  enlace: abierta.url,
+                  contenido: textoDeFicha(abierta),
+                }}
+              />
             </div>
           </div>
         </div>

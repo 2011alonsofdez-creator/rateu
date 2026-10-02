@@ -83,6 +83,12 @@ export const Copy = ({ className, style }: P) => (
     <path d="M5.5 15H5a1.5 1.5 0 01-1.5-1.5V5A1.5 1.5 0 015 3.5h8.5A1.5 1.5 0 0115 5v.5" />
   </svg>
 );
+/* Una flecha hacia abajo con suelo: descargar. */
+export const Descarga = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <path d="M12 4v10.5M7.5 10L12 14.5 16.5 10M4.5 19.5h15" />
+  </svg>
+);
 export const Refresh = ({ className, style }: P) => (
   <svg {...base(className)} style={style}>
     <path d="M20 12a8 8 0 11-2.6-5.9M20 4v4.5h-4.5" />

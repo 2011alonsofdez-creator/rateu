@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useUi } from "@/lib/i18n";
+import { useUi, type TKey } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useCredits } from "@/lib/credits";
 import { Markdown } from "./Markdown";
 import { Marca } from "./Logo";
 import { Send } from "./Icons";
-import { paraElServidor, type Turno } from "@/lib/charla-ficha";
+import { paraElServidor, type Apunte, type Turno } from "@/lib/charla-apunte";
 
-/* EL CHAT PEQUEÑO DE LA FICHA.
+/* EL CHAT PEQUEÑO DE UNOS APUNTES.
  *
  * Nace de algo que pasaba siempre: acabas de leer el resumen de un
  * vídeo de cuarenta minutos, te queda una duda de dos líneas, y para
@@ -25,10 +25,21 @@ import { paraElServidor, type Turno } from "@/lib/charla-ficha";
  * invisible sería justo lo que nadie pide.
  */
 
-export function GistChat({
-  ficha,
+export function ChatDeApunte({
+  id,
+  apunte,
+  ejemplo = "gist.miniPlaceholder",
+  entradilla = "gist.miniLead",
 }: {
-  ficha: { id: string; titulo: string; url: string; resumen: string };
+  /** Qué apuntes son. Al cambiar, la charla empieza de cero: lo de
+   *  antes no tiene nada que ver con esto. */
+  id: string;
+  apunte: Apunte;
+  /** El ejemplo que sale en la caja y la línea de debajo del título.
+   *  Cambian según de qué sean los apuntes: no se pregunta lo mismo
+   *  sobre un vídeo que sobre una multa. */
+  ejemplo?: TKey;
+  entradilla?: TKey;
 }) {
   const { t } = useUi();
   const perfil = usePerfil();
@@ -51,7 +62,7 @@ export function GistChat({
     setTurnos([]);
     setConversacion(null);
     setError(false);
-  }, [ficha.id, ficha.url]);
+  }, [id]);
 
   useEffect(() => {
     if (turnos.length) abajo.current?.scrollIntoView({ block: "nearest" });
@@ -73,7 +84,7 @@ export function GistChat({
     setError(false);
     setTrabajando(true);
 
-    const { mensajes, paraElModelo } = paraElServidor(turnos, pregunta, ficha);
+    const { mensajes, paraElModelo } = paraElServidor(turnos, pregunta, apunte);
 
     setTexto("");
     setTurnos((v) => [
@@ -155,7 +166,7 @@ export function GistChat({
         <Marca className="h-4 w-4 shrink-0" animada={trabajando} />
         {t("gist.mini")}
       </h3>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-faint">{t("gist.miniLead")}</p>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-faint">{t(entradilla)}</p>
 
       {turnos.length > 0 && (
         <div className="mt-3 space-y-3">
@@ -181,6 +192,15 @@ export function GistChat({
         </div>
       )}
 
+      {/* En la demostración la caja sale igual, apagada y con el motivo.
+          Esconderla sería esconder media función a quien está mirando si
+          le interesa; prometerla sin poder cumplirla sería peor. */}
+      {perfil.demo && (
+        <p className="mt-3 rounded-xl border border-gold/30 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
+          {t("apunte.demo")}
+        </p>
+      )}
+
       {error && <p className="mt-3 text-[13px] text-gold">{t("gist.miniFailed")}</p>}
 
       <div className="mt-3 flex gap-2">
@@ -188,7 +208,7 @@ export function GistChat({
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && void preguntar()}
-          placeholder={t("gist.miniPlaceholder")}
+          placeholder={t(ejemplo)}
           aria-label={t("gist.mini")}
           disabled={perfil.demo || trabajando}
           maxLength={2000}

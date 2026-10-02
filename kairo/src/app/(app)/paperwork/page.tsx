@@ -8,7 +8,8 @@ import { prepararArchivo, tamano } from "@/lib/archivos";
 import { ADJUNTOS, esImagen, type Adjunto } from "@/lib/tipos";
 import { Marca } from "@/components/Logo";
 import { Check, Clip, Close, Copy, Papel as IconoPapel, Trash } from "@/components/Icons";
-import { diasHasta } from "@/lib/fichas";
+import { diasHasta, textoDePapel } from "@/lib/fichas";
+import { ChatDeApunte } from "@/components/ChatDeApunte";
 
 /* Paperwork: qué es este papel y para cuándo.
  *
@@ -381,6 +382,19 @@ export default function PaperworkPage() {
               </div>
 
               <p className="mt-4 text-[11.5px] leading-relaxed text-faint">{t("paper.notLegal")}</p>
+
+              {/* Preguntar sobre el papel donde está el papel.
+                  Es donde más falta hace: un papel oficial se entiende a
+                  medias casi siempre, y la duda es de una línea («¿esto
+                  lo puedo pagar a plazos?»). Tener que irse al chat y
+                  volver a contar de qué carta hablas es justo lo que
+                  hace que no se pregunte. */}
+              <ChatDeApunte
+                id={abierto.id}
+                apunte={{ titulo: abierto.titulo, contenido: textoDePapel(abierto) }}
+                ejemplo="paper.miniPlaceholder"
+                entradilla="paper.miniLead"
+              />
             </div>
           </div>
         </div>

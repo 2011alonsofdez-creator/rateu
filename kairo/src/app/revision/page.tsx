@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Shield } from "@/components/Icons";
+import { copiarTexto } from "@/lib/copiar";
 
 /* «REVISIÓN»: la pantalla que dice qué está roto y qué hay que pulsar.
  *
@@ -34,6 +35,22 @@ type Punto = {
 
 type Variable = { nombre: string; pinta: string };
 
+type Modelo = {
+  variable: string;
+  nivel: string;
+  valor: string | null;
+  puesta: boolean;
+  sospechosa: boolean;
+};
+
+type Cerebros = {
+  gemini: number;
+  claude: boolean;
+  gpt: boolean;
+  extra: boolean;
+  modelos: Modelo[];
+};
+
 type Prueba = {
   pregunta: string;
   dispara_busqueda: boolean;
@@ -55,6 +72,7 @@ type Revision = {
   dominio: string | null;
   con_sesion: boolean;
   variables?: Variable[];
+  cerebros?: Cerebros;
   de_donde?: { url: string; clave: string };
   commit: string | null;
   cuando: string;
@@ -169,15 +187,12 @@ export default function RevisionPage() {
       .join("\n");
 
   const copiar = async (r: Revision) => {
-    const texto = paraCopiar(r);
-    try {
-      await navigator.clipboard.writeText(texto);
+    /* Con el repuesto de siempre dentro: en algún navegador del móvil el
+       camino moderno no va, y entonces se copia por el otro. Si tampoco,
+       abajo está el texto a la vista para seleccionarlo a mano. */
+    if (await copiarTexto(paraCopiar(r))) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
-    } catch {
-      /* Sin permiso para el portapapeles (pasa en algún navegador del
-         móvil): se selecciona el texto de abajo y se copia a mano. */
-      setCopiado(false);
     }
   };
 
@@ -361,6 +376,12 @@ export default function RevisionPage() {
               )}
             </div>
 
+            {/* CÓMO HACER QUE CONTESTE MEJOR.
+                Va aquí, debajo de lo que está roto y antes de la prueba
+                de búsqueda, porque no es una avería: es lo que se puede
+                mejorar cuando ya no hay nada roto. */}
+            {revision.cerebros && <Cerebros c={revision.cerebros} />}
+
             {/* PROBAR LA BÚSQUEDA.
                 Va después de todo porque no es parte de la revisión: es
                 para cuando Kairo contesta con datos viejos, que es un
@@ -467,6 +488,163 @@ export default function RevisionPage() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Un botón que copia un trozo de texto y dice si ha podido. */
+function Copiar({ texto }: { texto: string }) {
+  const [estado, setEstado] = useState<"" | "si" | "no">("");
+
+  return (
+    <button
+      onClick={async () => {
+        const fue = await copiarTexto(texto);
+        setEstado(fue ? "si" : "no");
+        setTimeout(() => setEstado(""), 2000);
+      }}
+      className="shrink-0 rounded-md border border-line px-2 py-0.5 text-[11.5px] text-muted transition hover:border-line-hi hover:text-fg"
+    >
+      {estado === "si" ? "copiado" : estado === "no" ? "cópialo a mano" : "copiar"}
+    </button>
+  );
+}
+
+/** Un nombre de variable con su botón de copiar. */
+function Variable({ nombre, valor }: { nombre: string; valor?: string }) {
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+      <code className="rounded-md border border-line bg-bg-soft px-1.5 py-0.5 font-mono text-[12px]">
+        {nombre}
+      </code>
+      <Copiar texto={nombre} />
+      {valor !== undefined && (
+        <>
+          <span className="text-[12px] text-faint">valor:</span>
+          <code className="rounded-md border border-line bg-bg-soft px-1.5 py-0.5 font-mono text-[12px]">
+            {valor}
+          </code>
+          <Copiar texto={valor} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* PARA QUE CONTESTE MEJOR.
+ *
+ * No es un diagnóstico: es la única cosa que de verdad cambia la
+ * calidad de las respuestas, escrita como se puede seguir —paso a paso,
+ * con el nombre exacto a copiar y dónde pegarlo— en vez de como se
+ * explica normalmente, que es «pon la clave de Anthropic» y a ver cómo
+ * te apañas.
+ *
+ * Y sin pedir ninguna clave por ningún sitio. La clave se pega en
+ * Vercel, no aquí, y no hace falta enseñársela a nadie.
+ */
+function Cerebros({ c }: { c: Cerebros }) {
+  const estandar = c.modelos.find((m) => m.variable === "KAIRO_MODELO_ESTANDAR");
+  const yaEsta = c.claude && estandar?.valor?.startsWith("claude:");
+  const raros = c.modelos.filter((m) => m.sospechosa);
+
+  return (
+    <div className="rounded-2xl border border-line bg-panel p-5">
+      <p className="text-[15px] font-semibold">🧠 Para que conteste mejor</p>
+
+      {/* Qué hay puesto ahora mismo. */}
+      <ul className="mt-3 space-y-1 text-[13.5px] text-muted">
+        <li>
+          {c.gemini > 0 ? "✅" : "❌"} Gemini:{" "}
+          {c.gemini === 0
+            ? "ninguna clave"
+            : c.gemini === 1
+              ? "1 clave (la cuota gratuita se agota en un rato)"
+              : `${c.gemini} claves`}
+        </li>
+        <li>
+          {c.claude ? "✅" : "⬜"} Claude: {c.claude ? "conectado" : "sin conectar"}
+        </li>
+        {c.gpt && <li>✅ GPT: conectado</li>}
+        <li>
+          {estandar?.valor ? "✅" : "⬜"} Nivel Estándar:{" "}
+          {estandar?.valor ?? (estandar?.puesta ? "hay algo puesto" : "el que venga de fábrica")}
+        </li>
+      </ul>
+
+      {/* Una clave pegada en la casilla del modelo: el mismo fallo que
+          costó media semana con la dirección de Supabase. */}
+      {raros.length > 0 && (
+        <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
+          Hay algo puesto en {raros.map((m) => m.variable).join(", ")} que{" "}
+          <strong>no tiene pinta de nombre de modelo</strong> (no lo enseño por si acaso es una
+          clave). Un nombre de modelo se escribe así:{" "}
+          <code className="font-mono">claude:claude-sonnet-5-5</code>, con el proveedor delante y
+          dos puntos. Si ahí has pegado una clave, bórralo: ahí no va.
+        </div>
+      )}
+
+      {yaEsta ? (
+        <p className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-[13.5px] leading-relaxed text-emerald-400">
+          Ya está: el nivel Estándar contesta con Claude. Lo que escribas en el chat con el nivel
+          en automático o en Estándar sale de ahí.
+        </p>
+      ) : (
+        <>
+          <p className="mt-4 text-[13.5px] leading-relaxed text-muted">
+            Ahora mismo contesta Gemini. Para que conteste Claude hacen falta dos variables y un
+            redespliegue. <strong className="text-fg">No me enseñes la clave</strong>: se pega en
+            Vercel y no hace falta que la vea nadie.
+          </p>
+
+          <ol className="mt-3 space-y-3 text-[13.5px] leading-relaxed">
+            <li>
+              <strong>1.</strong> Entra en{" "}
+              <a
+                href="https://console.anthropic.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-acento underline underline-offset-2"
+              >
+                console.anthropic.com
+              </a>{" "}
+              y crea la cuenta con tu correo.
+            </li>
+            <li>
+              <strong>2.</strong> Arriba a la izquierda, <em>Billing</em> → <em>Add credits</em>. No
+              es una suscripción: metes saldo y se va gastando. Con 5 $ tienes para un mes largo.
+            </li>
+            <li>
+              <strong>3.</strong> <em>API keys</em> → <em>Create key</em>. Cópiala en ese momento,
+              porque después ya no se puede volver a ver.
+            </li>
+            <li>
+              <strong>4.</strong> En Vercel: tu proyecto → <em>Settings</em> →{" "}
+              <em>Environment Variables</em> → <em>Add New</em>. Hay que añadir estas dos:
+              <Variable nombre="ANTHROPIC_API_KEY" />
+              <p className="mt-0.5 text-[12.5px] text-faint">
+                …y de valor, la clave del paso 3. Esa no la copies de aquí, claro.
+              </p>
+              <Variable nombre="KAIRO_MODELO_ESTANDAR" valor="claude:claude-sonnet-5-5" />
+            </li>
+            <li>
+              <strong>5.</strong> <em>Deployments</em> → el primero de la lista → los tres puntos →{" "}
+              <em>Redeploy</em>. Sin esto no sirve de nada: las variables solo entran al volver a
+              desplegar.
+            </li>
+            <li>
+              <strong>6.</strong> Vuelve aquí y recarga. Si arriba pone «Claude: conectado», ya
+              está.
+            </li>
+          </ol>
+
+          <p className="mt-4 text-[12.5px] leading-relaxed text-faint">
+            Si se te va de precio, cambia el valor del paso 4 por{" "}
+            <code className="font-mono">claude:claude-haiku-4-5</code>: cuesta la quinta parte y
+            sigue siendo bastante mejor que lo de ahora. Y esto{" "}
+            <strong>no arregla los vídeos</strong>: el que ve vídeos es Gemini, Claude no puede.
+          </p>
+        </>
+      )}
     </div>
   );
 }
