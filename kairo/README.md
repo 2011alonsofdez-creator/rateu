@@ -98,6 +98,20 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
     Gist, no solo en el historial del chat.
   - Solo YouTube: es el único sitio del que Gemini puede ver un vídeo pasándole
     la dirección. De TikTok o Instagram no, y por eso no se ofrece.
+  - **Copiar y descargar**: la ficha sale en texto plano, sin markdown, para
+    pegarla en unos apuntes. El nombre del archivo va sin tildes a propósito:
+    con ellas, Chrome se salta el nombre entero y guarda un «download» sin
+    extensión, sin avisar.
+- **Paperwork** tiene el mismo chat pequeño dentro de cada papel: una duda de
+  una línea sobre una multa se pregunta ahí, con el papel delante, en vez de
+  tener que irse al chat y volver a contar de qué carta se habla.
+- **Revisión** (`/revision`) ahora trae, además del diagnóstico, los pasos
+  exactos para conectar Claude: dónde se crea la clave, qué dos variables hay
+  que poner —con su botón de copiar—, que hay que volver a desplegar y cómo
+  saber si ha entrado. La clave se pega en Vercel y no hace falta enseñársela a
+  nadie. Y si en `KAIRO_MODELO_*` hay algo que no tiene pinta de nombre de
+  modelo, lo dice sin enseñarlo: es el mismo fallo que costó media semana con
+  la dirección de Supabase, una clave pegada en la casilla equivocada.
 - **Paperwork**: subes la foto de un papel oficial y sale qué es, qué quieren,
   cuánto, para cuándo y qué pasa si no haces nada, ordenado por urgencia.
 - **Un nivel que el plan no incluye aparece bloqueado**, no da error después.

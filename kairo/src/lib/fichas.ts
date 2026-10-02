@@ -87,3 +87,68 @@ export function diasHasta(fecha: string | null, hoy = new Date()): number | null
 
   return Math.round((limite - hoyUtc) / 86_400_000);
 }
+
+/* LA FICHA EN TEXTO PLANO, PARA LLEVÁRSELA.
+ *
+ * Un resumen que solo se puede leer dentro de Kairo sirve la mitad: lo
+ * normal es quererlo en los apuntes, en un documento o pegado en un
+ * mensaje. Y ahí el markdown estorba más que ayuda, así que esto sale
+ * en texto corriente, con los minutos delante de cada parte.
+ */
+export function textoDeFicha(f: {
+  titulo: string;
+  autor: string;
+  url: string;
+  resumen: string;
+  puntos?: { marca: string; texto: string; titulo?: string }[] | null;
+}): string {
+  const partes = (f.puntos ?? []).filter((p) => p.titulo);
+
+  const cuerpo = partes.length
+    ? partes.map((p) => `${p.marca} — ${p.titulo}\n${p.texto}`).join("\n\n")
+    : [
+        /* Una ficha de las de antes: el resumen seguido, y las ideas
+           sueltas detrás. Se le quita el markdown, que pegado en un
+           documento se lee como ruido. */
+        f.resumen.replace(/^#{1,6}\s+/gm, "").replace(/\*\*/g, "").trim(),
+        ...(f.puntos ?? []).map((p) => (p.marca ? `${p.marca} — ${p.texto}` : `· ${p.texto}`)),
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
+  return [f.titulo, [f.autor, f.url].filter(Boolean).join(" · "), "", cuerpo].join("\n").trim();
+}
+
+/** El papel en texto, para preguntarle sobre él o llevárselo.
+ *
+ *  Lo mismo que `textoDeFicha` pero para Paperwork: lo que importa de
+ *  un papel oficial no es el texto escaneado, es qué quieren, cuánto y
+ *  para cuándo. Eso es lo que va aquí, y en ese orden. */
+export function textoDePapel(p: {
+  titulo: string;
+  remitente: string;
+  de_que_va: string;
+  que_quieren: string;
+  importe: string;
+  fecha_limite: string | null;
+  consecuencias: string;
+  pasos?: string[] | null;
+}): string {
+  const linea = (nombre: string, valor: string) => (valor.trim() ? `${nombre}: ${valor}` : "");
+
+  return [
+    p.titulo,
+    linea("De", p.remitente),
+    "",
+    p.de_que_va,
+    "",
+    linea("Qué quieren", p.que_quieren),
+    linea("Importe", p.importe),
+    linea("Fecha límite", p.fecha_limite ?? ""),
+    linea("Si no haces nada", p.consecuencias),
+    ...(p.pasos?.length ? ["", "Pasos:", ...p.pasos.map((x, i) => `${i + 1}. ${x}`)] : []),
+  ]
+    .filter((l, i, todas) => l !== "" || (todas[i + 1] ?? "") !== "")
+    .join("\n")
+    .trim();
+}
