@@ -36,27 +36,32 @@ const parece = (v: string) => v.length > 0 && !/\s/.test(v);
 /* Los nombres se escriben enteros y a mano, uno por línea, por lo mismo
    de siempre: `process.env.X` no es una lectura, es un hueco que se
    rellena al compilar, y escrito de otra forma no se rellena. */
-function crudas(): string[] {
+function crudas(env: Entorno): string[] {
   return [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
+    env.GEMINI_API_KEY,
+    env.GEMINI_API_KEY_2,
+    env.GEMINI_API_KEY_3,
     /* Y todas juntas separadas por comas, que es como se hace cuando son
        varias y no se quiere una variable por cada una. */
-    ...(process.env.GEMINI_API_KEYS ?? "").split(","),
+    ...(env.GEMINI_API_KEYS ?? "").split(","),
   ].map((v) => (v ?? "").trim());
 }
+
+/** De dónde se leen. Casi siempre del entorno; se puede pasar otro para
+ *  poder contarlas desde una pantalla sin repetir estas reglas, que es
+ *  como se acaba diciendo "2 claves" cuando solo se usa una. */
+export type Entorno = Record<string, string | undefined>;
 
 /** Las claves de Gemini, en orden y sin repetidas.
  *
  *  Sin repetidas porque una clave puesta dos veces no es una clave de
  *  repuesto: es el mismo cupo agotado, intentado dos veces, esperando
  *  dos veces. */
-export function clavesDeGemini(): string[] {
+export function clavesDeGemini(env: Entorno = process.env): string[] {
   const vistas = new Set<string>();
   const buenas: string[] = [];
 
-  for (const v of crudas()) {
+  for (const v of crudas(env)) {
     if (!parece(v) || vistas.has(v)) continue;
     vistas.add(v);
     buenas.push(v);

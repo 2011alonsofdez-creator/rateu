@@ -296,11 +296,19 @@ export function leerFicha(texto: string): {
   }
 
   /* Si el modelo no ha respetado el formato, lo escrito no se tira: se
-     queda entero como resumen. Peor sería enseñar una ficha vacía. */
+     queda entero como resumen. Peor sería enseñar una ficha vacía.
+ 
+     Pero sin las etiquetas del formato dentro. Un vídeo ya no pide
+     ningún apartado RESUMEN, así que cuando las partes no se dejan leer
+     el respaldo es la respuesta en crudo —y en crudo lleva dentro
+     "TITULO:", "AUTOR:" y "PARTES:", que es el andamiaje de la
+     petición, no algo que nadie quiera leer. */
+  const enCrudo = limpio.replace(/^\s*(TITULO|AUTOR|RESUMEN|PARTES|PUNTOS):[ \t]*/gim, "").trim();
+
   return {
     titulo: titulo.slice(0, 300),
     autor: autor.slice(0, 200),
-    resumen: (resumen || limpio).slice(0, 40000),
+    resumen: (resumen || enCrudo).slice(0, 40000),
     puntos,
     partes,
   };
@@ -359,6 +367,16 @@ export async function resumir(
              resumen seguido, y lo que se corta por el techo no avisa:
              sale una ficha que se acaba en el minuto veinte. */
           maxOutputTokens: 16384,
+          /* Y EL PENSAMIENTO, CON TOPE.
+ 
+             En Gemini lo que el modelo piensa se descuenta del mismo
+             techo que lo que escribe. Sin tope, puede gastárselo entero
+             pensando y devolver cero texto: ni error, ni excepción,
+             nada. Desde fuera se lee como "no he podido ver el vídeo", y
+             además se reintenta con los otros tres modelos, así que un
+             minuto de espera para nada. Ya pasó una vez en la búsqueda y
+             costó media mañana encontrarlo. */
+          thinkingConfig: { thinkingBudget: 2048 },
           // Para leer una página hay que poder abrirla y, si hace falta,
           // buscar. Un vídeo se ve solo, así que ahí no hacen falta.
           ...(tipo === "web"

@@ -94,8 +94,10 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
   - Y en el chat, **pegar un enlace de YouTube no dispara nada**: sale una
     tarjeta preguntando si quieres el resumen y en qué idioma. Ver un vídeo
     tarda casi un minuto y cuesta créditos, y la mitad de las veces lo que se
-    pega es «¿esto es verdad?». El resumen que salga de ahí queda guardado en
-    Gist, no solo en el historial del chat.
+    pega es «¿esto es verdad?». El resumen que salga de ahí **se guarda en
+    Gist**, y el chat lo enseña con un enlace: esa respuesta no pasa por
+    `/api/chat`, así que no queda en el historial de conversaciones —si
+    recargas, el sitio donde está es Gist—.
   - Solo YouTube: es el único sitio del que Gemini puede ver un vídeo pasándole
     la dirección. De TikTok o Instagram no, y por eso no se ofrece.
   - **Copiar y descargar**: la ficha sale en texto plano, sin markdown, para

@@ -88,6 +88,34 @@ const EJEMPLO: Ficha = {
   creada_el: new Date().toISOString(),
 };
 
+/* Y una página, que no se cuenta por minutos: ahí el resumen es un
+   texto seguido con sus apartados. Las dos formas existen y las dos se
+   pintan distinto, así que las dos tienen que verse. */
+const EJEMPLO_WEB: Ficha = {
+  id: "demo-2",
+  tipo: "web",
+  url: "https://ejemplo.com/un-articulo",
+  titulo: "Y así queda una página leída",
+  autor: "Ejemplo",
+  resumen: `## Lo que defiende
+
+Una página no tiene minutos, así que el resumen va **seguido**, con sus
+apartados, y se puede leer sin abrir el original.
+
+## Cómo lo argumenta
+
+Con los datos del propio texto y nada más. Si hace falta, Kairo abre el
+enlace y busca lo que no esté claro, y lo que consulte queda apuntado
+debajo.`,
+  puntos: [
+    { marca: "Introducción", texto: "De qué va y para quién está escrito." },
+    { marca: "Cap. 2", texto: "El argumento principal, con sus datos." },
+  ],
+  fuentes: [],
+  modelo: null,
+  creada_el: new Date().toISOString(),
+};
+
 export default function GistPage() {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -110,7 +138,7 @@ export default function GistPage() {
 
   useEffect(() => {
     if (perfil.demo) {
-      setFichas([EJEMPLO]);
+      setFichas([EJEMPLO, EJEMPLO_WEB]);
       setCargando(false);
       return;
     }
@@ -161,8 +189,15 @@ export default function GistPage() {
       setUrl("");
       setAbierta(j.ficha as Ficha);
       if (!j.guardada) setFalta(true);
-      // El saldo ha bajado: que la barra lateral se entere.
-      router.refresh();
+
+      /* El saldo ha bajado y lo dice el servidor. Antes aquí se llamaba
+         a `router.refresh()`, que no servía: el contador de créditos lo
+         lleva un componente de cliente y volver a pintar en el servidor
+         no lo toca, así que la barra lateral seguía con el número viejo
+         hasta recargar la página. */
+      if (j.saldo) {
+        sincronizar(Number(j.saldo.creditos ?? 0), Number(j.saldo.creditosExtra ?? 0));
+      }
     } catch {
       setError("err.red");
     } finally {
@@ -180,9 +215,14 @@ export default function GistPage() {
      de mandarla: casi siempre quieres añadirle algo tuyo antes. */
   const preguntar = (f: Ficha) => {
     try {
+      /* Sin la dirección dentro, a propósito: el chat se fija en si
+         pegas un enlace de YouTube para ofrecerte el resumen, y aquí
+         ofrecerlo sería volver a ver un vídeo que acabas de resumir —un
+         minuto de espera y cuatro créditos para repetir lo que ya
+         tienes dos pantallas más atrás—. */
       sessionStorage.setItem(
         "kairo.borrador",
-        `Sobre "${f.titulo}" (${f.url}), que ya has resumido:\n\n`,
+        `Sobre "${f.titulo}", que ya me has resumido:\n\n`,
       );
     } catch {
       /* sin memoria: se abre el chat vacío y ya está */

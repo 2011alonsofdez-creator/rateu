@@ -16,6 +16,8 @@
  * eso mismo y no se enseña: que es, además, la pista que hacía falta.
  */
 
+import { clavesDeGemini, type Entorno } from "./claves";
+
 /** Los proveedores que Kairo entiende delante de los dos puntos. */
 const PROVEEDORES = ["gemini", "claude", "gpt", "extra"] as const;
 
@@ -30,11 +32,19 @@ const PINTA_DE_CLAVE = /^(aiza|sk-|sk_|eyj|sb_|sbp_|sbs_|ghp_|gho_|xox|hf_|AKIA)
 export function seguroDeEnsenar(valor: string): boolean {
   const v = valor.trim();
   if (!v || v.length > 45) return false;
-  if (PINTA_DE_CLAVE.test(v)) return false;
 
   const corte = v.indexOf(":");
   const cabeza = corte === -1 ? "" : v.slice(0, corte).toLowerCase();
   const cola = corte === -1 ? v : v.slice(corte + 1);
+
+  /* La comprobación de "esto tiene pinta de clave" se hace sobre LAS DOS
+     partes, no sobre el valor entero.
+ 
+     Mirando solo el entero, un "gpt:sk-proj-abc123" se escapaba: la
+     comprobación está anclada al principio, veía "gpt:" y no saltaba;
+     después "gpt" era un proveedor de verdad y "sk-proj-abc123" tenía
+     forma de nombre de modelo. Y esa pantalla se abre sin sesión. */
+  if (PINTA_DE_CLAVE.test(v) || PINTA_DE_CLAVE.test(cola)) return false;
 
   if (corte === -1) {
     /* Sin proveedor delante, Kairo entiende Gemini. Así que un nombre
@@ -56,8 +66,12 @@ export function seguroDeEnsenar(valor: string): boolean {
   if (!PROVEEDORES.includes(cabeza as (typeof PROVEEDORES)[number])) return false;
 
   /* Y el nombre del modelo lleva guiones. Ninguno no los lleva, y
-     pedirlo deja fuera de un plumazo casi todo lo que no es un modelo. */
-  return /^[a-z][a-z0-9.]*(-[a-z0-9.]+)+$/i.test(cola);
+     pedirlo deja fuera de un plumazo casi todo lo que no es un modelo.
+ 
+     La barra se admite porque un proveedor compatible los nombra así
+     —"meta-llama/Llama-3.3-70B-Instruct"— y sin ella la pantalla le
+     decía al dueño que borrara una configuración que funcionaba. */
+  return /^[a-z][a-z0-9.]*([/-][a-z0-9.]+)+$/i.test(cola);
 }
 
 export type Modelo = {
@@ -85,16 +99,14 @@ export type Cerebros = {
 const hay = (v: string | undefined) => (v ?? "").trim().length > 0;
 
 /** Qué hay puesto. Nunca el contenido de una clave. */
-export function mirarCerebros(env: Record<string, string | undefined> = process.env): Cerebros {
-  const deGemini = [
-    env.GEMINI_API_KEY,
-    env.GEMINI_API_KEY_2,
-    env.GEMINI_API_KEY_3,
-    ...(env.GEMINI_API_KEYS ?? "").split(","),
-  ].filter((v) => {
-    const t = (v ?? "").trim();
-    return t.length > 0 && !/\s/.test(t);
-  });
+export function mirarCerebros(env: Entorno = process.env): Cerebros {
+  /* Se cuentan con las MISMAS reglas que usa Kairo para elegirlas, no
+     con una copia parecida. Una copia contaba "2 claves" cuando una
+     venía con un espacio delante —la misma clave dos veces— y pasaba por
+     alto el tope, así que la pantalla decía 8 donde solo se prueban 5. Y
+     el único trabajo de esa pantalla es decir si de verdad hay cuota
+     repartida. */
+  const deGemini = clavesDeGemini(env);
 
   const modelo = (variable: string, nivel: string): Modelo => {
     const crudo = (env[variable] ?? "").trim();
@@ -109,7 +121,7 @@ export function mirarCerebros(env: Record<string, string | undefined> = process.
   };
 
   return {
-    gemini: new Set(deGemini).size,
+    gemini: deGemini.length,
     claude: hay(env.ANTHROPIC_API_KEY),
     gpt: hay(env.OPENAI_API_KEY),
     extra: hay(env.KAIRO_EXTRA_KEY),

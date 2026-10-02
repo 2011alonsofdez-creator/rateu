@@ -71,6 +71,7 @@ type Revision = {
   demo: boolean;
   dominio: string | null;
   con_sesion: boolean;
+  modo_edad: string | null;
   variables?: Variable[];
   cerebros?: Cerebros;
   de_donde?: { url: string; clave: string };
@@ -380,7 +381,12 @@ export default function RevisionPage() {
                 Va aquí, debajo de lo que está roto y antes de la prueba
                 de búsqueda, porque no es una avería: es lo que se puede
                 mejorar cuando ya no hay nada roto. */}
-            {revision.cerebros && <Cerebros c={revision.cerebros} />}
+            {revision.cerebros && (
+              <Cerebros
+                c={revision.cerebros}
+                sinModoEdad={revision.con_sesion && !revision.modo_edad}
+              />
+            )}
 
             {/* PROBAR LA BÚSQUEDA.
                 Va después de todo porque no es parte de la revisión: es
@@ -542,9 +548,9 @@ function Variable({ nombre, valor }: { nombre: string; valor?: string }) {
  * Y sin pedir ninguna clave por ningún sitio. La clave se pega en
  * Vercel, no aquí, y no hace falta enseñársela a nadie.
  */
-function Cerebros({ c }: { c: Cerebros }) {
+function Cerebros({ c, sinModoEdad }: { c: Cerebros; sinModoEdad: boolean }) {
   const estandar = c.modelos.find((m) => m.variable === "KAIRO_MODELO_ESTANDAR");
-  const yaEsta = c.claude && estandar?.valor?.startsWith("claude:");
+  const yaEsta = c.claude && estandar?.valor?.startsWith("claude:") && !sinModoEdad;
   const raros = c.modelos.filter((m) => m.sospechosa);
 
   return (
@@ -570,6 +576,23 @@ function Cerebros({ c }: { c: Cerebros }) {
           {estandar?.valor ?? (estandar?.puesta ? "hay algo puesto" : "el que venga de fábrica")}
         </li>
       </ul>
+
+      {/* EL AVISO QUE EVITA PAGAR PARA NADA.
+          Sin fecha de nacimiento en la cuenta, Kairo se pone en lo más
+          seguro y descarta todos los modelos que no son de Gemini. Así
+          que se puede seguir la guía entera, pagar los 5 $, poner la
+          clave bien… y que no se use nunca, sin que nada lo diga. */}
+      {sinModoEdad && (
+        <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
+          <strong>Antes de nada:</strong> tu cuenta no tiene fecha de nacimiento, y mientras no la
+          tenga Kairo solo usa modelos de Gemini — aunque pongas la clave de Claude. Se arregla en
+          Supabase → SQL Editor → Run, cambiando el correo por el tuyo:
+          <code className="mt-2 block overflow-x-auto rounded-lg border border-line bg-bg-soft p-2 font-mono text-[11.5px] text-fg">
+            update public.perfiles p set modo_edad = &apos;adulto&apos; from auth.users u where u.id
+            = p.auth_id and u.email = &apos;tu@correo.com&apos;;
+          </code>
+        </div>
+      )}
 
       {/* Una clave pegada en la casilla del modelo: el mismo fallo que
           costó media semana con la dirección de Supabase. */}

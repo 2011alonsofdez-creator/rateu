@@ -10,8 +10,13 @@
  * respuesta clara en los dos casos.
  */
 
-/** Cuánto se espera al camino moderno antes de tirar por el de siempre. */
-const PLAZO = 1200;
+/** Cuánto se espera al camino moderno antes de tirar por el de siempre.
+ *
+ *  Corto a propósito. El camino de repuesto solo funciona mientras dura
+ *  el "permiso" que da el navegador al pulsar un botón, y ese permiso se
+ *  agota esperando: cuanto más se espere al moderno, menos posibilidades
+ *  quedan de que el otro llegue a tiempo. */
+const PLAZO = 600;
 
 export async function copiarTexto(texto: string): Promise<boolean> {
   if (!texto) return false;
@@ -26,19 +31,29 @@ export async function copiarTexto(texto: string): Promise<boolean> {
     /* ahora el de siempre */
   }
 
+  const caja = document.createElement("textarea");
   try {
-    const caja = document.createElement("textarea");
     caja.value = texto;
     // Fuera de la pantalla, pero no oculta: lo oculto no se puede copiar.
     caja.style.position = "fixed";
     caja.style.left = "-9999px";
+    caja.setAttribute("readonly", "");
     document.body.appendChild(caja);
+
+    /* Seleccionar de las dos formas: `select()` a secas no hace nada en
+       Safari del iPhone, que es justo uno de los sitios donde hace falta
+       este camino. */
     caja.select();
-    const fue = document.execCommand("copy");
-    document.body.removeChild(caja);
-    return fue;
+    caja.setSelectionRange(0, texto.length);
+
+    return document.execCommand("copy");
   } catch {
     return false;
+  } finally {
+    /* Y la caja se quita PASE LO QUE PASE. Si `select()` o la copia
+       fallaban, antes se quedaba pegada al final de la página para
+       siempre, invisible pero ahí. */
+    caja.remove();
   }
 }
 
