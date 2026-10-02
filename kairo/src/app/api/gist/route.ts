@@ -1,6 +1,7 @@
 import { clienteServidor } from "@/lib/supabase/server";
-import { resumir, tipoDeUrl, type Ficha } from "@/lib/ia/gist";
+import { resumir, tipoDeUrl, type Ficha, type Idioma } from "@/lib/ia/gist";
 import { CREDITOS } from "@/lib/ia/config";
+import { limpiarFallo } from "@/lib/ia/fallos";
 import { faltaColumna } from "@/lib/supabase/compat";
 
 export const runtime = "nodejs";
@@ -57,6 +58,11 @@ export async function POST(req: Request) {
   const tipo = tipoDeUrl(url);
   if (!tipo) return fallo(400, "enlace_no_valido");
 
+  /* En qué idioma se quiere el resumen. Lo decide quien lee, no el
+     vídeo: uno en inglés resumido en inglés no le sirve a quien no lo
+     habla. Y si llega cualquier otra cosa en el cuerpo, español. */
+  const idioma: Idioma = cuerpo?.idioma === "original" ? "original" : "es";
+
   const { data: perfil } = await supabase
     .from("perfiles")
     .select("id, modo_edad, creditos, creditos_extra")
@@ -75,21 +81,33 @@ export async function POST(req: Request) {
 
   let resultado;
   try {
-    resultado = await resumir(url, tipo, perfil.modo_edad);
+    resultado = await resumir(url, tipo, perfil.modo_edad, idioma);
   } catch (e) {
     const mensaje = e instanceof Error ? e.message : String(e);
-    console.error("[kairo] gist:", mensaje);
+    /* Tachando antes lo que tenga pinta de clave: un "API key not valid:
+       AIza…" de Google deja la clave entera escrita en el registro del
+       servidor, y ese registro lo lee cualquiera que entre al panel. */
+    console.error("[kairo] gist:", limpiarFallo(e));
     if (mensaje === "sin_clave") return fallo(503, "sin_clave");
     return fallo(502, "no_se_ha_podido");
   }
 
   /* Se cobra DESPUÉS de tener la ficha: si el vídeo es privado, si la
      página no se deja leer o si el modelo falla, no se paga nada. */
-  const { error: errorCobro } = await supabase.rpc("gastar_creditos", {
+  const { data: cobro, error: errorCobro } = await supabase.rpc("gastar_creditos", {
     p_cantidad: coste,
     p_motivo: `gist ${tipo}`,
   });
   if (errorCobro) return fallo(402, "sin_creditos");
+
+  /* El saldo que queda, para que la pantalla lo ponga al día sin tener
+     que recargarla. Lo dice la base de datos después de cobrar, que es
+     la única que sabe cuánto queda de verdad. */
+  const fila = Array.isArray(cobro) ? cobro[0] : cobro;
+  const saldo = {
+    creditos: fila?.creditos ?? 0,
+    creditosExtra: fila?.creditos_extra ?? 0,
+  };
 
   const f: Ficha = resultado.ficha;
   const { data, error } = await supabase
@@ -111,10 +129,14 @@ export async function POST(req: Request) {
   if (error) {
     console.error("[kairo] no se guardó la ficha:", error.message);
     // La ficha está hecha y pagada: se devuelve aunque no se guarde.
-    return Response.json({ ficha: { ...f, id: "", creada_el: new Date().toISOString() }, guardada: false });
+    return Response.json({
+      ficha: { ...f, id: "", creada_el: new Date().toISOString() },
+      guardada: false,
+      saldo,
+    });
   }
 
-  return Response.json({ ficha: data, guardada: true });
+  return Response.json({ ficha: data, guardada: true, saldo });
 }
 
 export async function DELETE(req: Request) {

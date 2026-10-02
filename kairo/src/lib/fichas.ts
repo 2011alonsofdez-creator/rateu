@@ -38,11 +38,38 @@ export function segundosDe(marca: string): number | null {
   return partes.reduce((total, n) => total * 60 + n, 0);
 }
 
+/** Dónde empieza una marca, sea un minuto suelto ("12:30") o un tramo
+ *  ("12:30-15:40"). Los tramos llegaron con los resúmenes parte por
+ *  parte: cada parte ocupa un trozo del vídeo, no un instante. Lo que
+ *  interesa de un tramo es por dónde entrar. */
+export function comienzoDe(marca: string): number | null {
+  /* Se parte por el guion, pero no por cualquiera: los separadores de
+     tramo son el guion normal y las dos rayas largas. */
+  return segundosDe(marca.trim().split(/[-–—]/)[0] ?? "");
+}
+
 /** El enlace del vídeo, saltando al minuto exacto. */
 export function enlaceConMinuto(url: string, marca: string): string {
-  const s = segundosDe(marca);
+  const s = comienzoDe(marca);
   if (s === null || !idDeYoutube(url)) return url;
   return `${url}${url.includes("?") ? "&" : "?"}t=${s}s`;
+}
+
+/* Las direcciones sueltas dentro de un texto. El paréntesis y la coma
+   finales se quedan fuera: "mira (https://youtu.be/x)" no lleva el
+   paréntesis dentro del enlace, aunque pegado lo parezca. */
+const ENLACES = /https?:\/\/[^\s<>"'`]+/gi;
+
+/** El primer enlace de YouTube que haya en un texto, o null.
+ *
+ *  Hace falta porque nadie pega un enlace a secas: pega "mírate esto
+ *  https://youtu.be/x" y espera que se entienda igual. */
+export function primerEnlaceDeYoutube(texto: string): string | null {
+  for (const trozo of texto.match(ENLACES) ?? []) {
+    const limpio = trozo.replace(/[.,;:!?)\]}'"]+$/, "");
+    if (idDeYoutube(limpio)) return limpio;
+  }
+  return null;
 }
 
 /** Días naturales que faltan. Hoy = 0, ayer = -1. */

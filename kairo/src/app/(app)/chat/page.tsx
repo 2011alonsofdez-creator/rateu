@@ -12,6 +12,7 @@ import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz"
 import { borrarDesde } from "@/app/(app)/actions";
 import { esImagen, type Adjunto, type Fuente, type Mente, type MensajeGuardado } from "@/lib/tipos";
 import { tamano } from "@/lib/archivos";
+import { idDeYoutube, primerEnlaceDeYoutube } from "@/lib/fichas";
 import { Composer } from "@/components/Composer";
 import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
@@ -176,6 +177,19 @@ function Chat() {
   /** Segundos que el proveedor pide esperar, cuando los dice. */
   const [espera, setEspera] = useState<number>();
   const [noCredits, setNoCredits] = useState(false);
+  /* UN ENLACE DE VÍDEO ESPERANDO RESPUESTA.
+   *
+   * Pegar un enlace de YouTube no significa "resúmemelo": la mitad de
+   * las veces es "¿esto es verdad?" o "¿de qué va este canal?". Ver un
+   * vídeo entero tarda casi un minuto y cuesta créditos, así que no se
+   * hace por su cuenta: se pregunta.
+   *
+   * Y se guarda la lista de mensajes de ese momento, no solo el enlace:
+   * si dices que no, hay que poder seguir desde ahí sin volver a
+   * escribir la pregunta. */
+  const [video, setVideo] = useState<{ url: string; lista: Message[] } | null>(null);
+  const [resumiendo, setResumiendo] = useState(false);
+  const [falloVideo, setFalloVideo] = useState<TKey>();
   const bottom = useRef<HTMLDivElement>(null);
   const caja = useRef<HTMLDivElement>(null);
   /* ¿Está el usuario pegado al final? Mientras lo esté, la conversación
@@ -236,6 +250,10 @@ function Chat() {
     const c = params.get("c");
     if (c === puesta.current) return; // ya está en pantalla
     puesta.current = c;
+
+    // Otra conversación: el vídeo que estaba esperando no es de aquí.
+    setVideo(null);
+    setFalloVideo(undefined);
 
     if (!c) {
       setMessages([]);
@@ -362,6 +380,11 @@ function Chat() {
     const coste = costeMinimo;
     setError(undefined);
     setDetalle(undefined);
+    /* La pregunta de antes sobre un vídeo ya no viene al caso: su lista
+       de mensajes es la de hace dos preguntas y responderla ahora
+       borraría lo de en medio. */
+    setVideo(null);
+    setFalloVideo(undefined);
 
     // Comprobación rápida para no molestar al servidor en vano.
     // La que decide de verdad está en la base de datos.
@@ -381,7 +404,89 @@ function Chat() {
       },
     ];
     setMessages(conElMio);
+
+    /* ¿Lleva un vídeo de YouTube? Entonces no se contesta todavía: se
+       pregunta qué quieres. Con archivos adjuntos no, porque entonces
+       el enlace es parte de lo que estás mandando, no el tema.
+
+       En la demostración la tarjeta sale igual, sin los botones de
+       resumir: que exista se tiene que ver, pero prometer un resumen
+       que ahí no se puede hacer sería peor que no decir nada. */
+    const enlace = adjuntos.length ? null : primerEnlaceDeYoutube(texto);
+    if (enlace) {
+      setFalloVideo(undefined);
+      setVideo({ url: enlace, lista: conElMio });
+      return;
+    }
+
     await arrancarRespuesta(conElMio, false);
+  };
+
+  /* Que lo conteste sin ver el vídeo. La pregunta ya está en pantalla,
+     así que se sigue desde donde se dejó. */
+  const noVerVideo = async () => {
+    const pendiente = video;
+    if (!pendiente || resumiendo) return;
+    setVideo(null);
+    setFalloVideo(undefined);
+    await arrancarRespuesta(pendiente.lista, false);
+  };
+
+  /* Ver el vídeo y contarlo por partes.
+   *
+   * Lo hace la misma API que Gist, y por eso la ficha queda guardada:
+   * el resumen de un vídeo de cuarenta minutos no debería hundirse en
+   * el historial del chat a los dos días. */
+  const verVideo = async (idioma: "es" | "original") => {
+    const pendiente = video;
+    if (!pendiente || resumiendo) return;
+
+    setResumiendo(true);
+    setFalloVideo(undefined);
+
+    try {
+      const r = await fetch("/api/gist", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: pendiente.url, idioma }),
+      });
+      const j = await r.json().catch(() => null);
+
+      if (!r.ok || !j?.ficha) {
+        if (j?.error === "sin_creditos") setNoCredits(true);
+        else setFalloVideo(j?.error === "sin_clave" ? "gist.noKey" : "chat.videoFailed");
+        return;
+      }
+
+      const f = j.ficha as { titulo: string; autor: string; resumen: string };
+      const cabecera = `## ${f.titulo}${f.autor ? `\n\n*${f.autor}*` : ""}`;
+      /* Y se dice que queda guardado. El resumen de un vídeo largo es
+         lo último que uno quiere volver a pagar por haber cerrado la
+         pestaña, así que conviene saber dónde está. */
+      const cuerpo = `${cabecera}\n\n${f.resumen}\n\n*[${t("chat.videoSaved")}](/gist)*`;
+
+      setVideo(null);
+      setMessages((m) => [
+        ...m,
+        {
+          id: `k${Date.now()}`,
+          role: "kairo",
+          content: { es: cuerpo, en: cuerpo },
+          level: "normal",
+          credits: LEVELS.normal.credits,
+        },
+      ]);
+
+      if (j.saldo) {
+        sincronizar(Number(j.saldo.creditos ?? 0), Number(j.saldo.creditosExtra ?? 0));
+      }
+      // Que la ficha salga ya en Gist la próxima vez que se abra.
+      router.refresh();
+    } catch {
+      setFalloVideo("err.red");
+    } finally {
+      setResumiendo(false);
+    }
   };
 
   /* Editar una pregunta ya enviada.
@@ -407,6 +512,7 @@ function Chat() {
 
     setError(undefined);
     setDetalle(undefined);
+    setVideo(null);
 
     if (conversacion && original.dbId && !perfil.demo) {
       await borrarDesde(conversacion, original.dbId);
@@ -445,6 +551,7 @@ function Chat() {
 
     setError(undefined);
     setDetalle(undefined);
+    setVideo(null);
 
     const dbId = messages[idx].dbId;
     if (conversacion && dbId && !perfil.demo) {
@@ -876,6 +983,80 @@ function Chat() {
                     </button>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* EL ENLACE DE VÍDEO, PREGUNTANDO QUÉ HACER.
+                Va aquí abajo, pegado a tu mensaje, porque es la
+                respuesta a lo que acabas de pegar y no un ajuste de la
+                aplicación. */}
+            {video && (
+              <div className="mt-5 rounded-2xl border border-acento/40 bg-acento/5 p-4">
+                <div className="flex gap-3">
+                  {idDeYoutube(video.url) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`https://img.youtube.com/vi/${idDeYoutube(video.url)}/mqdefault.jpg`}
+                      alt=""
+                      className="hidden w-32 shrink-0 rounded-lg object-cover sm:block"
+                      loading="lazy"
+                      /* Si la miniatura no carga, se quita. Un icono de
+                         imagen rota al lado de una pregunta queda como
+                         si algo se hubiera estropeado. */
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[14.5px] font-medium leading-snug">{t("chat.videoAsk")}</p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-muted">
+                      {t("chat.videoLead")}
+                    </p>
+                  </div>
+                </div>
+
+                {perfil.demo ? (
+                  <div className="mt-3">
+                    <p className="text-[13px] text-gold">{t("chat.videoDemo")}</p>
+                    <button
+                      onClick={() => void noVerVideo()}
+                      className="mt-2 rounded-xl border border-line-hi px-3.5 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+                    >
+                      {t("chat.videoNo")}
+                    </button>
+                  </div>
+                ) : resumiendo ? (
+                  <div className="mt-3 flex items-center gap-2.5">
+                    <Marca className="h-5 w-5 shrink-0" animada />
+                    <p className="text-[13.5px] text-muted">{t("chat.videoWorking")}</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => void verVideo("es")}
+                      className="brand-grad rounded-xl px-3.5 py-2 text-[13.5px] font-semibold text-on-accent transition hover:opacity-90"
+                    >
+                      {t("chat.videoEs")}
+                    </button>
+                    <button
+                      onClick={() => void verVideo("original")}
+                      className="rounded-xl border border-line-hi px-3.5 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"
+                    >
+                      {t("chat.videoOriginal")}
+                    </button>
+                    <button
+                      onClick={() => void noVerVideo()}
+                      className="rounded-xl px-3 py-2 text-[13.5px] text-muted transition hover:text-fg"
+                    >
+                      {t("chat.videoNo")}
+                    </button>
+                  </div>
+                )}
+
+                {falloVideo && (
+                  <p className="mt-2.5 text-[13px] text-gold">{t(falloVideo)}</p>
+                )}
               </div>
             )}
 
