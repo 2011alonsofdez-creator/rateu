@@ -79,6 +79,25 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
   ninguna clave que conectar.
 - **Gist**: pegas un enlace y queda la ficha con los apuntes. Un vídeo de YouTube
   se lo pasa a Gemini, que lo ve entero; una página, la abre y la lee.
+  - Un vídeo no sale como un resumen seguido, sale **contado por partes**: de
+    qué va cada tramo, en orden y de principio a fin, con el minuto convertido
+    en un botón que salta a ese momento. Las partes se guardan en la misma
+    columna `puntos` de siempre, así que no hace falta ninguna migración
+    nueva y las fichas viejas se siguen viendo igual.
+  - **Se pregunta el idioma** antes de empezar. Un vídeo en inglés resumido en
+    inglés no le sirve a quien no lo habla, y rehacerlo cuesta otro minuto de
+    espera y otros créditos.
+  - Dentro de cada ficha hay **un chat pequeño** para preguntar sobre ella sin
+    tener que irse al chat a explicar otra vez de qué vídeo hablas. No es un
+    chat aparte: abre una conversación normal de Kairo, que queda en el
+    historial y se puede seguir desde la pantalla del chat.
+  - Y en el chat, **pegar un enlace de YouTube no dispara nada**: sale una
+    tarjeta preguntando si quieres el resumen y en qué idioma. Ver un vídeo
+    tarda casi un minuto y cuesta créditos, y la mitad de las veces lo que se
+    pega es «¿esto es verdad?». El resumen que salga de ahí queda guardado en
+    Gist, no solo en el historial del chat.
+  - Solo YouTube: es el único sitio del que Gemini puede ver un vídeo pasándole
+    la dirección. De TikTok o Instagram no, y por eso no se ofrece.
 - **Paperwork**: subes la foto de un papel oficial y sale qué es, qué quieren,
   cuánto, para cuándo y qué pasa si no haces nada, ordenado por urgencia.
 - **Un nivel que el plan no incluye aparece bloqueado**, no da error después.
