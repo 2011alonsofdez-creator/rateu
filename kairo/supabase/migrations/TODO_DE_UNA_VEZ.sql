@@ -1599,3 +1599,30 @@ grant select, insert, delete on public.recuerdos to authenticated;
 grant update (texto) on public.recuerdos to authenticated;
 
 -- ▲▲▲ fin de 0012_memoria.sql ▲▲▲
+
+-- =============================================================
+-- 0013 · Recibir los Co-Works en Telegram
+-- =============================================================
+
+alter table public.perfiles
+  add column if not exists telegram_chat_id text;
+
+-- Un identificador de conversación de Telegram es un número, a veces
+-- negativo (los grupos). Nada más largo que eso tiene sentido aquí.
+alter table public.perfiles drop constraint if exists perfiles_telegram_check;
+alter table public.perfiles
+  add constraint perfiles_telegram_check
+  check (telegram_chat_id is null or telegram_chat_id ~ '^-?[0-9]{1,20}$');
+
+/* Y el permiso para tocar SOLO esa columna.
+ *
+ * `perfiles` lleva dentro el plan y los créditos, así que el permiso de
+ * escritura va columna por columna desde el primer día: sin esto, dar
+ * permiso para enlazar Telegram sería dar permiso para regalarse
+ * créditos. La seguridad por filas dice de quién es cada fila; esto dice
+ * qué se puede cambiar de ella. */
+grant update (telegram_chat_id) on public.perfiles to authenticated;
+
+-- =============================================================
+-- Listo. Si no da error, Ajustes → «Recibir en Telegram» ya funciona.
+-- =============================================================

@@ -104,6 +104,20 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
     pegarla en unos apuntes. El nombre del archivo va sin tildes a propósito:
     con ellas, Chrome se salta el nombre entero y guarda un «download» sin
     extensión, sin avisar.
+- **Los Co-Works te llegan a Telegram.** Un encargo que trabaja mientras no
+  estás y luego te obliga a entrar en la web a buscarlo no está terminado. En
+  Ajustes → «Recibir en Telegram» se enlaza en dos toques: Kairo te da un
+  código, se lo mandas al bot y él mira quién lo ha enviado —Telegram no
+  enseña tu identificador de conversación por ningún sitio, así que es la
+  única forma—. Hace falta `TELEGRAM_BOT_TOKEN` (un bot propio, gratis, de
+  @BotFather) y la migración `0013_telegram.sql`.
+  - El texto va **sin formato** a propósito: un asterisco suelto del modelo
+    hace que Telegram rechace el mensaje entero con un 400. Que se vean dos
+    asteriscos es feo; que no llegue el brief, no.
+  - Y partido por párrafos si pasa de 3500 caracteres, porque Telegram corta a
+    4096 **sin avisar**: llegaría a media frase y nadie sabría que falta.
+  - Si Telegram falla, el Co-Work sigue hecho, cobrado y guardado. Lo del
+    móvil es un extra, no el sitio donde vive el resultado.
 - **Paperwork** tiene el mismo chat pequeño dentro de cada papel: una duda de
   una línea sobre una multa se pregunta ahí, con el papel delante, en vez de
   tener que irse al chat y volver a contar de qué carta se habla.
