@@ -36,6 +36,17 @@ export type Peticion = {
   modoEdad: ModoEdad | null;
   /** Presupuesto de razonamiento de Gemini. -1 = que decida él. */
   pensar: number;
+  /** Cuánto se le deja improvisar, de 0 a 1. SOLO GEMINI.
+   *
+   *  No es un descuido que no llegue a los demás: en los modelos nuevos
+   *  de Anthropic —Sonnet 5.5, Opus 5.5 y los de su familia— mandar
+   *  `temperature` devuelve un 400 y tumba la petición entera. Ahí lo
+   *  que regula el esfuerzo es `effort`, que ya se manda.
+   *
+   *  Sin esto, Gemini contesta con su temperatura de fábrica, que es la
+   *  alta: la de "sé creativo". Para una respuesta con datos delante,
+   *  creatividad es exactamente lo que sobra. */
+  temperatura?: number;
 };
 
 /** Separa "claude:claude-opus-5" en sus dos mitades. Sin prefijo, Gemini,
@@ -238,6 +249,7 @@ async function* deGemini(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
           systemInstruction: pet.sistema,
           safetySettings: ajustesSeguridad(pet.modoEdad),
           thinkingConfig: { thinkingBudget: pet.pensar },
+          ...(pet.temperatura === undefined ? {} : { temperature: pet.temperatura }),
           // Los Flash no aceptan techos enormes; los de Forja y MEGA se quedan aquí.
           maxOutputTokens: Math.min(pet.maxSalida, 8192),
           ...(herramientas.length ? { tools: herramientas } : {}),
