@@ -218,3 +218,25 @@ export function nombreModelo(id: string): string {
 
 /** Cuántos mensajes del historial se envían. Más contexto, más coste. */
 export const HISTORIAL_MAX = 20;
+
+/* CUÁNTO SE LE DEJA IMPROVISAR.
+ *
+ * Solo lo usa Gemini: en los modelos nuevos de Anthropic mandar
+ * `temperature` devuelve un 400 y tumba la petición entera, así que allí
+ * lo que regula el esfuerzo es `effort`, que ya se manda.
+ *
+ * Y hasta hoy no se mandaba ninguna, que significa usar la de fábrica de
+ * Gemini: la alta, la de "sé creativo". Para una pregunta de ocio está
+ * bien; para una respuesta que tiene datos buscados delante es justo lo
+ * que sobra —es lo que hace que un año o una cifra salgan distintos cada
+ * vez que preguntas lo mismo—.
+ */
+export const TEMPERATURA = {
+  /** Con datos delante o preguntando por algo de hoy: lo más fiel que se
+   *  pueda. No es cero a propósito: a cero, un modelo que se atasca en
+   *  una frase se queda atascado. */
+  conDatos: 0.2,
+  /** Para lo demás, por debajo de la de fábrica pero sin volverlo seco.
+   *  Lo que se pierde aquí es la floritura, no la idea. */
+  normal: 0.7,
+} as const;

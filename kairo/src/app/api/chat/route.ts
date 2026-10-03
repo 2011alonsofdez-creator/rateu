@@ -6,6 +6,7 @@ import {
   MAX_SALIDA,
   NIVELES_POR_PLAN,
   RAZONAMIENTO,
+  TEMPERATURA,
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
@@ -745,6 +746,13 @@ export async function POST(req: Request) {
                 esfuerzo: ESFUERZO[nivel],
                 modoEdad: perfil.modo_edad,
                 pensar: RAZONAMIENTO[nivel],
+                /* Con datos buscados delante, o preguntando por algo de
+                   hoy, se le pide que se ciña. Lo que se gana no es que
+                   acierte más: es que no cambie una cifra o un año cada
+                   vez que preguntas lo mismo. */
+                temperatura: hechos || busquedaFallida
+                  ? TEMPERATURA.conDatos
+                  : TEMPERATURA.normal,
               });
               usado = candidato;
               break buscar;
