@@ -9,6 +9,7 @@ import { NOMBRE_PLAN } from "@/lib/planes";
 import { cerrarSesion, guardarAjustes } from "../actions";
 import { haySonido, ponerSonido, pitido } from "@/lib/sonido";
 import { Bolt, Check, Settings, Shield } from "@/components/Icons";
+import { Telegram } from "@/components/Telegram";
 
 /* El tono elegido aquí se inyecta en el system prompt ({TONO_ELEGIDO})
    cuando se conecte la IA en el Paso 3. */
@@ -341,6 +342,11 @@ export default function AjustesPage() {
             encontrar: era una dirección que había que escribir a mano en
             la barra del navegador. Un botón en Ajustes es donde lo busca
             cualquiera. */}
+        {/* El brief de la mañana, donde se lee: en el móvil. */}
+        <Card title={es ? "Recibir en Telegram" : "Get it on Telegram"}>
+          <Telegram />
+        </Card>
+
         <Card title={es ? "¿Algo va mal?" : "Something wrong?"}>
           <p className="text-[13.5px] leading-relaxed text-muted">
             {es

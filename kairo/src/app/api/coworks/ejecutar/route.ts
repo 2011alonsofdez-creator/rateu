@@ -4,6 +4,7 @@ import { faltaColumna } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
 import { revisarSalud, tituloDeLaRevision } from "@/lib/coworks/salud";
+import { hayTelegram, mandar } from "@/lib/telegram";
 import { esGratis, recetaDe, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
@@ -229,6 +230,18 @@ async function hacerUno(
 
     const conversacion = await dejarConversacion(supabase, c, brief.texto, brief);
 
+    /* Y al móvil, si lo ha pedido.
+ 
+       Va DESPUÉS de guardar y antes de cerrar el encargo, y no al revés:
+       lo que no puede pasar es que Telegram falle y se pierda el brief.
+       Guardado está; lo del móvil es un extra que, si no sale, no se
+       lleva nada por delante. */
+    await aTelegram(
+      supabase,
+      c,
+      `${tituloDelBrief(c.nombre, new Date(), c.zona)}\n\n${brief.texto}`,
+    );
+
     await supabase.rpc("terminar_cowork", {
       p_resultado: resultado,
       p_estado: "ok",
@@ -295,6 +308,40 @@ async function vigilar(
       })
       .then(() => {}, () => {});
     return false;
+  }
+}
+
+/* AL MÓVIL.
+ *
+ * Un encargo que trabaja mientras no estás y luego te obliga a entrar en
+ * la web a buscarlo no está terminado. Si has enlazado Telegram, llega
+ * donde se lee.
+ *
+ * Nada de lo que pase aquí puede tumbar un Co-Work ya hecho y ya
+ * cobrado: si Telegram no contesta, se apunta y se sigue.
+ */
+async function aTelegram(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  c: Pendiente,
+  texto: string,
+): Promise<void> {
+  if (!hayTelegram()) return;
+
+  try {
+    const { data } = await supabase
+      .from("perfiles")
+      .select("telegram_chat_id")
+      .eq("id", c.perfil_id)
+      .maybeSingle<{ telegram_chat_id: string | null }>();
+
+    const chat = data?.telegram_chat_id;
+    if (!chat) return;
+
+    await mandar(chat, texto);
+  } catch {
+    /* Sin la migración 0013 la columna no existe, o Telegram está caído.
+       Ni una cosa ni la otra son motivo para dar por fallido un encargo
+       que está hecho y guardado. */
   }
 }
 
