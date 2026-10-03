@@ -104,6 +104,13 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
     pegarla en unos apuntes. El nombre del archivo va sin tildes a propósito:
     con ellas, Chrome se salta el nombre entero y guarda un «download» sin
     extensión, sin avisar.
+- **El interruptor de la búsqueda**, en el cuadro de escribir. Kairo decide
+  solo si una pregunta necesita datos de hoy y acierta casi siempre, pero
+  «casi siempre» no se arregla añadiendo pistas a la lista: el día que falla,
+  el único que sabe que esa pregunta era de actualidad es quien la ha
+  escrito. Tres estados —auto, siempre, no— y lo pedido a mano manda sobre
+  todas las suposiciones, archivos incluidos. Se queda guardado en el
+  navegador. En «auto» es solo el icono, para no meter ruido.
 - **Los Co-Works te llegan a Telegram.** Un encargo que trabaja mientras no
   estás y luego te obliga a entrar en la web a buscarlo no está terminado. En
   Ajustes → «Recibir en Telegram» se enlaza en dos toques: Kairo te da un

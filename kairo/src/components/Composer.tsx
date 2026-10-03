@@ -9,7 +9,8 @@ import { escuchar, hayMicrofono } from "@/lib/voz";
 import { pitido } from "@/lib/sonido";
 import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
 import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
-import { Bolt, Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
+import { Bolt, Brain, Chevron, Clip, Close, Globo, Mic, Send } from "./Icons";
+import { siguienteModo, type ModoBusqueda } from "@/lib/buscar-modo";
 import Link from "next/link";
 
 /* Lo que se enseña de cada nivel es el esfuerzo, no el precio.
@@ -30,6 +31,8 @@ export function Composer({
   setMente,
   onSend,
   busy,
+  buscar,
+  setBuscar,
 }: {
   level: Nivel;
   setLevel: (l: Nivel) => void;
@@ -37,6 +40,9 @@ export function Composer({
   setMente: (m: Mente | null) => void;
   onSend: (text: string, adjuntos: Adjunto[]) => void;
   busy: boolean;
+  /** Si Kairo busca en internet: automático, siempre o nunca. */
+  buscar: ModoBusqueda;
+  setBuscar: (m: ModoBusqueda) => void;
 }) {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -434,6 +440,33 @@ export function Composer({
                 <Mic className={`h-[18px] w-[18px] ${escuchando ? "animate-pulse" : ""}`} />
               </button>
             )}
+
+            {/* EL INTERRUPTOR DE LA BÚSQUEDA.
+ 
+                Kairo decide solo si una pregunta necesita datos de hoy, y
+                acierta casi siempre. El problema de "casi siempre" no se
+                arregla añadiendo pistas a la lista: cuando falla, quien
+                pregunta SÍ sabe que esa pregunta era de actualidad.
+ 
+                En automático es solo el icono, apagado, para no meter
+                ruido. En cuanto se toca, se ve escrito lo que hace. */}
+            <button
+              onClick={() => setBuscar(siguienteModo(buscar))}
+              title={`${t(`buscar.${buscar}` as "buscar.auto")} · ${t("buscar.ayuda")}`}
+              aria-label={t(`buscar.${buscar}` as "buscar.auto")}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] font-medium transition ${
+                buscar === "siempre"
+                  ? "bg-acento/15 text-acento ring-1 ring-acento/50"
+                  : buscar === "nunca"
+                    ? "bg-panel-hi text-faint ring-1 ring-line"
+                    : "text-muted hover:bg-panel-hi hover:text-fg"
+              }`}
+            >
+              <Globo className="h-[17px] w-[17px] shrink-0" />
+              {buscar !== "auto" && (
+                <span>{t(`buscar.corto.${buscar}` as "buscar.corto.auto")}</span>
+              )}
+            </button>
 
             {/* Selector de Mente. Compacto a propósito: al lado del de
                 nivel, y en el móvil solo el icono cuando no hay ninguna. */}

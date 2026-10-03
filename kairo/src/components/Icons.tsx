@@ -83,6 +83,13 @@ export const Copy = ({ className, style }: P) => (
     <path d="M5.5 15H5a1.5 1.5 0 01-1.5-1.5V5A1.5 1.5 0 015 3.5h8.5A1.5 1.5 0 0115 5v.5" />
   </svg>
 );
+/* Un globo terráqueo: buscar en internet. */
+export const Globo = ({ className, style }: P) => (
+  <svg {...base(className)} style={style}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.2 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.2-3.3-8.5S9.8 5.8 12 3.5z" />
+  </svg>
+);
 /* Una flecha hacia abajo con suelo: descargar. */
 export const Descarga = ({ className, style }: P) => (
   <svg {...base(className)} style={style}>

@@ -19,6 +19,7 @@ import {
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
+import { hayQueBuscar, modoValido } from "@/lib/buscar-modo";
 import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memoria";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
@@ -257,6 +258,11 @@ export async function POST(req: Request) {
      así que no se vuelve a guardar. Solo cuenta si además viene la
      conversación: sin ella no hay nada que reintentar. */
   const reintento = cuerpo?.reintento === true && conversacionPedida !== null;
+
+  /* Si busca en internet: automático, siempre o nunca. Lo elige quien
+     pregunta desde el cuadro de escribir, y lo que llegue aquí que no
+     sea uno de los tres vuelve al automático. */
+  const modoBusqueda = modoValido(cuerpo?.buscar);
 
   /* En qué huso vive quien pregunta. Lo manda el navegador porque es el
      único que lo sabe: el servidor está en Fráncfort y no tiene ni idea
@@ -556,7 +562,12 @@ export async function POST(req: Request) {
            necesitaba comprobar nada. */
         const conArchivos = archivos.adjuntos.length > 0 || archivos.texto.length > 0;
 
-        if (!conArchivos && esDeAhora(ultima)) {
+        /* Y encima de todo eso, lo que haya pedido quien pregunta. El
+           detector automático acierta casi siempre, pero el día que
+           falla el único que lo sabe es quien ha escrito la pregunta:
+           por eso "siempre" manda sobre todo lo demás, archivos
+           incluidos, y "nunca" también. */
+        if (hayQueBuscar(modoBusqueda, esDeAhora(ultima), conArchivos)) {
           enviar({ t: "buscando" });
 
           // De qué venían hablando, para que "¿y el horario?" se entienda.
