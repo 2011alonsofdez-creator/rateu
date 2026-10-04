@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -36,6 +37,37 @@ type Papel = {
   creada_el: string;
 };
 
+/* UN PAPEL DE EJEMPLO, SOLO EN LA DEMOSTRACIÓN.
+ *
+ * Sin esto, quien entra sin cuenta ve un botón para subir una foto y
+ * nada más: no hay forma de saber qué sale de ahí, y lo que sale es
+ * justo lo que distingue a Kairo de cualquier otra IA —ninguna te lleva
+ * la bandeja de tus papeles ni te avisa antes de que venza uno—.
+ *
+ * Es de mentira y se dice que lo es.
+ */
+const EJEMPLO: Papel = {
+  id: "demo-1",
+  titulo: "Multa de tráfico · Exceso de velocidad",
+  remitente: "Ayuntamiento",
+  de_que_va:
+    "Una sanción por circular a 68 km/h en una vía limitada a 50. Admite pronto pago con descuento si se paga dentro de plazo.",
+  que_quieren: "Pagar la sanción o alegar",
+  importe: "200 € (100 € si pagas pronto)",
+  // Siempre a cuatro días vista, para que se vea el aviso de verdad.
+  fecha_limite: new Date(Date.now() + 4 * 86_400_000).toISOString().slice(0, 10),
+  consecuencias: "Se pierde el descuento del 50 % y puede añadirse un recargo de apremio.",
+  pasos: [
+    "Comprobar la matrícula y la fecha en el documento",
+    "Pagar con el número de expediente, o presentar alegaciones",
+    "Guardar el justificante",
+  ],
+  borrador: "",
+  archivo: "",
+  estado: "pendiente",
+  creada_el: new Date().toISOString(),
+};
+
 export default function PaperworkPage() {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -48,10 +80,28 @@ export default function PaperworkPage() {
   const [error, setError] = useState<string>();
   const [falta, setFalta] = useState(false);
   const [abierto, setAbierto] = useState<Papel | null>(null);
+  /* Si el aviso le va a llegar al móvil o solo al chat. Se pregunta una
+     vez: decir "te aviso en Telegram" a quien no lo tiene enlazado sería
+     prometer algo que no va a pasar. */
+  const [avisaEnTelegram, setAvisaEnTelegram] = useState(false);
+
+  useEffect(() => {
+    if (perfil.demo) return;
+    fetch("/api/telegram", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => setAvisaEnTelegram(Boolean(j?.vinculado)))
+      .catch(() => {
+        /* si no se puede saber, se dice lo seguro: que va al chat */
+      });
+  }, [perfil.demo]);
   const [copiado, setCopiado] = useState(false);
   const selector = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (perfil.demo) {
+      setPapeles([EJEMPLO]);
+      return;
+    }
     fetch("/api/paperwork")
       .then((r) => r.json())
       .then((j) => {
@@ -60,7 +110,7 @@ export default function PaperworkPage() {
       })
       .catch(() => {})
       .finally(() => {});
-  }, []);
+  }, [perfil.demo]);
 
   const anadir = async (lista: FileList | null) => {
     const archivos = [...(lista ?? [])].slice(0, ADJUNTOS.max - adjuntos.length);
@@ -380,6 +430,35 @@ export default function PaperworkPage() {
                   {t("gist.delete")}
                 </button>
               </div>
+
+              {/* LA PROMESA, A LA VISTA.
+ 
+                  Sin esto, el aviso es invisible hasta que suena: haces
+                  la foto, ves el plazo y no tienes forma de saber si
+                  alguien se va a acordar por ti. Decirlo aquí es la
+                  mitad del valor —la otra mitad es que luego ocurra—. */}
+              {abierto.fecha_limite && abierto.estado === "pendiente" && (
+                <p className="mt-4 rounded-xl border border-line bg-bg-soft p-3 text-[12.5px] leading-relaxed text-muted">
+                  <span className="font-medium text-fg">Te aviso antes de que venza:</span> una
+                  semana antes, tres días antes, el día de antes y el mismo día.{" "}
+                  {perfil.demo ? (
+                    <>En la demostración no se avisa de nada: hace falta tu cuenta.</>
+                  ) : avisaEnTelegram ? (
+                    <>Te llegará a Telegram.</>
+                  ) : (
+                    <>
+                      Te lo dejaré en el chat.{" "}
+                      <Link
+                        href="/ajustes"
+                        className="text-acento underline underline-offset-2"
+                      >
+                        Enlaza Telegram
+                      </Link>{" "}
+                      y te llega al móvil.
+                    </>
+                  )}
+                </p>
+              )}
 
               <p className="mt-4 text-[11.5px] leading-relaxed text-faint">{t("paper.notLegal")}</p>
 

@@ -5,6 +5,11 @@ import { CREDITOS } from "@/lib/ia/config";
 import { redactarBrief, tituloDelBrief } from "@/lib/coworks/brief";
 import { revisarSalud, tituloDeLaRevision } from "@/lib/coworks/salud";
 import { hayTelegram, mandar } from "@/lib/telegram";
+import {
+  avisarDePlazos,
+  tituloDelAviso,
+  type PapelConPlazo,
+} from "@/lib/papeles/plazos";
 import { esGratis, recetaDe, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
@@ -106,6 +111,37 @@ async function ejecutar(req: Request) {
     );
   }
 
+  /* LOS PLAZOS, ANTES QUE LOS CO-WORKS.
+ 
+     No es capricho de orden: un Co-Work son dos llamadas a un modelo y
+     puede comerse medio minuto, y el minuto es uno para todo. Si los
+     avisos fueran detrás, el día que haya cuatro encargos no saldrían
+     —y un aviso que llega tarde no es un aviso tarde: es un recargo—.
+     Avisar es una consulta y un mensaje: cuesta milisegundos. */
+  const plazos = await avisarDePlazos({
+    pendientes: async (limite) => {
+      const { data, error: fallo } = await supabase.rpc("papeles_para_avisar", {
+        p_limite: limite,
+      });
+      if (fallo) throw new Error(fallo.message);
+      return (data ?? []) as PapelConPlazo[];
+    },
+    coger: async (papel, hito) => {
+      const { data, error: fallo } = await supabase.rpc("apuntar_aviso", {
+        p_papel: papel,
+        p_hito: hito,
+      });
+      return !fallo && data === true;
+    },
+    porTelegram: async (chat, texto) => (hayTelegram() ? mandar(chat, texto) : false),
+    /* Sin Telegram enlazado, al chat. No es tan bueno —hay que entrar a
+       mirarlo— pero es mucho mejor que no decir nada, y es donde ya se
+       dejan los avisos del vigilante. */
+    porChat: async (papel, texto) => {
+      await dejarAvisoDePapel(supabase, papel, texto);
+    },
+  }, () => Date.now() - entro < PLAZO);
+
   const { data, error } = await supabase.rpc("coworks_pendientes", { p_limite: DE_UNA_VEZ });
 
   if (error) {
@@ -152,7 +188,12 @@ async function ejecutar(req: Request) {
     for (const r of resultados) if (r !== "saltado") cuenta[r]++;
   }
 
-  return Response.json({ ok: true, ...cuenta, segundos: Math.round((Date.now() - entro) / 1000) });
+  return Response.json({
+    ok: true,
+    ...cuenta,
+    plazos,
+    segundos: Math.round((Date.now() - entro) / 1000),
+  });
 }
 
 /* Un Co-Work, de principio a fin. Devuelve en qué acabó, y "saltado"
@@ -343,6 +384,30 @@ async function aTelegram(
        Ni una cosa ni la otra son motivo para dar por fallido un encargo
        que está hecho y guardado. */
   }
+}
+
+/* El aviso de un plazo, cuando no hay Telegram enlazado.
+ *
+ * Deja una conversación en la barra lateral, igual que el vigilante. No
+ * es tan bueno como que te suene el móvil —hay que entrar a mirarlo—
+ * pero un aviso que no se manda a ninguna parte no es un aviso. */
+async function dejarAvisoDePapel(
+  supabase: NonNullable<ReturnType<typeof clienteAdmin>>,
+  papel: PapelConPlazo,
+  texto: string,
+): Promise<void> {
+  const { data: conv } = await supabase
+    .from("conversaciones")
+    .insert({ perfil_id: papel.perfil_id, titulo: tituloDelAviso(papel) })
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (!conv?.id) return;
+
+  await supabase.from("mensajes").insert([
+    { conversacion_id: conv.id, rol: "user", contenido: "¿Me vence algo?" },
+    { conversacion_id: conv.id, rol: "kairo", contenido: texto },
+  ]);
 }
 
 /* Cuando algo está roto, el aviso llega donde se mira: al chat. Sin
