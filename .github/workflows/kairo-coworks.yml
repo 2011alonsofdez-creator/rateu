@@ -47,6 +47,25 @@ jobs:
             exit 1
           fi
 
+          # LA DIRECCIÓN, PUESTA DERECHA ANTES DE USARLA.
+          #
+          # Las dos formas de equivocarse al pegarla acaban en lo mismo:
+          # un 308 ("esto está en otro sitio") que no se parece en nada a
+          # "te falta el https://". Sin esto, el que lo monta se queda
+          # mirando un número que no significa nada para él.
+          #
+          #   · sin esquema  → curl lo intenta por http y Vercel manda a
+          #                    https con un 308
+          #   · con barra al final → la dirección queda con // en medio
+          KAIRO_URL="${KAIRO_URL#http://}"
+          KAIRO_URL="${KAIRO_URL#https://}"
+          # Las barras del final, todas: a veces se pega más de una.
+          while [ "${KAIRO_URL%/}" != "${KAIRO_URL}" ]; do
+            KAIRO_URL="${KAIRO_URL%/}"
+          done
+          KAIRO_URL="https://${KAIRO_URL}"
+          echo "Llamando a ${KAIRO_URL}/api/coworks/ejecutar"
+
           # --fail-with-body no se usa a propósito: queremos ver el cuerpo
           # de la respuesta TAMBIÉN cuando falla, porque ahí es donde Kairo
           # dice qué le falta (la migración, la clave de administrador...).
@@ -61,7 +80,23 @@ jobs:
           cat /tmp/respuesta.json || true
           echo
 
-          if [ "${codigo}" != "200" ]; then
-            echo "::error::Kairo ha respondido ${codigo}"
-            exit 1
-          fi
+          # Y si aun así responde una redirección, se dice qué significa.
+          # A propósito NO se sigue: una redirección lleva la contraseña a
+          # donde diga el servidor, y eso no se hace a ciegas.
+          case "${codigo}" in
+            30*)
+              echo "::error::Kairo ha respondido ${codigo} (una redirección)."
+              echo "::error::Revisa el secreto KAIRO_URL: tiene que ser el dominio de produccion de Vercel, tal cual."
+              exit 1
+              ;;
+            401)
+              echo "::error::Kairo ha respondido 401: la contrasena no coincide."
+              echo "::error::KAIRO_CRON_SECRET (GitHub) y CRON_SECRET (Vercel) tienen que ser iguales."
+              exit 1
+              ;;
+            200) ;;
+            *)
+              echo "::error::Kairo ha respondido ${codigo}"
+              exit 1
+              ;;
+          esac
