@@ -104,6 +104,25 @@ Gemini se saca gratis en [aistudio.google.com/apikey](https://aistudio.google.co
     pegarla en unos apuntes. El nombre del archivo va sin tildes a propósito:
     con ellas, Chrome se salta el nombre entero y guarda un «download» sin
     extensión, sin avisar.
+- **Kairo te avisa antes de que te caiga el recargo.** Es lo que ninguna IA
+  generalista hace: una multa pierde el descuento, una beca cierra el plazo y
+  el seguro se renueva solo si no dices nada. Paperwork ya guardaba la fecha
+  límite en una columna de verdad; ahora el reloj mira los papeles pendientes
+  y te escribe a Telegram —o te deja una conversación, si no lo tienes
+  enlazado— **una semana antes, tres días antes, el día de antes y el mismo
+  día**. Una vez cada cosa, no una por hora.
+  - El cerrojo es la clave primaria de `avisos_papel`: el reloj de GitHub y el
+    de Vercel suenan a la vez, y el que llega segundo choca contra ella y se
+    va sin mandar nada. El aviso **se apunta antes de mandarlo**: al revés, un
+    fallo entre las dos cosas lo repetiría dentro de una hora.
+  - Los días se cuentan en **la zona horaria de quien lo recibe**: a las 23:30
+    en Madrid el servidor ya está en mañana, y «vence hoy» se convertiría en
+    «venció ayer» para quien lo lee.
+  - Los avisos van **antes** que los Co-Works en el reparto del minuto. Un
+    Co-Work son dos llamadas a un modelo y puede comerse medio minuto; avisar
+    cuesta milisegundos, y un aviso que no sale no llega tarde, cuesta dinero.
+  - Y la ficha del papel **dice que va a avisar**, porque si no el aviso es
+    invisible hasta que suena. Necesita la migración `0014_plazos.sql`.
 - **El interruptor de la búsqueda**, en el cuadro de escribir. Kairo decide
   solo si una pregunta necesita datos de hoy y acierta casi siempre, pero
   «casi siempre» no se arregla añadiendo pistas a la lista: el día que falla,

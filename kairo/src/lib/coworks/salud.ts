@@ -93,6 +93,18 @@ const MIGRACIONES: { archivo: string; tabla: string; columna: string; si_falta: 
     columna: "texto",
     si_falta: "Kairo no puede acordarse de nada tuyo",
   },
+  {
+    archivo: "0013_telegram.sql",
+    tabla: "perfiles",
+    columna: "telegram_chat_id",
+    si_falta: "los Co-Works no se pueden mandar al móvil",
+  },
+  {
+    archivo: "0014_plazos.sql",
+    tabla: "avisos_papel",
+    columna: "hito",
+    si_falta: "nadie te avisa de que un papel está a punto de vencer",
+  },
 ];
 
 /** Una consulta a medio construir. Se puede filtrar, ordenar y cortar, y
