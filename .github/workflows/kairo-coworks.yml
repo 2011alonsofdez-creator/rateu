@@ -118,8 +118,26 @@ jobs:
               exit 1
               ;;
             401)
-              echo "::error::Kairo ha respondido 401: la contrasena no coincide."
-              echo "::error::KAIRO_CRON_SECRET (GitHub) y CRON_SECRET (Vercel) tienen que ser iguales."
+              # OJO: hay DOS 401 distintos y se parecen mucho.
+              #
+              # El de Vercel lo pone el portero de la calle: la web está
+              # en modo privado (Settings → Deployment Protection) y solo
+              # entra quien tenga sesión de Vercel. La llamada ni siquiera
+              # llega a Kairo, así que la contraseña da igual: puedes
+              # cambiarla veinte veces y seguirá saliendo 401.
+              #
+              # El de Kairo lo pone la puerta de casa, y ese sí es la
+              # contraseña. Distinguirlos ahorra una tarde entera.
+              if LC_ALL=C grep -qi 'vercel_auth\|Protected by Vercel\|Protected deployment' /tmp/respuesta.json; then
+                echo "::error::Este 401 NO es de Kairo: lo pone Vercel delante, y la llamada no llega a la web."
+                echo "::error::La web esta en modo privado: solo entra quien tenga sesion de Vercel, asi que nadie mas que tu puede usar Kairo."
+                echo "::error::Vercel -> el proyecto -> Settings -> Deployment Protection -> Vercel Authentication -> apaga 'Require Log In' y guarda."
+                echo "::error::La contrasena no tiene nada que ver con esto: no la toques."
+              else
+                echo "::error::Kairo ha respondido 401: la contrasena no coincide."
+                echo "::error::KAIRO_CRON_SECRET (GitHub) y CRON_SECRET (Vercel) tienen que ser iguales."
+                echo "::error::Y acuerdate de volver a desplegar Vercel despues de cambiar CRON_SECRET: hasta que no construya, el servidor sigue con la vieja."
+              fi
               exit 1
               ;;
             200) ;;
