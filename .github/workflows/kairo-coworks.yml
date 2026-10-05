@@ -72,6 +72,28 @@ jobs:
           # "la has escrito mal" y no tiene nada que ver.
           SECRETO="$(printf '%s' "${KAIRO_CRON_SECRET}" | tr -d '[:space:]')"
 
+          if [ -z "${SECRETO}" ]; then
+            echo "::error::El secreto KAIRO_CRON_SECRET esta en blanco (o solo tiene espacios)."
+            exit 1
+          fi
+
+          # LA Ñ, LOS ACENTOS Y LA Ç.
+          #
+          # Vercel mete CRON_SECRET en una cabecera HTTP para su propio
+          # reloj, y una cabecera HTTP solo admite ASCII. Si la contraseña
+          # lleva ñ, tilde o ç, Vercel NO CONSTRUYE la web: el despliegue
+          # sale en Error y el servidor se queda con la contraseña vieja.
+          #
+          # Visto desde aquí eso es un 401 eterno, que se lee como "la has
+          # escrito mal" y no tiene nada que ver. Así que se dice aquí,
+          # antes de llamar, sin enseñar la contraseña.
+          if printf '%s' "${SECRETO}" | LC_ALL=C grep -q '[^ -~]'; then
+            echo "::error::La contrasena tiene una letra que no es ASCII: una n con virgulilla, un acento o una c con rabito."
+            echo "::error::Vercel la mete en una cabecera HTTP y se niega a construir la web con esas letras, asi que el servidor sigue con la contrasena vieja."
+            echo "::error::Pon en Vercel (CRON_SECRET) y aqui (KAIRO_CRON_SECRET) la misma contrasena de solo letras sin acentos y numeros, y vuelve a desplegar."
+            exit 1
+          fi
+
           # --fail-with-body no se usa a propósito: queremos ver el cuerpo
           # de la respuesta TAMBIÉN cuando falla, porque ahí es donde Kairo
           # dice qué le falta (la migración, la clave de administrador...).
