@@ -108,6 +108,11 @@ jobs:
           cat /tmp/respuesta.json || true
           echo
 
+          # La respuesta en una sola línea, para poder enseñarla en el
+          # resumen. Cortada: un error de Supabase puede traer media
+          # pantalla y lo que importa viene siempre al principio.
+          cuerpo="$(head -c 500 /tmp/respuesta.json 2>/dev/null | tr -d '\n\r' || true)"
+
           # Y si aun así responde una redirección, se dice qué significa.
           # A propósito NO se sigue: una redirección lleva la contraseña a
           # donde diga el servidor, y eso no se hace a ciegas.
@@ -115,7 +120,6 @@ jobs:
             30*)
               echo "::error::Kairo ha respondido ${codigo} (una redirección)."
               echo "::error::Revisa el secreto KAIRO_URL: tiene que ser el dominio de produccion de Vercel, tal cual."
-              exit 1
               ;;
             401)
               # OJO: hay DOS 401 distintos y se parecen mucho.
@@ -138,11 +142,40 @@ jobs:
                 echo "::error::KAIRO_CRON_SECRET (GitHub) y CRON_SECRET (Vercel) tienen que ser iguales."
                 echo "::error::Y acuerdate de volver a desplegar Vercel despues de cambiar CRON_SECRET: hasta que no construya, el servidor sigue con la vieja."
               fi
-              exit 1
+              ;;
+            503)
+              # Kairo contesta, pero le falta algo para poder trabajar, y
+              # dice cuál en el cuerpo. Ese cuerpo se imprime arriba, sí,
+              # pero hay que desplegar el paso para verlo: en la pantalla
+              # de resumen solo salen los ::error::. Así que el motivo se
+              # traduce aquí, que es donde se mira primero.
+              echo "::error::Kairo ha contestado 503: esta en pie, pero le falta algo para poder trabajar."
+              case "${cuerpo}" in
+                *sin_cron_secret*)
+                  echo "::error::Falta CRON_SECRET en Vercel -> Settings -> Environment Variables. Ponla y vuelve a desplegar."
+                  ;;
+                *sin_clave*)
+                  echo "::error::Falta SUPABASE_SERVICE_ROLE_KEY en Vercel -> Settings -> Environment Variables."
+                  echo "::error::Es la clave 'service_role' de Supabase -> Settings -> API Keys. SIN el prefijo NEXT_PUBLIC_, que esa se publica entera en la web."
+                  echo "::error::Y DESPUES Deployments -> los tres puntos -> Redeploy: puesta sin desplegar no cambia nada."
+                  ;;
+                *sin_reparto*)
+                  echo "::error::Falta la migracion 0009_coworks.sql en Supabase (SQL Editor). Sin ella no hay de donde sacar el trabajo."
+                  ;;
+              esac
               ;;
             200) ;;
             *)
               echo "::error::Kairo ha respondido ${codigo}"
-              exit 1
               ;;
           esac
+
+          # Y en cualquier caso que no sea un 200, la respuesta entera en
+          # el resumen. Cuando la traducción de arriba no cubra el caso,
+          # al menos se ve qué ha dicho sin ir a buscar el log.
+          if [ "${codigo}" != "200" ]; then
+            if [ -n "${cuerpo}" ]; then
+              echo "::error::Respuesta de la web: ${cuerpo}"
+            fi
+            exit 1
+          fi
