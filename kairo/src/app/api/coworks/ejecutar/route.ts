@@ -98,9 +98,43 @@ async function ejecutar(req: Request) {
     );
   }
 
-  const cabecera = req.headers.get("authorization") ?? "";
-  if (!igual(cabecera, `Bearer ${secreto}`)) {
-    return Response.json({ error: "no_autorizado" }, { status: 401 });
+  /* La contraseña que llega, limpia.
+ 
+     Se le quita lo que sobra a propósito: estas dos cadenas se pegan a
+     mano en dos paneles distintos, y un salto de línea al final de una
+     caja de texto no se ve pero cambia el resultado. Ese fallo se lee
+     igual que "la contraseña está mal" y no hay forma de distinguirlos
+     mirando. */
+  const cabecera = (req.headers.get("authorization") ?? "").trim();
+  const recibida = cabecera.replace(/^Bearer\s+/i, "").trim();
+
+  if (!igual(recibida, secreto)) {
+    /* Y si no coinciden, se dice LO QUE SE PUEDE DECIR sin enseñar
+       ninguna de las dos.
+ 
+       Sin esto, el que lo está montando ve un 401 y solo puede volver a
+       probar: no sabe si falta la cabecera, si pegó una de más o si se
+       equivocó en una letra. Son tres averías distintas con tres
+       arreglos distintos y el mismo mensaje.
+ 
+       Lo único que sale de aquí es si llegó algo y si las dos miden lo
+       mismo. Ni un carácter, ni un trozo, ni un resumen: con el largo no
+       se entra en ningún sitio, y distingue "pegué otra cosa" de "me
+       comí una letra", que es justo lo que hace falta saber. */
+    return Response.json(
+      {
+        error: "no_autorizado",
+        llego_contrasena: recibida.length > 0,
+        mismo_largo: recibida.length === secreto.length,
+        pista:
+          recibida.length === 0
+            ? "No ha llegado ninguna contraseña: revisa el secreto KAIRO_CRON_SECRET en GitHub."
+            : recibida.length === secreto.length
+              ? "Miden lo mismo pero no son iguales: hay alguna letra distinta. Vuelve a ponerlas copiando y pegando, sin escribirlas a mano."
+              : "Son distintas: una de las dos no es la que crees. Acuérdate de volver a desplegar Vercel después de cambiar CRON_SECRET.",
+      },
+      { status: 401 },
+    );
   }
 
   const supabase = clienteAdmin();
