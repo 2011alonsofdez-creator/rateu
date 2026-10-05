@@ -66,13 +66,19 @@ jobs:
           KAIRO_URL="https://${KAIRO_URL}"
           echo "Llamando a ${KAIRO_URL}/api/coworks/ejecutar"
 
+          # Y la contraseña, sin lo que sobra alrededor. Un salto de línea
+          # al final de la caja donde se pega no se ve, pero viaja, y
+          # entonces no coincide con la de Vercel. Eso se lee igual que
+          # "la has escrito mal" y no tiene nada que ver.
+          SECRETO="$(printf '%s' "${KAIRO_CRON_SECRET}" | tr -d '[:space:]')"
+
           # --fail-with-body no se usa a propósito: queremos ver el cuerpo
           # de la respuesta TAMBIÉN cuando falla, porque ahí es donde Kairo
           # dice qué le falta (la migración, la clave de administrador...).
           codigo=$(curl -sS --max-time 120 \
             -o /tmp/respuesta.json -w "%{http_code}" \
             -X POST \
-            -H "Authorization: Bearer ${KAIRO_CRON_SECRET}" \
+            -H "Authorization: Bearer ${SECRETO}" \
             -H "content-type: application/json" \
             "${KAIRO_URL}/api/coworks/ejecutar")
 
