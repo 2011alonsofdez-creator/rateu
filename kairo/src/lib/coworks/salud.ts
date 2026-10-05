@@ -420,6 +420,75 @@ function miraAutomatismo(env: Entorno): Punto[] {
 }
 
 /* --------------------------------------------------------------
+   4 bis. ¿Puede entrar alguien que no seas tú?
+   -------------------------------------------------------------- */
+
+/* EL FALLO QUE NO SE VE DESDE DENTRO.
+ *
+ * Vercel trae un portero propio (Settings → Deployment Protection) y en
+ * los proyectos nuevos viene ENCENDIDO: la web solo deja pasar a quien
+ * tenga sesión en esa cuenta de Vercel. Para el dueño es invisible —él
+ * siempre la tiene, a él le abre siempre— y para todos los demás la web
+ * sencillamente no existe: ni un amigo al que le pasas el enlace, ni el
+ * reloj de GitHub, ni nadie.
+ *
+ * Costó una tarde entera, y encima disfrazado: el reloj respondía 401,
+ * que se lee como «la contraseña no coincide». La contraseña estaba
+ * bien. La llamada ni siquiera llegaba a Kairo.
+ *
+ * Comprobarlo es llamar a la propia web desde fuera de la sesión, que es
+ * lo que hace cualquiera que no seas tú. */
+async function miraLaPuerta(env: Entorno): Promise<Punto[]> {
+  const claves = env.claves ?? process.env;
+  const buscar = env.buscar ?? fetch;
+
+  /* Esta variable la pone Vercel. En local no existe, y en local no hay
+     ningún portero que mirar. */
+  const dominio = (claves.VERCEL_PROJECT_PRODUCTION_URL ?? "")
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/+$/, "");
+  if (!dominio) return [];
+
+  try {
+    const r = await buscar(`https://${dominio}/favicon.ico`, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(8000),
+      cache: "no-store",
+    });
+
+    /* Un 404 vale lo mismo que un 200: significa que la llamada ha
+       pasado la calle y ha llegado a la web. Lo único que delata al
+       portero es que te pare él. */
+    if (r.status !== 401 && r.status !== 403) return [];
+
+    const cuerpo = await r.text().catch(() => "");
+    if (!/vercel[_ ]?auth|protected by vercel|protected deployment|_vercel\/sso/i.test(cuerpo)) {
+      return [];
+    }
+
+    return [
+      {
+        que: "La puerta de la calle",
+        gravedad: "roto",
+        detalle:
+          "Vercel tiene la web en modo privado: solo entra quien tenga sesión en tu cuenta de Vercel. " +
+          "A ti te abre siempre, así que no se nota, pero nadie más puede usar Kairo. " +
+          "El reloj de GitHub tampoco: responde 401, que parece un fallo de contraseña y no lo es.",
+        arreglo:
+          "Vercel → el proyecto → Settings → Deployment Protection → Vercel Authentication: apaga el interruptor «Require Log In» y dale a Save. " +
+          "Es inmediato, no hace falta volver a desplegar. Para comprobarlo, abre la web en una ventana de incógnito.",
+      },
+    ];
+  } catch {
+    /* Si la llamada no ha salido, callarse. No haber podido mirar no es
+       lo mismo que saber que está puesto, y un aviso rojo por una
+       llamada fallida hace desconfiar de todo el informe. */
+    return [];
+  }
+}
+
+/* --------------------------------------------------------------
    5. ¿Se está quedando algo colgado?
    -------------------------------------------------------------- */
 
@@ -604,8 +673,11 @@ export async function revisarSalud(
   const puntos: Punto[] = [];
   const arreglado: string[] = [];
 
-  const supabase = await miraSupabase(env);
+  /* Las dos llamadas a internet, a la vez. Son independientes y en
+     serie se notaban: esta pantalla se abre con prisa. */
+  const [supabase, puerta] = await Promise.all([miraSupabase(env), miraLaPuerta(env)]);
   puntos.push(supabase);
+  puntos.push(...puerta);
   puntos.push(...miraLosNombres());
 
   /* Si Supabase no contesta, preguntarle por las migraciones da seis
