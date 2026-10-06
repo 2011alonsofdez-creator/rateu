@@ -159,6 +159,16 @@ jobs:
                   echo "::error::Es la clave 'service_role' de Supabase -> Settings -> API Keys. SIN el prefijo NEXT_PUBLIC_, que esa se publica entera en la web."
                   echo "::error::Y DESPUES Deployments -> los tres puntos -> Redeploy: puesta sin desplegar no cambia nada."
                   ;;
+                *permission?denied*)
+                  # Este no es «falta la migración»: la función está ahí
+                  # y la llave llega. Lo que pasa es que esa llave no
+                  # tiene permiso para llamarla. Decirle que le falta una
+                  # migración que SÍ tiene lo manda a buscar donde no es,
+                  # que es lo que pasó la primera vez.
+                  echo "::error::La funcion existe y la llave llega, pero esa llave no tiene permiso para llamarla."
+                  echo "::error::Pega supabase/migrations/0015_permisos_del_servidor.sql en Supabase -> SQL Editor -> Run."
+                  echo "::error::Si despues de eso sigue igual, entonces la clave de SUPABASE_SERVICE_ROLE_KEY no es la secreta: en Supabase -> API Keys tiene que ser la de 'Secret keys', no la 'Publishable'."
+                  ;;
                 *sin_reparto*)
                   echo "::error::Falta la migracion 0009_coworks.sql en Supabase (SQL Editor). Sin ella no hay de donde sacar el trabajo."
                   ;;
