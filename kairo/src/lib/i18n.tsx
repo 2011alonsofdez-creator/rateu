@@ -40,17 +40,20 @@ const dict = {
       "Programar, depurar y analizar documentos de cientos de páginas sin perder el hilo.",
     "brains.gemini": "Velocidad e imagen",
     "brains.geminiDesc":
-      "Respuestas instantáneas para lo del día a día, y generación de imágenes.",
+      "Respuestas instantáneas para lo del día a día, y leer vídeos e imágenes.",
     "brains.gpt": "Razonamiento y voz",
     "brains.gptDesc":
       "Problemas en varios pasos, matemáticas y conversación hablada natural.",
     "brains.note": "¿Y si quieres los tres a la vez? Ese es el Mega-Prompt.",
 
     "features.title": "Lo que Kairo hace y los demás no",
-    "features.sub": "Cinco cosas que cambian cómo trabajas con una IA.",
-    "features.cowork": "Co-Works programados",
-    "features.coworkDesc":
-      "«Cada lunes a las 8:00 revisa mi correo, resume lo urgente y prepárame el plan de la semana.» Se ejecuta solo, tú lo lees cuando llegas.",
+    "features.sub": "Seis cosas que cambian cómo trabajas con una IA.",
+    "features.paperwork": "Paperwork",
+    "features.paperworkDesc":
+      "Súbele una multa, una beca o un contrato. Te dice qué es, qué tienes que hacer y hasta cuándo —y te avisa 7, 3 y 1 día antes de que se acabe el plazo, por Telegram. Sin que tengas que entrar a mirar.",
+    "features.gist": "Gist",
+    "features.gistDesc":
+      "Pega un vídeo de YouTube o un enlace y te sale el resumen parte por parte, con los minutos para saltar a lo que te interesa. Y un chat al lado para lo que no te haya quedado claro.",
     "features.mentes": "Mentes",
     "features.mentesDesc":
       "Crea tu propia IA especializada: le das instrucciones y archivos, y responde siempre como tú quieres.",
@@ -477,17 +480,20 @@ const dict = {
       "Write, debug and analyse hundreds of pages without losing the thread.",
     "brains.gemini": "Speed and images",
     "brains.geminiDesc":
-      "Instant answers for everyday questions, plus image generation.",
+      "Instant answers for everyday questions, plus reading video and images.",
     "brains.gpt": "Reasoning and voice",
     "brains.gptDesc":
       "Multi-step problems, maths and natural spoken conversation.",
     "brains.note": "Want all three at once? That's the Mega-Prompt.",
 
     "features.title": "What Kairo does that others don't",
-    "features.sub": "Five things that change how you work with an AI.",
-    "features.cowork": "Scheduled Co-Works",
-    "features.coworkDesc":
-      "\"Every Monday at 8:00, check my inbox, summarise what's urgent and draft my week.\" It runs on its own; you read it when you arrive.",
+    "features.sub": "Six things that change how you work with an AI.",
+    "features.paperwork": "Paperwork",
+    "features.paperworkDesc":
+      "Upload a fine, a grant form or a contract. Kairo tells you what it is, what you have to do and by when \u2014 and warns you 7, 3 and 1 day before the deadline, on Telegram. You never have to go and check.",
+    "features.gist": "Gist",
+    "features.gistDesc":
+      "Paste a YouTube video or a link and get the summary part by part, with timestamps to jump straight to what you came for. Plus a chat beside it for whatever did not land.",
     "features.mentes": "Minds",
     "features.mentesDesc":
       "Build your own specialised AI: give it instructions and files, and it always answers your way.",

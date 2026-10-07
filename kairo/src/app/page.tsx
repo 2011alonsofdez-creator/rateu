@@ -10,6 +10,8 @@ import {
   Bolt,
   Brain,
   Clock,
+  Fichas,
+  Papel,
   Plug,
   Shield,
 } from "@/components/Icons";
@@ -20,8 +22,20 @@ const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
   { name: "GPT", title: "brains.gpt", desc: "brains.gptDesc", color: "var(--green)" },
 ];
 
+/* EL ORDEN IMPORTA MÁS QUE LA LISTA.
+ *
+ * Un chat con tres modelos lo tiene cualquiera, y quien llega aquí ya
+ * usa uno. Lo que no tiene nadie es que le subas la multa y Kairo le
+ * avise tres veces antes de que venza. Así que eso va primero, y el
+ * resto detrás.
+ *
+ * Los Co-Works no tienen tarjeta propia a propósito: «tareas
+ * programadas» no le dice nada a quien no conoce Kairo, y contado
+ * dentro de Paperwork —te avisa sin que entres— sí. La promesa general
+ * ya está arriba del todo, en el titular. */
 const FEATURES: { icon: typeof Clock; title: TKey; desc: TKey }[] = [
-  { icon: Clock, title: "features.cowork", desc: "features.coworkDesc" },
+  { icon: Papel, title: "features.paperwork", desc: "features.paperworkDesc" },
+  { icon: Fichas, title: "features.gist", desc: "features.gistDesc" },
   { icon: Brain, title: "features.mentes", desc: "features.mentesDesc" },
   { icon: Bolt, title: "features.mega", desc: "features.megaDesc" },
   { icon: Plug, title: "features.connect", desc: "features.connectDesc" },
