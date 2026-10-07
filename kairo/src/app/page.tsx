@@ -10,7 +10,6 @@ import {
   Bolt,
   Brain,
   Clock,
-  Code,
   Plug,
   Shield,
 } from "@/components/Icons";
@@ -25,7 +24,6 @@ const FEATURES: { icon: typeof Clock; title: TKey; desc: TKey }[] = [
   { icon: Clock, title: "features.cowork", desc: "features.coworkDesc" },
   { icon: Brain, title: "features.mentes", desc: "features.mentesDesc" },
   { icon: Bolt, title: "features.mega", desc: "features.megaDesc" },
-  { icon: Code, title: "features.code", desc: "features.codeDesc" },
   { icon: Plug, title: "features.connect", desc: "features.connectDesc" },
   { icon: Shield, title: "features.ages", desc: "features.agesDesc" },
 ];

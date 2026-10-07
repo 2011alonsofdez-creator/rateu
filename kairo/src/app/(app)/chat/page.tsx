@@ -74,8 +74,6 @@ const CARDS: {
   },
   { icon: Brain, title: "card.mentes", desc: "card.mentesDesc", href: "/mentes" },
   { icon: Clock, title: "card.cowork", desc: "card.coworkDesc", href: "/coworks" },
-  { icon: Code, title: "card.code", desc: "card.codeDesc", href: "/codigo" },
-  { icon: ImageIcon, title: "card.image", desc: "card.imageDesc", href: "/codigo" },
 ];
 
 /* La página lee la dirección (?c= y ?mente=), y eso obliga a envolverla:
