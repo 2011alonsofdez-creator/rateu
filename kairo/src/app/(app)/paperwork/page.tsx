@@ -152,7 +152,7 @@ export default function PaperworkPage() {
               : j?.error === "sin_creditos"
                 ? "gist.noCredits"
                 : j?.error === "demo"
-                  ? "code.demo"
+                  ? "app.sinIa"
                   : "paper.failed",
         );
         return;

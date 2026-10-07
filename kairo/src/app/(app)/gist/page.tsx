@@ -155,7 +155,7 @@ export default function GistPage() {
   const resumir = async () => {
     const limpia = url.trim();
     if (!limpia || trabajando) return;
-    if (perfil.demo) return setError("code.demo");
+    if (perfil.demo) return setError("app.sinIa");
 
     const esVideo = /youtube\.com|youtu\.be/i.test(limpia);
     setError(undefined);
@@ -179,7 +179,7 @@ export default function GistPage() {
               : j?.error === "sin_creditos"
                 ? "gist.noCredits"
                 : j?.error === "demo"
-                  ? "code.demo"
+                  ? "app.sinIa"
                   : "gist.failed",
         );
         return;

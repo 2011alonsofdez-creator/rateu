@@ -275,7 +275,6 @@ export const RUTAS_PRIVADAS = [
   "/mentes",
   "/memoria",
   "/coworks",
-  "/codigo",
   "/conectores",
   "/ajustes",
   "/bienvenida",
