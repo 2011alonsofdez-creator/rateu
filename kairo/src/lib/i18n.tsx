@@ -304,6 +304,10 @@ const dict = {
     "mente.errDemo": "Esto es la demo: aquí no se guarda nada. Entra con tu cuenta.",
     "mente.errSave": "No se ha podido guardar.",
 
+    "card.paperwork": "Paperwork",
+    "card.paperworkDesc": "Sube un papel y te aviso del plazo",
+    "card.gist": "Gist",
+    "card.gistDesc": "Pega un vídeo o un enlace",
     "card.chat": "Chat",
     "card.chatDesc": "Pregunta lo que sea",
     "card.mentes": "Mentes",
@@ -743,6 +747,10 @@ const dict = {
     "mente.errDemo": "This is the demo: nothing is saved here. Sign in with your account.",
     "mente.errSave": "Could not save.",
 
+    "card.paperwork": "Paperwork",
+    "card.paperworkDesc": "Upload a paper, I warn you of the deadline",
+    "card.gist": "Gist",
+    "card.gistDesc": "Paste a video or a link",
     "card.chat": "Chat",
     "card.chatDesc": "Ask anything",
     "card.mentes": "Minds",

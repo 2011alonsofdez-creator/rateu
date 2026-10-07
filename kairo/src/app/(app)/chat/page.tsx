@@ -26,12 +26,12 @@ import {
   Chat as ChatIcon,
   Check,
   Clock,
-  Code,
   Copy,
   Altavoz,
+  Fichas,
+  Papel,
   Pencil,
   Stop,
-  Image as ImageIcon,
   Refresh,
 } from "@/components/Icons";
 
@@ -72,6 +72,8 @@ const CARDS: {
       en: "Tell me in 3 sentences what you can do",
     },
   },
+  { icon: Papel, title: "card.paperwork", desc: "card.paperworkDesc", href: "/paperwork" },
+  { icon: Fichas, title: "card.gist", desc: "card.gistDesc", href: "/gist" },
   { icon: Brain, title: "card.mentes", desc: "card.mentesDesc", href: "/mentes" },
   { icon: Clock, title: "card.cowork", desc: "card.coworkDesc", href: "/coworks" },
 ];
