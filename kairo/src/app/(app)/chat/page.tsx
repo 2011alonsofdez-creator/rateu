@@ -906,7 +906,16 @@ function Chat() {
               </span>
             )}
 
-            <div className="mt-9 grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {/* En fila y centradas, no en rejilla.
+ 
+                Con una rejilla de columnas fijas, el día que las
+                tarjetas no son múltiplo del número de columnas la
+                última se queda sola pegada a un lado: con cinco en dos
+                columnas, la quinta cuelga a la izquierda y se ve
+                descolgada. Así se centran siempre, salgan las que
+                salgan, y además no hay que tocar nada al añadir o
+                quitar una. */}
+            <div className="mt-9 flex w-full flex-wrap justify-center gap-3">
               {CARDS.map((c) => {
                 const Icon = c.icon;
                 const inner = (
@@ -918,8 +927,12 @@ function Chat() {
                     </span>
                   </>
                 );
+                /* `grow` con un ancho base y un tope: en ordenador
+                   caben las cinco en una línea y se reparten el sitio;
+                   en el móvil entran dos por fila y la que sobra no se
+                   estira de lado a lado. */
                 const cls =
-                  "rounded-xl border border-line bg-panel p-3.5 text-left transition hover:border-line-hi hover:bg-panel-hi";
+                  "grow basis-[130px] max-w-[170px] rounded-xl border border-line bg-panel p-3.5 text-left transition hover:border-line-hi hover:bg-panel-hi";
 
                 return c.prompt ? (
                   <button key={c.title} className={cls} onClick={() => send(c.prompt![lang])}>
