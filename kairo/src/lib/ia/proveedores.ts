@@ -301,14 +301,19 @@ const ESFUERZO_CLAUDE = {
 } as const;
 
 /* Haiku 4.5 es de la generación anterior: ni acepta `effort` ni entiende
-   el pensamiento adaptativo, y mandárselos es un 400. Solo está en la
-   cadena como último recurso, así que va sin adornos. */
-const ES_HAIKU = /^claude-haiku/;
+   el pensamiento adaptativo, y mandárselos es un 400.
+ 
+   Ojo con el "-4" del final de la expresión, que no sobra: antes ponía
+   `/^claude-haiku/` y eso también casaba con los Haiku nuevos, que SÍ
+   los aceptan. No habría roto nada —habría seguido contestando— pero el
+   modelo habría trabajado a medio gas sin que nadie se enterara, que es
+   la clase de fallo que no se encuentra nunca. */
+const ES_HAIKU_VIEJO = /^claude-haiku-4/;
 
 async function* deClaude(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
   const cliente = new Anthropic({ apiKey: CLAVES.claude()! });
 
-  const extras = ES_HAIKU.test(modelo)
+  const extras = ES_HAIKU_VIEJO.test(modelo)
     ? {}
     : {
         thinking: { type: "adaptive" as const },

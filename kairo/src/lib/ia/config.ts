@@ -56,7 +56,7 @@ export const CADENAS: Record<Level, string[]> = {
     "gemini-2.5-flash-lite",
     "gemini-2.5-flash",
     "gpt:gpt-5-mini",
-    "claude:claude-haiku-4-5",
+    "claude:claude-haiku-5-5",
   ],
 
   // Normal: redactar, resumir, explicar.
