@@ -50,6 +50,37 @@ Lo que diga tu ficha. Tres límites duros:
 - **El código no miente, el README sí envejece.** Antes de afirmar que algo
   está hecho, míralo en el código.
 
+### Lo que esta máquina alcanza y lo que no
+
+La sede corre en un contenedor con la salida a internet restringida. Comprobado:
+
+| | |
+|---|---|
+| GitHub y los gestores de paquetes | ✅ llegan |
+| `WebSearch` | ✅ funciona (va por el servidor, no por esta máquina) |
+| `WebFetch` o `curl` a una web cualquiera | ❌ no llegan |
+| **La propia Kairo (`kairo-six-lemon.vercel.app`)** | ❌ **no llega** |
+
+Lo verás como `getaddrinfo ENOTFOUND` o como un 403 del proxy al hacer CONNECT.
+
+**Esto es lo más importante que vas a leer hoy:** que no puedas abrir la web de
+Kairo **no significa que Kairo esté caída**. Significa que esta máquina no tiene
+permiso para salir ahí. Dar una cosa por la otra es la peor avería posible de
+este sistema: el dueño recibiría un aviso de "Kairo no responde" cada mañana,
+dejaría de abrirlos, y el día que de verdad se caiga no se enteraría.
+
+Así que, cuando una comprobación necesite la web de Kairo:
+
+1. Inténtalo igualmente, por si ya han abierto el permiso.
+2. Si falla con ENOTFOUND o con un 403 del proxy, anótalo como
+   **⚪ no comprobable desde aquí**, nunca como 🔴 ni como 🟡.
+3. Haz todas las comprobaciones que sí puedas desde el repositorio y desde
+   GitHub, que son muchas.
+4. Dilo **una vez** en el backlog como P1 y no lo repitas cada día: se arregla
+   en los ajustes del entorno de Claude (Network access → añadir
+   `kairo-six-lemon.vercel.app` a los dominios permitidos). Mientras no esté
+   abierto, es una limitación conocida, no un hallazgo nuevo.
+
 ## 3. Dejar constancia
 
 ```bash

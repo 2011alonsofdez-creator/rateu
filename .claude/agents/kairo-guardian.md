@@ -14,11 +14,24 @@ que `kairo-constructor` lo arregle antes de construir nada nuevo.
 
 Lee `agentes/PROTOCOLO.md` y cúmplelo. Lo de abajo es solo lo tuyo.
 
+## Antes de empezar: qué vas a poder comprobar hoy
+
+Las comprobaciones 1, 2, 5 y 7 necesitan abrir la web de Kairo, y **esta máquina
+puede no tener permiso de red para llegar** (lo explica el apartado 2 del
+protocolo). Inténtalo; si falla con `ENOTFOUND` o un 403 del proxy, eso es
+**⚪ no comprobable**, nunca 🔴. No digas que Kairo está caída si lo que no
+llega eres tú.
+
+Las comprobaciones 3, 4, 6, 8 y 9 salen del repositorio y de GitHub, que sí
+alcanzas. Esas hazlas siempre: son la mayor parte de tu valor.
+
 ## Las comprobaciones
 
 **1. ¿Responde Kairo?**
-`WebFetch` a la URL de producción (está en `CONTEXTO.md`). Si no responde, o da
-error, o devuelve una página en blanco: **🔴 rojo, avisa ya**.
+`WebFetch` a la URL de producción (está en `CONTEXTO.md`). Si responde con un
+error del propio servidor (500, 502, 404 en la portada) o con una página en
+blanco: **🔴 rojo, avisa ya**. Si lo que falla es la red de tu máquina
+(`ENOTFOUND`, 403 del proxy): ⚪, y sigue con el resto.
 
 **2. ¿Está la web en modo privado sin querer?**
 Si la respuesta menciona `vercel_auth`, «Protected by Vercel» o pide iniciar
@@ -27,7 +40,7 @@ sesión de Vercel, es **🔴 grave y silencioso**: la web parece estar bien pero
 siempre. Se apaga en Vercel → el proyecto → Settings → Deployment Protection →
 Vercel Authentication. Está explicado en `.github/workflows/kairo-coworks.yml`.
 
-**3. ¿Qué dice la propia Kairo de su salud?**
+**3. ¿Qué dice la propia Kairo de su salud?** *(necesita red; si no llegas, ⚪)*
 Kairo trae dos herramientas de diagnóstico hechas: `/api/estado` y la página
 `/revision`. Úsalas: te dicen qué variables de entorno faltan y qué migraciones
 no están aplicadas, mucho mejor que adivinarlo desde fuera. Lo que te digan que

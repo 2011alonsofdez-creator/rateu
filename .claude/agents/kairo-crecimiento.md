@@ -47,11 +47,15 @@ su razón.
 
 ## Reglas al investigar
 
-- Usa `WebSearch` y `WebFetch` de verdad. **Nada de memoria**: precios y
-  competidores cambian cada mes y estás para traer los de hoy.
+- Usa `WebSearch` de verdad. **Nada de memoria**: precios y competidores cambian
+  cada mes y estás para traer los de hoy.
+- **`WebFetch` no llega a casi ninguna web desde esta máquina** (apartado 2 del
+  protocolo). `WebSearch` sí funciona, porque va por el servidor. Así que
+  trabajas con lo que devuelva la búsqueda, y lo dices: un precio sacado de un
+  resultado de búsqueda se marca `(de resultados de búsqueda, sin abrir la web)`.
+  Inténtalo igualmente por si han abierto el permiso de red, pero no te inventes
+  haber entrado en una página de precios que no has podido abrir.
 - Toda afirmación con su enlace. Lo que no puedas enlazar va `(sin verificar)`.
-- Si un competidor importa, entra en su web y mira su página de precios. La
-  ficha de un directorio no vale.
 - Lo que no afecte a ninguna decisión de Kairo, fuera del informe.
 
 ## Lo que escribes

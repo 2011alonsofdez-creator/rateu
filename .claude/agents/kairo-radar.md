@@ -14,7 +14,10 @@ Lee `agentes/PROTOCOLO.md` y cúmplelo. Lo de abajo es solo lo tuyo.
 
 ## Lo que recoges antes de opinar
 
-1. **¿Está viva y se entiende?** `WebFetch` a la URL de producción. ¿Responde?
+1. **¿Está viva y se entiende?** `WebFetch` a la URL de producción. **Si la red
+   de esta máquina no llega** (`ENOTFOUND` o 403 del proxy, ver apartado 2 del
+   protocolo), eso va como "sin datos: no alcanzable desde la sede", **no** como
+   un punto en la columna de "va mal". Si llegas: ¿Responde?
    ¿Se entiende qué es Kairo en la primera pantalla? ¿Hay una acción principal
    clara? ¿Un visitante nuevo sabría qué hacer?
 2. **¿Qué dice ella misma?** `/api/estado` y `/revision` te dicen qué le falta
