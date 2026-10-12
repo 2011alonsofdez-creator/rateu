@@ -48,3 +48,40 @@ export function titulo(linea: string): { nivel: number; texto: string } | null {
     texto: m[2].replace(/\s+#+\s*$/, "").trim(),
   };
 }
+
+/* MARKDOWN A TEXTO LLANO.
+ *
+ * Para la vista previa de dos líneas de una ficha: ahí no se pinta
+ * markdown, se recorta texto, y lo que no se limpie sale crudo.
+ *
+ * Antes se hacía con `replace(/[#*`>-]/g, " ")`, y tenía dos agujeros
+ * que se veían en la propia tarjeta:
+ *
+ *   · los enlaces salían enteros, con su dirección y todo:
+ *     «[ 0:00 2:37 ](https://www.youtube.com/watch?v=...&t=0s) · Intro»
+ *   · y el guion se cargaba también los de dentro de las palabras y los
+ *     de los rangos de minutos: «0:00 - 2:37» se quedaba en «0:00  2:37»,
+ *     que es justo lo que hay que leer de un vistazo.
+ *
+ * Aquí los marcadores se quitan solo donde significan algo: al
+ * principio de la línea los de bloque, y por parejas los de énfasis. */
+export function enTextoPlano(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]*)`/g, "$1")
+    /* Las imágenes se van enteras —su texto alternativo no se lee—, y
+       los enlaces se quedan con lo que se ve, sin la dirección. El
+       orden importa: primero la imagen, que si no el `!` queda suelto. */
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}>\s?/gm, "")
+    .replace(/^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/gm, " ")
+    .replace(/^\s{0,3}[-*+]\s+/gm, "")
+    .replace(/^\s{0,3}\d+[.)]\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
