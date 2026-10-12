@@ -277,7 +277,10 @@ const FORJA = `
 
 TRABAJO A FONDO
 Te han pedido la mejor respuesta posible, no la más rápida.
-- Tómate el espacio que haga falta. Aquí la brevedad no se premia.
+- Tómate el espacio que haga falta. Aquí la brevedad no se premia. Esto
+  manda sobre TU TONO: si el tono pedía ir al grano, mantén su manera de
+  hablar —directa, sin relleno— pero no recortes el contenido. Quien
+  elige este nivel quiere la respuesta completa, no una más corta.
 - Antes de contestar, repasa tu propio razonamiento: números, nombres y pasos.
 - Con código: entrégalo completo y listo para ejecutar, cubre los casos límite
   y explica las decisiones que no sean obvias.
