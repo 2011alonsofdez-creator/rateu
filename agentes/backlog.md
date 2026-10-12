@@ -13,15 +13,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **Falta `agentes/CONTEXTO.md`.** `[origen: guardian 2026-10-12]`
-  Es lo primero que el protocolo manda leer a los cinco agentes, y
-  `ESTADO.md` dice que las métricas siguen en blanco hasta que se rellene su
-  apartado **Fuentes de datos**. No lo escribe el guardián porque su contenido
-  son decisiones del dueño, no datos que se puedan deducir del repositorio.
-  Hace falta que diga: qué es Kairo en dos líneas, su URL de producción
-  (`https://kairo-six-lemon.vercel.app`), en qué estado está (¿lanzada?,
-  ¿usuarios?, ¿cobrando?), los objetivos de este trimestre y de qué fuentes
-  salen las métricas (analítica, Supabase, Stripe) o que no hay ninguna.
+- **Kairo+ tiene los mismos niveles que Supreme en el código, MEGA incluido.** `[origen: constructor 2026-10-12]`
+  `kairo/src/lib/planes.ts:41-45` da a `plus` y a `supreme` los cuatro niveles
+  (`fast`, `normal`, `forja`, `mega`). La especificación, sección 3, da a
+  Kairo+ solo "Rápido + Estándar" y reserva el Máximo y el Mega-Prompt para
+  Supreme. El Mega-Prompt es lo más caro por uso (~0,36 € según la propia
+  especificación), así que el día que se enciendan los pagos quien pague
+  9,99 € tendría lo mismo que quien paga 24,99 € justo en lo que más cuesta, y
+  el plan de arriba se queda sin argumento.
+  **No lo arregla ningún agente**: los planes y los créditos son del dueño
+  (protocolo, apartado 5). Hacen falta dos decisiones suyas: cuáles son los
+  niveles de cada plan de verdad, y si el tope de Mega-Prompt al mes (8 y 25
+  según el documento) está puesto en algún sitio o no existe.
 
 - **La sede no tiene permiso de red para llegar a la web de Kairo.** `[origen: guardian 2026-10-12]`
   `curl` y `WebFetch` a `kairo-six-lemon.vercel.app` fallan con
@@ -76,6 +79,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **`agentes/CONTEXTO.md` escrito.** `[hecho 2026-10-12]` Qué es Kairo, dónde
+  vive, qué está construido verificado en el código (no en el README), el
+  apartado **Fuentes de datos** que `ESTADO.md` esperaba —ninguna conectada,
+  así que toda métrica de uso se escribe "sin datos"— y los tres supuestos de
+  trabajo que solo el dueño puede confirmar. Entregado en `agentes/CONTEXTO.md`.
 
 - `agentes/backlog.md` creado, que no existía. `[hecho 2026-10-12]`
 - `agentes/lanzamiento/` con `registro-guardian.md` y `checklist.md`. `[hecho 2026-10-12]`
