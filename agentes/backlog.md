@@ -13,6 +13,16 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Kairo no sabe sus propios precios, así que se los inventa.** `[origen: entrenador 2026-10-13]`
+  Ni el prompt (`kairo/src/lib/ia/prompt.ts`) ni `agentes/ia/conocimiento/`
+  —que está vacía— contienen los créditos, los planes ni los límites. Si un
+  usuario pregunta "¿cuánto me gasta un Mega-Prompt?", el modelo no tiene de
+  dónde sacarlo y lo más probable es que conteste un número verosímil y falso.
+  Ahí inventar no es un fallo de estilo: el usuario lo descubre pagando.
+  Le toca al entrenador mañana (área 3), con las cifras de
+  `docs/kairo/ESPECIFICACION.md` sección 3 y de `lib/planes.ts`, cada una con
+  su fuente y marcando `(sin confirmar)` lo que choque entre las dos.
+
 - **Kairo+ tiene los mismos niveles que Supreme en el código, MEGA incluido.** `[origen: constructor 2026-10-12]`
   `kairo/src/lib/planes.ts:41-45` da a `plus` y a `supreme` los cuatro niveles
   (`fast`, `normal`, `forja`, `mega`). La especificación, sección 3, da a
@@ -60,32 +70,10 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   usuario en la interfaz al programar un Co-Work, que es lo honesto si no se
   va a pagar por un reloj.
 
-- **Al compartir Kairo no sale tarjeta: falta la imagen de Open Graph.** `[origen: guardian 2026-10-12]`
-  `kairo/src/app/layout.tsx` tiene `openGraph` con título y descripción, pero
-  sin `images` y sin `metadataBase`. Sin `metadataBase`, Next no sabe construir
-  la URL absoluta de la imagen aunque se añada. Un enlace a Kairo pegado en
-  WhatsApp, X o LinkedIn sale como texto desnudo, que es lo que más baja el
-  número de clics.
-
-- **No hay `robots.txt`.** `[origen: guardian 2026-10-12]`
-  No existe `robots.ts`, ni `robots.txt`, ni carpeta `public/`. Los buscadores
-  entran sin instrucciones y rastrean también las rutas de aplicación
-  (`/chat`, `/ajustes`, `/revision`), que no tienen nada que indexar. De paso
-  conviene un `sitemap.ts` con las páginas públicas: portada, `/precios`,
-  `/legal`.
-
 ## P2
 
 > Los dos de hoy van aquí y no en P1 a propósito: son reales, pero ponerlos por
 > delante de un reloj que falla sería mentir sobre lo que importa.
-
-- **La rama de los agentes está 2 commits por detrás de `main`.** `[origen: guardian 2026-10-13]`
-  El dueño fusionó `f44d0a8` el 12-10 a las 17:35 (cambios en `gist`, `i18n` y
-  `markdown.ts`). `claude/kairo-agentes` no los tiene, así que los agentes
-  trabajan sobre una copia que ya no es la de producción. Lo arregla un
-  `git merge origin/main` desde la rama de agentes —eso no toca `main`— y le
-  toca al constructor, no al guardián. Si se deja correr, acabará en un
-  conflicto el día que el dueño quiera fusionar.
 
 - **"Cada 3 días" no es lo que hacen los cron del radar y del de crecimiento.** `[origen: guardian 2026-10-13]`
   Están puestos por día del mes: el radar `38 9 */3 * *` (días 1, 4, 7… 28, 31)
@@ -106,6 +94,16 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **Imagen de Open Graph, `metadataBase`, `robots.txt` y `sitemap.xml`.** `[hecho 2026-10-13]`
+  `kairo/public/og.png` (1200x630, generada con
+  `agentes/entregas/og/generar-og.py`, que se puede volver a ejecutar),
+  `metadataBase` y tarjeta de X/LinkedIn en `kairo/src/app/layout.tsx`, y
+  `kairo/src/app/robots.ts` y `sitemap.ts` nuevos. **Comprobado con
+  `next build` de verdad**: sale en verde, y el HTML generado trae
+  `og:image` con la URL absoluta.
+- **La rama de agentes, al día con `main`.** `[hecho 2026-10-13]` Merge de
+  `origin/main` (`369fdb8`), sin conflictos.
 
 - **`agentes/CONTEXTO.md` escrito.** `[hecho 2026-10-12]` Qué es Kairo, dónde
   vive, qué está construido verificado en el código (no en el README), el

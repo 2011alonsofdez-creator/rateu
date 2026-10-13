@@ -2,7 +2,20 @@ import type { Metadata, Viewport } from "next";
 import { UiProvider } from "@/lib/i18n";
 import "./globals.css";
 
+/* La dirección de producción, escrita aquí a propósito.
+ *
+ * `metadataBase` tiene que ser absoluta: las redes sociales no piden la
+ * tarjeta desde el navegador de nadie, así que una ruta relativa como
+ * /og.png no les dice en qué servidor está. Sin esta línea, Next avisa
+ * en el build y la imagen de abajo no se enseña en ningún sitio.
+ *
+ * No sale de una variable de entorno a propósito: no es un secreto, es
+ * la dirección pública, y si un día falta la variable la tarjeta deja de
+ * salir sin que nadie se entere. Si cambia el dominio, se cambia aquí. */
+const SITIO = "https://kairo-six-lemon.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITIO),
   title: "Kairo — La IA que trabaja cuando tú no",
   description:
     "Kairo usa Claude, Gemini y GPT a la vez y elige el mejor modelo para cada tarea. Con Co-Works programados que trabajan mientras no estás.",
@@ -11,6 +24,27 @@ export const metadata: Metadata = {
     description:
       "Tres modelos, una sola IA. Con trabajos programados que se ejecutan solos.",
     type: "website",
+    siteName: "Kairo",
+    locale: "es_ES",
+    url: "/",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Kairo — La IA que trabaja cuando tú no",
+      },
+    ],
+  },
+  /* X y LinkedIn leen esto antes que lo de arriba. `summary_large_image`
+     es lo que hace que salga la tarjeta grande en vez de una miniatura
+     cuadrada al lado del texto. */
+  twitter: {
+    card: "summary_large_image",
+    title: "Kairo — La IA que trabaja cuando tú no",
+    description:
+      "Tres modelos, una sola IA. Con trabajos programados que se ejecutan solos.",
+    images: ["/og.png"],
   },
 };
 
