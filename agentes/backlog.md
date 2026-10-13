@@ -72,6 +72,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **El checklist de lanzamiento mide salud, no lanzamiento.** `[origen: radar 2026-10-13]`
+  `agentes/lanzamiento/checklist.md` tiene 15 filas y todas van de si la web
+  responde, si hay claves expuestas o si los agentes corren. Eso está muy bien
+  para el guardián, pero no es la lista de lanzar. Faltan los puntos de la
+  sección 8 de `docs/kairo/ESPECIFICACION.md`: pagar con la tarjeta de pruebas
+  y ver que sube el plan, cancelar y volver a free, probar el modo niños con
+  preguntas límite, gastar todos los créditos a propósito, topes de gasto en
+  los tres proveedores, copia de seguridad de la base de datos, dominio con
+  SSL, 10 usuarios reales una semana, analítica y un canal para fallos.
+  Con 10 de 15 marcados hoy parece que falta poco, y falta casi todo. Se
+  arregla añadiendo esos puntos al checklist, sin marcar.
+
+- **No hay ningún canal para recibir fallos.** `[origen: radar 2026-10-13]`
+  La especificación lo pide ("un email basta al principio") y no existe. Con
+  los primeros diez usuarios, lo que rompan se pierde si no hay dónde contarlo.
+  Es un enlace en el pie y una dirección de correo; lo puede hacer el
+  constructor en cuanto el dueño diga a qué dirección.
+
+- **Nadie ha comprobado que haya topes de gasto en Anthropic, Google y OpenAI.** `[origen: radar 2026-10-13]`
+  No consta en el repositorio y no se puede comprobar desde aquí: son los
+  paneles de los tres proveedores. Es lo único de la lista que puede costar
+  dinero de un día para otro, y la especificación lo pone como obligatorio
+  antes de enseñar Kairo a nadie. **Solo lo puede mirar el dueño.**
+
 > Los dos de hoy van aquí y no en P1 a propósito: son reales, pero ponerlos por
 > delante de un reloj que falla sería mentir sobre lo que importa.
 
