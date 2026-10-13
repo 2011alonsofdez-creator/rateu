@@ -71,6 +71,48 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-13 — Ejemplos (área 2)
+
+**Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`, que estaba vacía:
+
+| Archivo | Qué prueba |
+|---|---|
+| `2026-10-13-multa-con-plazo.md` | Paperwork: convertir "20 días naturales" en una fecha del calendario, explicar que el descuento del 50% implica renunciar a alegar, y avisar de que la foto sale cortada en vez de rellenar el hueco |
+| `2026-10-13-peticion-a-medias.md` | El mensaje a medias: preguntar las dos cosas que cambian el resultado, no ocho, y no inventarse el "como te dije antes" que no existe |
+| `2026-10-13-cuanto-gasta-mega.md` | Una pregunta sobre el propio Kairo: dar la cifra, hacer la cuenta, y marcar en una línea lo que no se puede confirmar |
+
+**Por qué**: la carpeta no tenía ni un caso, así que "cómo responde Kairo"
+estaba definido solo con adjetivos en el prompt. Un ejemplo con la respuesta
+escrita entera define el comportamiento con hechos, y además es el material del
+banco de pruebas, que tiene sus 8 casos en `[por escribir]`. Estos tres cubren
+los huecos 3, 4 y 7 de ese banco.
+
+Los tres son difíciles a propósito, y cada uno por un motivo distinto: el
+primero obliga a calcular, el segundo a no adivinar, el tercero a no inventar.
+Elegí la multa porque es el caso que mejor enseña para qué sirve Kairo: lo que
+la persona necesita no es un resumen del papel, es una decisión con fecha.
+
+**Cómo lo comprobé**: los datos del producto, contra las fuentes, no de memoria.
+Los 120 créditos del Mega-Prompt y los 1.000 de Kairo+ salen de
+`docs/kairo/ESPECIFICACION.md` sección 3 y de `kairo/src/lib/planes.ts`. Las
+cuentas del ejemplo: 1.000 / 120 = 8 al mes, y 120 × 30 = 3.600 para usarlo a
+diario. La fecha de la multa: 28/09/2026 + 20 días naturales = 18/10/2026.
+Lo que **no** he comprobado: que Kairo responda así de verdad. Para eso hace
+falta el banco de pruebas, que sigue sin pasarse nunca.
+
+**Qué necesito del dueño**: nada para esto. Pero una advertencia que sale del
+tercer ejemplo y que conviene que vea: ninguna de esas cifras de precios está
+hoy en el prompt ni en `agentes/ia/conocimiento/`, que está vacío. Es decir,
+**hoy Kairo no tiene de dónde sacar sus propios precios, así que si alguien se
+los pregunta se los va a inventar**. Y ahí inventar no es un error de estilo:
+es que el usuario se enteraría pagando. Eso hace del área 3 la más urgente de
+las siete.
+
+**Mañana toca**: área 3, Conocimiento — meter en `agentes/ia/conocimiento/` los
+precios, los créditos y los límites de los planes, cada uno con su fuente, y
+marcar `(sin confirmar)` lo que choque entre la especificación y el código
+(que algo choca: lo encontró el constructor ayer con los niveles de Kairo+).
+
 ### 2026-10-12 — Prompt maestro (área 1)
 
 **Qué cambié**: `kairo/src/lib/ia/prompt.ts`, bloque `FORJA` ("TRABAJO A
