@@ -6,6 +6,7 @@ import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useCredits } from "@/lib/credits";
 import { Markdown } from "@/components/Markdown";
+import { enTextoPlano } from "@/lib/markdown";
 import { Fuentes } from "@/components/Fuentes";
 import { Marca } from "@/components/Logo";
 import {
@@ -116,6 +117,23 @@ debajo.`,
   creada_el: new Date().toISOString(),
 };
 
+/* Qué le decimos a quien lo está esperando, según lo que falló.
+ 
+   Es una tabla y no una escalera de ternarios porque la escalera ya
+   tenía cinco peldaños y cada motivo nuevo añadía otro. Lo que no esté
+   aquí cae en "gist.failed", que ahora dice lo que puede ser en vez de
+   afirmar lo que no sabe. */
+const POR_QUE: Record<string, string> = {
+  enlace_no_valido: "gist.badUrl",
+  sin_clave: "gist.noKey",
+  sin_creditos: "gist.noCredits",
+  demo: "app.sinIa",
+  cuota_minuto: "gist.quotaMinute",
+  cuota_dia: "gist.quotaDay",
+  sobrecargado: "gist.busy",
+  vacio: "gist.noText",
+};
+
 export default function GistPage() {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -171,17 +189,7 @@ export default function GistPage() {
       const j = await r.json().catch(() => null);
 
       if (!r.ok) {
-        setError(
-          j?.error === "enlace_no_valido"
-            ? "gist.badUrl"
-            : j?.error === "sin_clave"
-              ? "gist.noKey"
-              : j?.error === "sin_creditos"
-                ? "gist.noCredits"
-                : j?.error === "demo"
-                  ? "app.sinIa"
-                  : "gist.failed",
-        );
+        setError(POR_QUE[String(j?.error)] ?? "gist.failed");
         return;
       }
 
@@ -395,7 +403,7 @@ export default function GistPage() {
                   {f.titulo}
                 </h2>
                 <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-muted">
-                  {f.resumen.replace(/[#*`>-]/g, " ").slice(0, 160)}
+                  {enTextoPlano(f.resumen).slice(0, 160)}
                 </p>
               </div>
             </button>

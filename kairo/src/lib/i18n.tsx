@@ -159,7 +159,14 @@ const dict = {
     "gist.workingWeb": "Abriendo la página y leyéndola.",
     "gist.empty": "Todavía no tienes ninguna ficha. Prueba con un vídeo de YouTube o con un artículo largo.",
     "gist.badUrl": "Eso no parece un enlace. Tiene que empezar por https://",
-    "gist.failed": "No he podido con ese enlace. Si es un vídeo, tiene que ser público.",
+    "gist.failed":
+      "No he podido con ese enlace. Puede ser que el vídeo sea privado, que tenga restricción de edad, o que la página no se deje leer desde fuera.",
+    "gist.quotaDay":
+      "Google ha cortado por hoy: se ha agotado la cuota gratuita del día. Mañana vuelve sola. No te he cobrado nada.",
+    "gist.quotaMinute": "Demasiadas seguidas. Espera un minuto y vuelve a darle.",
+    "gist.busy": "El modelo está saturado ahora mismo. Prueba otra vez en un par de minutos.",
+    "gist.noText":
+      "Lo ha visto pero no ha devuelto nada escrito. Suele pasar con vídeos muy largos: prueba con uno más corto.",
     "gist.noKey": "Esto necesita la clave de Gemini puesta en el servidor.",
     "gist.noCredits": "No te quedan créditos suficientes.",
     "gist.needsMigration": "Falta por ejecutar la migración 0008 en Supabase. Hasta entonces, las fichas no se pueden guardar.",
@@ -602,7 +609,14 @@ const dict = {
     "gist.workingWeb": "Opening the page and reading it.",
     "gist.empty": "No cards yet. Try a YouTube video or a long article.",
     "gist.badUrl": "That does not look like a link. It has to start with https://",
-    "gist.failed": "I could not do that link. If it is a video, it has to be public.",
+    "gist.failed":
+      "I could not do that link. The video may be private or age-restricted, or the page may not let anyone read it from outside.",
+    "gist.quotaDay":
+      "Google has cut you off for today: the free daily quota is spent. It comes back tomorrow on its own. You have not been charged.",
+    "gist.quotaMinute": "Too many in a row. Wait a minute and try again.",
+    "gist.busy": "The model is swamped right now. Try again in a couple of minutes.",
+    "gist.noText":
+      "It watched it but wrote nothing back. That tends to happen with very long videos: try a shorter one.",
     "gist.noKey": "This needs the Gemini key set on the server.",
     "gist.noCredits": "You do not have enough credits left.",
     "gist.needsMigration": "Migration 0008 has not been run in Supabase yet. Until then, cards cannot be saved.",

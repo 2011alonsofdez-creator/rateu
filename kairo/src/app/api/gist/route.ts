@@ -1,6 +1,7 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { resumir, tipoDeUrl, type Ficha, type Idioma } from "@/lib/ia/gist";
 import { CREDITOS } from "@/lib/ia/config";
+import { clasificarError } from "@/lib/ia/errores";
 import { limpiarFallo } from "@/lib/ia/fallos";
 import { faltaColumna } from "@/lib/supabase/compat";
 
@@ -89,6 +90,26 @@ export async function POST(req: Request) {
        servidor, y ese registro lo lee cualquiera que entre al panel. */
     console.error("[kairo] gist:", limpiarFallo(e));
     if (mensaje === "sin_clave") return fallo(503, "sin_clave");
+
+    /* POR QUÉ NO HA PODIDO, QUE NO ES LO MISMO.
+ 
+       Hasta ahora todo acababa en el mismo cartel: «si es un vídeo,
+       tiene que ser público». Y eso es MENTIR cuando lo que pasa es que
+       la cuota gratuita de Google se ha acabado por hoy, que es el caso
+       más frecuente con diferencia. Quien lo lee se va a revisar la
+       privacidad de un vídeo que estaba perfectamente público.
+ 
+       Cada motivo lleva además lo que hay que hacer, que no es lo mismo:
+       la del minuto se arregla esperando, la del día no se arregla hoy,
+       y lo de un vídeo privado no se arregla nunca. */
+    const motivo = clasificarError(e);
+    if (motivo === "clave_invalida") return fallo(503, "sin_clave");
+    if (motivo === "cuota_minuto") return fallo(429, "cuota_minuto");
+    if (motivo === "cuota_dia" || motivo === "cuota_agotada") return fallo(429, "cuota_dia");
+    if (motivo === "sobrecargado") return fallo(503, "sobrecargado");
+    /* Y el vídeo que se ve entero pero del que no sale nada escrito.
+       No es un fallo de enlace: es que no ha cabido. */
+    if (mensaje === "vacio") return fallo(502, "vacio");
     return fallo(502, "no_se_ha_podido");
   }
 
