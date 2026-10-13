@@ -38,11 +38,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Anotado una sola vez**: mientras no esté abierto es una limitación
   conocida, no un hallazgo nuevo, y no se repite cada día.
 
-- **El reloj horario de los Co-Works no suena cada hora: suena cada 4-5.** `[origen: guardian 2026-10-12]`
-  `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las 10 últimas ejecuciones
-  reales cubren 47 horas, con huecos de **3 h 28 min a 7 h 23 min**. GitHub
-  retrasa y se salta las ejecuciones programadas cuando su planificador va
-  cargado, y no avisa de ello: todas salen en verde.
+- **El reloj horario de los Co-Works no suena cada hora: suena 3 veces al día.** `[origen: guardian 2026-10-12, empeora 2026-10-13]`
+  `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
+  muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
+  su planificador va cargado, y no avisa: todas salen en verde.
+
+  | Medido | Ejecuciones | Peor hueco |
+  |---|---|---|
+  | 12-10 (10 últimas, 47 h) | 1 cada 4,7 h | 7 h 23 min |
+  | 13-10 (últimas 24 h) | **3 en 24 h**, no 24 | **10 h 14 min** (12-10 de 07:13 a 17:27 UTC) |
+
+  Va a peor, no a mejor. Con un hueco de diez horas, un Co-Work de las 21:00
+  puede salir al día siguiente.
   Importa porque es exactamente lo que ese workflow existe para evitar, según
   su propio comentario: *"es el que hace que un Co-Work puesto a las 21:00
   salga de verdad a las 21:00"*. Con huecos de 7 horas, un Co-Work puede salir
@@ -68,6 +75,26 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   `/legal`.
 
 ## P2
+
+> Los dos de hoy van aquí y no en P1 a propósito: son reales, pero ponerlos por
+> delante de un reloj que falla sería mentir sobre lo que importa.
+
+- **La rama de los agentes está 2 commits por detrás de `main`.** `[origen: guardian 2026-10-13]`
+  El dueño fusionó `f44d0a8` el 12-10 a las 17:35 (cambios en `gist`, `i18n` y
+  `markdown.ts`). `claude/kairo-agentes` no los tiene, así que los agentes
+  trabajan sobre una copia que ya no es la de producción. Lo arregla un
+  `git merge origin/main` desde la rama de agentes —eso no toca `main`— y le
+  toca al constructor, no al guardián. Si se deja correr, acabará en un
+  conflicto el día que el dueño quiera fusionar.
+
+- **"Cada 3 días" no es lo que hacen los cron del radar y del de crecimiento.** `[origen: guardian 2026-10-13]`
+  Están puestos por día del mes: el radar `38 9 */3 * *` (días 1, 4, 7… 28, 31)
+  y el de crecimiento `21 10 2-31/3 * *` (días 2, 5, 8… 29). Eso no es cada tres
+  días: al cambiar de mes la cuenta se reinicia, así que el radar corre el 31 y
+  otra vez el 1, dos días seguidos, y el de crecimiento se salta cuatro días
+  entre el 29 y el 2. Hoy no ha hecho daño —ninguno ha perdido un turno, el
+  radar estrena hoy y el de crecimiento el 14— y se arregla en las Rutinas de
+  claude.ai, que son del dueño.
 
 - **Los cuatro enlaces del pie van todos a `/legal`.** `[origen: guardian 2026-10-12]`
   `SiteHeader.tsx:89-92` enseña "legal", "privacidad", "cookies" y "términos",

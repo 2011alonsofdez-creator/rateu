@@ -8,3 +8,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | Fecha | Estado | Web | Reloj | Agentes | Hallazgo |
 |---|---|---|---|---|---|
 | 2026-10-12 | 🟡 | ok (indirecto, 200) | ok, pero tarde | ok, primer día | faltan CONTEXTO, backlog, OG y robots |
+| 2026-10-13 | 🟡 | ok (indirecto, 200) | verde, pero 3 veces en 24 h | ok, los 3 corrieron | el hueco del reloj empeora: 10 h 14 min |

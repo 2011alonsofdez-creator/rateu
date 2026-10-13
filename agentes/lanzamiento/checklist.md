@@ -9,9 +9,9 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | La web responde | 2026-10-12 | Indirecto: el workflow `kairo-coworks.yml` hace `exit 1` con cualquier código que no sea 200, y su última ejecución (12-10 01:03 UTC) salió en verde, así que Kairo devolvió 200 al runner de GitHub |
-| ✅ | No está en modo privado de Vercel | 2026-10-12 | Mismo motivo: el workflow detecta y distingue el 401 de Vercel. En verde ⇒ no hay portero delante |
-| ✅ | El reloj de Co-Works sigue sonando | 2026-10-12 | 10 de las 10 últimas ejecuciones correctas (GitHub Actions) |
+| ✅ | La web responde | 2026-10-13 | Indirecto: el workflow `kairo-coworks.yml` hace `exit 1` con cualquier código que no sea 200, y su última ejecución (13-10 00:14 UTC) salió en verde, así que Kairo devolvió 200 al runner de GitHub |
+| ✅ | No está en modo privado de Vercel | 2026-10-13 | Mismo motivo: el workflow detecta y distingue el 401 de Vercel. En verde ⇒ no hay portero delante |
+| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-13 | 70 ejecuciones, las 8 últimas correctas. **Pero suena 3 veces al día en vez de 24**, con un hueco de 10 h 14 min. Verde no es puntual |
 | ⚪ | `/api/estado` sin variables que falten | — | Esta máquina no alcanza el dominio (ENOTFOUND / 403 del proxy) |
 | ⚪ | `/revision` sin migraciones pendientes | — | Igual |
 
@@ -19,7 +19,7 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Sin claves en el código | 2026-10-12 | Sin coincidencias de `sk-`, `AIza`, `service_role` con valor ni JWT en `kairo/src`, `supabase/` y `docs/`. Solo `kairo/.env.example`, con los huecos vacíos |
+| ✅ | Sin claves en el código | 2026-10-13 | Sin coincidencias de `sk-`, `AIza`, `service_role` con valor ni JWT en `kairo/src`, `supabase/` y `docs/`. Revisado también el código nuevo que entró en `main` el 12-10 (`f44d0a8`): limpio |
 | ✅ | Ningún secreto detrás de `NEXT_PUBLIC_` | 2026-10-12 | Las 6 variables públicas son URL del proyecto y claves anon/publishable, que son públicas por diseño |
 | ✅ | Título y meta descripción propios | 2026-10-12 | `kairo/src/app/layout.tsx` |
 | ✅ | Favicon | 2026-10-12 | `kairo/src/app/icon.svg` |
@@ -32,5 +32,5 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Los agentes se ejecutan | 2026-10-12 | Primer día: el sistema se instaló el 11-10 y el guardián es el primer turno. Ninguno ha fallado todavía |
-| ⬜ | Parte diario del constructor | — | Su primer turno es hoy a las 08:47 de Madrid |
+| ✅ | Los agentes se ejecutan | 2026-10-13 | Comprobado en las Rutinas, no supuesto: los 5 están activas, y guardián, entrenador y constructor dispararon ayer con `SUCCEEDED`. El radar estrena hoy a las 09:38 y el de crecimiento el 14; ninguno ha perdido turno |
+| ✅ | Parte diario del constructor | 2026-10-13 | El del 12-10 está en `agentes/diario/2026-10-12.md`, con la sección del entrenador conservada |
