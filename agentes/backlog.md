@@ -22,15 +22,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **No hay nada que un agente pueda hacer aquí.** Se anota como P1 para que se
   vea el tiempo que lleva, no para que alguien lo resuelva.
 
-- **Kairo no sabe sus propios precios, así que se los inventa.** `[origen: entrenador 2026-10-13]`
-  Ni el prompt (`kairo/src/lib/ia/prompt.ts`) ni `agentes/ia/conocimiento/`
-  —que está vacía— contienen los créditos, los planes ni los límites. Si un
-  usuario pregunta "¿cuánto me gasta un Mega-Prompt?", el modelo no tiene de
-  dónde sacarlo y lo más probable es que conteste un número verosímil y falso.
-  Ahí inventar no es un fallo de estilo: el usuario lo descubre pagando.
-  Le toca al entrenador mañana (área 3), con las cifras de
-  `docs/kairo/ESPECIFICACION.md` sección 3 y de `lib/planes.ts`, cada una con
-  su fuente y marcando `(sin confirmar)` lo que choque entre las dos.
+- **Llevar al prompt lo que Kairo sabe de sí misma.** `[origen: entrenador 2026-10-13, medio hecho 2026-10-14]`
+  El conocimiento ya está escrito y verificado en
+  `agentes/ia/conocimiento/creditos-y-planes.md`, pero **vive en `agentes/` y
+  nadie lo lee en tiempo de ejecución**, así que Kairo sigue sin saber sus
+  precios y se los inventaría si alguien pregunta.
+  Falta la parte de código, que es del constructor: un bloque `PRODUCTO` en
+  `kairo/src/lib/ia/prompt.ts`, pegado después de `BASE`, con **solo lo
+  confirmado** —los créditos por acción de `CREDITOS` (1 / 4 / 20 / 120, y 4
+  para Paperwork y para un Co-Work) y los créditos por plan (15 al día, 1.000,
+  3.000)—, más una regla explícita: si le preguntan un precio en euros, un tope
+  por plan o cualquier condición que no esté en el bloque, **dice que no lo sabe
+  y manda a la página de precios**, nunca lo estima.
+  No meter los precios en euros ni los topes por plan: no están confirmados en
+  el código y la tienda no consta encendida.
+
+- **Dos precios más que chocan entre el documento y el código.** `[origen: entrenador 2026-10-14]`
+  Un Co-Work ejecutado cobra **4** créditos (`api/coworks/ejecutar/route.ts:49`,
+  `CREDITOS.normal`) y la especificación dice **40**. Analizar un documento con
+  Paperwork cobra **4** (`api/paperwork/route.ts:73`) y el documento dice **15**.
+  Ninguno es un descuido: el código lo justifica por escrito ("lo mismo que un
+  mensaje normal: es uno"). Pero el margen mínimo garantizado de la sección 3 de
+  la especificación está calculado con 40 y con 15, así que esa cuenta hoy no
+  describe lo que pasa. **O se corrige el documento o se corrigen los precios, y
+  lo decide el dueño**: los créditos no los toca ningún agente.
 
 - **Kairo+ tiene los mismos niveles que Supreme en el código, MEGA incluido.** `[origen: constructor 2026-10-12]`
   `kairo/src/lib/planes.ts:41-45` da a `plus` y a `supreme` los cuatro niveles

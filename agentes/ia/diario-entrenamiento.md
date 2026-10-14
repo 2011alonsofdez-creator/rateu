@@ -71,6 +71,49 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-14 — Conocimiento (área 3)
+
+**Qué cambié**: escrito `agentes/ia/conocimiento/creditos-y-planes.md`, el
+primer archivo de una carpeta que solo tenía su README. Lleva lo que cuesta
+cada acción en créditos, lo que trae cada plan, los precios, lo que Kairo sabe
+hacer, lo que no debe decir nunca, y las tres cosas que chocan entre el
+documento y el código.
+
+**Por qué**: era el P1 número uno del backlog. Si hoy un usuario pregunta
+"¿cuánto me gasta un Mega-Prompt?", Kairo no tiene de dónde sacarlo y contesta
+un número verosímil y falso, que el usuario descubre pagando.
+
+**Cómo lo comprobé**: cada cifra contra el código que la cobra, no contra la
+especificación. Los créditos por nivel salen de `CREDITOS` en
+`lib/ia/config.ts:183`, que es la constante que usan de verdad `api/chat`,
+`api/paperwork` y `api/coworks`. Los créditos por plan, de `CREDITOS_PLAN` en
+`lib/planes.ts`. Lo que no he encontrado en el código —los precios en euros, los
+topes por plan, el coste de generar una imagen— va marcado `(sin confirmar)`,
+y el archivo le dice a Kairo que no lo presente como un cobro en firme.
+
+Buscando eso aparecieron **dos divergencias nuevas, y las dos tocan dinero**:
+un Co-Work ejecutado cobra 4 créditos y la especificación dice 40; y analizar
+un documento con Paperwork cobra 4 y el documento dice 15. No son descuidos:
+el código lleva un comentario que lo justifica ("lo mismo que un mensaje
+normal: es uno"). Pero la cuenta del margen de la especificación está hecha con
+40 y con 15. Van al backlog; no se toca nada.
+
+**Lo que este cambio NO arregla, y conviene decirlo claro**: el archivo está en
+`agentes/`, no en el prompt. **Hoy Kairo sigue sin saber sus precios.** La
+carpeta `conocimiento/` es material; nadie la lee todavía en tiempo de
+ejecución. Para que llegue hacen falta dos cosas que son de código y por tanto
+del constructor, no mías: un bloque `PRODUCTO` en `lib/ia/prompt.ts` con las
+cifras confirmadas, y la regla de qué contestar cuando le pregunten algo que no
+esté ahí. Lo he dejado en el backlog redactado para que se pueda coger tal cual.
+
+**Qué necesito del dueño**: que decida las tres divergencias de dinero. Están en
+el backlog y en el archivo nuevo. Mientras no decida, Kairo se calla sobre ellas,
+que es lo correcto pero no es gratis: un usuario que pregunte por su plan se
+queda sin respuesta.
+
+**Mañana toca**: área 4, Casos límite — tres situaciones que hoy romperían a
+Kairo y cómo debe comportarse. Con cuidado con el modo de edad, que no se toca.
+
 ### 2026-10-13 — Ejemplos (área 2)
 
 **Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`, que estaba vacía:
