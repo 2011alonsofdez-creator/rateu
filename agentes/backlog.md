@@ -70,6 +70,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   Va a peor, no a mejor. Con un hueco de diez horas, un Co-Work de las 21:00
   puede salir al día siguiente.
+
+  **Y desde el 14-10 esto ya no es solo técnico, es competitivo**
+  `[crecimiento 2026-10-14]`: ChatGPT Tasks documenta como su límite
+  **una ejecución por hora**. Kairo entrega una cada seis. En el único terreno
+  donde dice ganar, hoy va seis veces por detrás del que puede copiarle el
+  argumento con una frase.
   Importa porque es exactamente lo que ese workflow existe para evitar, según
   su propio comentario: *"es el que hace que un Co-Work puesto a las 21:00
   salga de verdad a las 21:00"*. Con huecos de 7 horas, un Co-Work puede salir
@@ -81,6 +87,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   va a pagar por un reloj.
 
 ## P2
+
+- **La portada vende algo que ya no distingue a Kairo.** `[origen: crecimiento 2026-10-14]`
+  "La IA que trabaja cuando tú no" era único hasta este año. Ya no: ChatGPT
+  tiene Tasks y Gemini tiene Scheduled Actions. Lo que **sí** sigue
+  distinguiendo a Kairo está en la documentación de ellos mismos: sus tareas
+  programadas *informan* y el usuario actúa, mientras que un Co-Work ejecuta y
+  entrega el trabajo hecho. Además ChatGPT Tasks no admite subir archivos
+  dentro de una tarea, y Kairo sí los lee.
+  El cambio es de textos y cabe en una tarde: que la portada diga que Kairo
+  **lo hace**, no que te avisa. **Antes de tocar un texto hay que arreglar el
+  reloj** (está en P1): prometer "lo hace a su hora" entregando una vez cada
+  seis horas es peor que no prometerlo.
 
 - **El checklist de lanzamiento mide salud, no lanzamiento.** `[origen: radar 2026-10-13]`
   `agentes/lanzamiento/checklist.md` tiene 15 filas y todas van de si la web

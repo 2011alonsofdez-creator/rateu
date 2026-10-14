@@ -118,6 +118,24 @@ en `agentes/notas.md`, en una línea.
 En cuanto haya respuesta, se corrige aquí con la fecha y se deja constancia del
 supuesto que sustituye.
 
+## Con quién compite (primera foto, 2026-10-14)
+
+Del primer informe de `kairo-crecimiento`. Cifras de resultados de búsqueda,
+sin abrir ninguna web: confirmar antes de usarlas en público.
+
+- **ChatGPT Go**, 8 €/mes en España, "puede incluir anuncios". Plus 23 €.
+  Tiene tareas programadas, pero su guía dice que se ejecutan como mucho una
+  vez por hora, no admiten archivos y **informan en vez de ejecutar**.
+- **Google AI Pro**, 21,99 €/mes, con Scheduled Actions para Pro y Ultra.
+  Ojo: Google es a la vez proveedor de Kairo y competidor.
+- **Álex (Legálitas)**, gratis, en español, >600.000 usuarios declarados.
+  Ocupa el sitio mental de "IA legal gratis".
+
+**Nadie vende créditos recargables sin suscripción en español.** Ese hueco
+existe de verdad y es el mejor sitio de Kairo.
+
+Kairo+ a 9,99 € queda por encima de ChatGPT Go (8 €) sin tener su marca.
+
 ## Los tres números que importan al lanzar
 
 De la especificación, sección 8. Se miran cuando haya datos, no antes:
