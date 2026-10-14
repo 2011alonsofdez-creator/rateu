@@ -22,21 +22,6 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **No hay nada que un agente pueda hacer aquí.** Se anota como P1 para que se
   vea el tiempo que lleva, no para que alguien lo resuelva.
 
-- **Llevar al prompt lo que Kairo sabe de sí misma.** `[origen: entrenador 2026-10-13, medio hecho 2026-10-14]`
-  El conocimiento ya está escrito y verificado en
-  `agentes/ia/conocimiento/creditos-y-planes.md`, pero **vive en `agentes/` y
-  nadie lo lee en tiempo de ejecución**, así que Kairo sigue sin saber sus
-  precios y se los inventaría si alguien pregunta.
-  Falta la parte de código, que es del constructor: un bloque `PRODUCTO` en
-  `kairo/src/lib/ia/prompt.ts`, pegado después de `BASE`, con **solo lo
-  confirmado** —los créditos por acción de `CREDITOS` (1 / 4 / 20 / 120, y 4
-  para Paperwork y para un Co-Work) y los créditos por plan (15 al día, 1.000,
-  3.000)—, más una regla explícita: si le preguntan un precio en euros, un tope
-  por plan o cualquier condición que no esté en el bloque, **dice que no lo sabe
-  y manda a la página de precios**, nunca lo estima.
-  No meter los precios en euros ni los topes por plan: no están confirmados en
-  el código y la tienda no consta encendida.
-
 - **Dos precios más que chocan entre el documento y el código.** `[origen: entrenador 2026-10-14]`
   Un Co-Work ejecutado cobra **4** créditos (`api/coworks/ejecutar/route.ts:49`,
   `CREDITOS.normal`) y la especificación dice **40**. Analizar un documento con
@@ -143,6 +128,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **Kairo ya sabe lo que cuesta usarla.** `[hecho 2026-10-14]` Bloque
+  `bloqueProducto()` en `kairo/src/lib/ia/prompt.ts`, pegado antes de la fecha.
+  Las cifras **no están copiadas a mano**: se generan desde `CREDITOS`
+  (`config.ts`) y `CREDITOS_PLAN`/`NOMBRE_PLAN` (`planes.ts`), que son las que
+  cobran de verdad, así que el prompt no puede quedarse desfasado. Incluye la
+  regla de qué hacer con lo que no sabe: decirlo y mandar a la página de
+  precios, nunca estimarlo. Comprobado con `tsc --noEmit` limpio y `next build`
+  en verde.
 
 - **Imagen de Open Graph, `metadataBase`, `robots.txt` y `sitemap.xml`.** `[hecho 2026-10-13]`
   `kairo/public/og.png` (1200x630, generada con

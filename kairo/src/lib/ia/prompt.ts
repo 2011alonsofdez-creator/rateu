@@ -1,7 +1,9 @@
 import type { ModoEdad } from "@/lib/planes";
+import { CREDITOS_PLAN, NOMBRE_PLAN } from "@/lib/planes";
 import type { Level } from "@/lib/mock";
 import type { Mente } from "@/lib/tipos";
 import { bloqueDeMemoria } from "@/lib/memoria";
+import { CREDITOS } from "./config";
 
 /* El system prompt de Kairo. Sale del documento de especificación,
    sección 6, y se arma en tres piezas: base + tono elegido + añadido
@@ -62,6 +64,53 @@ QUÉ NO HACES NUNCA
 - No repites la pregunta del usuario antes de contestar.
 - No rellenas con avisos innecesarios ni con "como modelo de lenguaje...".
 - No prometes tareas que no puedes ejecutar. Si no puedes, lo dices.`;
+
+/* Lo que Kairo sabe de sí misma.
+ *
+ * Un modelo no tiene ni idea de lo que cuesta Kairo, y "¿cuánto me gasta
+ * esto?" es de las preguntas más normales que le van a hacer. Sin este
+ * bloque contesta un número verosímil y falso, que es el peor de los dos
+ * mundos: suena seguro y el usuario lo descubre pagando.
+ *
+ * Las cifras NO están escritas a mano aquí: salen de las mismas
+ * constantes que cobran de verdad (`CREDITOS` en config.ts y
+ * `CREDITOS_PLAN` en planes.ts). Si mañana cambia un precio, cambia
+ * también lo que Kairo dice, sin que nadie tenga que acordarse de venir
+ * a este archivo. Un prompt con precios copiados a mano envejece mal y
+ * nadie se entera hasta que miente.
+ *
+ * Y lo que NO entra aquí, a propósito: los precios en euros, los topes
+ * por plan y lo que incluye cada plan. Eso vive en un documento, no en
+ * el código, la tienda no consta encendida, y hay diferencias sin
+ * resolver entre los dos (están en agentes/ia/conocimiento/). Antes que
+ * decir algo que puede ser falso, Kairo dice que no lo sabe. */
+function bloqueProducto(): string {
+  const porPlan = (["free", "plus", "supreme"] as const)
+    .map((p) => `${NOMBRE_PLAN[p]} ${CREDITOS_PLAN[p]}`)
+    .join(", ");
+
+  return `
+
+LO QUE CUESTA USARTE
+Esto es lo único que sabes de tus condiciones, y sale del código de Kairo,
+así que es exacto:
+- Un mensaje rápido cuesta ${CREDITOS.fast} crédito. Uno normal, ${CREDITOS.normal}.
+  Forja, ${CREDITOS.forja}. Un Mega-Prompt, ${CREDITOS.mega}.
+- Leer un papel con Paperwork cuesta ${CREDITOS.normal}, igual que un mensaje
+  normal. Un Co-Work que se ejecuta, otros ${CREDITOS.normal}.
+- Créditos de cada plan: ${porPlan}. Los del plan Free son al día; los de los
+  otros dos, al mes.
+- Son los mismos créditos para todo: se gastan en lo que se use.
+- Si te preguntan si algo les da para tanto al día o al mes, haz la cuenta tú y
+  dásela hecha. Es lo que están preguntando de verdad.
+
+Cualquier OTRA condición —el precio en euros, cuántos Mega-Prompts entran al
+mes, qué niveles incluye cada plan, cuántos conectores o Mentes, el tamaño
+máximo de un archivo, los días de historial, si los créditos se acumulan— NO
+LA SABES. Dilo en una línea y manda a la página de precios o a los ajustes de
+la cuenta, que es donde está el dato de verdad. No la estimes: un precio
+inventado se descubre pagando, y eso no se arregla con una disculpa.`;
+}
 
 /* Lo que se le dice cuando NO tiene buscador.
    Antes esto estaba dentro del bloque de "no te inventes nada", como si
@@ -373,6 +422,8 @@ export function construirPrompt({
   if (nombre) {
     prompt += `\n- La persona con la que hablas se llama ${nombre}.`;
   }
+
+  prompt += bloqueProducto();
 
   prompt += bloqueFecha(zonaValida(zonaHoraria));
 
