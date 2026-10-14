@@ -13,6 +13,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Cuatro preguntas al dueño llevan 2 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14]`
+  `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
+  falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
+  tienda de pagos está encendida y si Kairo está lanzada. Mientras no lleguen,
+  el constructor va saltando a tareas de segunda fila y los agentes trabajan con
+  supuestos que pueden ser falsos (están escritos en `CONTEXTO.md`).
+  **No hay nada que un agente pueda hacer aquí.** Se anota como P1 para que se
+  vea el tiempo que lleva, no para que alguien lo resuelva.
+
 - **Kairo no sabe sus propios precios, así que se los inventa.** `[origen: entrenador 2026-10-13]`
   Ni el prompt (`kairo/src/lib/ia/prompt.ts`) ni `agentes/ia/conocimiento/`
   —que está vacía— contienen los créditos, los planes ni los límites. Si un
@@ -57,6 +66,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   |---|---|---|
   | 12-10 (10 últimas, 47 h) | 1 cada 4,7 h | 7 h 23 min |
   | 13-10 (últimas 24 h) | **3 en 24 h**, no 24 | **10 h 14 min** (12-10 de 07:13 a 17:27 UTC) |
+  | 14-10 (últimas 24 h) | 4 en 24 h, no 24 | 8 h 13 min (13-10 de 07:25 a 15:38 UTC) |
 
   Va a peor, no a mejor. Con un hueco de diez horas, un Co-Work de las 21:00
   puede salir al día siguiente.
