@@ -69,8 +69,20 @@ jobs:
               else "Respaldo: no se ha podido preguntar al proveedor" end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
-          jq -r '(.cerebros.extra.modelos // [])[]' estado.json \
-            | head -20 | while IFS= read -r m; do echo "::notice::  disponible: ${m}"; done
+          # LO QUE DE VERDAD HAY QUE SABER: ¿los nombres que has puesto
+          # existen? Enseñar los 60 que ofrece el proveedor no sirve
+          # —GitHub corta en 10 avisos y salen por orden alfabético—,
+          # así que se comparan aquí y solo se dice el veredicto de los
+          # tuyos. Un nombre que no esté en esa lista está mal escrito
+          # o lo han retirado, y no se ve de ninguna otra forma.
+          jq -r '
+            .cerebros.extra as $e
+            | ($e.modelos // null) as $hay
+            | ($e.configurados // [])[] as $mio
+            | if $hay == null then "? \($mio) (no se ha podido comprobar)"
+              elif ([$hay[] | ascii_downcase] | index($mio | ascii_downcase)) != null then "OK \($mio)"
+              else "NO EXISTE \($mio)" end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
           {
             echo "## Estado de Kairo"
