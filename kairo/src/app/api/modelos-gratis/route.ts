@@ -32,12 +32,29 @@ type Crudo = {
   name?: unknown;
   context_length?: unknown;
   pricing?: { prompt?: unknown; completion?: unknown } | null;
+  architecture?: { output_modalities?: unknown } | null;
 };
 
 const cero = (v: unknown): boolean => {
   const n = Number(typeof v === "string" || typeof v === "number" ? v : NaN);
   return Number.isFinite(n) && n === 0;
 };
+
+/** ¿Esto contesta con texto, y solo con texto?
+ *
+ *  Hace falta preguntarlo porque "gratis" barre más de la cuenta: en la
+ *  lista de verdad salían dos modelos de Google —los `lyria`— que son
+ *  gratis, tienen un millón de memoria... y lo que devuelven es MÚSICA.
+ *  Uno de esos en la cadena es un respaldo que no sabe contestar.
+ *
+ *  Se mira lo que SACA, no lo que entra: `[text]` vale, `[text, audio]`
+ *  no. Y si el catálogo no lo dice, se deja pasar: no saber no es
+ *  motivo para descartar, y lo que sobre se ve en la lista. */
+export function soloTexto(m: Crudo): boolean {
+  const salidas = m.architecture?.output_modalities;
+  if (!Array.isArray(salidas) || salidas.length === 0) return true;
+  return salidas.every((s) => typeof s === "string" && s.toLowerCase() === "text");
+}
 
 /** ¿Este modelo es gratis de verdad?
  *
@@ -67,6 +84,7 @@ export function leerCatalogo(json: unknown): Modelo[] {
   return lista
     .filter((m): m is Crudo => Boolean(m) && typeof m === "object")
     .filter(esGratis)
+    .filter(soloTexto)
     .map((m) => ({
       id: String(m.id),
       nombre: typeof m.name === "string" && m.name.trim() ? m.name.trim() : String(m.id),
