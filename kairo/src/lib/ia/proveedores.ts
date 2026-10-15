@@ -71,7 +71,45 @@ const CLAVES: Record<Proveedor, () => string | undefined> = {
   extra: () => process.env.KAIRO_EXTRA_KEY,
 };
 
-export const EXTRA_URL = () => process.env.KAIRO_EXTRA_URL?.trim() ?? "";
+/* LA DIRECCIÓN DEL PROVEEDOR DE REPUESTO, PUESTA DERECHA.
+ *
+ * Esta casilla la rellena alguien copiando de una web, y hay tres
+ * formas de equivocarse que acaban todas en el mismo sitio: una llamada
+ * a una dirección que no existe y un error que no se parece en nada a
+ * "te has dejado un trozo". Ya nos costó una tarde con la dirección de
+ * Kairo en el reloj, así que aquí se arregla antes de usarla:
+ *
+ *   · sin https:// delante
+ *   · con una barra (o tres) al final, que deja // en medio
+ *   · y la de OpenRouter sin el /api/v1, que es el error de siempre:
+ *     la web se anuncia como "openrouter.ai" y la API vive más abajo.
+ *
+ * Lo que no se toca es el resto: cualquier otro proveedor que hable
+ * como OpenAI tiene su propio camino y no nos toca adivinarlo. */
+export function EXTRA_URL(): string {
+  let url = (process.env.KAIRO_EXTRA_URL ?? "").trim();
+  if (!url) return "";
+
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  url = url.replace(/\/+$/, "");
+
+  /* Solo para OpenRouter, y solo si falta. Si alguien escribió otra cosa
+     a propósito —una pasarela suya, por ejemplo— se respeta. */
+  if (/^https:\/\/openrouter\.ai$/i.test(url)) url = `${url}/api/v1`;
+
+  return url;
+}
+
+/** ¿La dirección de repuesto apunta a OpenRouter? */
+export const esOpenRouter = (url: string): boolean => /(^|\.)openrouter\.ai$/i.test(hostDe(url));
+
+function hostDe(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
 
 /** Los modelos del proveedor de repuesto, tal y como los hayas escrito. */
 export function modelosExtra(): string[] {
@@ -420,7 +458,22 @@ async function* deGpt(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
    Aquí se usa /chat/completions y no la API de respuestas de OpenAI a
    propósito: es la que entienden todos, y la otra es solo de OpenAI. */
 async function* deExtra(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
-  const cliente = new OpenAI({ apiKey: CLAVES.extra()!, baseURL: EXTRA_URL() });
+  const base = EXTRA_URL();
+
+  /* OpenRouter mira estas dos cabeceras para saber de qué aplicación
+     viene cada llamada. No son obligatorias, pero sin ellas las tuyas
+     salen sin nombre en su panel, y ahí es donde se ve qué modelo te
+     está gastando la cuota. A cualquier otro proveedor no se le mandan:
+     una cabecera que no espera es ruido, y alguno las rechaza. */
+  const cabeceras = esOpenRouter(base)
+    ? { "HTTP-Referer": "https://kairo.app", "X-Title": "Kairo" }
+    : undefined;
+
+  const cliente = new OpenAI({
+    apiKey: CLAVES.extra()!,
+    baseURL: base,
+    ...(cabeceras ? { defaultHeaders: cabeceras } : {}),
+  });
 
   const flujo = await cliente.chat.completions.create({
     model: modelo,
