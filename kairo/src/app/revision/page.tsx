@@ -544,6 +544,130 @@ function Variable({ nombre, valor }: { nombre: string; valor?: string }) {
   );
 }
 
+/* LOS MODELOS GRATIS, SACADOS DE LA LISTA DE HOY.
+ *
+ * El problema no es poner tres nombres: es que dentro de un mes no son
+ * esos. En OpenRouter el catálogo rota, y un identificador retirado no
+ * dice "me han retirado" —falla y ya—, con lo que uno se pasa la tarde
+ * mirando la clave, que estaba bien.
+ *
+ * Así que aquí no hay ninguna lista escrita: se pide al catálogo
+ * público de OpenRouter, que no necesita clave, y se arma la cadena
+ * entera lista para pegar. Hoy, y dentro de un año.
+ */
+function ModelosGratis() {
+  const [estado, setEstado] = useState<"" | "pidiendo" | "listo" | "falla">("");
+  const [modelos, setModelos] = useState<{ id: string; nombre: string; memoria: number | null }[]>(
+    [],
+  );
+  const [elegidos, setElegidos] = useState<string[]>([]);
+
+  const pedir = useCallback(async () => {
+    setEstado("pidiendo");
+    try {
+      const r = await fetch("/api/modelos-gratis");
+      const j = await r.json();
+      if (!r.ok || !Array.isArray(j?.modelos) || j.modelos.length === 0) {
+        setEstado("falla");
+        return;
+      }
+      setModelos(j.modelos);
+      /* Tres marcados de salida: los de más memoria, que es lo que
+         decide si un papel largo cabe o se corta. Uno solo no vale —el
+         día que falle te quedas igual que sin nada—, y más de tres es
+         una lista que nadie repasa. */
+      setElegidos(j.modelos.slice(0, 3).map((m: { id: string }) => m.id));
+      setEstado("listo");
+    } catch {
+      setEstado("falla");
+    }
+  }, []);
+
+  const cadena = elegidos.join(",");
+
+  return (
+    <div className="mt-3">
+      {estado === "" && (
+        <button
+          onClick={pedir}
+          className="rounded-lg border border-acento/50 bg-acento/10 px-3 py-1.5 text-[13px] font-medium text-acento transition hover:bg-acento/20"
+        >
+          Ver los gratis de hoy
+        </button>
+      )}
+
+      {estado === "pidiendo" && (
+        <p className="text-[13px] text-faint">Preguntándole a OpenRouter…</p>
+      )}
+
+      {estado === "falla" && (
+        <p className="text-[13px] leading-relaxed text-muted">
+          No he podido traer la lista ahora mismo. Cógelos a mano en{" "}
+          <a
+            href="https://openrouter.ai/models"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-acento underline underline-offset-2"
+          >
+            openrouter.ai/models
+          </a>{" "}
+          filtrando por <em>Free</em>.{" "}
+          <button onClick={pedir} className="underline underline-offset-2">
+            Reintentar
+          </button>
+        </p>
+      )}
+
+      {estado === "listo" && (
+        <>
+          <p className="text-[13px] text-muted">
+            Marca dos o tres. Si uno está saturado, Kairo prueba el siguiente.
+          </p>
+
+          <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line bg-bg-soft p-2">
+            {modelos.map((m) => {
+              const puesto = elegidos.includes(m.id);
+              return (
+                <li key={m.id}>
+                  <label className="flex cursor-pointer items-start gap-2 rounded-lg px-1.5 py-1 transition hover:bg-panel">
+                    <input
+                      type="checkbox"
+                      checked={puesto}
+                      onChange={() =>
+                        setElegidos((v) =>
+                          puesto ? v.filter((x) => x !== m.id) : [...v, m.id],
+                        )
+                      }
+                      className="mt-1"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[13px] text-fg">{m.nombre}</span>
+                      <span className="block break-all font-mono text-[11px] text-faint">
+                        {m.id}
+                        {m.memoria ? ` · ${m.memoria}K de memoria` : ""}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+
+          <p className="mt-3 text-[13px] text-muted">
+            Y esto es lo que va en <code className="font-mono text-[12px]">KAIRO_EXTRA_MODELOS</code>:
+          </p>
+          <div className="mt-1.5 flex items-start gap-2">
+            <code className="min-w-0 flex-1 break-all rounded-lg border border-line bg-bg-soft px-2 py-1.5 font-mono text-[11.5px] text-fg">
+              {cadena || "—"}
+            </code>
+            {cadena && <Copiar texto={cadena} />}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* EL RESPALDO GRATIS.
  *
  * Kairo ya sabía hablar con cualquier proveedor que copie la interfaz
@@ -605,9 +729,13 @@ function Respaldo({ puesto }: { puesto: boolean }) {
               >
                 openrouter.ai/models
               </a>{" "}
-              filtra por <em>Free</em> y copia dos o tres nombres completos. Los de la lista
-              cambian cada poco, así que cógelos de ahí y no de una guía:{" "}
-              <strong className="text-fg">un nombre viejo no da error claro, solo falla</strong>.
+              filtra por <em>Free</em>. O más fácil: que te los saque Kairo de la lista de hoy.
+              <ModelosGratis />
+              <span className="mt-2 block text-[12.5px] text-faint">
+                No hay ninguna lista escrita en Kairo a propósito: en OpenRouter los modelos
+                cambian cada pocas semanas, y uno retirado no avisa —simplemente falla—, así que
+                se pregunta cada vez.
+              </span>
             </li>
             <li>
               <strong className="text-fg">3.</strong> Vercel → Settings → Environment Variables →
