@@ -71,6 +71,46 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-15 — Casos límite (área 4)
+
+**Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`, de situaciones que
+hoy romperían a Kairo:
+
+| Archivo | Qué rompe |
+|---|---|
+| `2026-10-15-limite-texto-pegado.md` | Un correo pegado en el chat con una orden escondida dentro, dirigida a la IA |
+| `2026-10-15-limite-hora-del-cowork.md` | Un Co-Work a hora fija para una reunión, cuando el reloj no es puntual |
+| `2026-10-15-limite-usuario-que-insiste.md` | Alguien que insiste tres veces en que se le ha cobrado de más, cuando no es así |
+
+**Por qué**: los tres son fallos que no se ven venir. El primero es un agujero
+abierto, el segundo es Kairo rompiendo su propia promesa, y el tercero es el
+vicio más típico de un modelo sin afinar —ceder ante quien insiste— puesto
+donde más cuesta, que es el dinero.
+
+**Lo que ha salido de hacerlo, y es lo importante de hoy**: comprobando qué
+cubre el prompt encontré **un hueco real de seguridad**. El bloque `ARCHIVOS`
+blinda lo que viene dentro de un adjunto, y el de resultados blinda lo que
+viene de una búsqueda. Pero **nada cubre el texto que el usuario pega en su
+propio mensaje**, que es por donde entra la mayoría del contenido: un correo,
+un contrato, una página copiada. Y encima el bloque `ARCHIVOS` solo se añade
+cuando hay adjuntos (`if (conArchivos)`), así que en una conversación de texto
+normal esa defensa ni siquiera está presente.
+
+**Cómo lo comprobé**: leyendo `kairo/src/lib/ia/prompt.ts`. El bloque de
+archivos está en L230-243 y se pega solo bajo `if (conArchivos)`; el de
+resultados, dentro de `bloqueHechos()`. Buscando "pegado", "ignora tus
+instrucciones" y similares no aparece ninguna regla para el cuerpo del mensaje.
+
+**Qué necesito del dueño**: nada. El arreglo es una regla corta en el prompt y
+lo he dejado en el backlog para el constructor, redactado. No lo hago yo hoy
+porque hoy me toca escribir los casos, y un cambio de prompt es área 1: así
+cada cosa va con su commit y se puede revertir sola.
+
+**Mañana toca**: área 5, **Evaluación** — pasar el banco de pruebas por primera
+vez. Es la que más falta hace: lleva cuatro días de recomendación y mientras no
+se pase, los cinco cambios de prompt de esta semana no se pueden defender ni
+revertir con criterio.
+
 ### 2026-10-14 — Conocimiento (área 3)
 
 **Qué cambié**: escrito `agentes/ia/conocimiento/creditos-y-planes.md`, el
