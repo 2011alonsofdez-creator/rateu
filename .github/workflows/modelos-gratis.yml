@@ -53,7 +53,7 @@ jobs:
               ))
             | sort_by(-(.context_length // 0))
             | .[0:$n][]
-            | "\(.id)  ·  \((.context_length // 0) / 1000 | floor)K de memoria  ·  \(.name)"
+            | "\(.id)  ·  \((.context_length // 0) / 1000 | floor)K  ·  [\((.architecture.output_modalities // [.architecture.modality] // ["?"]) | join("+"))]  ·  \(.name)"
           ' catalogo.json > gratis.txt
 
           cuantos=$(wc -l < gratis.txt)
