@@ -1,0 +1,81 @@
+name: Revisar Kairo
+
+# QUÉ TIENE KAIRO PUESTO, VISTO DESDE FUERA.
+#
+# Lo mismo que enseña /revision en el navegador, pero lanzable desde
+# cualquier sitio —el móvil, sin abrir la web— y, sobre todo, legible
+# por quien esté ayudando a montarlo sin pedir ninguna captura.
+#
+# Lee /api/estado, que es una pantalla pública a propósito: el día que
+# no puedes entrar es justo el día que necesitas saber por qué. Ahí no
+# sale ninguna clave, solo si ha llegado o no.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mirar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Preguntarle a Kairo
+        env:
+          KAIRO_URL: ${{ secrets.KAIRO_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KAIRO_URL}" ]; then
+            echo "::error::Falta el secreto KAIRO_URL (GitHub → Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+          # La misma limpieza que el reloj: sin esquema o con barra al
+          # final acaba en un 308 que no se parece a "te falta el https".
+          url="${KAIRO_URL#http://}"
+          url="${url#https://}"
+          while [ "${url%/}" != "${url}" ]; do url="${url%/}"; done
+          url="https://${url}"
+          echo "Mirando ${url}/api/estado"
+
+          codigo=$(curl -sS --max-time 60 -o estado.json -w "%{http_code}" "${url}/api/estado")
+          if [ "${codigo}" != "200" ]; then
+            echo "::error::La web ha respondido ${codigo} en /api/estado."
+            head -c 400 estado.json || true
+            exit 1
+          fi
+
+          resumen=$(jq -r '.resumen // "sin resumen"' estado.json)
+          echo "::notice::${resumen}"
+
+          # Los cerebros, uno por línea. Aquí no hay claves: solo si han
+          # llegado, que es lo único que hace falta para diagnosticar.
+          jq -r '
+            .cerebros as $c
+            | [
+                "Gemini: clave \(if $c.gemini.clave_recibida then "sí" else "NO" end)",
+                "Claude: clave \(if $c.claude.clave_recibida then "sí" else "NO" end)",
+                "GPT: clave \(if $c.gpt.clave_recibida then "sí" else "NO" end)",
+                "Respaldo: clave \(if $c.extra.clave_recibida then "sí" else "NO" end) · url \($c.extra.url // "sin poner") · configurados: \(($c.extra.configurados // []) | if length == 0 then "ninguno" else join(" , ") end)"
+              ][]
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
+          # Y lo que el proveedor de repuesto dice tener DE VERDAD con
+          # esa clave. Si un nombre tuyo no está aquí, está mal escrito
+          # o lo han retirado, y eso no se ve de ninguna otra forma.
+          jq -r '
+            .cerebros.extra as $e
+            | if ($e.error // null) != null then "Respaldo: ha contestado con un error -> \($e.error)"
+              elif ($e.modelos // null) != null then "Respaldo: el proveedor dice tener \(($e.modelos|length)) modelos"
+              else "Respaldo: no se ha podido preguntar al proveedor" end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
+          jq -r '(.cerebros.extra.modelos // [])[]' estado.json \
+            | head -20 | while IFS= read -r m; do echo "::notice::  disponible: ${m}"; done
+
+          {
+            echo "## Estado de Kairo"
+            echo
+            echo '```json'
+            jq '.cerebros' estado.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
