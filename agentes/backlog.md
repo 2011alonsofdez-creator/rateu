@@ -67,6 +67,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   | 12-10 (10 últimas, 47 h) | 1 cada 4,7 h | 7 h 23 min |
   | 13-10 (últimas 24 h) | **3 en 24 h**, no 24 | **10 h 14 min** (12-10 de 07:13 a 17:27 UTC) |
   | 14-10 (últimas 24 h) | 4 en 24 h, no 24 | 8 h 13 min (13-10 de 07:25 a 15:38 UTC) |
+  | 15-10 (últimas 24 h) | 6 en 24 h, no 24 | 5 h 28 min |
+
+  **Va mejorando solo** (3 → 4 → 6 al día, y el peor hueco de 10 h 14 a 5 h 28),
+  así que parte de esto era carga puntual del planificador de GitHub y no un
+  problema fijo. Aun así sigue a una cuarta parte de lo pedido, y el competidor
+  documenta una ejecución por hora, así que la decisión sigue en pie.
 
   Va a peor, no a mejor. Con un hueco de diez horas, un Co-Work de las 21:00
   puede salir al día siguiente.
