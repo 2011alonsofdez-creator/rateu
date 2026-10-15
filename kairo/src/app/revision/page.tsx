@@ -388,6 +388,13 @@ export default function RevisionPage() {
               />
             )}
 
+            {/* Y EL RESPALDO GRATIS.
+                Debajo de la de Claude a propósito: la de arriba mejora
+                las respuestas y cuesta dinero; esta no las mejora pero
+                evita que Kairo se quede mudo, y no cuesta nada. Quien
+                no quiera pagar todavía tiene aquí su salida. */}
+            {revision.cerebros && <Respaldo puesto={revision.cerebros.extra} />}
+
             {/* PROBAR LA BÚSQUEDA.
                 Va después de todo porque no es parte de la revisión: es
                 para cuando Kairo contesta con datos viejos, que es un
@@ -533,6 +540,105 @@ function Variable({ nombre, valor }: { nombre: string; valor?: string }) {
           <Copiar texto={valor} />
         </>
       )}
+    </div>
+  );
+}
+
+/* EL RESPALDO GRATIS.
+ *
+ * Kairo ya sabía hablar con cualquier proveedor que copie la interfaz
+ * de OpenAI —tres variables y listo—, pero eso no estaba escrito en
+ * ninguna parte: había que leerse el código para enterarse. Una función
+ * que nadie sabe que existe es una función que no existe.
+ *
+ * Así que aquí está, con el caso concreto que le sirve a quien no
+ * quiere pagar todavía: OpenRouter tiene modelos gratis de verdad, y
+ * puestos detrás de Gemini hacen que el día que se agote la cuota Kairo
+ * siga contestando en vez de quedarse mudo.
+ *
+ * Y con la pega dicha, que es tan importante como la función: los
+ * modelos gratis tienen límites duros. Como red de seguridad valen;
+ * como motor principal, no. */
+function Respaldo({ puesto }: { puesto: boolean }) {
+  return (
+    <div className="rounded-2xl border border-line bg-panel p-5">
+      <p className="text-[15px] font-semibold">🆓 Para que no se pare cuando Gemini se acabe</p>
+
+      <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
+        {puesto ? (
+          <>
+            Hay un respaldo puesto. El día que Gemini agote la cuota gratuita, Kairo tira de él
+            en vez de quedarse mudo.
+          </>
+        ) : (
+          <>
+            Ahora mismo, el día que Gemini agote la cuota del día,{" "}
+            <strong className="text-fg">Kairo deja de contestar</strong> hasta mañana. Con tres
+            variables puedes ponerle detrás modelos gratis de OpenRouter, que no cuestan nada.
+          </>
+        )}
+      </p>
+
+      {!puesto && (
+        <>
+          <ol className="mt-4 space-y-3 text-[13.5px] leading-relaxed text-muted">
+            <li>
+              <strong className="text-fg">1.</strong> Cuenta en{" "}
+              <a
+                href="https://openrouter.ai"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-acento underline underline-offset-2"
+              >
+                openrouter.ai
+              </a>{" "}
+              y crea una clave. Cópiala al hacerla:{" "}
+              <strong className="text-fg">no se puede volver a ver</strong>.
+            </li>
+            <li>
+              <strong className="text-fg">2.</strong> En{" "}
+              <a
+                href="https://openrouter.ai/models"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-acento underline underline-offset-2"
+              >
+                openrouter.ai/models
+              </a>{" "}
+              filtra por <em>Free</em> y copia dos o tres nombres completos. Los de la lista
+              cambian cada poco, así que cógelos de ahí y no de una guía:{" "}
+              <strong className="text-fg">un nombre viejo no da error claro, solo falla</strong>.
+            </li>
+            <li>
+              <strong className="text-fg">3.</strong> Vercel → Settings → Environment Variables →
+              estas tres, marcando los tres entornos:
+              <Variable nombre="KAIRO_EXTRA_URL" valor="https://openrouter.ai/api/v1" />
+              <Variable nombre="KAIRO_EXTRA_KEY" />
+              <Variable nombre="KAIRO_EXTRA_MODELOS" />
+              <span className="mt-1.5 block text-[12.5px] text-faint">
+                Los modelos separados por comas, tal cual salen en OpenRouter (llevan una barra
+                y acaban en <code className="font-mono">:free</code>).
+              </span>
+            </li>
+            <li>
+              <strong className="text-fg">4.</strong> Deployments → los tres puntos →{" "}
+              <strong className="text-fg">Redeploy</strong>. Sin eso no entra.
+            </li>
+          </ol>
+
+          <p className="mt-3 text-[13px] leading-relaxed text-faint">
+            La clave se pega en Vercel y{" "}
+            <strong className="text-muted">no hace falta que la vea nadie</strong>.
+          </p>
+        </>
+      )}
+
+      <p className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
+        <strong>Para qué sirve y para qué no.</strong> Los modelos gratis tienen límites de uso
+        duros y van más lentos. Como red de seguridad para que Kairo no se quede mudo, cumplen.
+        Como motor principal con gente usándolo, no aguantan. Van los últimos de la cadena a
+        propósito: solo contestan cuando todos los demás han dicho que no.
+      </p>
     </div>
   );
 }
