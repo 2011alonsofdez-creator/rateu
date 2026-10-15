@@ -75,13 +75,17 @@ jobs:
           # así que se comparan aquí y solo se dice el veredicto de los
           # tuyos. Un nombre que no esté en esa lista está mal escrito
           # o lo han retirado, y no se ve de ninguna otra forma.
+          # El veredicto lo da la web, que compara contra el catálogo
+          # ENTERO. Aquí no se recalcula a mano: la lista `modelos` que
+          # viaja en la respuesta va recortada para que quepa, y
+          # compararse contra ella marcaba como inexistentes modelos que
+          # estaban perfectamente puestos.
           jq -r '
             .cerebros.extra as $e
-            | ($e.modelos // null) as $hay
-            | ($e.configurados // [])[] as $mio
-            | if $hay == null then "? \($mio) (no se ha podido comprobar)"
-              elif ([$hay[] | ascii_downcase] | index($mio | ascii_downcase)) != null then "OK \($mio)"
-              else "NO EXISTE \($mio)" end
+            | if ($e.faltan // null) == null then "No se ha podido comprobar si tus modelos existen."
+              elif ($e.faltan | length) == 0 then "Tus \(($e.configurados // []) | length) modelos existen todos en el proveedor (ofrece \($e.total // 0))."
+              else "OJO, estos no existen en el proveedor: \($e.faltan | join(" , "))"
+              end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
           {
