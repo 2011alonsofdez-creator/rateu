@@ -3,6 +3,9 @@
 Versión corregida de la guía que te pasaron, para **Windows** y sin las
 cosas que estaban mal.
 
+> ¿En Chromebook? Esa es otra: `GUIA-CHROMEBOOK.md`, al lado de esta.
+> Ahí VS Code no se instala igual.
+
 Esto **no tiene nada que ver con Kairo**. Es un ayudante que corre en tu
 ordenador y te escribe apps nuevas. Kairo sigue donde está, intacto.
 
@@ -41,6 +44,29 @@ que lo montes, como dice el paso 2.
 el instalador → siguiente, siguiente.
 
 Cuando pregunte, marca **«Add to PATH»** si sale. Lo demás por defecto.
+
+---
+
+## Paso 1 bis · Instalar Node
+
+**Esto faltaba en la guía original y sin ello no funciona nada.** El
+generador crea los proyectos con una herramienta que necesita Node; sin
+Node se queda en el paso 3 con un `npx: command not found` que no
+explica nada.
+
+<https://nodejs.org> → el botón grande de la versión **LTS** → ejecutas
+el instalador → siguiente, siguiente.
+
+Para comprobarlo: abre el **Símbolo del sistema** (busca `cmd` en el
+menú de inicio) y escribe:
+
+```
+node --version
+```
+
+Si te contesta algo como `v22.x.x`, listo. Si dice que no lo reconoce,
+**cierra esa ventana y abre otra** — hasta que no se reinicia no se
+entera.
 
 ---
 
@@ -164,6 +190,7 @@ de los que copiaste.
 |---|---|
 | «model not found» o similar | el nombre está retirado → coge otro de la lista Free |
 | Se para y no sigue | cuota del modelo gratis agotada → cambia de modelo o espera |
+| `npx: command not found` | falta Node, o no reiniciaste la ventana |
 | Dice que no encuentra carpetas | no abriste `FabricaDeApps`, o están mal escritas |
 | Va lentísimo | normal en los gratis |
 
