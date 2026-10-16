@@ -55,7 +55,7 @@ jobs:
                 "Gemini: clave \(if $c.gemini.clave_recibida then "sí" else "NO" end)",
                 "Claude: clave \(if $c.claude.clave_recibida then "sí" else "NO" end)",
                 "GPT: clave \(if $c.gpt.clave_recibida then "sí" else "NO" end)",
-                "Respaldo: clave \(if $c.extra.clave_recibida then "sí" else "NO" end) · url \($c.extra.url // "sin poner") · configurados: \(($c.extra.configurados // []) | if length == 0 then "ninguno" else join(" , ") end)"
+                "Respaldo: clave \(if $c.extra.clave_recibida then "puesta" else "NO PUESTA" end) y \($c.extra.clave // "sin comprobar") · url \($c.extra.url // "sin poner") · configurados: \(($c.extra.configurados // []) | if length == 0 then "ninguno" else join(" , ") end)"
               ][]
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
