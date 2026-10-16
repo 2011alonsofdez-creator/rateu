@@ -63,13 +63,29 @@ export function partir(id: string): { proveedor: Proveedor; modelo: string } {
   return { proveedor, modelo: id.slice(corte + 1) };
 }
 
+/* LAS CLAVES, SIN LO QUE SOBRA ALREDEDOR.
+ *
+ * El `.trim()` no es adorno. Una clave se pega en una caja de texto, y
+ * de ahí salen con un espacio delante más veces de las que parece. El
+ * salto de línea lo quita el SDK por su cuenta; el espacio NO, y lo que
+ * viaja entonces es "Bearer  sk-..." con dos espacios: el servidor no
+ * encuentra la credencial y contesta que falta la cabecera de
+ * autenticación. Que es lo que dice, y no se parece en nada a "te
+ * sobra un espacio".
+ *
+ * Además `proveedorActivo` ya comparaba con la versión recortada, así
+ * que sin esto una clave con un espacio contaba como puesta y luego
+ * fallaba en cada llamada. */
 const CLAVES: Record<Proveedor, () => string | undefined> = {
   // La primera de las que haya: ver claves.ts.
   gemini: () => claveDeGemini(),
-  claude: () => process.env.ANTHROPIC_API_KEY,
-  gpt: () => process.env.OPENAI_API_KEY,
-  extra: () => process.env.KAIRO_EXTRA_KEY,
+  claude: () => process.env.ANTHROPIC_API_KEY?.trim(),
+  gpt: () => process.env.OPENAI_API_KEY?.trim(),
+  extra: () => process.env.KAIRO_EXTRA_KEY?.trim(),
 };
+
+/** La clave del proveedor de repuesto, para poder probarla desde fuera. */
+export const claveExtra = (): string => CLAVES.extra() ?? "";
 
 /* LA DIRECCIÓN DEL PROVEEDOR DE REPUESTO, PUESTA DERECHA.
  *
