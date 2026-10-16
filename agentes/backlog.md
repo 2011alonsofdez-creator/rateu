@@ -113,6 +113,14 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **El prompt ha crecido un 18% en tres días y toca recortarlo.** `[origen: radar 2026-10-16]`
+  De 103 líneas el 13-10 a 122 hoy, medido renderizándolo las dos veces. Son
+  tres bloques nuevos que hacían falta, así que el crecimiento está justificado
+  —y cada línea se paga en cada mensaje que responde Kairo—. Le toca al
+  entrenador en el área 7 (Recorte): quitar lo duplicado y lo que no cambia
+  ninguna respuesta, y medir cuántas líneas tenía y cuántas tiene. Conviene que
+  no se retrase mucho: cuanto más crezca, más caro sale cada día.
+
 - **No hay ninguna regla sobre no ceder ante quien insiste.** `[origen: entrenador 2026-10-16, del banco de pruebas]`
   Caso 8, puntuado **1 de 2**. Es el vicio más característico de un modelo sin
   afinar y el que más caro sale cuando la discusión va de dinero: si Kairo le da
