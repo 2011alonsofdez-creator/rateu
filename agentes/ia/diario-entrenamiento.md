@@ -71,6 +71,55 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-16 — Evaluación (área 5)
+
+**Qué cambié**: rellenado `agentes/ia/evals/banco-de-pruebas.md`, que tenía sus
+8 casos en `[por escribir]`, y escrita la primera pasada en
+`agentes/ia/evals/resultados/2026-10-16.md`.
+
+**Por qué**: llevaba cuatro días siendo la recomendación del radar y mía.
+Sin esto, los seis cambios de prompt de la semana eran opiniones.
+
+**Cómo lo comprobé** —y esto es lo que hace que la pasada valga algo—: el
+prompt no se ha leído de memoria. Se ha **renderizado el de verdad**, ejecutando
+`construirPrompt()` con `node --experimental-strip-types` y stubs de sus cuatro
+dependencias, con los valores reales de `CREDITOS` y `CREDITOS_PLAN`. Salen 103
+líneas para la configuración adulto / cercano / normal / sin buscador / sin
+archivos, y contra ese texto exacto se ha puntuado.
+
+**Resultado: 10 de 12 en los 6 casos evaluables.** Dos casos no se han podido
+evaluar y no se cuentan: la multa de Paperwork no pasa por este prompt sino por
+el de `papeles.ts`, y el modo niño necesita su propia renderización.
+
+**Lo que mide y lo que no, dicho claro**: mide si el prompt dice lo que hace
+falta, no lo que contesta Kairo en producción —desde aquí no hay API, ni
+claves, ni red—. Y quien puntúa es un modelo de la misma familia que escribió
+el prompt. Así que es un **suelo, no una prueba**: los 1 valen mucho más que
+los 2.
+
+Los dos 1, que son el trabajo que esto deja hecho:
+
+- **Nadie le ha dicho a Kairo qué puede y qué no puede hacer.** Hay un "no
+  prometas tareas que no puedes ejecutar", pero ninguna lista. Si alguien pide
+  "resérvame mesa el viernes", el modelo decide solo, y a veces dirá que sí. El
+  material ya está escrito en `conocimiento/creditos-y-planes.md`; falta
+  llevarlo al prompt, igual que se hizo con los créditos.
+- **No hay ninguna regla sobre no ceder ante quien insiste**, que es el vicio
+  más típico de un modelo sin afinar y el que más caro sale cuando va de
+  dinero. El caso está escrito en `ejemplos/` desde ayer, pero escrito no es lo
+  mismo que puesto en el prompt.
+
+Y una cosa buena que enseña la pasada: el caso 7, el de los créditos, **hace
+tres días habría sido un 0** y hoy es un 2. El cambio del 14-10 se puede
+defender con un número.
+
+**Qué necesito del dueño**: nada. Los dos arreglos van al backlog para el
+constructor, redactados.
+
+**Mañana toca**: área 6, **Tono** — los cuatro tonos son adjetivos y no
+instrucciones, y a `QUÉ NO HACES NUNCA` le faltan dos tics muy visibles. Lo
+tengo anotado desde el mapa del primer día.
+
 ### 2026-10-15 — Casos límite (área 4)
 
 **Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`, de situaciones que
