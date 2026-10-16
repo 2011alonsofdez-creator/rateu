@@ -40,11 +40,24 @@ sesión de Vercel, es **🔴 grave y silencioso**: la web parece estar bien pero
 siempre. Se apaga en Vercel → el proyecto → Settings → Deployment Protection →
 Vercel Authentication. Está explicado en `.github/workflows/kairo-coworks.yml`.
 
-**3. ¿Qué dice la propia Kairo de su salud?** *(necesita red; si no llegas, ⚪)*
-Kairo trae dos herramientas de diagnóstico hechas: `/api/estado` y la página
-`/revision`. Úsalas: te dicen qué variables de entorno faltan y qué migraciones
-no están aplicadas, mucho mejor que adivinarlo desde fuera. Lo que te digan que
-falta, va al backlog.
+**3. ¿Qué dice la propia Kairo de su salud?** *(ya no hace falta red)*
+Kairo trae dos herramientas de diagnóstico: `/api/estado` y la página
+`/revision`. Te dicen qué claves y variables de entorno faltan, mucho mejor que
+adivinarlo desde fuera.
+
+**Cómo llegar a ellas sin red**, desde el 2026-10-16: el repositorio tiene
+`.github/workflows/revisar.yml`, que lee `/api/estado` desde un runner de
+GitHub. Lánzalo con `mcp__github__actions_run_trigger`
+(`workflow_id: revisar.yml`, `ref: main`), espera a que acabe, busca su job con
+`actions_list` → `list_workflow_jobs` y lee el log con `get_job_logs`. Ahí sale
+el resumen, qué cerebro tiene clave y si los modelos de respaldo existen.
+
+**Lee siempre el log de TU ejecución de hoy, no el de la anterior.** El 16-10
+el log de la tarde anterior decía que tres modelos no existían, y era falso:
+el proveedor había devuelto la lista cortada y el dueño lo arregló esa misma
+noche. Avisar con un log viejo es la forma más tonta de dar una alarma falsa.
+
+Lo que te digan que falta, va al backlog.
 
 **4. ¿Sigue sonando el reloj?**
 Los Co-Works y los avisos de Paperwork dependen del workflow

@@ -11,3 +11,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-13 | 🟡 | ok (indirecto, 200) | verde, pero 3 veces en 24 h | ok, los 3 corrieron | el hueco del reloj empeora: 10 h 14 min |
 | 2026-10-14 | 🟡 | ok (indirecto, 200) | verde, 4 veces en 24 h | ok, los 4 corrieron | sin novedad; 4 preguntas sin contestar, 2 días |
 | 2026-10-15 | 🟡 | ok (indirecto, 200) | verde, 6 veces en 24 h, mejorando | ok, los 4 entregaron | nada nuevo; preguntas sin contestar, 3 días |
+| 2026-10-16 | 🟡 | **ok, leído de verdad**: 200 y "TODO CORRECTO" | verde, 5 veces en 24 h | ok, los 3 entregaron | solo Gemini tiene clave; Claude y GPT no |

@@ -13,6 +13,25 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **La portada promete tres cerebros y en producción solo hay uno.** `[origen: guardian 2026-10-16]`
+  Leído hoy de `/api/estado` en producción, a las 05:14 UTC:
+  **Gemini: clave sí · Claude: clave NO · GPT: clave NO**, más el respaldo de
+  OpenRouter. Es decir, de los tres motores que dan nombre al producto, uno.
+
+  No está roto, y es a propósito: `kairo/.env.example` dice que con una sola de
+  las tres Kairo funciona y que "los proveedores sin clave desaparecen de las
+  cadenas y no se nota nada". El problema es que **sí se nota en lo que
+  promete la web**. La portada, comprobada el 13-10, dice *"Claude · Gemini ·
+  GPT, en una sola suscripción"* y *"Tres cerebros. Una sola IA."*, y el
+  Mega-Prompt se vende como los tres en paralelo más síntesis, que con una
+  clave no puede ocurrir.
+
+  Hay dos arreglos y los dos son del dueño: **poner las otras dos claves**
+  (cuesta dinero desde el primer mensaje, lo dice el propio `.env.example`), o
+  **cambiar lo que promete la portada** hasta que estén. Lo segundo lo puede
+  hacer el constructor en una tarde si se le dice que sí, y encaja con el
+  cambio de textos que ya pidió el de crecimiento.
+
 - **Cuatro preguntas al dueño llevan 2 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14]`
   `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
   falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
@@ -45,17 +64,17 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   niveles de cada plan de verdad, y si el tope de Mega-Prompt al mes (8 y 25
   según el documento) está puesto en algún sitio o no existe.
 
-- **La sede no tiene permiso de red para llegar a la web de Kairo.** `[origen: guardian 2026-10-12]`
-  `curl` y `WebFetch` a `kairo-six-lemon.vercel.app` fallan con
-  `getaddrinfo ENOTFOUND` y con un 403 del proxy al hacer CONNECT. Por eso las
-  comprobaciones 1, 2, 3, 5 y 7 del guardián se quedan a medias: lo que dicen
-  `/api/estado` y `/revision` (qué variables de entorno faltan, qué migraciones
-  no están aplicadas) no hay forma de leerlo desde aquí, y es justo lo que
-  avisaría de una avería antes de que se note.
-  Se arregla en los ajustes del entorno de Claude → **Network access** →
-  añadir `kairo-six-lemon.vercel.app` a los dominios permitidos.
-  **Anotado una sola vez**: mientras no esté abierto es una limitación
-  conocida, no un hallazgo nuevo, y no se repite cada día.
+- **La sede no tiene permiso de red, pero ya hay forma de rodearlo.** `[origen: guardian 2026-10-12, resuelto en la práctica 2026-10-16]`
+  Sigue sin alcanzarse `kairo-six-lemon.vercel.app` desde el contenedor
+  (`ENOTFOUND` / 403 del proxy), y abrir el dominio en **Network access** sigue
+  siendo la solución limpia.
+  **Pero ya no es un punto ciego.** El 15-10 el dueño añadió
+  `.github/workflows/revisar.yml`, que lee `/api/estado` desde un runner de
+  GitHub y escribe el resultado en el log. El guardián puede lanzarlo y leerlo,
+  y lo hizo hoy por primera vez: ahí salió lo de las claves que falta. Queda
+  incorporado a la revisión diaria.
+  Lo que sigue sin poder leerse es la página `/revision` renderizada y la
+  portada tal y como la ve un visitante.
 
 - **El reloj horario de los Co-Works no suena cada hora: suena 3 veces al día.** `[origen: guardian 2026-10-12, empeora 2026-10-13]`
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
