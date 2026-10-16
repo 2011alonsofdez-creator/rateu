@@ -65,7 +65,8 @@ jobs:
           jq -r '
             .cerebros.extra as $e
             | if ($e.error // null) != null then "Respaldo: ha contestado con un error -> \($e.error)"
-              elif ($e.modelos // null) != null then "Respaldo: el proveedor dice tener \(($e.modelos|length)) modelos"
+              elif ($e.total // null) != null then "Respaldo: el proveedor ofrece \($e.total) modelos"
+              elif ($e.modelos // null) != null then "Respaldo: el proveedor ofrece al menos \(($e.modelos|length)) modelos"
               else "Respaldo: no se ha podido preguntar al proveedor" end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
