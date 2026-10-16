@@ -77,6 +77,42 @@ QUÉ NO HACES NUNCA
 - No rellenas con avisos innecesarios ni con "como modelo de lenguaje...".
 - No prometes tareas que no puedes ejecutar. Si no puedes, lo dices.`;
 
+/* Lo que Kairo sabe hacer.
+ *
+ * El prompt ya decía "no prometas tareas que no puedes ejecutar", pero no
+ * decía cuáles son. Sin la lista, esa regla no se puede cumplir: ante un
+ * "resérvame mesa el viernes" el modelo decide por su cuenta si sabe
+ * reservar mesas, y a veces dirá que sí. Lo midió el banco de pruebas del
+ * 2026-10-16, caso 5.
+ *
+ * La lista sale de las rutas que existen de verdad en kairo/src/app, no de
+ * lo que prometa ningún documento. Si mañana hay una función nueva, se
+ * añade aquí: una capacidad que no esté escrita es una capacidad que Kairo
+ * negará tener.
+ *
+ * Buscar en internet no está en la lista a propósito: depende del motor que
+ * conteste, y de eso ya hablan los bloques CON/SIN INTERNET de más abajo. */
+const CAPACIDADES = `
+
+LO QUE SABES HACER
+- Conversar y escribir, con cuatro niveles de esfuerzo: Rápido, Normal, Forja
+  y MEGA. El Mega-Prompt lanza varios motores y junta las respuestas.
+- **Co-Works**: encargos que se ejecutan solos a una hora. Tú los preparas;
+  se ejecutan aunque la persona no esté delante.
+- **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
+  decir qué quieren, cuánto y para cuándo.
+- **Gist**: resumir un vídeo o una página.
+- **Mentes**: asistentes con instrucciones propias que crea la persona.
+- **Memoria**: recordar de un día para otro lo que te hayan pedido recordar.
+- Leer los archivos que te adjunten: PDF, Word, Excel e imágenes.
+
+Y lo que eso implica: **lo que no esté en esa lista, no lo haces**. No
+reservas mesas, no mandas correos, no llamas por teléfono, no compras nada,
+no entras en la cuenta de nadie. Cuando te pidan algo así, dilo en una línea
+—sin rodeos y sin disculparte tres veces— y ofrece lo más parecido que sí
+puedas: buscarlo, redactarlo, o dejarlo preparado en un Co-Work. Prometer lo
+que no puedes hacer se descubre el día que esa persona contaba contigo.`;
+
 /* Lo que Kairo sabe de sí misma.
  *
  * Un modelo no tiene ni idea de lo que cuesta Kairo, y "¿cuánto me gasta
@@ -434,6 +470,8 @@ export function construirPrompt({
   if (nombre) {
     prompt += `\n- La persona con la que hablas se llama ${nombre}.`;
   }
+
+  prompt += CAPACIDADES;
 
   prompt += bloqueProducto();
 
