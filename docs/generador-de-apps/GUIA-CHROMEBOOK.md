@@ -227,19 +227,49 @@ equivoca, se equivoca encima de tu proyecto.
 
 ## Paso 7 · El archivo de reglas
 
-Al lado de esta guía tienes `clinerules.txt`. Ábrelo, copia el texto
-entero, y en VS Code (con `FabricaDeApps` abierta):
+Este archivo es el que le dice a Cline dónde puede meterse y dónde no.
+**Ponlo antes del paso 8**, porque el paso 8 es darle permisos y sin
+reglas eso es darle permiso sobre todo.
 
-**File → New File** → pega → **Guardar** dentro de `FabricaDeApps` con
-este nombre exacto:
+Lo más rápido es que se lo baje la Terminal. Pega estas dos líneas:
+
+```
+cd ~/FabricaDeApps
+curl -fsSL https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/docs/generador-de-apps/clinerules-chromebook.txt -o .clinerules
+```
+
+No contesta nada si va bien. Para verlo:
+
+```
+ls -l .clinerules
+```
+
+Tiene que salir una línea con `.clinerules` y unos 2600 de tamaño. Si
+dice `No existe el archivo`, es que no se bajó: mira que tengas wifi y
+repite.
+
+> **¿Por qué no sale el archivo en la carpeta?** En Linux todo lo que
+> empieza por punto está oculto. En la app **Archivos** no lo vas a ver
+> nunca; en VS Code sí aparece, y `ls -l` también lo enseña. No está
+> perdido.
+
+### Si prefieres pegarlo a mano
+
+Abre [esa misma dirección](https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/docs/generador-de-apps/clinerules-chromebook.txt)
+en Chrome, copia **todo** el texto, y en VS Code (con `FabricaDeApps`
+abierta): **File → New File** → pega → **Guardar** dentro de
+`FabricaDeApps` con este nombre exacto:
 
 ```
 .clinerules
 ```
 
-Con el punto delante y sin `.txt`. En Linux los archivos que empiezan por
-punto están ocultos, así que no te extrañe si luego no lo ves en la app
-Archivos: ahí está, y VS Code sí lo enseña.
+Con el punto delante y sin `.txt` al final.
+
+> El archivo `clinerules.txt` que hay en el repositorio al lado de las
+> guías es **el de Windows**: habla de `winget` y `choco`, que aquí no
+> existen. El de arriba es el de Chromebook, y además le prohíbe `sudo`
+> y tocar `/mnt/chromeos`. Usa ese.
 
 ---
 
