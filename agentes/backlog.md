@@ -76,7 +76,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Lo que sigue sin poder leerse es la página `/revision` renderizada y la
   portada tal y como la ve un visitante.
 
-- **El reloj horario de los Co-Works no suena cada hora: suena 3 veces al día.** `[origen: guardian 2026-10-12, empeora 2026-10-13]`
+- **El reloj: el dueño lo ha cambiado, falta medir si ha servido.** `[origen: guardian 2026-10-12 · el dueño actúa 2026-10-16]`
+  **Resuelto por su parte**: el commit `67cb15e` ("Ring the clock three times an
+  hour, not five times a day") pasa el cron de cada hora a cada 20 minutos, y
+  su comentario añade algo que ningún agente había dicho: **un hueco no es un
+  retraso**. Un Co-Work de las 23:00 solo sale si el reloj suena antes de
+  medianoche; si el siguiente toque cae a las 02:00, ese encargo no se
+  ejecuta, se pierde entero y en silencio.
+  **Lo que falta es la prueba.** Con el cron nuevo solo han caído 2 ejecuciones
+  y el hueco sigue en 4 h 16 min. Pedir tres veces más no obliga a GitHub a
+  nada —lo dice el propio comentario—, así que esto no se cierra hasta tener
+  24 horas de datos. El guardián lo mide mañana y lo cierra o lo reabre con
+  números.
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
   muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
   su planificador va cargado, y no avisa: todas salen en verde.
