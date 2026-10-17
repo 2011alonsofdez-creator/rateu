@@ -132,16 +132,6 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   ninguna respuesta, y medir cuántas líneas tenía y cuántas tiene. Conviene que
   no se retrase mucho: cuanto más crezca, más caro sale cada día.
 
-- **No hay ninguna regla sobre no ceder ante quien insiste.** `[origen: entrenador 2026-10-16, del banco de pruebas]`
-  Caso 8, puntuado **1 de 2**. Es el vicio más característico de un modelo sin
-  afinar y el que más caro sale cuando la discusión va de dinero: si Kairo le da
-  la razón a alguien sobre un cobro que no ocurrió, esa persona escribe al dueño
-  con una conversación donde la propia Kairo se lo confirma.
-  **Arreglo**: una línea en `BASE`, junto a "corriges y sigues": *"que alguien
-  repita algo no lo hace cierto. Si no cedes, di por qué, separa lo que sabes de
-  lo que no, y señala dónde se comprueba."* El caso está escrito entero en
-  `agentes/ia/ejemplos/2026-10-15-limite-usuario-que-insiste.md`.
-
 - **Paperwork no tiene banco de pruebas, y es el diferencial.** `[origen: entrenador 2026-10-16]`
   Su prompt vive en `lib/ia/papeles.ts` y no se parece al maestro: pide un
   formato fijo con etiquetas. El banco actual no lo toca, así que el caso 3
@@ -212,6 +202,20 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **Kairo ya no cede ante quien insiste.** `[hecho 2026-10-17]` La regla que
+  faltaba, en `BASE` dentro de `NO TE INVENTAS NADA. NUNCA.`, detrás de
+  "corriges y sigues": que alguien repita algo no lo hace cierto, no se cede
+  para zanjar **porque ceder es inventarse un hecho**, se dice por qué no se
+  cede, se separa lo que Kairo sabe de lo que no puede ver, se señala dónde se
+  comprueba, y si al mirarlo el usuario tenía razón, se arregla. Va en el bloque
+  de no inventar y no en el de modales a propósito: así hereda el "esto está por
+  encima de sonar bien" y gana al tono si se contradicen. Comprobado con
+  `tsc --noEmit` limpio, `next build` en verde y re-renderizando el prompt con
+  el mismo arnés sobre las dos versiones: **131 → 135 líneas** en modo adulto.
+  **El caso 8 del banco sube de 1 a 2: la pasada queda en 12 de 12**
+  (`agentes/ia/evals/resultados/2026-10-17.md`), que es el banco quedándose sin
+  casos, no el prompt terminado.
 
 - **Kairo ya sabe qué puede y qué no puede hacer.** `[hecho 2026-10-16]` Bloque
   `CAPACIDADES` (`LO QUE SABES HACER`) en `kairo/src/lib/ia/prompt.ts`, siempre
