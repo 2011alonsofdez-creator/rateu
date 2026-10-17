@@ -16,6 +16,7 @@ import {
   puedeBuscar,
   type Arranque,
   type Trozo,
+  partir,
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { esDeAhora } from "@/lib/ia/ahora";
@@ -770,6 +771,25 @@ export async function POST(req: Request) {
             } catch (e) {
               ultimoFallo = e;
               if (apartar(candidato, e)) descartados.add(candidato);
+
+              /* UNA CLAVE RECHAZADA NO ES COSA DEL MODELO: ES DE TODA LA
+                 CASA.
+ 
+                 Si el proveedor dice que la clave no vale, va a decir lo
+                 mismo con todos sus modelos. Seguir preguntándoles uno a
+                 uno es hacer esperar a alguien delante de una pantalla
+                 por tres rechazos idénticos, y después enseñarle el
+                 mismo error que ya se sabía al primero.
+ 
+                 Pasó de verdad: con Gemini sin cuota y la clave del
+                 respaldo mal puesta, una pregunta tardaba lo que tardan
+                 quince intentos imposibles antes de dar el error. */
+              if (clasificarError(e) === "clave_invalida") {
+                const casa = partir(candidato).proveedor;
+                for (const otro of candidatos) {
+                  if (partir(otro).proveedor === casa) descartados.add(otro);
+                }
+              }
             }
           }
         }
