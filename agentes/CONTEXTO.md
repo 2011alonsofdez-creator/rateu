@@ -131,10 +131,40 @@ sin abrir ninguna web: confirmar antes de usarlas en público.
 - **Álex (Legálitas)**, gratis, en español, >600.000 usuarios declarados.
   Ocupa el sitio mental de "IA legal gratis".
 
-**Nadie vende créditos recargables sin suscripción en español.** Ese hueco
-existe de verdad y es el mejor sitio de Kairo.
+~~**Nadie vende créditos recargables sin suscripción en español.** Ese hueco
+existe de verdad y es el mejor sitio de Kairo.~~
+**Corregido el 2026-10-17: medio falso.** Créditos recargables genéricos sigue
+sin venderlos nadie, pero el hueco que importaba —usar esto sin suscribirse a
+nada— ya está ocupado en el nicho exacto de Kairo. Ver abajo.
 
 Kairo+ a 9,99 € queda por encima de ChatGPT Go (8 €) sin tener su marca.
+
+## Con quién compite de verdad (2026-10-17)
+
+La foto del 14-10 miraba a quien hace ruido. Buscando por el problema del
+usuario —"cómo recurrir una multa"— salen otros tres, que hacen lo mismo que
+Kairo y son españoles. Cifras de resultados de búsqueda, sin abrir ninguna web.
+
+- **GovEasy** (`es.goveasy.eu`) — **el más cercano, y no estaba en el mapa.**
+  Trámites con la Administración: una página por trámite, extensión de
+  navegador que detecta el trámite en AEAT, Seguridad Social y DGT, IA propia
+  ("Tramití") y gestores humanos. Hace **las tres cosas que Kairo considera
+  suyas**: lee y además **rellena** papeles oficiales (modelo EX-10 con IA,
+  4,99 €), **vigila plazos sola y avisa** (Radar de Citas, recordatorios de
+  DNI/ITV/renta, vigilancia de convocatorias) y cobra **sin suscripción
+  obligatoria**: trámites sueltos **desde 2,99 €**, Plus 4,99 €/mes,
+  vigilancia 9,99 € de **pago único** por ciudad. Sale **primero** en la
+  búsqueda con intención de usuario; Kairo no sale.
+- **Lexlyia** (`lexlyia.com`) — asesor legal con IA en español. Particular
+  **9,90 €/mes** (a un céntimo de Kairo+), autónomos 29 €, pyme 79 €.
+- **Lexly** (App Store ES, Lend Power SL) — analiza documentos legales **con
+  una foto**, fiscal y laboral en España, **gratis**. Hace gratis el gancho de
+  Paperwork.
+
+**Dónde gana Kairo**: amplitud. Es un asistente completo —Gist, Mentes,
+memoria, cuatro niveles— y no cobra por trámite. **Dónde pierde**: en la
+puerta. Kairo tiene **tres páginas públicas** (`/`, `/precios`, `/legal`) y
+ninguna responde a quien busca su problema.
 
 ## Los tres números que importan al lanzar
 

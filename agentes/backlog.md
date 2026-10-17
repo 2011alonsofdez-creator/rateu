@@ -109,7 +109,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   **Y desde el 14-10 esto ya no es solo técnico, es competitivo**
   `[crecimiento 2026-10-14]`: ChatGPT Tasks documenta como su límite
-  **una ejecución por hora**. Kairo entrega una cada seis. En el único terreno
+  **una ejecución por hora**. Kairo entrega una cada seis.
+
+  **Y desde el 17-10, con precio de mercado encima** `[crecimiento 2026-10-17]`:
+  GovEasy, español, **cobra 9,99 € de pago único** por vigilar convocatorias y
+  avisar, y vende su Radar de Citas como producto. Es decir, la vigilancia
+  continua **no es un extra que se regala: es lo que alguien ya cobra**. Kairo
+  la incluye y la entrega con cinco horas de retraso. En el único terreno
   donde dice ganar, hoy va seis veces por detrás del que puede copiarle el
   argumento con una frase.
   Importa porque es exactamente lo que ese workflow existe para evitar, según
@@ -123,6 +129,28 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   va a pagar por un reloj.
 
 ## P2
+
+- **Kairo no tiene ni una página que responda a quien busca su problema.** `[origen: crecimiento 2026-10-17]`
+  Contado en el código: `kairo/src/app` solo tiene **tres páginas públicas**
+  —`/`, `/precios` y `/legal`—, y el `sitemap.ts` lista esas tres. Todo lo demás
+  está detrás del registro, y con razón. Así que de las seis búsquedas con
+  intención real que resuelve Kairo ("me ha llegado una multa, ¿qué hago?", "qué
+  significa esta carta de Hacienda", "app para que no se me pase un plazo",
+  "resumir un vídeo de YouTube"…), **ninguna tiene hoy una página de Kairo
+  detrás**. El competidor español más cercano, GovEasy, tiene **una página por
+  trámite** y por eso sale primero en esa misma búsqueda.
+  **Arreglo**: seis páginas estáticas, una por intención, empezando por
+  `/multas`, `/cartas-de-hacienda` y `/avisos-de-plazos`. Una tarde cada una.
+  Es trabajo de textos y páginas estáticas, así que **cabe entero dentro de lo
+  que un agente puede tocar** (protocolo, apartado 5) y no depende de ninguna
+  decisión del dueño. Es el único canal de captación con esa propiedad.
+  Dos cosas que **no** se pueden escribir sin mentir hasta que estén
+  arregladas: `/avisos-de-plazos` necesita el reloj (P1), y las páginas de
+  multas y Hacienda **no pueden dar plazos de memoria** —las fuentes no
+  coinciden en si los 20 días del recurso de multa son naturales o hábiles—,
+  así que dicen qué lee Kairo y mandan a comprobar el dato en la notificación.
+  La tabla entera, con las seis intenciones y sus fuentes, en
+  `agentes/mercado/2026-10-17-mercado.md`.
 
 - **El prompt ha crecido un 18% en tres días y toca recortarlo.** `[origen: radar 2026-10-16]`
   De 103 líneas el 13-10 a 122 hoy, medido renderizándolo las dos veces. Son
