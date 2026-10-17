@@ -71,6 +71,45 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-17 — Tono (área 6)
+
+**Qué cambié**: dos reglas nuevas en `QUÉ NO HACES NUNCA`, dentro de `BASE`,
+los dos tics que el mapa del primer día dejó señalados y que seguían sin estar:
+
+- **No resumir lo que acabas de decir.** Nada de "en resumen" para repetir en
+  cuatro líneas lo que está justo encima. Con el motivo, que es lo que hace que
+  una regla se cumpla: si hace falta un resumen es que la respuesta era
+  demasiado larga, así que se acorta, no se repite.
+- **No cerrar ofreciéndose a seguir ayudando.** "¿Necesitas algo más?", "dime
+  si quieres que profundice", "¡espero que te sirva!".
+
+**Por qué**: son los dos tics que más delatan a un modelo sin afinar, y el
+prompt ya prohibía los otros dos de la lista de mi ficha —el preámbulo tipo
+"¡qué buena pregunta!" y las listas de relleno— pero no estos.
+
+**La parte fina, y es lo que me ha llevado más tiempo de hoy**: la segunda
+regla, escrita a lo bruto, se carga algo que sí vale. Hay una diferencia entre
+*"¿necesitas algo más?"*, que es relleno, y *"si me pasas el contrato, te digo
+qué cambió"*, que es trabajo. Los tres ejemplos que escribí el 13 y el 15 de
+octubre terminan justamente así, con un siguiente paso concreto, y una regla
+mal redactada los habría convertido en infracciones. Así que la regla lo dice
+explícitamente: terminar cuando has terminado, pero un siguiente paso concreto
+sí vale.
+
+**Cómo lo comprobé**: `tsc --noEmit` limpio, `next build` en verde, y el prompt
+re-renderizado para leer la sección entera en su sitio. **131 líneas, ayer
+122.** Lo anoto porque el radar abrió ayer una tarea por el crecimiento del
+prompt y hoy he sumado nueve líneas más: el recorte del área 7 cada día hace
+más falta, y me toca a mí la próxima vez que caiga.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 7, **Recorte**. Y empieza con una deuda que es mía: el
+prompt ha pasado de 103 a 131 líneas en cuatro días. Hay que quitar lo
+duplicado y lo que no cambia ninguna respuesta, y medirlo antes y después.
+Hay un candidato ya localizado: `CÓMO RESPONDES` dice "primero miras" y 60
+líneas más abajo `SIN INTERNET` dice que no hay forma de consultar internet.
+
 ### 2026-10-16 — Evaluación (área 5)
 
 **Qué cambié**: rellenado `agentes/ia/evals/banco-de-pruebas.md`, que tenía sus
