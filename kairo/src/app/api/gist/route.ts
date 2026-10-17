@@ -1,5 +1,6 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { resumir, tipoDeUrl, type Ficha, type Idioma } from "@/lib/ia/gist";
+import { limpiaDeYoutube } from "@/lib/fichas";
 import { CREDITOS } from "@/lib/ia/config";
 import { clasificarError } from "@/lib/ia/errores";
 import { limpiarFallo } from "@/lib/ia/fallos";
@@ -59,6 +60,11 @@ export async function POST(req: Request) {
   const tipo = tipoDeUrl(url);
   if (!tipo) return fallo(400, "enlace_no_valido");
 
+  /* El enlace de un vídeo, en limpio antes de nada. Lo que se pega lleva
+     el minuto por el que iba y de dónde salió el clic, y eso estropea
+     los enlaces de las partes y duplica fichas. Ver `limpiaDeYoutube`. */
+  const enlace = tipo === "video" ? limpiaDeYoutube(url) : url;
+
   /* En qué idioma se quiere el resumen. Lo decide quien lee, no el
      vídeo: uno en inglés resumido en inglés no le sirve a quien no lo
      habla. Y si llega cualquier otra cosa en el cuerpo, español. */
@@ -82,7 +88,7 @@ export async function POST(req: Request) {
 
   let resultado;
   try {
-    resultado = await resumir(url, tipo, perfil.modo_edad, idioma);
+    resultado = await resumir(enlace, tipo, perfil.modo_edad, idioma);
   } catch (e) {
     const mensaje = e instanceof Error ? e.message : String(e);
     /* Tachando antes lo que tenga pinta de clave: un "API key not valid:
