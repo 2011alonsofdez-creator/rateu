@@ -136,7 +136,9 @@ en modo automático: si se equivoca, se equivoca encima de tu proyecto.
 
 ## Paso 6 · El archivo de reglas
 
-En el archivo `clinerules.txt` que hay junto a esta guía tienes el texto.
+El texto está en `clinerules.txt`, junto a esta guía. Si estás leyendo
+esto sin tener el repositorio delante, ábrelo aquí:
+<https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/docs/generador-de-apps/clinerules.txt>
 
 1. Cópialo entero.
 2. En VS Code, con `FabricaDeApps` abierta: **Archivo → Nuevo archivo**,
