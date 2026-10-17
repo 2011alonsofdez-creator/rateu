@@ -48,6 +48,36 @@ esa es la Terminal. Es donde vas a escribir los comandos de abajo.
 > Si la opción de Linux no aparece en Settings, tu Chromebook no lo
 > admite y hasta aquí hemos llegado. No hay forma de hacer esto sin él.
 
+### Si la Terminal no arranca: `62 (NEED_UPDATE)`
+
+Si al abrirla sale esto:
+
+```
+Launching vmshell failed: Error starting crostini for terminal: 62 (NEED_UPDATE)
+```
+
+**No has hecho nada mal y Linux está bien instalado.** Lo que dice ese
+error es que la *máquina* que hace funcionar a Linux se ha quedado
+atrasada respecto a tu ChromeOS. Se arregla actualizando ChromeOS, no
+reinstalando nada:
+
+1. Settings → abajo del todo **Acerca de ChromeOS**.
+2. **Buscar actualizaciones**. Si encuentra algo, déjalo bajar.
+3. **Reiniciar** (el botón sale ahí mismo). Reiniciar es obligatorio:
+   sin el reinicio no cambia nada.
+4. Vuelve a abrir la **Terminal**.
+
+Si dice que ya está actualizado y la Terminal sigue igual:
+
+- Mira que tengas **wifi**: esa pieza se la baja de Google en ese
+  momento, y sin internet falla con este mismo error.
+- Reinicia el Chromebook de todas formas, aunque no hubiera
+  actualización.
+- Y si después de eso sigue sin abrirse: Settings → **Desarrolladores**
+  → **Entorno de desarrollo de Linux** → **Quitar**, y vuelve a
+  activarlo (paso 1 otra vez). **No pierdes nada tuyo**: Linux va en su
+  propia caja y todavía no has creado nada dentro.
+
 ---
 
 ## Paso 2 · Instalar Node
@@ -233,6 +263,7 @@ nada. Para parar la app: `Ctrl + C` en la Terminal.
 
 | Lo que ves | Lo que es | Qué haces |
 |---|---|---|
+| `62 (NEED_UPDATE)` al abrir la Terminal | ChromeOS atrasado respecto a Linux | Acerca de ChromeOS → **Buscar actualizaciones** → **Reiniciar** (ver paso 1) |
 | `code: command not found` | el .deb no llegó a instalarse | repite el paso 3, y mira que el archivo esté en `~` |
 | El `.deb` «no es compatible» | descargaste el de la otra arquitectura | `dpkg --print-architecture` y baja el que toque |
 | `npx: command not found` | falta Node, o no reabriste la Terminal | cierra y abre la Terminal, y `nvm install --lts` |
