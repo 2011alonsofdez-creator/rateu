@@ -128,16 +128,41 @@ dpkg --print-architecture
 Ahora, **en Chrome** (no en la Terminal): <https://code.visualstudio.com/download>
 → sección **Linux** → descarga el **.deb** que te toque.
 
-El archivo cae en *Descargas*. Hay que pasarlo a Linux:
+El archivo cae en **Descargas**, que es una carpeta de ChromeOS, no de
+Linux. Hay que meterlo dentro:
 
-Abre la app **Archivos** → **Descargas** → clic derecho sobre el `.deb` →
-**Compartir con Linux**. Ahora está dentro, en la carpeta de Linux.
+Abre la app **Archivos** → **Descargas** → **arrastra** el `.deb` hasta
+**Archivos de Linux** (en la columna de la izquierda). Con eso queda
+dentro de Linux, en tu carpeta personal.
+
+> ### No le des doble clic al `.deb`
+>
+> ChromeOS ya no instala paquetes así. Si lo pinchas sale:
+>
+> > «Ya no se admiten las instalaciones de paquetes de Debian.»
+>
+> Eso **no** quiere decir que VS Code no se pueda instalar. Quiere decir
+> que lo que han quitado es el botón; el programa se instala desde la
+> Terminal igual que siempre. Dale a **Aceptar** y sigue con el comando
+> de abajo.
 
 Y en la Terminal:
 
 ```
 cd ~
 sudo apt install -y ./code*.deb
+```
+
+Tarda un rato: son más de 200 MB. Cuando acabe, la última línea no dice
+«instalado», dice algo de *Processing triggers*. Eso es que ha ido bien.
+
+¿Contesta `no se pudo abrir` o `No existe el archivo`? Entonces el `.deb`
+se quedó en Descargas y no llegó a entrar. Compruébalo con `ls ~`; si no
+está, en la app **Archivos** clic derecho sobre la carpeta **Descargas**
+→ **Compartir con Linux**, y luego:
+
+```
+sudo apt install -y /mnt/chromeos/MyFiles/Downloads/code*.deb
 ```
 
 Para abrirlo, escribe `code` en la Terminal y dale a Enter. También te
@@ -264,10 +289,11 @@ nada. Para parar la app: `Ctrl + C` en la Terminal.
 | Lo que ves | Lo que es | Qué haces |
 |---|---|---|
 | `62 (NEED_UPDATE)` al abrir la Terminal | ChromeOS atrasado respecto a Linux | Acerca de ChromeOS → **Buscar actualizaciones** → **Reiniciar** (ver paso 1) |
+| «Ya no se admiten las instalaciones de paquetes de Debian» | le diste doble clic al `.deb` | **Aceptar**, y lo instalas desde la Terminal (paso 3) |
+| `no se pudo abrir` / `No existe el archivo` al instalar | el `.deb` sigue en Descargas | arrástralo a **Archivos de Linux**, o usa la ruta `/mnt/chromeos/...` del paso 3 |
 | `code: command not found` | el .deb no llegó a instalarse | repite el paso 3, y mira que el archivo esté en `~` |
 | El `.deb` «no es compatible» | descargaste el de la otra arquitectura | `dpkg --print-architecture` y baja el que toque |
 | `npx: command not found` | falta Node, o no reabriste la Terminal | cierra y abre la Terminal, y `nvm install --lts` |
-| No encuentra el `.deb` | está en Descargas, no en Linux | Archivos → clic derecho → **Compartir con Linux** |
 | `localhost:3000` no abre | la app no está corriendo | mira que `npm run dev` siga abierto en la Terminal |
 | Va lentísimo | Chromebook + Linux + compilar | normal, sobre todo con 4 GB de RAM |
 | «model not found» | ese modelo ya no existe | coge otro de la lista Free |
