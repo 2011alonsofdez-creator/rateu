@@ -9,7 +9,8 @@ export function clasificarError(fallo: unknown) {
       ? Number((fallo as { status?: unknown }).status)
       : NaN;
 
-  if (estado === 401 || estado === 403) return "clave_invalida";
+  if (estado === 401) return "clave_invalida";
+  if (estado === 403) return VETADO.test(texto(fallo)) ? "modelo_vetado" : "clave_invalida";
   if (estado === 429) return tipoDeCuota(texto(fallo));
   if (estado === 404) return "modelo_no_existe";
   if (estado === 400) return "modelo_no_existe"; // parámetro que ese modelo no acepta
@@ -17,6 +18,7 @@ export function clasificarError(fallo: unknown) {
 
   const mensaje = texto(fallo);
 
+  if (VETADO.test(mensaje)) return "modelo_vetado";
   if (/api[_ ]?key|API_KEY_INVALID|401|403|PERMISSION_DENIED/i.test(mensaje)) {
     return "clave_invalida";
   }
@@ -25,6 +27,24 @@ export function clasificarError(fallo: unknown) {
   if (/503|UNAVAILABLE|overloaded|high demand/i.test(mensaje)) return "sobrecargado";
   return "error_modelo";
 }
+
+/* UN 403 NO SIEMPRE ES LA CLAVE, Y CONFUNDIRLO SALE CARO.
+ *
+ * OpenRouter usa el mismo 403 para dos cosas que no se parecen en nada:
+ *   · la clave no vale
+ *   · la clave vale perfectamente, pero ESE modelo no se sirve aquí
+ *
+ * Lo segundo es real: hay modelos gratis reservados a agentes de
+ * programación —contestan «only available on agentic harnesses»— que
+ * desde una web rechazan la petición con la clave impecable.
+ *
+ * Leerlo como «clave inválida» costaba dos cosas a la vez: el chat
+ * descarta TODOS los modelos de esa casa en cuanto una clave se cae
+ * (está puesto a propósito, en api/chat), así que un solo modelo vetado
+ * tumbaba el respaldo entero; y encima mandaba a revisar las claves en
+ * Vercel, que es donde no estaba el problema. Pasó de verdad. */
+const VETADO =
+  /agentic harness|only available on|not available (to|for|on)|no access to (this )?model|model not available/i;
 
 const texto = (fallo: unknown) =>
   fallo instanceof Error ? fallo.message : typeof fallo === "string" ? fallo : JSON.stringify(fallo ?? "");

@@ -116,6 +116,12 @@ function apartar(modelo: string, fallo: unknown): boolean {
       // Hasta mañana. Seguir preguntándole es tirar peticiones.
       enfriar(modelo, 60 * 60_000);
       return true;
+    case "modelo_vetado":
+      /* Este no vuelve. No es que esté ocupado: es que a una web no se
+         le sirve, y mañana tampoco. Apartarlo diez minutos sería gastar
+         una petición cada diez minutos en algo que no puede salir. */
+      enfriar(modelo, 24 * 60 * 60_000);
+      return true;
     default:
       // No existe, no tienes acceso o lo han retirado.
       enfriar(modelo, 10 * 60_000);
