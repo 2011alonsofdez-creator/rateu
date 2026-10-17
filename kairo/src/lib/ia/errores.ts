@@ -9,6 +9,15 @@ export function clasificarError(fallo: unknown) {
       ? Number((fallo as { status?: unknown }).status)
       : NaN;
 
+  /* Un nombre de modelo que no sirve para hablar, se mire como se mire.
+     Va antes que los números porque llega como 404 y un 404 se lee como
+     "ese modelo no existe": existe, pero es la variante de otra cosa
+     —`:batch` es la de mandar trabajo en lotes— y por el canal del chat
+     no va a funcionar nunca. Con el mensaje genérico, quien lo ha puesto
+     en la lista no tiene forma de saber que el problema es el nombre que
+     escribió él. */
+  if (NO_SIRVE.test(texto(fallo))) return "modelo_no_sirve";
+
   if (estado === 401) return "clave_invalida";
   if (estado === 403) return VETADO.test(texto(fallo)) ? "modelo_vetado" : "clave_invalida";
   if (estado === 429) return tipoDeCuota(texto(fallo));
@@ -43,6 +52,8 @@ export function clasificarError(fallo: unknown) {
  * (está puesto a propósito, en api/chat), así que un solo modelo vetado
  * tumbaba el respaldo entero; y encima mandaba a revisar las claves en
  * Vercel, que es donde no estaba el problema. Pasó de verdad. */
+const NO_SIRVE = /cannot be used with the chat\/completions endpoint|:batch(?![\w-])/i;
+
 const VETADO =
   /agentic harness|only available on|not available (to|for|on)|no access to (this )?model|model not available/i;
 

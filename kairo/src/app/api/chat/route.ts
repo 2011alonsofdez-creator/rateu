@@ -116,6 +116,7 @@ function apartar(modelo: string, fallo: unknown): boolean {
       // Hasta mañana. Seguir preguntándole es tirar peticiones.
       enfriar(modelo, 60 * 60_000);
       return true;
+    case "modelo_no_sirve":
     case "modelo_vetado":
       /* Este no vuelve. No es que esté ocupado: es que a una web no se
          le sirve, y mañana tampoco. Apartarlo diez minutos sería gastar
