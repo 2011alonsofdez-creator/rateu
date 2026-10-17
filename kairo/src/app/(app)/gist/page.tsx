@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -153,6 +153,7 @@ export default function GistPage() {
   const [abierta, setAbierta] = useState<Ficha | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const campoUrl = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (perfil.demo) {
@@ -169,6 +170,24 @@ export default function GistPage() {
       .catch(() => {})
       .finally(() => setCargando(false));
   }, [perfil.demo]);
+
+  /* RESUMIR OTRO.
+   *
+   * Al acabar una ficha se abre sola, y se abre ENCIMA de todo: tapa la
+   * caja donde se pega el enlace. Visto desde fuera eso no es «hay una
+   * ventana abierta», es «Gist me ha dejado mandar un vídeo y el
+   * siguiente ya no». Pasó de verdad, y la salida —la X de la esquina o
+   * pinchar fuera— no se le ocurre a nadie que no la esté buscando.
+   *
+   * Así que se dice con todas las letras, en la barra de arriba, que es
+   * la parte que no se va al bajar por un resumen largo. Y el cursor
+   * acaba en la caja: cerrar la ficha y dejar a alguien buscando dónde
+   * se pegaba el enlace es resolver la mitad. */
+  const otro = () => {
+    setAbierta(null);
+    setError(undefined);
+    setTimeout(() => campoUrl.current?.focus(), 0);
+  };
 
   const resumir = async () => {
     const limpia = url.trim();
@@ -305,6 +324,7 @@ export default function GistPage() {
       {/* Pegar el enlace */}
       <div className="mt-6 flex flex-col gap-2 sm:flex-row">
         <input
+          ref={campoUrl}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && resumir()}
@@ -425,9 +445,15 @@ export default function GistPage() {
                 {abierta.autor || new URL(abierta.url).hostname}
               </span>
               <button
+                onClick={otro}
+                className="ml-auto shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
+              >
+                {t("gist.another")}
+              </button>
+              <button
                 onClick={() => setAbierta(null)}
                 aria-label={t("menu.close")}
-                className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-faint transition hover:bg-panel-hi hover:text-fg"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-faint transition hover:bg-panel-hi hover:text-fg"
               >
                 <Close className="h-4 w-4" />
               </button>
