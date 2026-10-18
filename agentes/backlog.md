@@ -13,6 +13,23 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **La rama de agentes va 42 commits por detrás de `main`, y eso resta valor a lo que comprobamos.** `[origen: guardian 2026-10-18]`
+  Contado hoy: `main` tiene **42 commits** que no están en `claude/kairo-agentes`,
+  y la rama tiene **27** que no están en `main`. El dueño ha estado trabajando
+  —arregló el enlace de YouTube de Gist, la salida de su tarjeta, y dos cosas
+  que son justo la raíz del falso positivo del guardián del 16-10: *"deja de
+  leer el 403 de un modelo restringido como una clave muerta"* y *"di cuándo un
+  nombre de modelo configurado no es uno con el que se pueda hablar"*.
+  **Importa por dos motivos y el segundo es el que duele:**
+  1. Siete días de trabajo comprobado siguen sin fusionar, la imagen de Open
+     Graph y el `robots.txt` incluidos (comprobado hoy: no están en `main`).
+  2. Cuando el entrenador o el constructor dicen "comprobado con `next build`
+     en verde", lo están comprobando **sobre una app 42 commits vieja**. La
+     comprobación no es falsa, pero vale menos de lo que parece.
+  **Arreglo**: fusionar `origin/main` en la rama de agentes, como ya se hizo el
+  13-10. Es trabajo del constructor y no toca `main`. Lo otro —fusionar la rama
+  en `main`— es del dueño y solo él.
+
 - **La portada promete tres cerebros y en producción solo hay uno.** `[origen: guardian 2026-10-16]`
   Leído hoy de `/api/estado` en producción, a las 05:14 UTC:
   **Gemini: clave sí · Claude: clave NO · GPT: clave NO**, más el respaldo de
@@ -32,7 +49,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   hacer el constructor en una tarde si se le dice que sí, y encaja con el
   cambio de textos que ya pidió el de crecimiento.
 
-- **Cuatro preguntas al dueño llevan 2 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14]`
+- **Las preguntas al dueño llevan 6 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-18]`
   `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
   falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
   tienda de pagos está encendida y si Kairo está lanzada. Mientras no lleguen,
@@ -76,18 +93,38 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Lo que sigue sin poder leerse es la página `/revision` renderizada y la
   portada tal y como la ve un visitante.
 
-- **El reloj: el dueño lo ha cambiado, falta medir si ha servido.** `[origen: guardian 2026-10-12 · el dueño actúa 2026-10-16]`
+- **El reloj: medido, y el cron nuevo no basta. Hace falta un reloj externo o decir la verdad en la interfaz.** `[origen: guardian 2026-10-12 · el dueño actúa 2026-10-16 · medido 2026-10-18]`
   **Resuelto por su parte**: el commit `67cb15e` ("Ring the clock three times an
   hour, not five times a day") pasa el cron de cada hora a cada 20 minutos, y
   su comentario añade algo que ningún agente había dicho: **un hueco no es un
   retraso**. Un Co-Work de las 23:00 solo sale si el reloj suena antes de
   medianoche; si el siguiente toque cae a las 02:00, ese encargo no se
   ejecuta, se pierde entero y en silencio.
-  **Lo que falta es la prueba.** Con el cron nuevo solo han caído 2 ejecuciones
-  y el hueco sigue en 4 h 16 min. Pedir tres veces más no obliga a GitHub a
-  nada —lo dice el propio comentario—, así que esto no se cierra hasta tener
-  24 horas de datos. El guardián lo mide mañana y lo cierra o lo reabre con
-  números.
+  **Medido el 18-10, con 24 horas enteras de datos. El veredicto: no basta.**
+  El cron de `main` pide 72 toques al día (`7,27,47 * * * *`) y GitHub ha
+  entregado **7 en las últimas 24 h**: un 10%. Peor hueco cerrado **4 h 28
+  min**; el hueco abierto a las 05:13 iba por 4 h 20.
+
+  | Medido | Ejecuciones/24 h | Peor hueco | Cron pedido |
+  |---|---|---|---|
+  | 15-10 | 6 | 5 h 28 | 24/día |
+  | 16-10 | 5 | 5 h 22 | 24/día |
+  | **18-10** | **7** | **4 h 28** | **72/día** |
+
+  Ha mejorado algo —5 → 7 al día, peor hueco 5 h 22 → 4 h 28—, pero **pedir el
+  triple ha dado 1,4 veces más**, que es exactamente lo que avisaba el
+  comentario del dueño en ese commit: pedírselo tres veces no obliga a GitHub a
+  nada. Las 98 ejecuciones siguen todas en verde: el reloj no falla, **no
+  suena**.
+
+  Y con la regla que él mismo escribió —un hueco no es un retraso, un Co-Work de
+  las 23:00 se pierde entero si el siguiente toque cae después de medianoche—,
+  un hueco de 4 h 28 significa que **se pierde en silencio aproximadamente uno
+  de cada cinco encargos nocturnos**. Eso ya no es una medición pendiente: es la
+  decisión que queda, y es del dueño. **Un reloj externo** (cron-job.org,
+  Upstash QStash, una Scheduled Function de Vercel) **o decírselo al usuario en
+  la interfaz al programar un Co-Work.** Lo segundo lo puede hacer el
+  constructor en una tarde si se le dice que sí.
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
   muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
   su planificador va cargado, y no avisa: todas salen en verde.
