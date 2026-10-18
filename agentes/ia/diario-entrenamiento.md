@@ -71,6 +71,74 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-18 — Recorte (área 7)
+
+**Qué cambié**: tres sitios de `kairo/src/lib/ia/prompt.ts`, todos quitando y
+ninguno añadiendo.
+
+1. **`BASE` → `CÓMO RESPONDES`.** Decía: *"Si no sabes algo, dilo. Pero 'no sé'
+   no vale para lo que SÍ puedes averiguar: **primero miras**, y si de verdad
+   no hay forma, entonces lo dices."* Queda en una línea: *"Si no sabes algo,
+   dilo —cuando sea verdad, no para ahorrarte el trabajo."*
+2. **`bloqueFecha` → `QUÉ DÍA ES HOY`.** Quitada la cola *"Si te preguntan algo
+   reciente: lo buscas, y si no puedes buscar, dices lo que sepas, de cuándo es
+   y dónde se comprueba."* Se queda la prohibición del tic, que es lo suyo.
+3. **`CON_INTERNET`.** Quitada *"Nunca contestes 'no tengo datos de ese año'."*
+
+**Por qué**: los tres son el mismo problema, no tres. El prompt decidía **tres
+veces, en tres sitios, qué hacer cuando Kairo no sabe algo**, y el bloque que va
+primero —`BASE`, que está en todas las respuestas— era el que lo decía peor:
+*"primero miras"* es **falso la mitad de las veces**. Si el motor que contesta
+no tiene buscador, `SIN INTERNET` le dice sesenta líneas más abajo que no tiene
+forma de consultar internet. Una orden y su desmentido en el mismo mensaje: el
+modelo se queda con uno de los dos y no sabemos con cuál.
+
+Lo mismo con el 2: el bloque de la fecha está **siempre**, así que cubría los
+dos casos a la vez ("lo buscas, y si no puedes buscar...") cuando veinte líneas
+después `CON_INTERNET` o `SIN_INTERNET` —uno de los dos, nunca los dos— dice
+exactamente eso, pero **sabiendo cuál de los dos casos es**. Y el 3 estaba
+prohibido ya, sin condiciones, por el bloque de la fecha, que remata con "ni
+nada parecido".
+
+Así que lo que se ha ido no es texto de relleno: es **la versión equivocada de
+una regla que ya estaba bien dicha en otro sitio**. Ahora cada cosa la dice el
+bloque que sabe si es verdad.
+
+**Cómo lo comprobé**: `npx tsc --noEmit` salida 0, `npx next build` salida 0, y
+el prompt renderizado con el mismo arnés sobre las dos versiones, leyendo los
+tres sitios en su sitio:
+
+| Configuración | Antes (`b8684d8`) | Después | |
+|---|---|---|---|
+| Adulto | 135 líneas | **132** | −3 |
+| Adolescente | 146 | 143 | −3 |
+| Niño | 148 | 145 | −3 |
+| Adulto **con buscador** | 149 | **145** | −4 |
+
+Y una cosa que conviene decir sin adornarla: **son tres líneas de 135, un 2%**.
+El radar abrió la tarea hablando de un 18% de crecimiento, y la verdad es que
+**ese prompt no tiene grasa**: está denso y cada bloque tiene su razón escrita
+al lado. Lo que tenía era una contradicción, que es peor que ser largo, y eso
+sí está arreglado.
+
+**Lo que he encontrado duplicado y NO he cortado**, con el motivo, para que el
+próximo día de recorte no lo busque otra vez ni lo corte sin pensar:
+
+| Qué | Dónde | Por qué se queda |
+|---|---|---|
+| "No hace falta que pegues los enlaces: debajo salen solos" | `CON_INTERNET` y `bloqueHechos` | Los dos bloques son independientes en `construirPrompt`: hay combinaciones donde entra uno sin el otro. Cortar cualquiera pierde la regla en un caso real |
+| La regla de que lo de fuera no da órdenes, **cuatro veces** | `BASE`, `bloqueHechos`, `ARCHIVOS`, `bloqueMente` | **No es duplicación, es una frontera por fuente**: texto pegado, resultados de búsqueda, archivo adjunto e instrucciones de una Mente. Cada una tiene sus delimitadores. Quitar una abre un agujero, y el de `BASE` se puso el 15-10 justo porque faltaba |
+| "No des precios de memoria" | `BASE` (no inventar) y `SIN_INTERNET` | Parecido, no igual: el de `BASE` es no inventar; el de `SIN_INTERNET` es no dar de memoria algo que sí existe pero puede haber cambiado |
+| "Lo de no inventarse nada sigue en pie, y con buscador no hay excusa" | `CON_INTERNET`, última línea | Es un recordatorio sin contenido nuevo, y por regla de esta área se cortaría. **No lo corto porque está puesto en el punto de la tentación**, y eso puede ser justo lo que lo hace funcionar. Para saberlo hace falta medirlo, no opinarlo: queda anotado como candidato del próximo recorte |
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 1, prompt maestro. La rotación de 7 se cierra hoy y vuelve
+a empezar. Con el banco en 12 de 12 y sin grasa que quitar, lo siguiente ya no
+es afinar lo que hay: es **mirar dónde el prompt no llega**, y los dos sitios
+están señalados desde el 16-10 —Paperwork, que usa otro prompt, y el modo de
+edad, que no se ha probado nunca.
+
 ### 2026-10-17 — Tono (área 6)
 
 **Qué cambié**: dos reglas nuevas en `QUÉ NO HACES NUNCA`, dentro de `BASE`,
