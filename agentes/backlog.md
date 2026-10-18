@@ -13,23 +13,6 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **La rama de agentes va 42 commits por detrás de `main`, y eso resta valor a lo que comprobamos.** `[origen: guardian 2026-10-18]`
-  Contado hoy: `main` tiene **42 commits** que no están en `claude/kairo-agentes`,
-  y la rama tiene **27** que no están en `main`. El dueño ha estado trabajando
-  —arregló el enlace de YouTube de Gist, la salida de su tarjeta, y dos cosas
-  que son justo la raíz del falso positivo del guardián del 16-10: *"deja de
-  leer el 403 de un modelo restringido como una clave muerta"* y *"di cuándo un
-  nombre de modelo configurado no es uno con el que se pueda hablar"*.
-  **Importa por dos motivos y el segundo es el que duele:**
-  1. Siete días de trabajo comprobado siguen sin fusionar, la imagen de Open
-     Graph y el `robots.txt` incluidos (comprobado hoy: no están en `main`).
-  2. Cuando el entrenador o el constructor dicen "comprobado con `next build`
-     en verde", lo están comprobando **sobre una app 42 commits vieja**. La
-     comprobación no es falsa, pero vale menos de lo que parece.
-  **Arreglo**: fusionar `origin/main` en la rama de agentes, como ya se hizo el
-  13-10. Es trabajo del constructor y no toca `main`. Lo otro —fusionar la rama
-  en `main`— es del dueño y solo él.
-
 - **La portada promete tres cerebros y en producción solo hay uno.** `[origen: guardian 2026-10-16]`
   Leído hoy de `/api/estado` en producción, a las 05:14 UTC:
   **Gemini: clave sí · Claude: clave NO · GPT: clave NO**, más el respaldo de
@@ -267,6 +250,22 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **La rama de agentes, otra vez al día con `main`.** `[hecho 2026-10-18]` Merge
+  de `origin/main` (`d2618c4`) en `claude/kairo-agentes`, commit `5dc57b2`,
+  **sin un solo conflicto**: los 42 commits del dueño y los 29 de los agentes no
+  se pisaban. Ahora la rama trae lo suyo —el enlace de YouTube de Gist, la salida
+  de su tarjeta, el 403 de un modelo restringido que ya no se lee como clave
+  muerta, el aviso cuando un nombre de modelo no sirve para chatear, la ruta
+  nueva `/api/modelos-gratis` y su workflow— y sigue trayendo lo nuestro: `og.png`,
+  `robots.ts`, `sitemap.ts`, `metadataBase` y el prompt en 132 líneas.
+  Comprobado **sobre el árbol fusionado**: `npx tsc --noEmit` salida 0,
+  `npx next build` salida 0 con las 30 rutas, y el prompt re-renderizado para
+  confirmar que el recorte de esta mañana sigue en pie. `HEAD..origin/main` = 0.
+  **Lo que importa de esto no es el merge, es que a partir de hoy cuando un
+  agente diga "comprobado con `next build` en verde" lo esté diciendo sobre la
+  app de verdad.** La otra dirección —fusionar la rama en `main`— sigue siendo
+  del dueño: son 30 commits y siete días de trabajo esperando.
 
 - **Kairo ya no cede ante quien insiste.** `[hecho 2026-10-17]` La regla que
   faltaba, en `BASE` dentro de `NO TE INVENTAS NADA. NUNCA.`, detrás de
