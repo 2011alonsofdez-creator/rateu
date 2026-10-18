@@ -388,6 +388,13 @@ export default function RevisionPage() {
               />
             )}
 
+            {/* Y EL RESPALDO GRATIS.
+                Debajo de la de Claude a propósito: la de arriba mejora
+                las respuestas y cuesta dinero; esta no las mejora pero
+                evita que Kairo se quede mudo, y no cuesta nada. Quien
+                no quiera pagar todavía tiene aquí su salida. */}
+            {revision.cerebros && <Respaldo puesto={revision.cerebros.extra} />}
+
             {/* PROBAR LA BÚSQUEDA.
                 Va después de todo porque no es parte de la revisión: es
                 para cuando Kairo contesta con datos viejos, que es un
@@ -533,6 +540,233 @@ function Variable({ nombre, valor }: { nombre: string; valor?: string }) {
           <Copiar texto={valor} />
         </>
       )}
+    </div>
+  );
+}
+
+/* LOS MODELOS GRATIS, SACADOS DE LA LISTA DE HOY.
+ *
+ * El problema no es poner tres nombres: es que dentro de un mes no son
+ * esos. En OpenRouter el catálogo rota, y un identificador retirado no
+ * dice "me han retirado" —falla y ya—, con lo que uno se pasa la tarde
+ * mirando la clave, que estaba bien.
+ *
+ * Así que aquí no hay ninguna lista escrita: se pide al catálogo
+ * público de OpenRouter, que no necesita clave, y se arma la cadena
+ * entera lista para pegar. Hoy, y dentro de un año.
+ */
+function ModelosGratis() {
+  const [estado, setEstado] = useState<"" | "pidiendo" | "listo" | "falla">("");
+  const [modelos, setModelos] = useState<{ id: string; nombre: string; memoria: number | null }[]>(
+    [],
+  );
+  const [elegidos, setElegidos] = useState<string[]>([]);
+
+  const pedir = useCallback(async () => {
+    setEstado("pidiendo");
+    try {
+      const r = await fetch("/api/modelos-gratis");
+      const j = await r.json();
+      if (!r.ok || !Array.isArray(j?.modelos) || j.modelos.length === 0) {
+        setEstado("falla");
+        return;
+      }
+      setModelos(j.modelos);
+      /* Tres marcados de salida: los de más memoria, que es lo que
+         decide si un papel largo cabe o se corta. Uno solo no vale —el
+         día que falle te quedas igual que sin nada—, y más de tres es
+         una lista que nadie repasa. */
+      setElegidos(j.modelos.slice(0, 3).map((m: { id: string }) => m.id));
+      setEstado("listo");
+    } catch {
+      setEstado("falla");
+    }
+  }, []);
+
+  const cadena = elegidos.join(",");
+
+  return (
+    <div className="mt-3">
+      {estado === "" && (
+        <button
+          onClick={pedir}
+          className="rounded-lg border border-acento/50 bg-acento/10 px-3 py-1.5 text-[13px] font-medium text-acento transition hover:bg-acento/20"
+        >
+          Ver los gratis de hoy
+        </button>
+      )}
+
+      {estado === "pidiendo" && (
+        <p className="text-[13px] text-faint">Preguntándole a OpenRouter…</p>
+      )}
+
+      {estado === "falla" && (
+        <p className="text-[13px] leading-relaxed text-muted">
+          No he podido traer la lista ahora mismo. Cógelos a mano en{" "}
+          <a
+            href="https://openrouter.ai/models"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-acento underline underline-offset-2"
+          >
+            openrouter.ai/models
+          </a>{" "}
+          filtrando por <em>Free</em>.{" "}
+          <button onClick={pedir} className="underline underline-offset-2">
+            Reintentar
+          </button>
+        </p>
+      )}
+
+      {estado === "listo" && (
+        <>
+          <p className="text-[13px] text-muted">
+            Marca dos o tres. Si uno está saturado, Kairo prueba el siguiente.
+          </p>
+
+          <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line bg-bg-soft p-2">
+            {modelos.map((m) => {
+              const puesto = elegidos.includes(m.id);
+              return (
+                <li key={m.id}>
+                  <label className="flex cursor-pointer items-start gap-2 rounded-lg px-1.5 py-1 transition hover:bg-panel">
+                    <input
+                      type="checkbox"
+                      checked={puesto}
+                      onChange={() =>
+                        setElegidos((v) =>
+                          puesto ? v.filter((x) => x !== m.id) : [...v, m.id],
+                        )
+                      }
+                      className="mt-1"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[13px] text-fg">{m.nombre}</span>
+                      <span className="block break-all font-mono text-[11px] text-faint">
+                        {m.id}
+                        {m.memoria ? ` · ${m.memoria}K de memoria` : ""}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+
+          <p className="mt-3 text-[13px] text-muted">
+            Y esto es lo que va en <code className="font-mono text-[12px]">KAIRO_EXTRA_MODELOS</code>:
+          </p>
+          <div className="mt-1.5 flex items-start gap-2">
+            <code className="min-w-0 flex-1 break-all rounded-lg border border-line bg-bg-soft px-2 py-1.5 font-mono text-[11.5px] text-fg">
+              {cadena || "—"}
+            </code>
+            {cadena && <Copiar texto={cadena} />}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* EL RESPALDO GRATIS.
+ *
+ * Kairo ya sabía hablar con cualquier proveedor que copie la interfaz
+ * de OpenAI —tres variables y listo—, pero eso no estaba escrito en
+ * ninguna parte: había que leerse el código para enterarse. Una función
+ * que nadie sabe que existe es una función que no existe.
+ *
+ * Así que aquí está, con el caso concreto que le sirve a quien no
+ * quiere pagar todavía: OpenRouter tiene modelos gratis de verdad, y
+ * puestos detrás de Gemini hacen que el día que se agote la cuota Kairo
+ * siga contestando en vez de quedarse mudo.
+ *
+ * Y con la pega dicha, que es tan importante como la función: los
+ * modelos gratis tienen límites duros. Como red de seguridad valen;
+ * como motor principal, no. */
+function Respaldo({ puesto }: { puesto: boolean }) {
+  return (
+    <div className="rounded-2xl border border-line bg-panel p-5">
+      <p className="text-[15px] font-semibold">🆓 Para que no se pare cuando Gemini se acabe</p>
+
+      <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
+        {puesto ? (
+          <>
+            Hay un respaldo puesto. El día que Gemini agote la cuota gratuita, Kairo tira de él
+            en vez de quedarse mudo.
+          </>
+        ) : (
+          <>
+            Ahora mismo, el día que Gemini agote la cuota del día,{" "}
+            <strong className="text-fg">Kairo deja de contestar</strong> hasta mañana. Con tres
+            variables puedes ponerle detrás modelos gratis de OpenRouter, que no cuestan nada.
+          </>
+        )}
+      </p>
+
+      {!puesto && (
+        <>
+          <ol className="mt-4 space-y-3 text-[13.5px] leading-relaxed text-muted">
+            <li>
+              <strong className="text-fg">1.</strong> Cuenta en{" "}
+              <a
+                href="https://openrouter.ai"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-acento underline underline-offset-2"
+              >
+                openrouter.ai
+              </a>{" "}
+              y crea una clave. Cópiala al hacerla:{" "}
+              <strong className="text-fg">no se puede volver a ver</strong>.
+            </li>
+            <li>
+              <strong className="text-fg">2.</strong> En{" "}
+              <a
+                href="https://openrouter.ai/models"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-acento underline underline-offset-2"
+              >
+                openrouter.ai/models
+              </a>{" "}
+              filtra por <em>Free</em>. O más fácil: que te los saque Kairo de la lista de hoy.
+              <ModelosGratis />
+              <span className="mt-2 block text-[12.5px] text-faint">
+                No hay ninguna lista escrita en Kairo a propósito: en OpenRouter los modelos
+                cambian cada pocas semanas, y uno retirado no avisa —simplemente falla—, así que
+                se pregunta cada vez.
+              </span>
+            </li>
+            <li>
+              <strong className="text-fg">3.</strong> Vercel → Settings → Environment Variables →
+              estas tres, marcando los tres entornos:
+              <Variable nombre="KAIRO_EXTRA_URL" valor="https://openrouter.ai/api/v1" />
+              <Variable nombre="KAIRO_EXTRA_KEY" />
+              <Variable nombre="KAIRO_EXTRA_MODELOS" />
+              <span className="mt-1.5 block text-[12.5px] text-faint">
+                Los modelos separados por comas, tal cual salen en OpenRouter (llevan una barra
+                y acaban en <code className="font-mono">:free</code>).
+              </span>
+            </li>
+            <li>
+              <strong className="text-fg">4.</strong> Deployments → los tres puntos →{" "}
+              <strong className="text-fg">Redeploy</strong>. Sin eso no entra.
+            </li>
+          </ol>
+
+          <p className="mt-3 text-[13px] leading-relaxed text-faint">
+            La clave se pega en Vercel y{" "}
+            <strong className="text-muted">no hace falta que la vea nadie</strong>.
+          </p>
+        </>
+      )}
+
+      <p className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
+        <strong>Para qué sirve y para qué no.</strong> Los modelos gratis tienen límites de uso
+        duros y van más lentos. Como red de seguridad para que Kairo no se quede mudo, cumplen.
+        Como motor principal con gente usándolo, no aguantan. Van los últimos de la cadena a
+        propósito: solo contestan cuando todos los demás han dicho que no.
+      </p>
     </div>
   );
 }

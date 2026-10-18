@@ -18,9 +18,27 @@ name: Co-Works de Kairo
 
 on:
   schedule:
-    # A y cinco de cada hora. No en punto: a esa hora el planificador de
-    # GitHub va cargadísimo y los avisos se retrasan.
-    - cron: "5 * * * *"
+    # CADA VEINTE MINUTOS, Y NO ES CAPRICHO.
+    #
+    # Esto estaba puesto cada hora y sonaba CINCO VECES AL DÍA. GitHub
+    # aparca las tareas programadas de las cuentas gratuitas cuando va
+    # cargado, y lo que llega no es "un poco tarde": son huecos de
+    # cuatro y cinco horas.
+    #
+    # Y un hueco no es un retraso. Un Co-Work de las 23:00 solo se
+    # ejecuta si el reloj suena entre las 23:00 y la medianoche; si el
+    # siguiente toque cae a las 02:00 ya es otro día y ese encargo NO
+    # SALE. Se pierde entero y en silencio.
+    #
+    # Pedir tres veces más no garantiza nada —sigue siendo "cuando
+    # pueda"—, pero con tres intentos por hora la probabilidad de que
+    # ninguno caiga en la ventana buena baja mucho. Son unos segundos
+    # de ejecución cada vez y el repositorio es público, así que no
+    # cuesta nada.
+    #
+    # Los minutos son 7, 27 y 47 a propósito: en punto y a y media es
+    # cuando más cola hay.
+    - cron: "7,27,47 * * * *"
   # Y un botón para lanzarlo a mano desde la pestaña Actions.
   workflow_dispatch:
 

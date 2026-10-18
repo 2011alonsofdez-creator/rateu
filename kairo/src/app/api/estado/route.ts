@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase, pistaDeUrl } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
-import { EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
+import { claveExtra, EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
 import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
 import { clienteServidor } from "@/lib/supabase/server";
 import { faltaColumna } from "@/lib/supabase/compat";
@@ -57,8 +57,59 @@ async function modelosDeGpt(clave: string) {
 async function modelosDelExtra(clave: string, url: string) {
   const cliente = new OpenAI({ apiKey: clave, baseURL: url });
   const pagina = await cliente.models.list();
-  return pagina.data.map((m) => m.id).sort().slice(0, 60);
+  return pagina.data.map((m) => m.id).sort();
 }
+
+/* ¿LA CLAVE SIRVE, O SOLO ESTÁ PUESTA?
+ *
+ * No es lo mismo, y confundirlo costó una vuelta entera: esta pantalla
+ * decía "clave sí" porque la variable tenía letras, y además conseguía
+ * listar los modelos del proveedor... pero el catálogo de OpenRouter es
+ * PÚBLICO. Se lee sin clave. Así que las dos señales que parecían
+ * confirmar que todo estaba bien no probaban nada, y la primera noticia
+ * de que la clave no valía fue un 401 en la cara del usuario.
+ *
+ * Esto llama a un sitio que SÍ exige credencial. Si el proveedor no
+ * tiene esa puerta, se dice que no se ha podido comprobar en vez de
+ * inventarse un aprobado. */
+export function veredictoDeClave(estado: number): "valida" | "rechazada" | "no_comprobable" {
+  if (estado === 200) return "valida";
+  if (estado === 401 || estado === 403) return "rechazada";
+  return "no_comprobable";
+}
+
+async function pruebaLaClaveExtra(clave: string, url: string) {
+  if (!clave || !url) return null;
+  try {
+    const r = await fetch(`${url}/key`, {
+      headers: { authorization: `Bearer ${clave}`, accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+      cache: "no-store",
+    });
+    return veredictoDeClave(r.status);
+  } catch {
+    return "no_comprobable" as const;
+  }
+}
+
+/* CUÁL DE LOS TUYOS NO EXISTE.
+ *
+ * Esto NO se puede calcular con la lista recortada que se enseña, y el
+ * error de hacerlo cuesta caro: con un catálogo de cientos de modelos,
+ * los 60 primeros por abecedario son todos del mismo par de
+ * vendedores, así que una configuración perfecta sale marcada como
+ * inexistente y mandas a alguien a arreglar lo que estaba bien.
+ *
+ * Se compara contra la lista ENTERA, y lo que se enseña se recorta
+ * después. */
+export function cualesFaltan(configurados: string[], todos: string[]): string[] {
+  const hay = new Set(todos.map((m) => m.toLowerCase()));
+  return configurados.filter((m) => !hay.has(m.toLowerCase()));
+}
+
+/** Lo que se enseña: suficiente para copiar un nombre, no tanto como
+ *  para llenar la pantalla. */
+const AL_ASOMAR = 60;
 
 /* Qué migraciones están puestas de verdad.
  *
@@ -179,13 +230,14 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
-  const [gem, cla, gpt, ext, migra, salud] = await Promise.all([
+  const [gem, cla, gpt, ext, claveOk, migra, salud] = await Promise.all([
     claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
     claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
     claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
     claves.extra && EXTRA_URL()
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
+    pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const),
     migraciones().catch((e) => ({ estado: corto(e) })),
     contestaSupabase().catch((e) => ({ probado: true, responde: false, detalle: corto(e) })),
   ]);
@@ -239,14 +291,26 @@ export async function GET() {
       gemini: { clave_recibida: claves.gemini.length > 0, ...disponibles(gem) },
       claude: { clave_recibida: claves.claude.length > 0, ...disponibles(cla) },
       gpt: { clave_recibida: claves.gpt.length > 0, ...disponibles(gpt) },
-      extra: {
-        clave_recibida: claves.extra.length > 0,
-        url: EXTRA_URL() || null,
-        // Los que tú has puesto en KAIRO_EXTRA_MODELOS.
-        configurados: modelosExtra().map((m) => m.replace(/^extra:/, "")),
-        // Y los que ese proveedor dice tener, para que copies el nombre bien.
-        ...disponibles(ext),
-      },
+      extra: (() => {
+        const puestos = modelosExtra().map((m) => m.replace(/^extra:/, ""));
+        const lista = Array.isArray(ext) ? ext : null;
+        return {
+          clave_recibida: claves.extra.length > 0,
+          /* Y si además SIRVE, que es otra cosa. */
+          clave: claveOk,
+          url: EXTRA_URL() || null,
+          // Los que tú has puesto en KAIRO_EXTRA_MODELOS.
+          configurados: puestos,
+          /* Cuáles de los TUYOS no están en el catálogo del proveedor.
+             Es el dato que de verdad hace falta: un nombre retirado o
+             mal escrito no da error, simplemente nunca contesta. */
+          faltan: lista ? cualesFaltan(puestos, lista) : null,
+          // Cuántos ofrece en total, para saber si la lista va cortada.
+          total: lista ? lista.length : null,
+          // Y una muestra, para copiar un nombre bien escrito.
+          ...disponibles(lista ? lista.slice(0, AL_ASOMAR) : ext),
+        };
+      })(),
     },
 
     /* Si Kairo puede buscar en internet antes de contestar. La búsqueda

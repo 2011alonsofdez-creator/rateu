@@ -25,6 +25,31 @@ export function idDeYoutube(url: string): string | null {
   }
 }
 
+/** Un enlace de YouTube, dejado en lo mínimo: el vídeo y nada más.
+ *
+ *  Lo que se pega de la barra del navegador trae de todo —el minuto por
+ *  el que iba (`&t=565s`), de dónde salió el clic (`&si=…`), la lista en
+ *  la que estaba—. Nada de eso identifica al vídeo, y dos de esas cosas
+ *  hacen daño de verdad:
+ *
+ *   · El minuto se queda pegado a la ficha, y los enlaces de cada parte
+ *     se arman añadiendo OTRO `t=` detrás. YouTube hace caso al primero,
+ *     así que todas las partes saltaban al mismo sitio: al minuto por el
+ *     que iba quien pegó el enlace. Un resumen por partes en el que
+ *     todas las partes llevan al mismo punto no se lee como un fallo de
+ *     enlaces; se lee como que el resumen está mal hecho.
+ *   · Y el mismo vídeo pegado dos veces, una desde el minuto 9 y otra
+ *     desde el principio, son dos direcciones distintas: dos fichas, dos
+ *     esperas y dos créditos por lo mismo.
+ *
+ *  Lo que no sea de YouTube se devuelve intacto: en una página normal la
+ *  parte de después del `?` es la página.
+ */
+export function limpiaDeYoutube(url: string): string {
+  const id = idDeYoutube(url);
+  return id ? `https://www.youtube.com/watch?v=${id}` : url;
+}
+
 /** "12:30" → 750 segundos. "1:02:03" → 3723. */
 export function segundosDe(marca: string): number | null {
   const limpia = marca.trim();

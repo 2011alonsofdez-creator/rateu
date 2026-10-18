@@ -1,0 +1,105 @@
+name: Modelos gratis de OpenRouter
+
+# QUÉ MODELOS SON GRATIS HOY.
+#
+# El catálogo de OpenRouter rota cada pocas semanas: entran modelos,
+# salen otros y alguno deja de ser gratis sin avisar. Un identificador
+# retirado no da un error que se entienda —simplemente falla—, así que
+# una lista escrita a mano en una guía caduca sin que nadie lo note.
+#
+# Esto pregunta la lista de verdad y la escribe en el resumen de la
+# carrera, de donde se copia y se pega en KAIRO_EXTRA_MODELOS.
+#
+# El catálogo es público: NO hace falta clave, no gasta cuota de nadie
+# y no toca ningún secreto.
+#
+# Se lanza a mano desde Actions → Modelos gratis de OpenRouter →
+# Run workflow. No suena solo: no hay nada que vigilar aquí.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cuantos:
+        description: "Cuántos enseñar"
+        required: false
+        default: "15"
+
+jobs:
+  mirar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Preguntar a OpenRouter
+        env:
+          CUANTOS: ${{ inputs.cuantos }}
+        run: |
+          set -euo pipefail
+
+          curl -sS --max-time 60 -H "accept: application/json" \
+            https://openrouter.ai/api/v1/models -o catalogo.json
+
+          total=$(jq '.data | length' catalogo.json)
+          echo "El catálogo trae ${total} modelos en total."
+
+          # Gratis = el identificador acaba en ":free", o cuesta cero por
+          # los dos lados. La segunda prueba caza a los que son gratis
+          # sin llevar el sufijo.
+          jq -r --argjson n "${CUANTOS:-15}" '
+            .data
+            | map(select(
+                (.id | endswith(":free"))
+                or (((.pricing.prompt | tonumber? // 1) == 0)
+                    and ((.pricing.completion | tonumber? // 1) == 0))
+              ))
+            | sort_by(-(.context_length // 0))
+            | .[0:$n][]
+            | "\(.id)  ·  \((.context_length // 0) / 1000 | floor)K  ·  [\((.architecture.output_modalities // [.architecture.modality] // ["?"]) | join("+"))]  ·  \(.name)"
+          ' catalogo.json > gratis.txt
+
+          cuantos=$(wc -l < gratis.txt)
+          echo "Gratis ahora mismo: ${cuantos} (de los que enseño)"
+
+          # Al resumen de la carrera, que es donde se lee cómodo.
+          {
+            echo "## Modelos gratis de OpenRouter, hoy"
+            echo
+            echo "Ordenados de más memoria a menos. La memoria es lo que decide"
+            echo "si un papel largo cabe entero o sale cortado."
+            echo
+            echo '```'
+            cat gratis.txt
+            echo '```'
+            echo
+            echo "### Para pegar en KAIRO_EXTRA_MODELOS"
+            echo
+            echo '```'
+            jq -r '
+              .data
+              | map(select(
+                  (.id | endswith(":free"))
+                  or (((.pricing.prompt | tonumber? // 1) == 0)
+                      and ((.pricing.completion | tonumber? // 1) == 0))
+                ))
+              | sort_by(-(.context_length // 0))
+              | [.[0:3][].id] | join(",")
+            ' catalogo.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Y como aviso, para poder leerlo también desde fuera sin
+          # abrir el registro entero.
+          while IFS= read -r linea; do
+            echo "::notice::${linea}"
+          done < gratis.txt
+
+          cadena=$(jq -r '
+            .data
+            | map(select(
+                (.id | endswith(":free"))
+                or (((.pricing.prompt | tonumber? // 1) == 0)
+                    and ((.pricing.completion | tonumber? // 1) == 0))
+              ))
+            | sort_by(-(.context_length // 0))
+            | [.[0:3][].id] | join(",")
+          ' catalogo.json)
+          echo "::notice::PARA PEGAR -> ${cadena}"

@@ -839,6 +839,10 @@ function Chat() {
                   ? "err.sobrecargado"
                 : v === "bloqueado"
                   ? "err.bloqueado"
+                  : v === "modelo_no_sirve"
+                    ? "err.noSirve"
+                  : v === "modelo_vetado"
+                    ? "err.vetado"
                   : v === "clave_invalida"
                     ? "err.clave"
                     : "err.modelo",

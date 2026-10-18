@@ -171,6 +171,7 @@ const dict = {
     "gist.noCredits": "No te quedan créditos suficientes.",
     "gist.needsMigration": "Falta por ejecutar la migración 0008 en Supabase. Hasta entonces, las fichas no se pueden guardar.",
     "gist.points": "Lo importante",
+    "gist.another": "Resumir otro",
     "gist.open": "Abrir el original",
     "gist.ask": "Preguntar sobre esto",
     "gist.copy": "Copiar",
@@ -331,6 +332,10 @@ const dict = {
       "Se ha agotado la cuota gratuita de hoy. Se renueva sola mañana. Tu pregunta queda guardada.",
     "err.espera": "Vuelve a intentarlo en {s} s.",
     "err.clave": "Una de las claves de IA no es válida o ha caducado. Revísalas en Vercel.",
+    "err.noSirve":
+      "Uno de los modelos de la lista no sirve para chatear: el nombre es de otra cosa (los que acaban en «:batch», por ejemplo). Quítalo de KAIRO_EXTRA_MODELOS en Vercel.",
+    "err.vetado":
+      "Ese modelo gratuito solo se le sirve a agentes de programación, no a una web. Lo he apartado y he seguido con los demás. Tu clave está bien.",
     "err.sobrecargado": "Los servidores de Gemini están saturados ahora mismo. Lo he reintentado sin suerte: prueba otra vez en unos segundos.",
     "err.modelo": "La IA no ha podido responder. Inténtalo otra vez.",
     "err.tiempo":
@@ -621,6 +626,7 @@ const dict = {
     "gist.noCredits": "You do not have enough credits left.",
     "gist.needsMigration": "Migration 0008 has not been run in Supabase yet. Until then, cards cannot be saved.",
     "gist.points": "What matters",
+    "gist.another": "Summarise another",
     "gist.open": "Open the original",
     "gist.ask": "Ask about this",
     "gist.copy": "Copy",
@@ -781,6 +787,10 @@ const dict = {
       "Today's free quota is used up. It resets tomorrow on its own. Your question is saved.",
     "err.espera": "Try again in {s}s.",
     "err.clave": "One of the AI keys is invalid or expired. Check them in Vercel.",
+    "err.noSirve":
+      "One of the models in the list cannot be used for chat: that name is for something else (the ones ending in \":batch\", for instance). Remove it from KAIRO_EXTRA_MODELOS in Vercel.",
+    "err.vetado":
+      "That free model is only served to coding agents, not to a web app. I set it aside and carried on with the others. Your key is fine.",
     "err.sobrecargado": "Gemini\u2019s servers are overloaded right now. I retried without luck: give it a few seconds and try again.",
     "err.modelo": "The AI could not answer. Please try again.",
     "err.tiempo":
