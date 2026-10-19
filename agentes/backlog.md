@@ -178,13 +178,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   La tabla entera, con las seis intenciones y sus fuentes, en
   `agentes/mercado/2026-10-17-mercado.md`.
 
-- **El prompt ha crecido un 18% en tres días y toca recortarlo.** `[origen: radar 2026-10-16]`
-  De 103 líneas el 13-10 a 122 hoy, medido renderizándolo las dos veces. Son
-  tres bloques nuevos que hacían falta, así que el crecimiento está justificado
-  —y cada línea se paga en cada mensaje que responde Kairo—. Le toca al
-  entrenador en el área 7 (Recorte): quitar lo duplicado y lo que no cambia
-  ninguna respuesta, y medir cuántas líneas tenía y cuántas tiene. Conviene que
-  no se retrase mucho: cuanto más crezca, más caro sale cada día.
+  **Partida, 19-10. La primera está hecha**: `/multas` existe, entera y en los
+  dos idiomas (abajo, en Hecho). Quedan cinco, por este orden:
+  `/cartas-de-hacienda`, `/contratos`, `/resumir-video`, una sobre el "sin
+  suscripción" que `/precios` solo responde a medias, y `/avisos-de-plazos`,
+  **que va la última a propósito**: es la única que necesita el reloj
+  arreglado (P1), porque prometer avisos a su hora entregando uno cada cinco
+  horas es peor que no prometerlos. Una tarde cada una.
 
 - **Paperwork no tiene banco de pruebas, y es el diferencial.** `[origen: entrenador 2026-10-16]`
   Su prompt vive en `lib/ia/papeles.ts` y no se parece al maestro: pide un
@@ -256,6 +256,39 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **`/multas`: la primera página que responde a quien busca su problema.** `[hecho 2026-10-19]`
+  `kairo/src/app/multas/page.tsx` (servidor, con su propio `title`, su
+  `description`, su `canonical` y su tarjeta de Open Graph) y
+  `kairo/src/app/multas/contenido.tsx` (cliente, con el texto en **español e
+  inglés**, como hace `/precios` con su FAQ). Añadida a `sitemap.ts`; `robots.ts`
+  ya la permitía. Dice qué saca Kairo de una multa —quién la manda, qué dicen
+  que hiciste, cuánto y cuánto con descuento, para cuándo, qué pasa si no haces
+  nada y los pasos—, **lo que no hace** (no es abogado, no presenta el recurso,
+  no paga, y no se inventa lo que no se lee) y lo que cuesta.
+  **Lo cuidado está en dos sitios.** Uno: la sección "de dónde sale la fecha"
+  dice en voz alta que Kairo lee el plazo de **tu** documento y no de su
+  memoria, y explica por qué —las guías no coinciden en si los 20 días del
+  recurso son naturales o hábiles—, así que el plazo bueno es el de la
+  notificación y lo confirma el organismo. Dos: **no lleva la cifra de
+  créditos**. El código cobra lo mismo que un mensaje normal, pero un número a
+  mano en una página estática envejece el día que se cambie y nadie se entera;
+  dice la relación y manda a `/precios`.
+  Comprobado con `npx tsc --noEmit` salida 0, `npx next build` salida 0 y
+  **leyendo el HTML generado**: trae el `<title>` propio, la `description`
+  propia, `canonical` y `og:url` absolutos y el titular en el HTML
+  pre-renderizado; y el `sitemap.xml` generado ya lista `/multas`.
+
+- **El prompt, recortado.** `[hecho 2026-10-18]` Área 7 del entrenador. Tres
+  cosas quitadas de `prompt.ts` y ninguna añadida, y las tres eran la misma:
+  el prompt decidía **tres veces** qué hacer cuando Kairo no sabe algo, y el
+  bloque que va primero —`BASE`— ordenaba "primero miras", que es falso la
+  mitad de las veces, porque sesenta líneas más abajo `SIN INTERNET` dice que
+  no hay forma de consultar internet. **135 → 132 líneas** en modo adulto y
+  **149 → 145 con buscador**, medido con el mismo arnés sobre las dos
+  versiones. El veredicto honesto está en el diario: son tres líneas de 135,
+  un 2%, porque **ese prompt no tenía grasa**; lo que tenía era una
+  contradicción, que es peor que ser largo.
 
 - **La rama de agentes, otra vez al día con `main`.** `[hecho 2026-10-18]` Merge
   de `origin/main` (`d2618c4`) en `claude/kairo-agentes`, commit `5dc57b2`,
