@@ -32,7 +32,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   hacer el constructor en una tarde si se le dice que sí, y encaja con el
   cambio de textos que ya pidió el de crecimiento.
 
-- **Las preguntas al dueño llevan 6 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-18]`
+- **Las preguntas al dueño llevan 7 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-19]`
   `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
   falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
   tienda de pagos está encendida y si Kairo está lanzada. Mientras no lleguen,
@@ -93,6 +93,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   | 15-10 | 6 | 5 h 28 | 24/día |
   | 16-10 | 5 | 5 h 22 | 24/día |
   | **18-10** | **7** | **4 h 28** | **72/día** |
+  | **19-10** | **8** | **4 h 50** | **72/día** |
 
   Ha mejorado algo —5 → 7 al día, peor hueco 5 h 22 → 4 h 28—, pero **pedir el
   triple ha dado 1,4 veces más**, que es exactamente lo que avisaba el
@@ -108,6 +109,11 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Upstash QStash, una Scheduled Function de Vercel) **o decírselo al usuario en
   la interfaz al programar un Co-Work.** Lo segundo lo puede hacer el
   constructor en una tarde si se le dice que sí.
+
+  **Segunda medición, 19-10: confirmada.** Un toque más (8) y un hueco peor
+  (4 h 50). Dos días seguidos clavados en una décima parte de lo pedido, así
+  que esto ya no necesita más mediciones: necesita la decisión. El guardián
+  deja de medirlo a diario y lo mirará solo si cambia algo.
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
   muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
   su planificador va cargado, y no avisa: todas salen en verde.
