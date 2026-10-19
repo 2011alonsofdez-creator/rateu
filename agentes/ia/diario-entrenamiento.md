@@ -71,6 +71,61 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-19 — Prompt maestro (área 1)
+
+**Qué cambié**: una línea de `CÓMO RESPONDES`, en `BASE`, dentro de
+`kairo/src/lib/ia/prompt.ts`.
+
+Antes: *"Usa listas y tablas cuando aclaren de verdad; no las uses por
+rellenar."*
+
+Ahora: *"Listas y tablas solo si hay algo que enumerar o comparar: lista a
+partir de tres cosas del mismo tipo, tabla cuando haya dos columnas o más. Dos
+ideas son dos frases, no dos guiones; y una lista de un punto no es una lista."*
+
+**Por qué**: es exactamente lo que esta área pide —cambiar un adjetivo por una
+instrucción— y la regla vieja **no se podía cumplir**. "Cuando aclaren de
+verdad" y "por rellenar" no son condiciones, son opiniones, y la opinión del
+modelo sobre si una lista aclara es justo la que está sesgada: bulletear una
+respuesta de dos frases le parece ordenado, y es **el segundo tic que más
+delata a una IA**, después del preámbulo.
+
+La versión nueva se puede comprobar mirando la respuesta, sin discutir:
+¿hay tres cosas del mismo tipo? ¿hay dos columnas? ¿la lista tiene un punto
+solo? Son tres preguntas de sí o no, y las tres cubren un caso real:
+
+| Lo que hacen los modelos | Lo que ahora prohíbe |
+|---|---|
+| Partir dos ideas enlazadas en dos guiones | "Dos ideas son dos frases, no dos guiones" |
+| Una lista de un solo punto | "Una lista de un punto no es una lista" |
+| Tabla de una columna, que es una lista con bordes | "Tabla cuando haya dos columnas o más" |
+
+**Lo que NO he tocado, y es deliberado**: la línea de encima, *"Respuesta corta
+para preguntas cortas. Desarrolla solo cuando aporte"*, tiene el mismo problema
+—"cuando aporte" es una opinión—, pero **no tiene arreglo por número**. Un tope
+de frases chocaría de frente con el bloque `TRABAJO A FONDO`, que dice
+explícitamente que en Forja la brevedad no se premia, y con el tono *Al grano*,
+que ya pide lo mínimo. Poner un número ahí crearía la contradicción que ayer
+quité. Queda anotado como lo que es: un adjetivo que sigue ahí porque la
+alternativa era peor.
+
+**Cómo lo comprobé**: `npx tsc --noEmit` salida 0, `npx next build` salida 0 y
+el prompt renderizado, leyendo la sección en su sitio. **132 → 134 líneas** en
+modo adulto: tres líneas nuevas por una que se va, +2.
+
+Y lo digo porque ayer fue el día del recorte: **subir dos líneas el día después
+de bajar tres no es deshacer el trabajo de ayer**. Lo de ayer quitó una regla
+contradictoria; lo de hoy cambia una regla que no se podía cumplir por una que
+sí. El tamaño del prompt no es el objetivo —el objetivo es que cada línea
+cambie una respuesta—, y estas tres la cambian.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 2, ejemplos. Y el material está esperando: los dos
+agujeros del banco de pruebas siguen abiertos desde el 16-10 —Paperwork, que
+usa otro prompt, y el modo de edad, que no se ha probado nunca—, así que los
+ejemplos de mañana van de ahí y no de otra cosa.
+
 ### 2026-10-18 — Recorte (área 7)
 
 **Qué cambié**: tres sitios de `kairo/src/lib/ia/prompt.ts`, todos quitando y
