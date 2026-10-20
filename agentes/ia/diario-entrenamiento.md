@@ -71,6 +71,70 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-20 — Ejemplos (área 2)
+
+**Qué cambié**: nada del código. Tres casos nuevos en `agentes/ia/ejemplos/`, y
+los tres apuntan **a propósito** a los dos agujeros que el banco de pruebas
+lleva señalados desde el 16-10:
+
+| Archivo | Qué prueba |
+|---|---|
+| `2026-10-20-paperwork-multa-dias-habiles.md` | Plazo relativo en **días hábiles** + foto con el reverso cortado. Difícil |
+| `2026-10-20-paperwork-no-es-un-papel.md` | Un ticket de bar subido a Paperwork, con una pregunta fiscal encima |
+| `2026-10-20-nino-dinero-real.md` | `modoEdad: "nino"`, dinero real y datos personales a la vez. Difícil |
+
+**Por qué estos y no otros**: el banco del 16-10 dejó dos casos **sin evaluar**,
+y no por descuido. El caso 3 (Paperwork) **no pasa por el prompt maestro**: usa
+`lib/ia/papeles.ts`, que pide una salida con nueve etiquetas fijas. Y el caso 6
+(modo niño) necesita renderizar el prompt con otro parámetro. Escribir tres
+ejemplos genéricos más del chat habría sido trabajo fácil sobre terreno ya
+cubierto; estos tres son el material del banco que falta.
+
+**Lo que he aprendido leyendo `papeles.ts`, que no sabíamos**:
+
+1. **El formato fijo es un empujón a rellenar.** Nueve etiquetas pidiendo
+   contenido hacen que un modelo "interprete" la foto hasta que algo encaje. De
+   ahí el segundo caso: un ticket pagado no puede acabar con `REMITENTE` y
+   `FECHA_LIMITE` inventados, porque la persona se cree que tiene un trámite.
+2. **La regla de los días hábiles ya está escrita y es buena**: *"pon en
+   `FECHA_LIMITE` la fecha más prudente de las posibles"*. El ejemplo la aplica
+   con números: 20 hábiles desde el 8 de octubre → se pone el **28**, contando
+   naturales, porque una fecha que llega antes no hace daño y una que llega
+   después sí.
+3. **`fechaValida()` tira en silencio** cualquier fecha fuera del año actual −5
+   / +10. Es lo correcto —mejor sin fecha que con una falsa—, pero significa que
+   **una fecha mal inventada se convierte en un campo vacío sin explicación**.
+   Queda escrito en los dos ejemplos.
+4. **En el caso del niño hay una trampa de producto** que no habíamos visto:
+   el bloque `LO QUE CUESTA USARTE` está en **todas** las respuestas, así que el
+   modelo tiene delante una tabla de créditos y euros mientras habla con un
+   menor al que `NINOS` le prohíbe hablar de dinero real. No es un fallo del
+   prompt, pero es una tensión real y el ejemplo la señala.
+
+**Cómo lo comprobé**: aquí no valía un `next build`, porque no he tocado código.
+Lo que sí se podía comprobar, y he comprobado, es que **las dos respuestas de
+Paperwork están en el formato que el parser de verdad sabe leer**: he pasado las
+dos por `leerPapel()` de `papeles.ts` —el real, con stubs de sus siete
+dependencias— con `hoy = 2026-10-20`:
+
+| | `fechaLimite` | `importe` | campos vacíos |
+|---|---|---|---|
+| Multa | `"2026-10-28"` (sobrevive a `fechaValida`) | `"90,00 € (45,00 € con la reducción del 50%)"` | `borrador: ""`, 2 pasos |
+| Ticket | `""` | `"18,40 €"` | `remitente`, `queQuieren`, `consecuencias` vacíos, 2 pasos |
+
+O sea: los ejemplos no son prosa bonita, **son entradas válidas para el banco**
+el día que se escriba. Si hubiera puesto la fecha en otro formato, o las
+etiquetas mal, esto lo habría cantado.
+
+**Qué necesito del dueño**: nada. Y conviene decir lo que **no** he hecho: no he
+tocado `seguridad.ts` ni los filtros del modo de edad, que son suyos. Escribir
+cómo debería responder Kairo con un niño delante no es cambiar el filtro.
+
+**Mañana toca**: área 3, conocimiento. Pero el que de verdad hace falta es el
+**área 5, evaluación**, con estos tres casos y un banco de Paperwork aparte: hoy
+tenemos el material y seguimos sin la medida. Si cuando llegue el área 5 el
+banco de Paperwork sigue sin existir, eso es lo primero.
+
 ### 2026-10-19 — Prompt maestro (área 1)
 
 **Qué cambié**: una línea de `CÓMO RESPONDES`, en `BASE`, dentro de
