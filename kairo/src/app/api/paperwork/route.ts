@@ -3,6 +3,8 @@ import { mirarPapel } from "@/lib/ia/papeles";
 import { revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { CREDITOS } from "@/lib/ia/config";
 import { faltaColumna } from "@/lib/supabase/compat";
+import { clasificarError } from "@/lib/ia/errores";
+import { limpiarFallo } from "@/lib/ia/fallos";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -78,8 +80,26 @@ export async function POST(req: Request) {
     resultado = await mirarPapel(archivos.adjuntos, nota, perfil.modo_edad);
   } catch (e) {
     const mensaje = e instanceof Error ? e.message : String(e);
-    console.error("[kairo] paperwork:", mensaje);
+    /* Tachando antes lo que tenga pinta de clave: un "API key not valid:
+       AIza…" deja la clave entera escrita en el registro del servidor, y
+       ese registro lo lee cualquiera que entre al panel. */
+    console.error("[kairo] paperwork:", limpiarFallo(e));
     if (mensaje === "sin_clave") return fallo(503, "sin_clave");
+
+    /* POR QUÉ NO HA PODIDO, QUE NO ES LO MISMO.
+ 
+       Todo acababa en el mismo cartel: «prueba con una foto más
+       nítida». Y eso es MENTIR cuando la foto está perfecta y lo que
+       pasa es que la cuota gratuita se ha agotado, que es el caso más
+       frecuente con diferencia. Quien lo lee se pone a repetir la foto
+       con mejor luz, que es lo único que seguro no lo arregla.
+ 
+       Es lo mismo que ya se hizo en Gist, y por el mismo motivo. */
+    const motivo = clasificarError(e);
+    if (motivo === "clave_invalida") return fallo(503, "sin_clave");
+    if (motivo === "cuota_minuto") return fallo(429, "cuota_minuto");
+    if (motivo === "cuota_dia" || motivo === "cuota_agotada") return fallo(429, "cuota_dia");
+    if (motivo === "sobrecargado") return fallo(503, "sobrecargado");
     return fallo(502, "no_se_ha_podido");
   }
 
