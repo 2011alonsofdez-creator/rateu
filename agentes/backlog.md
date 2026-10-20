@@ -210,6 +210,20 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   reloj** (está en P1): prometer "lo hace a su hora" entregando una vez cada
   seis horas es peor que no prometerlo.
 
+- **No hay analítica, y por eso tres métricas llevan cuatro informes en blanco.** `[origen: radar 2026-10-19]`
+  Visitas, usuarios e ingresos salen como **"sin datos"** en los informes del
+  13, el 16 y el 19 de octubre, y no es por pereza de los agentes: en
+  `CONTEXTO.md`, apartado **Fuentes de datos**, no hay ninguna conectada. Hasta
+  ahora esto solo aparecía **escondido dentro de la tarea del checklist**, como
+  una línea de una lista de diez, y así ha pasado seis días sin que nadie lo
+  mire. Va aparte para que se vea.
+  **Qué desbloquea**: sin esto, nadie puede responder a la única pregunta que
+  importa después de lanzar —¿entra alguien y vuelve?—, y las decisiones de
+  precio y de portada se toman a ciegas. Lo barato y suficiente para empezar es
+  una analítica sin cookies (Plausible, Umami, o la de Vercel, que ya está
+  donde vive Kairo). **La decisión es del dueño** porque cuesta dinero o toca
+  la configuración de Vercel; una vez elegida, el constructor la instala.
+
 - **El checklist de lanzamiento mide salud, no lanzamiento.** `[origen: radar 2026-10-13]`
   `agentes/lanzamiento/checklist.md` tiene 15 filas y todas van de si la web
   responde, si hay claves expuestas o si los agentes corren. Eso está muy bien
