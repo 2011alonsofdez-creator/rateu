@@ -15,3 +15,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-17 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **el dueño cambió el cron**: midiendo | ok, los 4 entregaron | sigue 1 cerebro de 3; nada nuevo roto |
 | 2026-10-18 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **medido: 7 de 72 toques** | ok, los 4 entregaron | el cron nuevo no basta: hueco de 4 h 28 |
 | 2026-10-19 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 8 de 72 toques, peor hueco 4 h 50 | ok, los 3 entregaron | nada nuevo; el reloj confirma lo de ayer |
+| 2026-10-20 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **4 de 72**, peor hueco 6 h 29 | ok, los 4 entregaron | el reloj se ha medio partido: 8 → 4 |

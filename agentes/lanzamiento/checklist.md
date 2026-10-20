@@ -9,17 +9,17 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | La web responde | 2026-10-19 | `revisar.yml` lanzado hoy (ejecución 39203453428, 05:13 UTC): HTTP 200 y "TODO CORRECTO · cerebros conectados: gemini, extra" |
-| ✅ | No está en modo privado de Vercel | 2026-10-19 | El workflow distingue el 401 de Vercel y hoy ha salido 200. No hay portero delante |
-| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-19 | **Segunda medición, y confirma la de ayer**: 106 ejecuciones sin un fallo y **8 en las últimas 24 h** frente a las 72 que pide el cron (un 11%). Más toques que ayer (7 → 8) pero **peor hueco: 4 h 50**, frente a 4 h 28. Dicho de otra forma, dos días seguidos clavados en una décima parte de lo pedido: el cron no es el arreglo, y ya no hace falta medirlo más para saberlo |
-| 🟡 | `/api/estado` sin variables que falten | 2026-10-19 | "TODO CORRECTO", y **tercer día con un cerebro de tres**: Gemini sí, Claude NO, GPT NO. El respaldo de OpenRouter sigue con clave válida y sus 3 modelos existen, de 471 |
+| ✅ | La web responde | 2026-10-20 | `revisar.yml` lanzado hoy (ejecución 39373928375, 05:15 UTC): HTTP 200 y "TODO CORRECTO · cerebros conectados: gemini, extra" |
+| ✅ | No está en modo privado de Vercel | 2026-10-20 | 200 limpio: si hubiera portero de Vercel delante, el workflow devolvería 401 y lo distingue |
+| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-20 | **Tercera medición, y la serie se desmiente a sí misma**: **4 toques en 24 h** frente a los 72 del cron, con el peor hueco en **6 h 29** —el peor desde el 15-10—. Ayer eran 8 y 4 h 50. La serie completa va 3 → 4 → 6 → 5 → 7 → 8 → **4**: no está estable en una décima parte, **oscila al doble de un día para otro**. Y eso, para lo que hay que decidir, pesa más que la media: con un proceso que varía así **no se puede prometer una hora**. Las 110 ejecuciones siguen en verde: no falla, no suena |
+| 🟡 | `/api/estado` sin variables que falten | 2026-10-20 | "TODO CORRECTO", y **cuarto día con un cerebro de tres**: Gemini sí, Claude NO, GPT NO. Respaldo con clave válida y sus 3 modelos existen, hoy de 470 |
 | ⚪ | `/revision` sin migraciones pendientes | — | Igual |
 
 ## Está sana
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Sin claves en el código | 2026-10-19 | Limpio en `kairo/src`, `supabase/` y `docs/`, con los 42 commits de `main` ya dentro de la rama |
+| ✅ | Sin claves en el código | 2026-10-20 | Limpio en `kairo/src`, `supabase/` y `docs/` |
 | ✅ | Ningún secreto detrás de `NEXT_PUBLIC_` | 2026-10-18 | Los aciertos son **nombres** de variables en la página de diagnóstico y en `/api/estado`: URL del proyecto y claves anon/publishable, públicas por diseño |
 | ✅ | Título y meta descripción propios | 2026-10-12 | `kairo/src/app/layout.tsx` |
 | ✅ | Favicon | 2026-10-12 | `kairo/src/app/icon.svg` |
@@ -32,5 +32,5 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Los agentes se ejecutan | 2026-10-19 | Ayer entregaron los tres que tocaban: guardián (medición del reloj), entrenador (recorte) y constructor (la rama al día con `main`). Crecimiento va cada 3 días y le toca mañana. Ocho días sin perder un turno |
+| ✅ | Los agentes se ejecutan | 2026-10-20 | Ayer entregaron los cuatro: guardián, entrenador (listas), constructor (`/multas`) y radar (tercera revisión). Diez días sin perder un turno |
 | ✅ | Parte diario del constructor | 2026-10-13 | El del 12-10 está en `agentes/diario/2026-10-12.md`, con la sección del entrenador conservada |

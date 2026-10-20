@@ -94,6 +94,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   | 16-10 | 5 | 5 h 22 | 24/día |
   | **18-10** | **7** | **4 h 28** | **72/día** |
   | **19-10** | **8** | **4 h 50** | **72/día** |
+  | **20-10** | **4** | **6 h 29** | **72/día** |
 
   Ha mejorado algo —5 → 7 al día, peor hueco 5 h 22 → 4 h 28—, pero **pedir el
   triple ha dado 1,4 veces más**, que es exactamente lo que avisaba el
@@ -114,6 +115,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   (4 h 50). Dos días seguidos clavados en una décima parte de lo pedido, así
   que esto ya no necesita más mediciones: necesita la decisión. El guardián
   deja de medirlo a diario y lo mirará solo si cambia algo.
+
+  **Cambió, y a peor: 20-10, cuatro toques y 6 h 29 de hueco.** La serie va
+  3 → 4 → 6 → 5 → 7 → 8 → 4. **No está estable en una décima parte: oscila al
+  doble de un día para otro**, y eso cambia el argumento de la decisión. La
+  media daba para decir "va lento"; la varianza dice algo peor: **con un
+  proceso que varía así no se puede prometer una hora a nadie**, ni en la
+  portada ni en la interfaz. Si se elige la vía de "decírselo al usuario", el
+  texto honesto no es "puede tardar un rato": es que el encargo **puede no
+  salir ese día**.
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
   muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
   su planificador va cargado, y no avisa: todas salen en verde.
