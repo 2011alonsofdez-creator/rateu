@@ -68,6 +68,22 @@ const EJEMPLO: Papel = {
   creada_el: new Date().toISOString(),
 };
 
+/* POR QUÉ NO HA PODIDO.
+ *
+ * Antes todo lo que no fuera un caso conocido caía en «prueba con una
+ * foto más nítida», y eso manda a repetir la foto con mejor luz a quien
+ * tiene la foto perfecta y la cuota agotada. Cada motivo lleva lo que
+ * de verdad hay que hacer. */
+const POR_QUE: Record<string, string> = {
+  sin_archivo: "paper.badFile",
+  sin_clave: "gist.noKey",
+  sin_creditos: "gist.noCredits",
+  demo: "app.sinIa",
+  cuota_minuto: "gist.quotaMinute",
+  cuota_dia: "gist.quotaDay",
+  sobrecargado: "gist.busy",
+};
+
 export default function PaperworkPage() {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -144,17 +160,7 @@ export default function PaperworkPage() {
       const j = await r.json().catch(() => null);
 
       if (!r.ok) {
-        setError(
-          j?.error === "sin_archivo"
-            ? "paper.badFile"
-            : j?.error === "sin_clave"
-              ? "gist.noKey"
-              : j?.error === "sin_creditos"
-                ? "gist.noCredits"
-                : j?.error === "demo"
-                  ? "app.sinIa"
-                  : "paper.failed",
-        );
+        setError(POR_QUE[String(j?.error)] ?? "paper.failed");
         return;
       }
 
