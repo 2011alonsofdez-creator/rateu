@@ -1,0 +1,85 @@
+name: Buscar un modelo en OpenRouter
+
+# QUÉ NOMBRE EXACTO HAY QUE PONER, Y CUÁNTO CUESTA.
+#
+# El nombre de un modelo no se adivina y no se copia de ninguna guía:
+# cambian cada pocas semanas, y uno mal escrito o retirado falla con un
+# 404 que no explica nada. Peor todavía: hay variantes que EXISTEN pero
+# no sirven para chatear (las que acaban en :batch), y esas fallan de
+# una forma que parece un problema de la clave.
+#
+# Esto pregunta el catálogo público de OpenRouter —sin clave, es
+# público— y enseña los que coinciden con lo que busques, con el precio
+# por millón de letras para que no haya sorpresas.
+#
+# Se usa así: Actions -> Buscar un modelo en OpenRouter -> Run workflow
+# -> escribe "claude", "gpt", "grok"... -> Run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      texto:
+        description: 'Qué buscar en el nombre (claude, gpt, gemini, grok...)'
+        required: true
+        default: 'claude'
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Preguntar el catálogo
+        env:
+          TEXTO: ${{ inputs.texto }}
+        run: |
+          set -euo pipefail
+
+          curl -sS --max-time 60 -o catalogo.json https://openrouter.ai/api/v1/models
+          total=$(jq '.data | length' catalogo.json)
+          echo "El catálogo trae ${total} modelos."
+
+          # El precio viene por token y en texto. Por millón se lee mejor:
+          # un "0.000003" no le dice nada a nadie, y un "$3 por millón"
+          # sí. Los gratis salen como 0 y se marcan.
+          jq -r --arg q "${TEXTO}" '
+            [ .data[]?
+              | select(type == "object")
+              | select((.id // "") | ascii_downcase | contains($q | ascii_downcase))
+              | {
+                  id: .id,
+                  k: (((.context_length // 0) / 1000) | floor),
+                  ent: (((.pricing.prompt // "0") | tonumber) * 1000000),
+                  sal: (((.pricing.completion // "0") | tonumber) * 1000000),
+                  chat: (if ((.id // "") | test(":batch$")) then "NO SIRVE PARA CHATEAR" else "" end),
+                  nombre: (.name // "")
+                }
+            ]
+            | sort_by(.ent, .id)
+            | .[]
+            | "\(.id)  ·  \(.k)K  ·  entrada $\(.ent | .*100 | round / 100)/M  ·  salida $\(.sal | .*100 | round / 100)/M  ·  \(.nombre) \(.chat)"
+          ' catalogo.json > encontrados.txt || true
+
+          cuantos=$(wc -l < encontrados.txt)
+          echo "::notice::Hay ${cuantos} modelos cuyo nombre lleva \"${TEXTO}\"."
+
+          if [ "${cuantos}" = "0" ]; then
+            echo "::error::Ningun modelo lleva \"${TEXTO}\" en el nombre. Prueba con menos letras."
+            exit 1
+          fi
+
+          # GitHub solo enseña 10 avisos; el resto, en el resumen de
+          # abajo, que no tiene tope.
+          head -n 9 encontrados.txt | while IFS= read -r l; do echo "::notice::${l}"; done
+          if [ "${cuantos}" -gt 9 ]; then
+            echo "::notice::...y ${cuantos} en total. Estan todos en el resumen, aqui abajo."
+          fi
+
+          {
+            echo "## Modelos con \"${TEXTO}\" en el nombre"
+            echo
+            echo "Los más baratos primero. El precio es por millón de letras."
+            echo
+            echo '```'
+            cat encontrados.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
