@@ -89,6 +89,17 @@ jobs:
               end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
+          # Y si el bot de Telegram ha llegado al servidor. La pantalla
+          # de Ajustes enseña lo mismo cuando no lo has puesto y cuando
+          # lo has puesto sin volver a desplegar, que es lo que pasa
+          # siempre. Aquí se distingue.
+          jq -r '
+            if (.telegram.bot_puesto // false)
+            then "Telegram: el bot esta puesto en el servidor. Si Ajustes sigue pidiendolo, recarga la pagina."
+            else "Telegram: el bot NO esta puesto. Falta TELEGRAM_BOT_TOKEN en Vercel, o falta volver a desplegar despues de ponerlo."
+            end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
           {
             echo "## Estado de Kairo"
             echo
