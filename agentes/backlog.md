@@ -13,6 +13,29 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **`/precios` promete que no se entrena con tus conversaciones, y eso depende de un ajuste que nadie ha mirado.** `[origen: crecimiento 2026-10-20]`
+  La FAQ de la página de precios dice, en los dos idiomas
+  (`kairo/src/app/precios/page.tsx:26-27` y `48-49`): *"¿Se usan mis
+  conversaciones para entrenar modelos? **No.**"*
+  Y buscando hoy los límites de la API de Gemini sale que **en la capa gratuita
+  los datos pueden usarse para mejorar los productos de Google**, y en la de
+  pago no. Kairo funciona hoy **con un solo cerebro, Gemini**, así que ese "No"
+  es verdad **si y solo si la cuenta de Gemini es de pago**.
+  Y hay indicios de que podría no serlo: `kairo/src/lib/ia/config.ts` habla de
+  "la capa gratuita" cuatro veces en sus comentarios y dice que los Pro
+  "salieron de la capa gratuita", algo que según las fuentes de hoy pasó el 1
+  de abril de 2026.
+  **Por qué es P1 y no P2**: es la promesa más delicada que hace el producto,
+  sobre una app que lee **multas, cartas de Hacienda y contratos** y que tiene
+  **modo para menores**; la comprueba cualquiera leyendo las condiciones de
+  Google; y si es falsa, no se arregla con una disculpa.
+  **Qué hace falta, y son dos cosas pequeñas**: (1) el dueño mira en Google AI
+  Studio si el proyecto tiene facturación activada —un minuto, la página de
+  límites está en `aistudio.google.com/rate-limit`—; (2) según la respuesta, o
+  no se toca nada, o el constructor cambia esa FAQ en diez minutos para que
+  diga la verdad. **El texto lo puede escribir un agente; el dato solo lo
+  puede mirar él.** Detalle y fuentes en `agentes/mercado/2026-10-20-mercado.md`.
+
 - **La portada promete tres cerebros y en producción solo hay uno.** `[origen: guardian 2026-10-16]`
   Leído hoy de `/api/estado` en producción, a las 05:14 UTC:
   **Gemini: clave sí · Claude: clave NO · GPT: clave NO**, más el respaldo de
@@ -221,6 +244,21 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **lo hace**, no que te avisa. **Antes de tocar un texto hay que arreglar el
   reloj** (está en P1): prometer "lo hace a su hora" entregando una vez cada
   seis horas es peor que no prometerlo.
+
+- **El guardián comprueba que los modelos de respaldo existen, no que sigan siendo gratis.** `[origen: crecimiento 2026-10-20]`
+  Los tres modelos de OpenRouter que Kairo tiene como respaldo son de la lista
+  **gratuita**, y esa lista **rota**: una fuente de septiembre dice que DeepSeek
+  R1, Qwen3 Coder 480B, Llama 3.3 70B y Llama 4 Scout ya salieron de ella.
+  Además, los modelos gratuitos de OpenRouter están limitados a **20 peticiones
+  por minuto y 50 al día**, que suben a 1.000 solo si la cuenta ha comprado
+  10 $ de créditos alguna vez.
+  Así que el "Respaldo: clave puesta y válida · sus 3 modelos existen" que el
+  guardián escribe cada mañana **puede ser un respaldo de 50 peticiones al
+  día**, y el día que uno deje de ser gratis seguirá existiendo y la
+  comprobación seguirá en verde.
+  **Arreglo**: en la comprobación diaria, mirar también el **precio** que
+  OpenRouter declara para esos tres modelos, no solo su existencia, y avisar si
+  alguno deja de ser `:free`. Media hora, y es trabajo del guardián.
 
 - **No hay analítica, y por eso tres métricas llevan cuatro informes en blanco.** `[origen: radar 2026-10-19]`
   Visitas, usuarios e ingresos salen como **"sin datos"** en los informes del
