@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
        de producto, son la respuesta a lo que alguien escribe en Google
        cuando le acaba de pasar. Se añaden aquí a medida que existan. */
     { url: `${sitio}/multas`, lastModified: hoy, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${sitio}/cartas-de-hacienda`, lastModified: hoy, changeFrequency: "monthly", priority: 0.9 },
     { url: `${sitio}/legal`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

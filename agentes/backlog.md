@@ -188,13 +188,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   La tabla entera, con las seis intenciones y sus fuentes, en
   `agentes/mercado/2026-10-17-mercado.md`.
 
-  **Partida, 19-10. La primera está hecha**: `/multas` existe, entera y en los
-  dos idiomas (abajo, en Hecho). Quedan cinco, por este orden:
-  `/cartas-de-hacienda`, `/contratos`, `/resumir-video`, una sobre el "sin
-  suscripción" que `/precios` solo responde a medias, y `/avisos-de-plazos`,
-  **que va la última a propósito**: es la única que necesita el reloj
-  arreglado (P1), porque prometer avisos a su hora entregando uno cada cinco
-  horas es peor que no prometerlos. Una tarde cada una.
+  **Partida el 19-10. Van dos de seis**: `/multas` (19-10) y
+  `/cartas-de-hacienda` (20-10), las dos enteras y en los dos idiomas (abajo,
+  en Hecho). Quedan cuatro, por este orden: `/contratos`, `/resumir-video`,
+  una sobre el "sin suscripción" que `/precios` solo responde a medias, y
+  `/avisos-de-plazos`, **que va la última a propósito**: es la única que
+  necesita el reloj arreglado (P1), y el guardián midió hoy que el reloj no
+  solo va lento, **va a saltos** —entre 4 y 8 toques al día de los 72
+  pedidos—, así que prometer avisos a su hora sería mentir dos veces. Una
+  tarde cada una.
 
 - **Paperwork no tiene banco de pruebas, y es el diferencial.** `[origen: entrenador 2026-10-16]`
   Su prompt vive en `lib/ia/papeles.ts` y no se parece al maestro: pide un
@@ -280,6 +282,26 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **`/cartas-de-hacienda`: la segunda página de intención.** `[hecho 2026-10-20]`
+  `kairo/src/app/cartas-de-hacienda/page.tsx` (servidor, con su `title`,
+  `description`, `canonical` y Open Graph propios) y `contenido.tsx` (cliente,
+  **español e inglés**), con la misma estructura que `/multas`. En `sitemap.ts`.
+  **Lo que la hace útil y no un folleto**: empieza por los **tres tipos de
+  carta** —requerimiento de información, propuesta de liquidación y aviso
+  informativo— porque *saber cuál te ha llegado* es la pregunta que trae a
+  alguien aquí, y cambia del todo lo que hay que hacer: buscar papeles, revisar
+  una cuenta, o corregir un dato. Luego lo que Kairo saca, lo que no hace y lo
+  que cuesta.
+  **Y la misma disciplina que en `/multas`, en dos sitios**: ni un plazo en
+  días —el plazo sale de la carta de cada uno y lo confirma la Agencia
+  Tributaria— y ni una cifra de créditos, que envejece sola. Lo que sí dice, y
+  es lo que más gente pilla tarde: el plazo no empieza al abrir el sobre, y el
+  buzón electrónico tiene la misma validez que el papel.
+  Comprobado con `tsc --noEmit` 0, `next build` 0 y **leyendo el HTML
+  generado**: título propio, descripción propia, `canonical` absoluto y el
+  titular pre-renderizado. El `sitemap.xml` generado lista ya las dos páginas
+  de intención.
 
 - **`/multas`: la primera página que responde a quien busca su problema.** `[hecho 2026-10-19]`
   `kairo/src/app/multas/page.tsx` (servidor, con su propio `title`, su
