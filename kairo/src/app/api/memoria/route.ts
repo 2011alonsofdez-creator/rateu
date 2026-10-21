@@ -37,16 +37,13 @@ const fallo = (estado: number, motivo: string) =>
 async function miPerfil(
   supabase: NonNullable<Awaited<ReturnType<typeof clienteServidor>>>,
 ): Promise<string | null> {
+  /* Sin respaldo a "el primero que salga": si no se sabe cuál es tu
+     perfil, no se escribe en ninguno. Con un hijo a cargo, ese respaldo
+     podía guardar TU recuerdo en la memoria del hijo. */
   const { data, error } = await supabase.rpc("mi_perfil_id");
-  if (!error && data) return String(data);
+  if (!error && typeof data === "string" && data) return data;
 
-  const { data: fila } = await supabase
-    .from("perfiles")
-    .select("id")
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-
-  return fila?.id ?? null;
+  return null;
 }
 
 export async function GET() {

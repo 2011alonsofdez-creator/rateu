@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { faltaColumna } from "@/lib/supabase/compat";
 import { esTipo, necesitaTemas, recetaDe } from "@/lib/coworks/recetas";
 
@@ -90,11 +91,7 @@ export async function POST(req: Request) {
   const temas = necesitaTemas(tipo) ? recortar(cuerpo?.temas, 600) : "";
   if (necesitaTemas(tipo) && !temas) return fallo(400, "sin_temas");
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id")
-    .limit(1)
-    .maybeSingle<{ id: string }>();
+  const { perfil } = await miPerfil<{ id: string }>(supabase, "id");
 
   if (!perfil) return fallo(401, "sin_sesion");
 

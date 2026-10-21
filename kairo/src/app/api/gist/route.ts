@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { resumir, tipoDeUrl, type Ficha, type Idioma } from "@/lib/ia/gist";
 import { limpiaDeYoutube } from "@/lib/fichas";
 import { CREDITOS } from "@/lib/ia/config";
@@ -70,16 +71,12 @@ export async function POST(req: Request) {
      habla. Y si llega cualquier otra cosa en el cuerpo, español. */
   const idioma: Idioma = cuerpo?.idioma === "original" ? "original" : "es";
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id, modo_edad, creditos, creditos_extra")
-    .limit(1)
-    .maybeSingle<{
-      id: string;
-      modo_edad: "nino" | "adolescente" | "adulto" | null;
-      creditos: number;
-      creditos_extra: number;
-    }>();
+  const { perfil } = await miPerfil<{
+    id: string;
+    modo_edad: "nino" | "adolescente" | "adulto" | null;
+    creditos: number;
+    creditos_extra: number;
+  }>(supabase, "id, modo_edad, creditos, creditos_extra");
 
   if (!perfil) return fallo(401, "sin_sesion");
 

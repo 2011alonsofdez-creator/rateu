@@ -1,4 +1,5 @@
 import { clienteServidor } from "./supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { hasSupabase } from "./supabase/config";
 import { user as demoUser } from "./mock";
 import type { ModoEdad, Perfil, PlanId } from "./planes";
@@ -47,20 +48,21 @@ export async function obtenerPerfil(): Promise<Perfil | null> {
   const supabase = await clienteServidor();
   if (!supabase) return perfilDemo();
 
-  // Igual que en /api/chat: una consulta en lugar de dos. RLS decide
-  // qué fila se ve, así que preguntar "dame el perfil" ya es preguntar
-  // "dame MI perfil".
-  const { data, error } = await supabase
-    .from("perfiles")
-    .select(
-      "id, nombre, email, plan, creditos, creditos_extra, modo_edad, tono, idioma, renueva_el",
-    )
-    .limit(1)
-    .maybeSingle<FilaPerfil>();
+  /* Una consulta en lugar de dos, como en /api/chat. Lo que no vale es
+     dar por hecho que solo vuelve una fila: la seguridad a nivel de fila
+     deja ver el tuyo Y el de los hijos que tengas a cargo, así que con
+     un hijo salían dos y cuál iba primera no lo decidía nadie. Esta es
+     la que carga el nombre, el plan y el saldo de TODA la web: con mala
+     suerte, un adulto entraba a Kairo con la cuenta de su hijo delante.
+     `miPerfil` pide la tuya por su nombre. */
+  const { perfil: data } = await miPerfil<FilaPerfil>(
+    supabase,
+    "id, nombre, email, plan, creditos, creditos_extra, modo_edad, tono, idioma, renueva_el",
+  );
 
   // El disparador crea el perfil al registrarse. Si por lo que sea aún no
   // está, devolvemos null y la app manda a completar el registro.
-  if (error || !data) return null;
+  if (!data) return null;
 
   return {
     id: data.id,

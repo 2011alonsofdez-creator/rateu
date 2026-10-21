@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { clienteAdmin } from "@/lib/supabase/admin";
 import { faltaColumna, faltaFuncion } from "@/lib/supabase/compat";
 import { CREDITOS } from "@/lib/ia/config";
@@ -82,18 +83,14 @@ export async function POST(req: Request) {
   if (error && faltaColumna(error)) return fallo(503, "falta_migracion");
   if (!cowork) return fallo(404, "no_encontrado");
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id, nombre, modo_edad, tono, creditos, creditos_extra")
-    .limit(1)
-    .maybeSingle<{
-      id: string;
-      nombre: string | null;
-      modo_edad: ModoEdad | null;
-      tono: string | null;
-      creditos: number;
-      creditos_extra: number;
-    }>();
+  const { perfil } = await miPerfil<{
+    id: string;
+    nombre: string | null;
+    modo_edad: ModoEdad | null;
+    tono: string | null;
+    creditos: number;
+    creditos_extra: number;
+  }>(supabase, "id, nombre, modo_edad, tono, creditos, creditos_extra");
 
   if (!perfil) return fallo(401, "sin_sesion");
   // El vigilante no llama a ningún modelo, así que tampoco cuesta nada.

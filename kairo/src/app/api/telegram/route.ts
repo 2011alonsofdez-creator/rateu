@@ -33,12 +33,18 @@ type Perfil = { id: string; telegram_chat_id: string | null };
 async function miPerfil(
   supabase: NonNullable<Awaited<ReturnType<typeof clienteServidor>>>,
 ): Promise<{ perfil: Perfil | null; falta: boolean }> {
+  /* Sin respaldo a "el primero que salga", y a propósito: si no se sabe
+     cuál es tu perfil, la respuesta es que no se sabe. Coger otro era
+     justo lo que hacía que un adulto pudiera enlazar el Telegram en la
+     fila de un hijo. */
   const { data: id } = await supabase.rpc("mi_perfil_id");
+  if (typeof id !== "string" || !id) return { perfil: null, falta: false };
 
-  const consulta = supabase.from("perfiles").select("id, telegram_chat_id");
-  const { data, error } = id
-    ? await consulta.eq("id", id).maybeSingle<Perfil>()
-    : await consulta.limit(1).maybeSingle<Perfil>();
+  const { data, error } = await supabase
+    .from("perfiles")
+    .select("id, telegram_chat_id")
+    .eq("id", id)
+    .maybeSingle<Perfil>();
 
   // Sin la migración 0013 la columna no existe: no es un fallo, es que
   // esto todavía no está montado.
