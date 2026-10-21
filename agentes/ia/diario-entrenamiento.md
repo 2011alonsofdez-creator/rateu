@@ -71,6 +71,61 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-21 — Conocimiento (área 3)
+
+**Qué cambié**: archivo nuevo,
+`agentes/ia/conocimiento/datos-y-privacidad.md`. La base de conocimiento tenía
+**un solo archivo** —el de créditos y planes—, y le faltaba la pregunta que va a
+hacer todo el mundo: *"¿y mi multa dónde acaba?"*.
+
+**Por qué esta y no otra**: Kairo lee multas, cartas de Hacienda y contratos,
+papeles con nombre, dirección y DNI. Esa pregunta no es de curiosos: **decide si
+la persona sube el papel o no**. Y hasta hoy Kairo no tenía ni un dato para
+contestarla.
+
+**Lo he escrito leyendo el código que guarda, no la política de privacidad**, y
+cada afirmación lleva su archivo y su línea. Lo que salió:
+
+| | Qué dice el código |
+|---|---|
+| **El archivo no se guarda** | El `insert` de `api/paperwork/route.ts:94-108` guarda el título, el remitente, el importe, la fecha, los pasos, el borrador… y el **nombre** del archivo. **Ninguna columna lleva el contenido del fichero.** La foto viaja al modelo y no se escribe en ninguna tabla |
+| Se puede borrar | Hay un `DELETE` que borra el papel guardado (`route.ts:160`) |
+| El chat sí se guarda | Tablas `conversaciones` y `mensajes` (`api/chat/route.ts:171-205`), que es lo que permite volver a una conversación de ayer |
+| La memoria no se llena sola | En `recuerdos` solo entra lo que la persona pide que se recuerde (`chat/route.ts:354-355`) |
+
+Lo de que **el archivo no se guarda** es el mejor dato del día: es tranquilizador
+**y es verificable**, no una promesa de una página. Quien dude, mira esas líneas.
+
+**Y lo importante del archivo es lo que Kairo NO puede decir.** La página
+`/precios` afirma que no se entrena con tus conversaciones. Pero Kairo funciona
+con un solo motor, Gemini, y en la **capa gratuita** de esa API los datos pueden
+usarse para mejorar los productos de Google —el informe de mercado de ayer lo
+trae con su fuente—, **y nadie ha comprobado en qué capa está la cuenta**. Así
+que el archivo le prohíbe a Kairo repetir ese "No" hasta que se confirme: puede
+contar lo que se guarda, que es mucho, y para el entrenamiento remitir a la
+página y a quien lleva Kairo.
+
+Esto no es desconfiar del producto, es orden: **que la IA respalde con su propia
+voz una promesa que nadie ha verificado es el fallo que más caro sale**, porque
+la persona se queda convencida por boca de Kairo. El día que el dueño confirme
+que la cuenta es de pago, ese apartado se borra y Kairo dice "No" con todas las
+letras.
+
+**Cómo lo comprobé**: no hay código tocado, así que no hay `build` que valga.
+Lo que sí he hecho es **no escribir una sola línea sin abrir el archivo que la
+sostiene**: los cuatro hechos de la tabla salen de `insert`, `delete` y las
+tablas que se leen en esas rutas, y lo que no está en el repositorio —cuánto
+tiempo se conserva, si hay cifrado, si hay copias— va escrito como **"no lo sé,
+y Kairo tampoco lo diga"**, con las tres preguntas al dueño al final.
+
+**Qué necesito del dueño**: las tres del final del archivo, y la primera es la
+que desbloquea el P1 de ayer: **¿la cuenta de Gemini es de pago o gratuita?**
+Un minuto en AI Studio.
+
+**Mañana toca**: área 4, casos límite. Y con lo de hoy ya hay un caso evidente
+que escribir: alguien que sube una multa y pregunta, antes de nada, qué vais a
+hacer con sus datos.
+
 ### 2026-10-20 — Ejemplos (área 2)
 
 **Qué cambié**: nada del código. Tres casos nuevos en `agentes/ia/ejemplos/`, y
