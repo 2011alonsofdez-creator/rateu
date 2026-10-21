@@ -4,6 +4,27 @@ import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
 
+/* La pregunta de los datos dice lo que se puede comprobar, y nada más.
+ *
+ * Hasta el 21-10 esta FAQ contestaba "¿se usan mis conversaciones para
+ * entrenar modelos?" con un "No." a secas. El informe de mercado del
+ * 20-10 encontró el problema: Kairo funciona hoy con un solo motor,
+ * Gemini, y en la CAPA GRATUITA de esa API los datos pueden usarse para
+ * mejorar los productos de Google —en la de pago, no—. Nadie ha
+ * comprobado todavía en qué capa está la cuenta, así que ese "No" era
+ * una promesa que esta casa no podía sostener, en la página donde se
+ * decide pagar.
+ *
+ * Así que la pregunta cambia a la que de verdad hace la gente —qué se
+ * guarda— y la respuesta solo dice cosas verificables en el código:
+ * api/paperwork/route.ts:94-108 guarda lo leído y el NOMBRE del
+ * archivo, sin ninguna columna con su contenido; route.ts:160 lo borra;
+ * api/chat/route.ts:171-205 guarda las conversaciones; y en `recuerdos`
+ * solo entra lo que la persona pide. Eso es más útil que un "No" y es
+ * cierto en las dos capas.
+ *
+ * El "No" vuelve el día que se confirme que la cuenta es de pago, y
+ * entonces se añade como una frase más, no como toda la respuesta. */
 const FAQ = {
   es: [
     {
@@ -23,8 +44,8 @@ const FAQ = {
       a: "Sí, creando un perfil hijo desde tu cuenta de adulto. Tú decides las restricciones y puedes ver lo que hace. Un menor no puede abrirse cuenta por su cuenta.",
     },
     {
-      q: "¿Se usan mis conversaciones para entrenar modelos?",
-      a: "No. Y en los perfiles de menores, además, se guardan los datos mínimos imprescindibles.",
+      q: "¿Qué se guarda de lo que le mando a Kairo?",
+      a: "De un papel que subes a Paperwork se guarda lo que Kairo ha leído —de qué va, el importe, la fecha límite, los pasos— y el nombre del archivo. El archivo en sí no se guarda, y el papel lo puedes borrar cuando quieras. Las conversaciones sí se guardan, para que puedas volver a ellas. Y en la memoria solo entra lo que tú le pidas que recuerde. En los perfiles de menores se guardan los datos mínimos imprescindibles.",
     },
   ],
   en: [
@@ -45,8 +66,8 @@ const FAQ = {
       a: "Yes, by creating a child profile from your adult account. You set the restrictions and can see what they do. A minor cannot open an account on their own.",
     },
     {
-      q: "Are my conversations used to train models?",
-      a: "No. And on child profiles we additionally store only the bare minimum of data.",
+      q: "What does Kairo keep of what I send it?",
+      a: "From a document you upload to Paperwork it keeps what Kairo read — what it is about, the amount, the deadline, the steps — plus the file name. The file itself is not kept, and you can delete the document whenever you like. Conversations are kept, so you can come back to them. And memory only holds what you ask it to remember. On child profiles we store only the bare minimum of data.",
     },
   ],
 };

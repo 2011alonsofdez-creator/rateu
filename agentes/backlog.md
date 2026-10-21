@@ -36,6 +36,21 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   diga la verdad. **El texto lo puede escribir un agente; el dato solo lo
   puede mirar él.** Detalle y fuentes en `agentes/mercado/2026-10-20-mercado.md`.
 
+  **Hecho lo que era nuestro, el 21-10, y sin esperar la respuesta.** Resulta
+  que la mitad del arreglo no necesitaba el dato: **la página ya no hace la
+  afirmación**. La pregunta pasa de *"¿se usan mis conversaciones para entrenar
+  modelos?"* —contestada con un "No." a secas— a **"¿qué se guarda de lo que le
+  mando a Kairo?"**, y la respuesta solo dice cosas comprobables en el código:
+  de un papel se guarda lo leído y el **nombre** del archivo, **el archivo no**,
+  el papel se puede borrar, las conversaciones sí se guardan para poder volver a
+  ellas, y en la memoria solo entra lo que la persona pide. Eso es **más útil
+  que un "No"** y es cierto en las dos capas, así que la página es honesta hoy
+  sin saber en cuál está.
+  **Lo que sigue siendo suyo**: el minuto en AI Studio. Si la cuenta es de pago,
+  el "No" vuelve, pero **como una frase más y no como toda la respuesta**, y lo
+  pongo en diez minutos. Si es gratuita, no hay nada que deshacer. En los dos
+  casos, el riesgo de prometer algo sin sostener **ya está fuera de la web**.
+
 - **La portada promete tres cerebros y en producción solo hay uno.** `[origen: guardian 2026-10-16]`
   Leído hoy de `/api/estado` en producción, a las 05:14 UTC:
   **Gemini: clave sí · Claude: clave NO · GPT: clave NO**, más el respaldo de
