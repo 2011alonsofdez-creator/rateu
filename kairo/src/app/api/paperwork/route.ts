@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { mirarPapel } from "@/lib/ia/papeles";
 import { revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { CREDITOS } from "@/lib/ia/config";
@@ -59,16 +60,12 @@ export async function POST(req: Request) {
   const archivos = revisarAdjuntos(cuerpo?.adjuntos);
   if (!archivos.adjuntos.length) return fallo(400, "sin_archivo");
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id, modo_edad, creditos, creditos_extra")
-    .limit(1)
-    .maybeSingle<{
-      id: string;
-      modo_edad: "nino" | "adolescente" | "adulto" | null;
-      creditos: number;
-      creditos_extra: number;
-    }>();
+  const { perfil } = await miPerfil<{
+    id: string;
+    modo_edad: "nino" | "adolescente" | "adulto" | null;
+    creditos: number;
+    creditos_extra: number;
+  }>(supabase, "id, modo_edad, creditos, creditos_extra");
 
   if (!perfil) return fallo(401, "sin_sesion");
 
