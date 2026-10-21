@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { testigoValido } from "@/lib/telegram";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase, pistaDeUrl } from "@/lib/supabase/config";
@@ -351,6 +352,10 @@ export async function GET() {
        Ajustes, que sabe de quién es la sesión. */
     telegram: {
       bot_puesto: (process.env.TELEGRAM_BOT_TOKEN ?? "").trim().length > 0,
+      /* Y si Telegram lo acepta. Lo primero es "está puesto"; esto es
+         "sirve". Se separan porque un testigo anulado está puesto y no
+         sirve, y eso se pasó media mañana pareciendo otra cosa. */
+      testigo: await testigoValido(),
     },
 
     /* Los pagos son opcionales: sin configurar, los botones llevan a

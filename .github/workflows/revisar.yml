@@ -94,10 +94,15 @@ jobs:
           # lo has puesto sin volver a desplegar, que es lo que pasa
           # siempre. Aquí se distingue.
           jq -r '
-            if (.telegram.bot_puesto // false)
-            then "Telegram: el bot esta puesto en el servidor. Si Ajustes sigue pidiendolo, recarga la pagina."
-            else "Telegram: el bot NO esta puesto. Falta TELEGRAM_BOT_TOKEN en Vercel, o falta volver a desplegar despues de ponerlo."
-            end
+            .telegram as $t
+            | if ($t.bot_puesto // false) | not
+              then "Telegram: el bot NO esta puesto. Falta TELEGRAM_BOT_TOKEN en Vercel, o falta volver a desplegar despues de ponerlo."
+              elif ($t.testigo // "") == "rechazado"
+              then "Telegram: el testigo esta puesto pero Telegram lo RECHAZA. Es el viejo: lo anulaste en BotFather y falta poner el nuevo en Vercel y volver a desplegar."
+              elif ($t.testigo // "") == "valido"
+              then "Telegram: el bot esta puesto y Telegram lo acepta. Si Ajustes sigue pidiendolo, recarga la pagina."
+              else "Telegram: el bot esta puesto, pero no se ha podido preguntar a Telegram si sirve."
+              end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
           {

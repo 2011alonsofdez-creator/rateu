@@ -150,6 +150,31 @@ export async function mandar(chatId: string, texto: string): Promise<boolean> {
 }
 
 /** El nombre del bot, para poder enlazar a él desde un botón. */
+/** ¿El testigo que tiene el servidor sirve TODAVÍA?
+ *
+ *  Que esté puesto no quiere decir que valga. Al anular un testigo en
+ *  BotFather, el viejo muere en ese momento y el servidor se queda con
+ *  él hasta que se vuelva a desplegar. Visto desde fuera eso es
+ *  idéntico a tenerlo bien puesto: la pantalla de Ajustes enseña un
+ *  código, y el código no sirve para nada porque se calcula con el
+ *  testigo viejo y el bot ya no contesta.
+ *
+ *  Así que se le pregunta a Telegram. No sale el testigo por ningún
+ *  lado: solo si lo acepta. */
+export async function testigoValido(): Promise<"valido" | "rechazado" | "no_comprobable"> {
+  if (!hayTelegram()) return "no_comprobable";
+  try {
+    await llamar("getMe");
+    return "valido";
+  } catch (e) {
+    /* 401 es "ese testigo ya no existe". Cualquier otra cosa —la red,
+       un 500 de Telegram— no es culpa del testigo y decirlo como si lo
+       fuera manda a cambiarlo sin motivo. */
+    const texto = e instanceof Error ? e.message : String(e);
+    return /telegram_40[13]/.test(texto) ? "rechazado" : "no_comprobable";
+  }
+}
+
 export async function nombreDelBot(): Promise<string | null> {
   try {
     const r = (await llamar("getMe")) as { username?: string } | null;
