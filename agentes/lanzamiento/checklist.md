@@ -9,17 +9,18 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | La web responde | 2026-10-20 | `revisar.yml` lanzado hoy (ejecución 39373928375, 05:15 UTC): HTTP 200 y "TODO CORRECTO · cerebros conectados: gemini, extra" |
-| ✅ | No está en modo privado de Vercel | 2026-10-20 | 200 limpio: si hubiera portero de Vercel delante, el workflow devolvería 401 y lo distingue |
-| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-20 | **Tercera medición, y la serie se desmiente a sí misma**: **4 toques en 24 h** frente a los 72 del cron, con el peor hueco en **6 h 29** —el peor desde el 15-10—. Ayer eran 8 y 4 h 50. La serie completa va 3 → 4 → 6 → 5 → 7 → 8 → **4**: no está estable en una décima parte, **oscila al doble de un día para otro**. Y eso, para lo que hay que decidir, pesa más que la media: con un proceso que varía así **no se puede prometer una hora**. Las 110 ejecuciones siguen en verde: no falla, no suena |
-| 🟡 | `/api/estado` sin variables que falten | 2026-10-20 | "TODO CORRECTO", y **cuarto día con un cerebro de tres**: Gemini sí, Claude NO, GPT NO. Respaldo con clave válida y sus 3 modelos existen, hoy de 470 |
+| ✅ | La web responde | 2026-10-21 | `revisar.yml` lanzado hoy (ejecución 39548339498, 05:13 UTC): HTTP 200 y "TODO CORRECTO". El intento directo desde la sede sigue dando **403 del proxy** al abrir el túnel, que es ⚪ y no 🔴 |
+| ✅ | No está en modo privado de Vercel | 2026-10-21 | 200 limpio; el workflow distingue el 401 de Vercel y no ha salido |
+| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-21 | **6 toques en 24 h** de los 72 del cron, peor hueco **5 h 00**. Confirma lo de ayer y no lo empeora: la serie va 3 → 4 → 6 → 5 → 7 → 8 → 4 → **6**, o sea **entre 4 y 8**, una media del 8% de lo pedido. Una de las ejecuciones de ayer (la 114) se creó a las 19:25 y **no arrancó hasta las 21:55**: ahí se ve el mecanismo, GitHub la aparca. Las 116 ejecuciones, en verde |
+| 🟡 | `/api/estado` sin variables que falten | 2026-10-21 | "TODO CORRECTO", y **quinto día con un cerebro de tres**: Gemini sí, Claude NO, GPT NO. Novedad buena: el log de hoy ya dice **"Telegram: el bot está puesto en el servidor"** —el dueño añadió esa comprobación ayer—, así que el canal de los avisos de plazos tiene su token |
 | ⚪ | `/revision` sin migraciones pendientes | — | Igual |
+| ✅ | Los tres modelos de respaldo **siguen siendo gratis** | 2026-10-21 | **Medido hoy**, no supuesto, con el workflow `buscar-modelo.yml` que el dueño añadió ayer: `nvidia/nemotron-3-ultra-550b-a55b:free`, `thinkingmachines/inkling:free` y `poolside/laguna-s-2.1:free` salen los tres a **$0/M de entrada y $0/M de salida**. Ojo al detalle que esto destapa: existen sus gemelos de pago con el id casi idéntico —`thinkingmachines/inkling` a $1/$4,05 y `poolside/laguna-s-2.1` a $0,09/$0,18—, así que **perder el `:free` del nombre no rompe nada: empieza a cobrar** |
 
 ## Está sana
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Sin claves en el código | 2026-10-20 | Limpio en `kairo/src`, `supabase/` y `docs/` |
+| ✅ | Sin claves en el código | 2026-10-21 | Limpio en `kairo/src`, `supabase/` y `docs/` |
 | ✅ | Ningún secreto detrás de `NEXT_PUBLIC_` | 2026-10-18 | Los aciertos son **nombres** de variables en la página de diagnóstico y en `/api/estado`: URL del proyecto y claves anon/publishable, públicas por diseño |
 | ✅ | Título y meta descripción propios | 2026-10-12 | `kairo/src/app/layout.tsx` |
 | ✅ | Favicon | 2026-10-12 | `kairo/src/app/icon.svg` |
@@ -32,5 +33,5 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Los agentes se ejecutan | 2026-10-20 | Ayer entregaron los cuatro: guardián, entrenador (listas), constructor (`/multas`) y radar (tercera revisión). Diez días sin perder un turno |
+| ✅ | Los agentes se ejecutan | 2026-10-21 | Ayer entregaron los cinco, que es el día completo: guardián, radar (cerró el informe del 19), entrenador (ejemplos), constructor (`/cartas-de-hacienda`) y crecimiento (mercado). Once días sin perder un turno |
 | ✅ | Parte diario del constructor | 2026-10-13 | El del 12-10 está en `agentes/diario/2026-10-12.md`, con la sección del entrenador conservada |

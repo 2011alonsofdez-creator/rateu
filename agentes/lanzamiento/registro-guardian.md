@@ -16,3 +16,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-18 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **medido: 7 de 72 toques** | ok, los 4 entregaron | el cron nuevo no basta: hueco de 4 h 28 |
 | 2026-10-19 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 8 de 72 toques, peor hueco 4 h 50 | ok, los 3 entregaron | nada nuevo; el reloj confirma lo de ayer |
 | 2026-10-20 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **4 de 72**, peor hueco 6 h 29 | ok, los 4 entregaron | el reloj se ha medio partido: 8 → 4 |
+| 2026-10-21 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 6 de 72, peor hueco 5 h 00 | ok, los 5 entregaron | respaldo medido: los 3 siguen a $0 |

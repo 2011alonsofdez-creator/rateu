@@ -260,6 +260,22 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   OpenRouter declara para esos tres modelos, no solo su existencia, y avisar si
   alguno deja de ser `:free`. Media hora, y es trabajo del guardián.
 
+  **Medido a mano el 21-10, y los tres siguen a cero.** Con
+  `buscar-modelo.yml` —el workflow que el dueño añadió el 20-10 y que imprime
+  el precio por millón— salen `nemotron-3-ultra` ($0/$0), `inkling` ($0/$0) y
+  `laguna-s-2.1` ($0/$0). Así que hoy el respaldo es gratis de verdad.
+  **Y la comprobación destapó el fallo exacto que hay que vigilar**: existen
+  los gemelos de pago con el id casi igual —`thinkingmachines/inkling` a
+  $1/$4,05 y `poolside/laguna-s-2.1` a $0,09/$0,18—, o sea que **si un
+  `:free` desaparece, el nombre sin el sufijo sigue ahí y empieza a cobrar**.
+  No es un modelo que falla: es un modelo que factura.
+  **Lo que queda es automatizarlo, y es más barato de lo que parecía**:
+  `/api/estado` ya pide el catálogo entero de OpenRouter —de ahí saca el
+  "ofrece 468 modelos" y el "tus 3 modelos existen"—, así que **ya tiene el
+  precio en la mano y solo le falta devolverlo**. Es trabajo del constructor
+  en `kairo/src/app/api/estado/route.ts`, no toca pagos ni claves, y con eso
+  el guardián lo ve cada mañana sin lanzar tres workflows a mano.
+
 - **No hay analítica, y por eso tres métricas llevan cuatro informes en blanco.** `[origen: radar 2026-10-19]`
   Visitas, usuarios e ingresos salen como **"sin datos"** en los informes del
   13, el 16 y el 19 de octubre, y no es por pereza de los agentes: en
