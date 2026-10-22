@@ -133,6 +133,8 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   | **18-10** | **7** | **4 h 28** | **72/día** |
   | **19-10** | **8** | **4 h 50** | **72/día** |
   | **20-10** | **4** | **6 h 29** | **72/día** |
+  | **21-10** | 6 | 5 h 00 | 72/día |
+  | **22-10** | 5 | **10 h 39** | 72/día |
 
   Ha mejorado algo —5 → 7 al día, peor hueco 5 h 22 → 4 h 28—, pero **pedir el
   triple ha dado 1,4 veces más**, que es exactamente lo que avisaba el
@@ -162,6 +164,21 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   portada ni en la interfaz. Si se elige la vía de "decírselo al usuario", el
   texto honesto no es "puede tardar un rato": es que el encargo **puede no
   salir ese día**.
+
+  **22-10: el dato que cambia la urgencia, no el diagnóstico.** El dueño añadió
+  el 21-10 que el reloj diga **qué hizo** en cada toque, y lo primero que dice
+  es: *"Co-Works mirados: **0**. Papeles que tocaba avisar hoy: **0**"*. O sea
+  que **el reloj suena en una casa vacía**: no hay Co-Works programados ni
+  papeles con fecha, así que el hueco de **10 h 39** de ese mismo día —el peor
+  en nueve días— **no ha costado ni un encargo**.
+  Eso obliga a corregir cómo lo hemos contado nueve días seguidos, y lo corrige
+  quien más lo ha repetido: el problema es real y hay que arreglarlo, **pero no
+  es urgente hoy; es urgente antes del primer Co-Work de verdad**. Mientras no
+  haya usuarios, el reloj puede fallar todo lo que quiera y no se pierde nada.
+  Delante de esto van el merge y las dos claves.
+  **Y una corrección de método**: desde hoy solo se cuentan las ejecuciones
+  `schedule`. El 21-10 hubo además tres a mano del dueño, y contarlas habría
+  dado 8 toques en vez de 5.
   `kairo-coworks.yml` pide `cron: "5 * * * *"`, pero las ejecuciones reales van
   muy por detrás. GitHub retrasa y se salta las ejecuciones programadas cuando
   su planificador va cargado, y no avisa: todas salen en verde.
