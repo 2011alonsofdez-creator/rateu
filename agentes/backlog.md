@@ -277,37 +277,6 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   reloj** (está en P1): prometer "lo hace a su hora" entregando una vez cada
   seis horas es peor que no prometerlo.
 
-- **El guardián comprueba que los modelos de respaldo existen, no que sigan siendo gratis.** `[origen: crecimiento 2026-10-20]`
-  Los tres modelos de OpenRouter que Kairo tiene como respaldo son de la lista
-  **gratuita**, y esa lista **rota**: una fuente de septiembre dice que DeepSeek
-  R1, Qwen3 Coder 480B, Llama 3.3 70B y Llama 4 Scout ya salieron de ella.
-  Además, los modelos gratuitos de OpenRouter están limitados a **20 peticiones
-  por minuto y 50 al día**, que suben a 1.000 solo si la cuenta ha comprado
-  10 $ de créditos alguna vez.
-  Así que el "Respaldo: clave puesta y válida · sus 3 modelos existen" que el
-  guardián escribe cada mañana **puede ser un respaldo de 50 peticiones al
-  día**, y el día que uno deje de ser gratis seguirá existiendo y la
-  comprobación seguirá en verde.
-  **Arreglo**: en la comprobación diaria, mirar también el **precio** que
-  OpenRouter declara para esos tres modelos, no solo su existencia, y avisar si
-  alguno deja de ser `:free`. Media hora, y es trabajo del guardián.
-
-  **Medido a mano el 21-10, y los tres siguen a cero.** Con
-  `buscar-modelo.yml` —el workflow que el dueño añadió el 20-10 y que imprime
-  el precio por millón— salen `nemotron-3-ultra` ($0/$0), `inkling` ($0/$0) y
-  `laguna-s-2.1` ($0/$0). Así que hoy el respaldo es gratis de verdad.
-  **Y la comprobación destapó el fallo exacto que hay que vigilar**: existen
-  los gemelos de pago con el id casi igual —`thinkingmachines/inkling` a
-  $1/$4,05 y `poolside/laguna-s-2.1` a $0,09/$0,18—, o sea que **si un
-  `:free` desaparece, el nombre sin el sufijo sigue ahí y empieza a cobrar**.
-  No es un modelo que falla: es un modelo que factura.
-  **Lo que queda es automatizarlo, y es más barato de lo que parecía**:
-  `/api/estado` ya pide el catálogo entero de OpenRouter —de ahí saca el
-  "ofrece 468 modelos" y el "tus 3 modelos existen"—, así que **ya tiene el
-  precio en la mano y solo le falta devolverlo**. Es trabajo del constructor
-  en `kairo/src/app/api/estado/route.ts`, no toca pagos ni claves, y con eso
-  el guardián lo ve cada mañana sin lanzar tres workflows a mano.
-
 - **No hay analítica, y por eso tres métricas llevan cuatro informes en blanco.** `[origen: radar 2026-10-19]`
   Visitas, usuarios e ingresos salen como **"sin datos"** en los informes del
   13, el 16 y el 19 de octubre, y no es por pereza de los agentes: en
@@ -368,6 +337,31 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **`/api/estado` ya dice el precio de los modelos de respaldo, no solo que existen.** `[hecho 2026-10-22]`
+  Cierra el P2 del 20-10. En `kairo/src/app/api/estado/route.ts`: una función
+  nueva que pide el catálogo público de OpenRouter —sin clave, no gasta cuota de
+  nadie— y devuelve, **solo de los modelos configurados**, el precio de entrada y
+  de salida **por millón de tokens**, en el orden en que están puestos. Sale en
+  `cerebros.extra.precios`.
+  **Por qué hacía falta**: lo que había que vigilar no era que un modelo
+  desapareciera, sino que **de cada gratuito de OpenRouter existe un gemelo de
+  pago con el id casi igual** (`inkling:free` a 0 y `inkling` a 1 $/M). El día
+  que un `:free` salga del catálogo, el nombre sin sufijo sigue ahí y empieza a
+  cobrar, y un modelo que factura en silencio es peor que uno que falla.
+  **Y la prueba encontró un fallo de verdad antes de que saliera de aquí**:
+  `Number("")` es 0 y `Number(null)` es 0, así que un precio **ausente** se
+  habría leído como **"0 $/M", es decir como gratis** —exactamente la mentira
+  que este cambio existe para evitar—. Ahora un precio que no viene sale como
+  `null`, "no se ha podido leer", y el motivo queda escrito encima de la
+  función.
+  Comprobado con `npx tsc --noEmit` salida 0, `npx next build` salida 0 y
+  **once casos de prueba** sobre la función real, con los valores que OpenRouter
+  devuelve de verdad (`"0"`, `"0.00000009"`, `"0.00000405"`, vacío, `null`,
+  texto, negativo): los once correctos.
+  **Lo que falta para que el guardián lo vea cada mañana** son tres líneas en
+  `.github/workflows/revisar.yml`, que es del dueño. El `jq` exacto está en el
+  parte del 22-10; en cuanto diga que sí, se pega y queda cerrado del todo.
 
 - **`/cartas-de-hacienda`: la segunda página de intención.** `[hecho 2026-10-20]`
   `kairo/src/app/cartas-de-hacienda/page.tsx` (servidor, con su `title`,

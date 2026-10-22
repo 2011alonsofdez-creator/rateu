@@ -93,6 +93,83 @@ async function pruebaLaClaveExtra(clave: string, url: string) {
   }
 }
 
+/* ¿Y SIGUEN SIENDO GRATIS LOS TUYOS?
+ *
+ * Hasta hoy la comprobación diaria miraba que los modelos de respaldo
+ * EXISTIERAN, y resulta que eso no es lo que hay que vigilar. Se vio
+ * midiéndolo a mano el 21-10: de cada modelo gratuito de OpenRouter
+ * existe un gemelo de pago con el id casi igual —`inkling:free` a 0 y
+ * `inkling` a 1 $/M, `laguna-s-2.1:free` a 0 y `laguna-s-2.1` a
+ * 0,09 $/M—. Así que el día que un `:free` salga del catálogo, el
+ * nombre sin sufijo sigue ahí y **empieza a cobrar**.
+ *
+ * Y eso es peor que un fallo: un modelo que falla se ve en la cara del
+ * usuario; uno que factura no se ve en ninguna parte hasta que llega la
+ * cuenta. Por eso aquí se devuelve el PRECIO y no solo el nombre.
+ *
+ * El catálogo de OpenRouter es público —se lee sin clave, y ese detalle
+ * ya costó una vuelta en esta misma pantalla—, así que esto no gasta
+ * cuota de nadie. Se piden solo los TUYOS, y el precio va por millón de
+ * tokens, que es como se lee sin contar ceros. */
+export type PrecioDeModelo = {
+  id: string;
+  /** Dólares por millón de tokens de entrada. `null` = no se ha podido leer. */
+  entrada: number | null;
+  /** Dólares por millón de tokens de salida. */
+  salida: number | null;
+};
+
+export function porMillon(crudo: unknown): number | null {
+  /* OJO CON `Number()` AQUÍ, QUE ES LA TRAMPA DE ESTA FUNCIÓN.
+     `Number("")` es 0 y `Number(null)` es 0. Sin estas dos líneas, un
+     precio que NO VIENE se lee como "0 $/M", o sea como **gratis**, que
+     es justo la mentira que esta comprobación existe para evitar. Un
+     precio ausente tiene que salir como `null` —"no se ha podido
+     leer"—, nunca como cero. Lo cazó la prueba del 22-10. */
+  if (typeof crudo !== "number" && typeof crudo !== "string") return null;
+  if (typeof crudo === "string" && crudo.trim() === "") return null;
+
+  const n = Number(crudo);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 1_000_000 * 100) / 100;
+}
+
+async function preciosDeLosMios(url: string, mios: string[]): Promise<PrecioDeModelo[] | null> {
+  if (!url || !mios.length) return null;
+
+  const r = await fetch(`${url}/models`, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(8000),
+    cache: "no-store",
+  });
+  if (!r.ok) return null;
+
+  const cuerpo: unknown = await r.json();
+  const datos = (cuerpo as { data?: unknown } | null)?.data;
+  if (!Array.isArray(datos)) return null;
+
+  const quiero = new Set(mios.map((m) => m.toLowerCase()));
+  const hallados = new Map<string, PrecioDeModelo>();
+
+  for (const m of datos) {
+    const id = (m as { id?: unknown } | null)?.id;
+    if (typeof id !== "string" || !quiero.has(id.toLowerCase())) continue;
+    const pre = (m as { pricing?: { prompt?: unknown; completion?: unknown } }).pricing;
+    hallados.set(id.toLowerCase(), {
+      id,
+      entrada: porMillon(pre?.prompt),
+      salida: porMillon(pre?.completion),
+    });
+  }
+
+  /* En el orden en que están configurados, y el que no aparezca en el
+     catálogo sale con los precios en null: eso ya lo cuenta `faltan`, y
+     aquí mezclar las dos cosas despistaría. */
+  return mios.map(
+    (m) => hallados.get(m.toLowerCase()) ?? { id: m, entrada: null, salida: null },
+  );
+}
+
 /* CUÁL DE LOS TUYOS NO EXISTE.
  *
  * Esto NO se puede calcular con la lista recortada que se enseña, y el
@@ -231,7 +308,7 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
-  const [gem, cla, gpt, ext, claveOk, migra, salud] = await Promise.all([
+  const [gem, cla, gpt, ext, claveOk, precios, migra, salud] = await Promise.all([
     claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
     claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
     claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
@@ -239,6 +316,10 @@ export async function GET() {
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
     pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const),
+    preciosDeLosMios(
+      EXTRA_URL(),
+      modelosExtra().map((m) => m.replace(/^extra:/, "")),
+    ).catch(() => null),
     migraciones().catch((e) => ({ estado: corto(e) })),
     contestaSupabase().catch((e) => ({ probado: true, responde: false, detalle: corto(e) })),
   ]);
@@ -308,6 +389,11 @@ export async function GET() {
           faltan: lista ? cualesFaltan(puestos, lista) : null,
           // Cuántos ofrece en total, para saber si la lista va cortada.
           total: lista ? lista.length : null,
+          /* Lo que cuesta cada uno de los tuyos, por millón de tokens.
+             Un 0 es gratis de verdad; un número distinto de 0 en un
+             modelo que pusiste como gratuito es la señal de que hay que
+             mirarlo. */
+          precios,
           // Y una muestra, para copiar un nombre bien escrito.
           ...disponibles(lista ? lista.slice(0, AL_ASOMAR) : ext),
         };
