@@ -71,6 +71,63 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-22 — Casos límite (área 4)
+
+**Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`. Ninguno es
+inventado de la nada: **los tres los ha creado algo que este sistema descubrió
+esta semana**, y por eso son los tres que hoy romperían a Kairo de verdad.
+
+| Archivo | Qué choca |
+|---|---|
+| `2026-10-22-limite-que-haceis-con-mis-datos.md` | Pregunta por sus datos **antes** de subir nada. Kairo sabe mucho de lo que se guarda y **no puede afirmar** lo del entrenamiento |
+| `2026-10-22-limite-de-verdad-usas-tres-cerebros.md` | La portada promete tres motores, en producción hay uno, y el prompt prohíbe revelar el proveedor |
+| `2026-10-22-limite-adolescente-con-un-contrato.md` | Paperwork + `modoEdad: "adolescente"` + un contrato de trabajo que le piden firmar mañana |
+
+**El que más me ha costado es el segundo**, y merece explicarse. Chocan tres
+cosas y las tres son verdad: la portada dice "Claude · Gemini · GPT"; en
+producción solo Gemini tiene clave, comprobado seis días seguidos; y el prompt
+prohíbe decir qué modelo contesta, que es **una buena regla** y no se rompe por
+esto. Un modelo sin instrucción hace lo peor de las dos: repite el folleto —hoy
+falso— o se pone a enumerar qué claves hay puestas, que es el panel de ajustes
+del dueño.
+
+La salida que he escrito dice la verdad incómoda **sin filtrar nada**: que Kairo
+*está montada* para usar varios motores y elegir —cierto, está en las cadenas de
+`config.ts`—, que cuál contesta no lo dice y por qué, y que **qué motores están
+disponibles depende de la configuración de quien lleva Kairo, que ella no ve**.
+Eso le da a la persona la pregunta exacta que tiene que hacer y a quién, sin
+decir cuáles faltan. Y lleva una nota al final para quien lo lea en un mes: este
+caso es difícil **porque hay una contradicción abierta en el producto**; el día
+que se pongan las claves o se cambien los textos, que lo simplifiquen.
+
+**Del tercero, lo que lo hace difícil**: un chaval de 16 con un contrato
+pregunta *"está bien, no?"*, que es exactamente lo que Kairo no puede contestar
+—consejo legal, y además no lo sabe—. Pero contestar "pregunta a un abogado" le
+deja peor que antes: lo que necesita no es un abogado, son **sus padres**. Así
+que la respuesta hace el trabajo igualmente —saca las cifras, señala la cláusula
+de horas complementarias y la de los 30 días de preaviso— y convierte el "¿está
+bien?" en **tres cosas que mirar con ellos**. Y desarma la prisa en una frase
+que le sirve para toda la vida: si te meten prisa para firmar, lee con más
+calma.
+
+**Cómo lo comprobé**: el tercero va en el formato de nueve etiquetas, así que lo
+he pasado por el `leerPapel()` de verdad —`papeles.ts` con stubs de sus siete
+dependencias, `hoy = 2026-10-22`—: `fechaLimite` sale **vacío**, que es lo
+correcto porque *"me lo piden mañana"* no es un plazo del documento;
+`borrador` vacío, 4 pasos, el importe entero, y `queQuieren` lleva la mención
+al adulto, que es donde tenía que ir. Los otros dos son de chat y no pasan por
+ningún parser.
+
+**Qué necesito del dueño**: nada nuevo. Los tres casos **apuntan a las dos
+preguntas que ya están hechas**: la capa de la cuenta de Gemini y qué hacer con
+los textos de la portada. Son casos difíciles porque esas dos siguen abiertas.
+
+**Mañana toca**: área 5, **evaluación**. Y le toca de verdad: tengo **seis casos
+nuevos** escritos en tres días —tres de Paperwork y el modo de edad, tres de
+hoy— y **ninguno medido**. Si mañana no se monta el banco de Paperwork y una
+pasada con `modoEdad` puesto, esto se convierte en una colección de prosa bien
+escrita que no mueve ningún número.
+
 ### 2026-10-21 — Conocimiento (área 3)
 
 **Qué cambié**: archivo nuevo,
