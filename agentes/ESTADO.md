@@ -3,46 +3,51 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-10-19 ([informe](informes/2026-10-19-estado.md))
-**Semáforo general**: 🔴 hay algo que bloquea el lanzamiento, y no es técnico
+**Última revisión**: 2026-10-22 ([informe](informes/2026-10-22-estado.md))
+**Semáforo general**: 🔴 nada de lo construido llega a nadie
 
 ## Métricas
 
-| Métrica | Valor | Anterior (16-10) | Tendencia |
+| Métrica | Valor | Anterior (19-10) | Tendencia |
 |---|---|---|---|
-| Web responde | sí, leído de `/api/estado`: 200 y "TODO CORRECTO" | sí, leído | = |
-| Cerebros con clave en producción | **1 de 3** (+ respaldo válido) | 1 de 3 | = tercer día |
-| Reloj de Co-Works | **8 de 72 toques/24 h**, peor hueco 4 h 50 | 5 en 24 h | ↓ el cron triplicó la petición y dio 1,4× |
-| Banco de pruebas del prompt | **12 de 12** evaluables | 11 de 12 | ↑ |
-| Tamaño del prompt (modo adulto) | 134 líneas | 122 | ↑ con techo medido |
-| Checklist de lanzamiento | 12 ✅ · 2 🟡 · 1 ⚪ de 15 | 12 de 15 | = |
-| Tareas cerradas (acumulado) | **12** | 8 | ↑ +4 en 3 días |
-| Commits **sin fusionar** en `main` | **34** | 19 | ↑ y esto es malo |
-| Turnos de agente perdidos | 0 en 9 días | 0 | = |
-| Preguntas al dueño sin contestar | 4, **siete días** | 6, cuatro días | ↓ en número, ↑ en días |
+| Web responde | sí, leído de `/api/estado`: 200 y "TODO CORRECTO" | sí | = |
+| Cerebros con clave en producción | **1 de 3** | 1 de 3 | = séptimo día |
+| Reloj de Co-Works | **5 de 72** toques/24 h · peor hueco 10 h 39 · **0 encargos perdidos** | 8 de 72 · 4 h 50 | ↓ en toques, **y no cuesta nada**: suena en vacío |
+| Telegram | el token está puesto **y Telegram lo acepta** | sin medir | ↑ primera medición |
+| Buscador | **encendido**, 10 modelos | sin medir | ↑ primera medición |
+| Respaldo de OpenRouter | 3 modelos, **los 3 a $0/M**, medido | solo "existen" | ↑ mejor prueba |
+| Banco de pruebas del prompt | 12 de 12 (sin repasar desde el 17-10) | 12 de 12 | = envejeciendo |
+| Casos de ejemplo escritos | **12**, de los que **0 medidos** | 6 | ↑ en material, = en medida |
+| Checklist de lanzamiento | 14 ✅ · 2 🟡 · 1 ⚪ de 17 | 12 ✅ de 15 | ↑ en filas, = en fondo |
+| Tareas cerradas (acumulado) | **14** | 12 | ↑ |
+| Commits **sin fusionar** en `main` | **47** | 34 | ↑ y esto es malo |
+| Turnos de agente perdidos | 0 en 12 días | 0 | = |
+| Preguntas al dueño sin contestar | 4, **diez días** | 4, siete días | ↑ en días |
 | Visitas · usuarios · ingresos | sin datos | sin datos | = sin analítica |
 
-Las tres últimas siguen sin datos porque **no hay analítica instalada**. Desde
-el 19-10 eso es una tarea propia del backlog y no una línea escondida dentro de
-otra. Qué haría falta está en **Fuentes de datos** de `CONTEXTO.md`.
+Las tres últimas siguen sin datos porque **no hay analítica instalada** (tarea
+propia del backlog desde el 19-10). Y hay una prueba más de lo mismo desde otro
+ángulo: el reloj informa de **0 Co-Works y 0 papeles**, o sea que todavía no hay
+nadie dentro.
 
 ## Veredicto de la última revisión
 
-**Kairo no se para por falta de trabajo: se para en la última puerta.** Hay 34
-commits comprobados que no han llegado a ningún usuario, y entre ellos está
-`/multas`, la primera página que podría traer gente desde Google.
+**Esta semana el sistema ha dejado de buscar averías y ha empezado a encontrar
+fallos de honestidad**: los dos hallazgos que importan estaban en **lo que Kairo
+promete**, no en lo que hace, y los dos están arreglados sin esperar ninguna
+decisión.
 
-El rojo del 16-10 no se ha movido —la portada promete tres cerebros y en
-producción hay uno—, y a su lado hay otro más simple: nada de lo construido se
-publica.
+1. `/precios` ya no afirma que no se entrena con tus conversaciones —dependía de
+   la capa de la cuenta de Gemini, sin comprobar— y dice en su lugar lo que sí
+   es verificable: **el archivo que subes no se guarda**.
+2. El respaldo de OpenRouter ya se vigila **en euros**: de cada modelo gratuito
+   existe un gemelo de pago con el id casi igual, así que perder el `:free` no
+   rompe nada, **empieza a cobrar**.
 
-En estos tres días el sistema cerró 4 tareas, llevó el banco de pruebas a 12 de
-12, recortó el prompt y luego cambió una regla incumplible por una comprobable,
-y descubrió un competidor español directo que no estaba en el mapa.
+**El rojo sigue por lo mismo que el 16 y el 19**: 47 commits sin fusionar, doce
+días, y la portada prometiendo tres cerebros con uno en producción. Nada de lo
+construido llega a nadie, y eso incluye la corrección de `/precios`, que en
+producción sigue sin aplicarse.
 
-**Y una corrección al informe del 16-10**, que escribió que "lo único que no
-avanza es lo que depende del dueño": es falso, y la prueba está en el código.
-En estos tres días él ha arreglado seis cosas en `kairo/`, incluida la raíz de
-un falso positivo del guardián. El dueño construye. Lo que no hace es
-**contestar preguntas y fusionar**, dos actos de un minuto que son justo los
-que convierten el trabajo en producto.
+**Y de las nueve cosas pendientes, siete se contestan en menos de cinco
+minutos.** No son tareas: son respuestas.
