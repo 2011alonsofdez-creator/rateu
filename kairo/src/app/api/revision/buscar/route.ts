@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { esDeAhora } from "@/lib/ia/ahora";
 
@@ -49,11 +50,10 @@ export async function POST(req: Request) {
   const supabase = await clienteServidor();
   if (!supabase) return Response.json({ error: "demo" }, { status: 503 });
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("id, modo_edad")
-    .limit(1)
-    .maybeSingle<{ id: string; modo_edad: "nino" | "adolescente" | "adulto" | null }>();
+  const { perfil } = await miPerfil<{
+    id: string;
+    modo_edad: "nino" | "adolescente" | "adulto" | null;
+  }>(supabase, "id, modo_edad");
 
   if (!perfil) return Response.json({ error: "sin_sesion" }, { status: 401 });
 

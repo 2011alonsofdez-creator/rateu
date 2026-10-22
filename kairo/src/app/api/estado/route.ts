@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { testigoValido } from "@/lib/telegram";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase, pistaDeUrl } from "@/lib/supabase/config";
@@ -332,6 +333,29 @@ export async function GET() {
       forja: cadenaDe("forja", "adulto"),
       mega: cadenaDe("mega", "adulto"),
       menores: cadenaDe("normal", "nino"),
+    },
+
+    /* SI EL BOT DE TELEGRAM ESTÁ PUESTO.
+ 
+       Solo si ha llegado el testigo, nunca su contenido ni su longitud:
+       con él, cualquiera escribe en nombre de tu bot a todo el que lo
+       tenga añadido.
+ 
+       Está aquí porque desde fuera esto no se veía de ninguna forma, y
+       la pantalla de Ajustes enseña exactamente lo mismo en dos casos
+       muy distintos: cuando no has puesto el testigo todavía, y cuando
+       lo has puesto pero no has vuelto a desplegar. Lo segundo es lo que
+       le pasa a todo el mundo, y sin esto no hay manera de distinguirlo
+       sin pedir una captura.
+ 
+       Enlazar la cuenta es aparte y es cosa de cada uno: eso lo dice
+       Ajustes, que sabe de quién es la sesión. */
+    telegram: {
+      bot_puesto: (process.env.TELEGRAM_BOT_TOKEN ?? "").trim().length > 0,
+      /* Y si Telegram lo acepta. Lo primero es "está puesto"; esto es
+         "sirve". Se separan porque un testigo anulado está puesto y no
+         sirve, y eso se pasó media mañana pareciendo otra cosa. */
+      testigo: await testigoValido(),
     },
 
     /* Los pagos son opcionales: sin configurar, los botones llevan a

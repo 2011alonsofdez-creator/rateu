@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { revisarSalud } from "@/lib/coworks/salud";
 import { DE_DONDE, SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
 import { mirarCerebros } from "@/lib/ia/cerebros";
@@ -86,13 +87,12 @@ export async function GET() {
   let modoEdad: string | null = null;
 
   if (supabase) {
-    const { data } = await supabase
-      .from("perfiles")
-      .select("id, modo_edad")
-      .limit(1)
-      .maybeSingle<{ id: string; modo_edad: string | null }>();
-    perfil = data?.id ?? null;
-    modoEdad = data?.modo_edad ?? null;
+    const { perfil: mio } = await miPerfil<{ id: string; modo_edad: string | null }>(
+      supabase,
+      "id, modo_edad",
+    );
+    perfil = mio?.id ?? null;
+    modoEdad = mio?.modo_edad ?? null;
   }
 
   try {

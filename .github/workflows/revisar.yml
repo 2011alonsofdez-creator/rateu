@@ -89,6 +89,39 @@ jobs:
               end
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
+          # Y si el bot de Telegram ha llegado al servidor. La pantalla
+          # de Ajustes enseña lo mismo cuando no lo has puesto y cuando
+          # lo has puesto sin volver a desplegar, que es lo que pasa
+          # siempre. Aquí se distingue.
+          jq -r '
+            .telegram as $t
+            | if ($t.bot_puesto // false) | not
+              then "Telegram: el bot NO esta puesto. Falta TELEGRAM_BOT_TOKEN en Vercel, o falta volver a desplegar despues de ponerlo."
+              elif ($t.testigo // "") == "rechazado"
+              then "Telegram: el testigo esta puesto pero Telegram lo RECHAZA. Es el viejo: lo anulaste en BotFather y falta poner el nuevo en Vercel y volver a desplegar."
+              elif ($t.testigo // "") == "valido"
+              then "Telegram: el bot esta puesto y Telegram lo acepta. Si Ajustes sigue pidiendolo, recarga la pagina."
+              else "Telegram: el bot esta puesto, pero no se ha podido preguntar a Telegram si sirve."
+              end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
+          # SI KAIRO PUEDE BUSCAR ANTES DE CONTESTAR.
+          #
+          # Es lo que separa "me contesta de memoria, de hace dos años"
+          # de "me contesta con lo de hoy", y no se veía por ningún
+          # lado: ni en la web ni aquí. Un interruptor apagado y una
+          # cadena sin ningún modelo que sepa buscar se leen igual desde
+          # fuera —respuestas viejas— y se arreglan distinto.
+          jq -r '
+            .busqueda as $b
+            | if ($b.apagada_a_mano // false)
+              then "Busqueda: APAGADA A MANO. Esta puesta la variable KAIRO_SIN_BUSQUEDA en Vercel: quitala y vuelve a desplegar. Mientras este asi, Kairo contesta de memoria."
+              elif (($b.modelos_que_buscan // []) | length) == 0
+              then "Busqueda: ningun modelo de la cadena sabe buscar. Kairo va a contestar de memoria siempre."
+              else "Busqueda: encendida, con \((($b.modelos_que_buscan // []) | length)) modelos que pueden buscar -> \((($b.modelos_que_buscan // []) | join(" , ")))"
+              end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
           {
             echo "## Estado de Kairo"
             echo

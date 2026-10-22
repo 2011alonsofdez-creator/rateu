@@ -192,7 +192,30 @@ jobs:
                   ;;
               esac
               ;;
-            200) ;;
+            200)
+              # QUÉ HA HECHO, NO SOLO QUE NO HA FALLADO.
+              #
+              # Un 200 decía "todo bien" y se callaba, y resulta que
+              # "todo bien" y "no te ha avisado de nada" eran la misma
+              # pantalla: el reloj sonaba, salía verde, y el móvil no
+              # pitaba. El cuerpo trae la cuenta de lo que ha hecho; se
+              # traduce aquí, que es donde se mira cuando falta un aviso.
+              mirados=$(printf '%s' "${cuerpo}" | jq -r '.plazos.mirados // "?"' 2>/dev/null || echo "?")
+              avisados=$(printf '%s' "${cuerpo}" | jq -r '.plazos.avisados // 0' 2>/dev/null || echo 0)
+              sin_sitio=$(printf '%s' "${cuerpo}" | jq -r '.plazos.sinSitio // 0' 2>/dev/null || echo 0)
+              fallidos=$(printf '%s' "${cuerpo}" | jq -r '.plazos.fallidos // 0' 2>/dev/null || echo 0)
+              coworks=$(printf '%s' "${cuerpo}" | jq -r '.mirados // "?"' 2>/dev/null || echo "?")
+
+              echo "::notice::Papeles que tocaba avisar hoy: ${mirados}. Al movil: ${avisados}. Al chat (sin Telegram enlazado): ${sin_sitio}. Fallidos: ${fallidos}."
+              echo "::notice::Co-Works mirados: ${coworks}."
+
+              if [ "${mirados}" = "0" ]; then
+                echo "::notice::Ninguno entraba: o el papel no tiene fecha, o esta marcado como hecho, o le faltan mas de 7 dias, o de ese tramo ya se aviso."
+              fi
+              if [ "${fallidos}" != "0" ]; then
+                echo "::error::Habia ${fallidos} aviso(s) con Telegram enlazado que NO se han podido mandar. Se dan por mandados igualmente, asi que ese tramo se pierde."
+              fi
+              ;;
             *)
               echo "::error::Kairo ha respondido ${codigo}"
               ;;

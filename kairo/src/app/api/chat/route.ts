@@ -1,4 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
+import { miPerfil } from "@/lib/supabase/mi-perfil";
 import {
   CREDITOS,
   ESFUERZO,
@@ -279,26 +280,25 @@ export async function POST(req: Request) {
     typeof cuerpo?.zona === "string" ? cuerpo.zona : undefined;
 
   /* Una sola consulta en vez de dos. Antes se pedía el usuario y después
-     su perfil; ahora se pide el perfil directamente, porque la seguridad
-     a nivel de fila ya se encarga de devolver únicamente el de quien
-     pregunta. Sin sesión no hay fila, así que sigue sin haber manera de
-     ver lo ajeno: se ahorra un viaje de ida y vuelta, no una comprobación.
-     Y si además hay Mente, las dos consultas salen a la vez, así que
-     usarla no cuesta ni un milisegundo de espera de más. */
-  const consultaPerfil = supabase
-    .from("perfiles")
-    .select("id, auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono")
-    .limit(1)
-    .maybeSingle<{
-      id: string;
-      auth_id: string;
-      nombre: string | null;
-      plan: PlanId;
-      creditos: number;
-      creditos_extra: number;
-      modo_edad: ModoEdad | null;
-      tono: string | null;
-    }>();
+     su perfil; ahora se pide el perfil directamente, y sale a la vez que
+     la Mente y la memoria, así que usarlas no cuesta ni un milisegundo
+     de espera de más.
+
+     Lo que SÍ cambió: esto era un `.limit(1)` confiando en que la
+     seguridad a nivel de fila devolvería solo el tuyo. Devuelve el tuyo
+     y el de los hijos que tengas a cargo —para eso está la política—,
+     así que con un hijo había dos filas y la que saliera primero no la
+     decidía nadie. `miPerfil` pide la tuya por su nombre. */
+  const consultaPerfil = miPerfil<{
+    id: string;
+    auth_id: string;
+    nombre: string | null;
+    plan: PlanId;
+    creditos: number;
+    creditos_extra: number;
+    modo_edad: ModoEdad | null;
+    tono: string | null;
+  }>(supabase, "id, auth_id, nombre, plan, creditos, creditos_extra, modo_edad, tono");
 
   // Aquí tampoco hace falta filtrar por dueño: RLS solo deja ver las tuyas,
   // así que pedir una Mente ajena por su id devuelve simplemente nada.
@@ -325,7 +325,7 @@ export async function POST(req: Request) {
     consultaMente,
     consultaMemoria,
   ]);
-  const perfil = resPerfil.data;
+  const perfil = resPerfil.perfil;
   const mente = resMente?.data ?? null;
 
   /* Sin la migración 0012 esta tabla no existe, y eso NO puede tirar el
