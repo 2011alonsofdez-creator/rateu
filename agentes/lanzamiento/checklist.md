@@ -9,18 +9,19 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | La web responde | 2026-10-21 | `revisar.yml` lanzado hoy (ejecución 39548339498, 05:13 UTC): HTTP 200 y "TODO CORRECTO". El intento directo desde la sede sigue dando **403 del proxy** al abrir el túnel, que es ⚪ y no 🔴 |
-| ✅ | No está en modo privado de Vercel | 2026-10-21 | 200 limpio; el workflow distingue el 401 de Vercel y no ha salido |
-| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-21 | **6 toques en 24 h** de los 72 del cron, peor hueco **5 h 00**. Confirma lo de ayer y no lo empeora: la serie va 3 → 4 → 6 → 5 → 7 → 8 → 4 → **6**, o sea **entre 4 y 8**, una media del 8% de lo pedido. Una de las ejecuciones de ayer (la 114) se creó a las 19:25 y **no arrancó hasta las 21:55**: ahí se ve el mecanismo, GitHub la aparca. Las 116 ejecuciones, en verde |
-| 🟡 | `/api/estado` sin variables que falten | 2026-10-21 | "TODO CORRECTO", y **quinto día con un cerebro de tres**: Gemini sí, Claude NO, GPT NO. Novedad buena: el log de hoy ya dice **"Telegram: el bot está puesto en el servidor"** —el dueño añadió esa comprobación ayer—, así que el canal de los avisos de plazos tiene su token |
+| ✅ | La web responde | 2026-10-22 | `revisar.yml` lanzado hoy (ejecución 39726791674, 05:13 UTC): HTTP 200 y "TODO CORRECTO". El intento directo desde la sede sigue en 403 del proxy: ⚪ |
+| ✅ | No está en modo privado de Vercel | 2026-10-22 | 200 limpio; el workflow distingue el 401 de Vercel y no ha salido |
+| 🟡 | El reloj de Co-Works sigue sonando | 2026-10-22 | **El peor hueco en nueve días: 10 h 39** (del 21-10 a las 00:59 hasta las 11:38). **5 toques programados** en 24 h de los 72 del cron. Y hoy, por primera vez, se sabe **qué hizo** cada toque, porque el dueño lo añadió ayer: *"Co-Works mirados: 0. Papeles que tocaba avisar hoy: 0"*. O sea que **el reloj suena en una casa vacía** y ese hueco de diez horas y media **no ha perdido ni un encargo**. Sigue habiendo que arreglarlo antes del primer Co-Work de verdad, no antes de mañana. Ojo al contar: hoy hubo además 3 ejecuciones a mano del dueño, que **no** son el reloj y no se cuentan |
+| 🟡 | `/api/estado` sin variables que falten | 2026-10-22 | "TODO CORRECTO", y **sexto día con un cerebro de tres**. Dos mejoras del dueño en el diagnóstico: **"Telegram: el bot está puesto y Telegram lo acepta"** —ya no es solo que esté, es que el token vale— y **"Búsqueda: encendida, con 10 modelos que pueden buscar"** |
 | ⚪ | `/revision` sin migraciones pendientes | — | Igual |
+| ✅ | **El buscador está encendido** | 2026-10-22 | Del log de hoy: "Búsqueda: encendida, con 10 modelos que pueden buscar". Importa para el prompt: el bloque que se aplica en producción es `CON INTERNET`, no `SIN INTERNET` |
 | ✅ | Los tres modelos de respaldo **siguen siendo gratis** | 2026-10-21 | **Medido hoy**, no supuesto, con el workflow `buscar-modelo.yml` que el dueño añadió ayer: `nvidia/nemotron-3-ultra-550b-a55b:free`, `thinkingmachines/inkling:free` y `poolside/laguna-s-2.1:free` salen los tres a **$0/M de entrada y $0/M de salida**. Ojo al detalle que esto destapa: existen sus gemelos de pago con el id casi idéntico —`thinkingmachines/inkling` a $1/$4,05 y `poolside/laguna-s-2.1` a $0,09/$0,18—, así que **perder el `:free` del nombre no rompe nada: empieza a cobrar** |
 
 ## Está sana
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Sin claves en el código | 2026-10-21 | Limpio en `kairo/src`, `supabase/` y `docs/` |
+| ✅ | Sin claves en el código | 2026-10-22 | Limpio en `kairo/src`, `supabase/` y `docs/`, con los 14 commits nuevos de `main` ya mirados |
 | ✅ | Ningún secreto detrás de `NEXT_PUBLIC_` | 2026-10-18 | Los aciertos son **nombres** de variables en la página de diagnóstico y en `/api/estado`: URL del proyecto y claves anon/publishable, públicas por diseño |
 | ✅ | Título y meta descripción propios | 2026-10-12 | `kairo/src/app/layout.tsx` |
 | ✅ | Favicon | 2026-10-12 | `kairo/src/app/icon.svg` |
@@ -33,5 +34,5 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 
 | | Qué | Verificado | Cómo |
 |---|---|---|---|
-| ✅ | Los agentes se ejecutan | 2026-10-21 | Ayer entregaron los cinco, que es el día completo: guardián, radar (cerró el informe del 19), entrenador (ejemplos), constructor (`/cartas-de-hacienda`) y crecimiento (mercado). Once días sin perder un turno |
+| ✅ | Los agentes se ejecutan | 2026-10-22 | Ayer entregaron los tres que tocaban: guardián, entrenador (conocimiento) y constructor (`/precios`). Doce días sin perder un turno |
 | ✅ | Parte diario del constructor | 2026-10-13 | El del 12-10 está en `agentes/diario/2026-10-12.md`, con la sección del entrenador conservada |
