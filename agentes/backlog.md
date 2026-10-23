@@ -243,9 +243,10 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   La tabla entera, con las seis intenciones y sus fuentes, en
   `agentes/mercado/2026-10-17-mercado.md`.
 
-  **Partida el 19-10. Van dos de seis**: `/multas` (19-10) y
-  `/cartas-de-hacienda` (20-10), las dos enteras y en los dos idiomas (abajo,
-  en Hecho). Quedan cuatro, por este orden: `/contratos`, `/resumir-video`,
+  **Partida el 19-10. Van tres de seis**: `/multas` (19-10),
+  `/cartas-de-hacienda` (20-10) y `/contratos` (23-10), las tres enteras y en
+  los dos idiomas (abajo, en Hecho). Quedan tres, por este orden:
+  `/resumir-video`,
   una sobre el "sin suscripción" que `/precios` solo responde a medias, y
   `/avisos-de-plazos`, **que va la última a propósito**: es la única que
   necesita el reloj arreglado (P1), y el guardián midió hoy que el reloj no
@@ -362,6 +363,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Lo que falta para que el guardián lo vea cada mañana** son tres líneas en
   `.github/workflows/revisar.yml`, que es del dueño. El `jq` exacto está en el
   parte del 22-10; en cuanto diga que sí, se pega y queda cerrado del todo.
+
+- **`/contratos`: la tercera página de intención, y la primera que llega antes del problema.** `[hecho 2026-10-23]`
+  `kairo/src/app/contratos/page.tsx` (servidor, con su `title`, `description`,
+  `canonical` y Open Graph propios) y `contenido.tsx` (cliente, **español e
+  inglés**), misma estructura que las dos anteriores. En `sitemap.ts`.
+  **Lo que la hace distinta, y le cambia el tono entero**: una multa y una carta
+  de Hacienda ya han pasado, y lo único que queda es reaccionar. Un contrato
+  **no ha pasado todavía**: está encima de la mesa sin firmar. Así que aquí lo
+  útil no es explicar lo que te han hecho, es decir **qué mirar antes**, y eso
+  es lo que ordena la página: por qué antes y no después, y luego los tres
+  contratos que la gente trae de verdad —alquiler, trabajo, servicios y
+  suscripciones— con lo que hay que mirar en cada uno. Lo caro casi nunca está
+  en la primera página: el precio sí, pero lo que cuesta irse, la subida anual
+  y la renovación automática están en la cuarta, en una frase.
+  **La disciplina de siempre, y una línea nueva**: ni plazos ni importes de
+  memoria (los de un contrato salen del contrato) y ni una cifra de créditos.
+  Y la nueva: **Kairo no dice si un contrato es bueno, malo o abusivo**. Eso es
+  una opinión jurídica, depende de la ley y del caso y no sale del PDF. Dice qué
+  pone, qué te compromete y qué preguntar antes de firmar; puede señalar que
+  algo llama la atención. Prometer "te avisa de las cláusulas abusivas" habría
+  sido prometer lo que no se puede sostener leyendo solo el papel, que es
+  justo el fallo de honestidad que el radar señaló esta semana.
+  Comprobado con `tsc --noEmit` 0, `next build` 0 y **leyendo el HTML
+  generado**: `title`, `description`, `canonical` absoluto, Open Graph y el
+  titular pre-renderizado. El `sitemap.xml` generado lista ya las **tres**
+  páginas de intención.
 
 - **`/cartas-de-hacienda`: la segunda página de intención.** `[hecho 2026-10-20]`
   `kairo/src/app/cartas-de-hacienda/page.tsx` (servidor, con su `title`,
