@@ -128,8 +128,12 @@ sin abrir ninguna web: confirmar antes de usarlas en público.
   vez por hora, no admiten archivos y **informan en vez de ejecutar**.
 - **Google AI Pro**, 21,99 €/mes, con Scheduled Actions para Pro y Ultra.
   Ojo: Google es a la vez proveedor de Kairo y competidor.
-- **Álex (Legálitas)**, gratis, en español, >600.000 usuarios declarados.
-  Ocupa el sitio mental de "IA legal gratis".
+- **Álex (Legálitas)**, gratis, en español. El 14-10: >600.000 usuarios
+  declarados. **Actualizado el 23-10: un millón de usuarios únicos** en su
+  primer año y >2 millones de consultas, y proyectan cerrar 2026 con más de
+  2 millones de usuarios ([Legálitas, 7-7-2026](https://www.legalitas.com/actualidad/alex-asistente-legal-millon-usuarios)).
+  Cifras de la empresa. Ocupa el sitio mental de "IA legal gratis", y se ha
+  multiplicado por 1,7 en siete meses.
 
 ~~**Nadie vende créditos recargables sin suscripción en español.** Ese hueco
 existe de verdad y es el mejor sitio de Kairo.~~
@@ -155,11 +159,33 @@ Kairo y son españoles. Cifras de resultados de búsqueda, sin abrir ninguna web
   obligatoria**: trámites sueltos **desde 2,99 €**, Plus 4,99 €/mes,
   vigilancia 9,99 € de **pago único** por ciudad. Sale **primero** en la
   búsqueda con intención de usuario; Kairo no sale.
-- **Lexlyia** (`lexlyia.com`) — asesor legal con IA en español. Particular
-  **9,90 €/mes** (a un céntimo de Kairo+), autónomos 29 €, pyme 79 €.
-- **Lexly** (App Store ES, Lend Power SL) — analiza documentos legales **con
-  una foto**, fiscal y laboral en España, **gratis**. Hace gratis el gancho de
-  Paperwork.
+- ~~**Lexlyia** (`lexlyia.com`) — asesor legal con IA en español. Particular
+  **9,90 €/mes**, autónomos 29 €, pyme 79 €.~~
+  **SIN VERIFICAR desde el 2026-10-23**: la búsqueda no devuelve nada con ese
+  nombre. Lo parecido son otros productos (Lexiel AI, Madrid, para despachos;
+  Lexly AI, EE. UU.; LexIA, licencia con créditos). No se usa para decidir
+  hasta que se abra su web.
+- ~~**Lexly** (App Store ES, Lend Power SL) — analiza documentos legales **con
+  una foto**, fiscal y laboral en España, **gratis**.~~
+  **SIN VERIFICAR desde el 2026-10-23**: no aparece ninguna ficha española. Lo
+  que sale es *Lexly SE*, sueca y de pago por documento.
+- **LexScan** (`lexscan.cc` y App Store) — **nuevo el 23-10, y ocupa el modelo
+  de cobro de Kairo en su nicho.** Fotografías un contrato, un alquiler o un
+  NDA y lo desglosa, con **nota de riesgo 0-10** y puntuación por cláusula.
+  **5 análisis gratis y después 9 $ por 50, sin suscripción**
+  ([Product Hunt](https://www.producthunt.com/products/lexscan),
+  [App Store](https://apps.apple.com/mx/app/lexscan/id6759403197)). Y promete
+  en su ficha que **no guarda los documentos** y que borra los datos tras
+  procesarlos. No es español ni de ley española, y solo hace contratos.
+- **GovEasy, actualizado el 23-10**: ahora tiene **plan Free a 0 €** con 2
+  gestiones al mes y 30 consultas al día a su IA, además de los sueltos desde
+  2,99 € ([precios](https://es.goveasy.eu/precios), de búsqueda). Su puerta
+  gratis es hoy mejor que la de Kairo.
+- **ChatGPT, actualizado el 23-10**: las tareas programadas se **relanzaron el
+  17 de junio de 2026** y están en **todos los planes de pago, incluido Go**,
+  con intervalos propios y monitorización de webs en tiempo real
+  ([guía](https://findskill.ai/es/blog/tareas-programadas-chatgpt/)). El dato
+  del 14-10 —"una vez por hora, informan en vez de ejecutar"— ya no vale.
 
 **Dónde gana Kairo**: amplitud. Es un asistente completo —Gist, Mentes,
 memoria, cuatro niveles— y no cobra por trámite. **Dónde pierde**: en la

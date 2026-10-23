@@ -221,6 +221,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Kairo no sabe que alegar una multa quema el descuento del 50%.** `[origen: crecimiento 2026-10-23]`
+  Lo dice la sede electrónica de la DGT en su página de alegaciones: hay **20
+  días naturales desde el día siguiente** a la notificación para alegar, y *"con
+  la presentación de una alegación renunciarás a cualquier derecho a la
+  reducción del 50% del importe de la multa"*
+  ([sede.dgt.gob.es](https://sede.dgt.gob.es/es/multas/presentacion-de-alegacion-o-recurso-a-una-multa/)).
+  **Dónde está hoy, mirado en el código**: `/multas` sí lo advierte
+  (`kairo/src/app/multas/contenido.tsx:37`, "casi siempre implica renunciar a
+  recurrir"), pero `grep` de "descuento", "50%" y "pronto pago" en
+  `kairo/src/lib/ia/prompt.ts` y `kairo/src/lib/ia/papeles.ts` da **cero
+  coincidencias**. O sea: lo sabe la página y no lo sabe el producto, y
+  Paperwork tiene una etiqueta `PASOS` que es exactamente donde va a salir ese
+  consejo.
+  **Por qué importa más que un matiz**: es una disyuntiva con dinero dentro y va
+  en sentido contrario al que ayuda un asistente. Quien alega sin saberlo y
+  pierde —la mayoría pierden— paga el doble de lo que habría pagado callándose.
+  **Arreglo**: el hecho va a `agentes/ia/conocimiento/` y de ahí al prompt por
+  el cable que el entrenador construye el 24-10 (anotado en
+  `agentes/diario/2026-10-23.md`). Es una tarde suya y no toca nada prohibido.
+  **Cuidado al escribirlo**: el plazo de 20 días naturales es **de la DGT**; una
+  multa municipal puede tener otro, así que el hecho que entra es el canje
+  (alegar pierde el 50%) y "la fecha y el plazo salen de tu notificación", nunca
+  un número recitado de memoria.
+
 - **Kairo no tiene ni una página que responda a quien busca su problema.** `[origen: crecimiento 2026-10-17]`
   Contado en el código: `kairo/src/app` solo tiene **tres páginas públicas**
   —`/`, `/precios` y `/legal`—, y el `sitemap.ts` lista esas tres. Todo lo demás
@@ -253,6 +277,17 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   solo va lento, **va a saltos** —entre 4 y 8 toques al día de los 72
   pedidos—, así que prometer avisos a su hora sería mentir dos veces. Una
   tarde cada una.
+
+  **Decisión pendiente del dueño, y bloquea las tres que quedan** `[crecimiento 2026-10-23]`:
+  **¿qué dice Kairo de las cláusulas abusivas?** `/contratos` se publicó el
+  23-10 diciendo que Kairo **no** dice si un contrato es bueno, malo o abusivo,
+  porque es una opinión jurídica y no sale del PDF. El mercado promete lo
+  contrario: LexScan da una **nota de riesgo de 0 a 10** por documento y por
+  cláusula, y Leaseify promete señalar *"cláusulas ilegales"*. Las dos
+  respuestas son defendibles —sostener la prudencia y venderla ("no te invento
+  una nota") o cambiarla—, pero hay que elegir una antes de escribir
+  `/resumir-video` y la de "sin suscripción", porque es el tono de las tres.
+  El texto son diez minutos; la decisión es suya.
 
 - **Paperwork no tiene banco de pruebas, y es el diferencial.** `[origen: entrenador 2026-10-16]`
   Su prompt vive en `lib/ia/papeles.ts` y no se parece al maestro: pide un
