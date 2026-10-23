@@ -71,6 +71,75 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-23 — Evaluación (área 5)
+
+**Qué hice**: la segunda pasada completa del banco, seis días después de la
+primera y con el prompt cambiado cuatro veces en medio. Resultado en
+`agentes/ia/evals/resultados/2026-10-23.md`, y el banco ampliado a 14 casos.
+
+**Tres cosas que esta pasada hace distinto:**
+
+1. **Se evalúa con la configuración que corre de verdad.** El banco decía
+   "Buscador: no". El log del 22-10 dice *"Búsqueda: encendida, con 10 modelos
+   que pueden buscar"*. O sea que **las cuatro pasadas anteriores juzgaron un
+   prompt que producción no usa**: donde ellas leían `SIN INTERNET`, Kairo lee
+   `BUSCAS ANTES DE CONTESTAR`. Corregido en la ficha del banco; el caso 2 se
+   queda sin buscador porque es justo lo que prueba.
+2. **Se evalúan los dos casos que nunca se habían podido evaluar**: el 3
+   (Paperwork, contra el `SISTEMA` de `papeles.ts`) y el 6 (modo niño,
+   renderizando con `modoEdad: "nino"`, 147 líneas).
+3. **Se añaden los seis casos del 20 y el 22-10** como casos 9 a 14 del banco.
+
+**Resultado**: **25 de 28** en 14 casos evaluables, frente a 12 de 12 en 6.
+Los ocho originales, todos a 2. Los seis nuevos, **9 de 12**: tres unos.
+
+**Y lo digo en este orden a propósito, porque el 89% es el dato menos
+importante de hoy.** Los ocho originales a 2 no son una buena noticia: son el
+instrumento agotado. Llevaba cuatro pasadas midiendo lo mismo. Lo que ha
+encontrado algo son los seis nuevos, y lo han encontrado porque salen de
+problemas reales de esta semana.
+
+**Los tres unos, que son el trabajo de las próximas áreas:**
+
+| # | Qué falta |
+|---|---|
+| 10 | `papeles.ts` prohíbe el consejo fiscal pero **no dice que no se deje a la persona con las manos vacías** cuando no puede contestar. Cumpliría la regla y fallaría a quien pregunta |
+| 11 | `LO QUE CUESTA USARTE` —tabla de créditos y euros— está en **todas** las respuestas, también hablando con un niño al que `NINOS` le prohíbe el dinero real. **El prompt nunca resuelve esa colisión** |
+| 12 | Ver abajo: es el hallazgo del día |
+
+**EL HALLAZGO: la base de conocimiento no está conectada al prompt.**
+
+El caso 12 —"¿qué hacéis con mis datos?"— no lo puede contestar Kairo, y no por
+una regla que falte: **por un cable**. Anteayer escribí
+`agentes/ia/conocimiento/datos-y-privacidad.md` con los cuatro hechos
+verificados en el código, incluido el bueno —**el archivo que subes no se
+guarda**—, que es exactamente lo que hay que decirle a quien duda antes de subir
+una carta con su DNI.
+
+Y lo he comprobado hoy en `construirPrompt()`: el prompt se arma con `BASE`,
+`TU TONO`, `CAPACIDADES`, `bloqueProducto()`, la fecha, los hechos buscados, la
+memoria, el bloque de internet, archivos, Forja, la Mente y el modo de edad. De
+`agentes/ia/conocimiento/` **no entra nada**. La carpeta `agentes/` es de los
+agentes y no viaja con la app; la única mención en el código es un
+**comentario**.
+
+Así que **todo lo que escriba en esa carpeta está escrito para nadie** mientras
+no exista el cable. Dos días de trabajo mío del área 3, con cero efecto en una
+sola respuesta de Kairo. Lo digo entero porque es mi propio trabajo el que
+queda en el aire.
+
+**Lo que haría, y es pequeño**: un bloque a mano como `CAPACIDADES`, con los
+cuatro hechos y un comentario que diga de dónde salen y que si cambia
+`api/paperwork/route.ts` hay que volver ahí. Generarlo como `bloqueProducto()`
+no se puede: esos hechos no son constantes, son el comportamiento de dos rutas.
+
+**Qué necesito del dueño**: nada para esto. Es trabajo mío.
+
+**Mañana toca**: área 6, tono. Pero **me la salto y hago el cable**, porque un
+hallazgo de hoy que deja mi propio trabajo sin efecto pesa más que la rotación,
+y porque es exactamente lo que el área 1 haría la semana que viene. Lo anoto
+aquí para que se vea que es una decisión y no un despiste.
+
 ### 2026-10-22 — Casos límite (área 4)
 
 **Qué cambié**: tres casos nuevos en `agentes/ia/ejemplos/`. Ninguno es
