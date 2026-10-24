@@ -70,7 +70,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   hacer el constructor en una tarde si se le dice que sí, y encaja con el
   cambio de textos que ya pidió el de crecimiento.
 
-- **Las preguntas al dueño llevan 7 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-19]`
+- **Las preguntas al dueño llevan 12 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-24]`
   `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
   falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
   tienda de pagos está encendida y si Kairo está lanzada. Mientras no lleguen,
@@ -78,6 +78,14 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   supuestos que pueden ser falsos (están escritos en `CONTEXTO.md`).
   **No hay nada que un agente pueda hacer aquí.** Se anota como P1 para que se
   vea el tiempo que lleva, no para que alguien lo resuelva.
+  **Repaso del guardián del 24-10**: `notas.md` sigue vacío (doce días), y la
+  lista de lo que espera decisión ya es de nueve cosas, no de cuatro: las
+  cuatro de `notas.md`, el merge (51 commits, trece días), el minuto de AI
+  Studio, las claves o los textos de la portada (noveno día con un cerebro),
+  las tres líneas de `jq` del 22-10, los enlaces a las tres páginas de
+  intención, la dirección para los fallos de usuarios y, desde ayer, qué dice
+  Kairo de las cláusulas abusivas. Siete de ellas se contestan en menos de
+  cinco minutos.
 
 - **Dos precios más que chocan entre el documento y el código.** `[origen: entrenador 2026-10-14]`
   Un Co-Work ejecutado cobra **4** créditos (`api/coworks/ejecutar/route.ts:49`,
