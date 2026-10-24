@@ -71,6 +71,64 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-24 — El cable del conocimiento (fuera de rotación, en lugar del área 6)
+
+**Qué cambié**: `kairo/src/lib/ia/prompt.ts`. Un bloque nuevo, `PRIVACIDAD`
+(25 líneas), escrito a mano como `CAPACIDADES`, y enganchado en
+`construirPrompt()` justo detrás de `bloqueProducto()`. Dice lo que se guarda de
+un papel y de una conversación, que **el archivo en sí no se guarda**, que un
+papel se puede borrar y que la memoria solo guarda lo que se le pide. Y lo que
+**prohíbe**: negar que se entrene con los datos del usuario.
+
+**Por qué**: ayer, evaluando, encontré que `agentes/ia/conocimiento/` **no llega
+al prompt** —esa carpeta es de los agentes y no viaja con la app—, así que los
+cuatro hechos de privacidad que escribí el 21-10 llevaban tres días sin efecto
+en una sola respuesta, y el caso 12 del banco ("¿qué hacéis con mis datos?")
+seguía puntuando 1. Hoy me tocaba tono y lo dejé anotado: me lo salto para hacer
+el cable, porque es la pregunta que decide si alguien sube su multa o no, y
+porque de nada sirve afinar el tono de una respuesta que Kairo no puede dar.
+
+**Lo que más me ha costado decidir, y es la mitad del cambio**: que el bloque
+diga explícitamente **"no digas que no se entrena con sus datos"**. `/precios`
+sí lo niega. Pero eso depende de la capa en la que esté la cuenta de Gemini y
+nadie lo ha comprobado (P1 del 20-10). Que lo prometa una página es la empresa
+hablando; que lo prometa Kairo en una conversación es la IA respaldando algo que
+no puede ver. Lo que sí puede hacer es contar qué dice la página y dónde se
+pregunta de verdad. El día que el dueño confirme la capa de pago, se quita esa
+frase y Kairo puede decir "No" con todas las letras.
+
+**Cómo lo comprobé**: arnés en el borrador que importa el `prompt.ts` **real**
+con los imports apuntando a sustitutos mínimos (y los valores de créditos
+copiados de `config.ts` y `planes.ts`, no inventados), ejecutado con
+`node --experimental-strip-types`. Tres configuraciones:
+
+| Configuración | Líneas (antes → ahora) | Bloque | Orden |
+|---|---|---|---|
+| adulto, sin buscador | 134 → **159** | sale | coste < privacidad < internet |
+| adulto + buscador (**lo de producción**) | 147 → **172** | sale | coste < privacidad < internet |
+| niño + buscador | → **185** | sale | coste < privacidad < internet < edad |
+
+Y las cinco frases que importan salen literalmente en las tres. Además
+`npx tsc --noEmit` salida 0 y `npx next build` salida 0.
+
+**Lo que este cambio cuesta, dicho a las claras**: **+25 líneas**, un 19% más de
+prompt en cada llamada. Es el bloque más caro que he añadido, y lo defiendo
+porque sustituye a una respuesta inventada sobre datos personales. Pero deja al
+área 7 (recorte) con trabajo de verdad la próxima vez que caiga.
+
+**Lo que NO he hecho hoy, y tiene sitio**: el hecho que trajo crecimiento ayer
+—alegar una multa de la DGT hace renunciar al descuento del 50%— no entra en
+este bloque. Va en el prompt de Paperwork (`papeles.ts`), que es donde se decide
+qué poner en `PASOS`, y eso es un cambio distinto en otro archivo. Un cambio al
+día: mañana.
+
+**Qué necesito del dueño**: el minuto de Google AI Studio. De él depende que
+este bloque pierda su última frase y que `/precios` recupere su "No".
+
+**Mañana toca**: el canje del 50% en `papeles.ts` (sigue siendo área 3,
+conocimiento), y después vuelve la rotación por el área 6, tono, que hoy se ha
+saltado a propósito.
+
 ### 2026-10-23 — Evaluación (área 5)
 
 **Qué hice**: la segunda pasada completa del banco, seis días después de la

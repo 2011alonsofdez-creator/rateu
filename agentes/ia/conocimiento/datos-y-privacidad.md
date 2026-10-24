@@ -1,6 +1,12 @@
 # Qué se guarda de lo que le mandas a Kairo
 
-**Última revisión**: 2026-10-21
+**Última revisión**: 2026-10-24
+**Dónde se usa, desde el 2026-10-24**: los cuatro hechos de abajo están
+escritos a mano en el bloque `PRIVACIDAD` de `kairo/src/lib/ia/prompt.ts`,
+porque esta carpeta **no viaja con la app** y por tanto nunca llegaba al
+prompt (lo descubrió el banco de pruebas del 23-10). Así que este archivo es
+la fuente y el bloque es la copia: **si cambias algo aquí, cámbialo allí**, o
+Kairo seguirá diciendo lo de antes.
 **Cómo se ha hecho**: leyendo el código que guarda, no la política de
 privacidad. Cada afirmación lleva el archivo y la línea donde se comprueba.
 **Cuándo revisarlo**: cuando cambie `api/paperwork/route.ts`, `api/chat/route.ts`
@@ -28,7 +34,9 @@ el contenido del fichero. Esto es un hecho del código, no una promesa de una
 página: quien quiera comprobarlo mira esas líneas.
 
 **Se puede borrar.** Hay un `DELETE` que borra el papel guardado
-(`route.ts:160`). Lo que no vuelve es lo que ya se mandó al modelo, como en
+(`route.ts:177`, comprobado otra vez el 24-10 — era la 160 el 21-10 y el
+archivo ha crecido con el merge; es un `delete()` de verdad, no el `update`
+de estado de la línea 164, que es otra cosa). Lo que no vuelve es lo que ya se mandó al modelo, como en
 cualquier sitio.
 
 ## El chat

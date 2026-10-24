@@ -174,6 +174,63 @@ la cuenta, que es donde está el dato de verdad. No la estimes: un precio
 inventado se descubre pagando, y eso no se arregla con una disculpa.`;
 }
 
+/* Lo que se guarda de lo que te manda la gente.
+ *
+ * Este bloque existe por un fallo de fontanería, no de redacción. El 21-10
+ * se escribió `agentes/ia/conocimiento/datos-y-privacidad.md` con los
+ * hechos sacados del código, y el 23-10 el banco de pruebas descubrió que
+ * **esa carpeta no llega al prompt**: es de los agentes y no viaja con la
+ * app. O sea que Kairo seguía sin poder contestar "¿qué hacéis con mis
+ * datos?", que es la pregunta que decide si alguien sube su multa o no
+ * (caso 12 del banco, puntuado 1). Esto es el cable: los hechos escritos a
+ * mano aquí, como `CAPACIDADES`.
+ *
+ * De dónde sale cada cosa, para que se pueda volver a comprobar:
+ *   - lo que se guarda de un papel y el nombre del archivo →
+ *     `api/paperwork/route.ts:111` y siguientes (el `insert` en `papeles`);
+ *   - que el archivo NO se guarda → ese mismo `insert`: no hay ninguna
+ *     columna con el contenido del fichero;
+ *   - que un papel se puede borrar → `api/paperwork/route.ts:177`, un
+ *     `delete()` de verdad, no un cambio de estado;
+ *   - que las conversaciones sí se guardan → `api/chat/route.ts:171-205`;
+ *   - que la memoria solo guarda lo pedido → `api/chat/route.ts:352-356`.
+ *
+ * SI CAMBIA ALGUNO DE ESOS DOS ARCHIVOS, HAY QUE VOLVER AQUÍ. Un prompt que
+ * promete privacidad con datos viejos es peor que uno que no promete nada.
+ *
+ * Y lo que este bloque PROHÍBE decir es tan importante como lo que afirma:
+ * Kairo no puede negar que se entrene con los datos. La página de precios lo
+ * niega, pero eso depende de la capa en la que esté la cuenta de Gemini, y
+ * nadie lo ha comprobado todavía (P1 del 20-10). Que lo diga una página es
+ * una promesa de la empresa; que lo diga Kairo en una conversación es la IA
+ * respaldando algo que no puede ver. */
+const PRIVACIDAD = `
+
+LO QUE SE GUARDA DE LO QUE TE MANDAN
+Esto sale del código que guarda, así que lo puedes decir sin matizarlo:
+- De un papel que te suben se guarda **lo que has leído** —título, remitente,
+  de qué va, qué quieren, importe, fecha límite, consecuencias, pasos y
+  borrador— y el **nombre** del archivo.
+- **El archivo en sí no se guarda.** La foto o el PDF llegan al motor que los
+  lee y no se escriben en ninguna tabla.
+- **Un papel guardado se puede borrar**, desde Paperwork, y se borra de verdad.
+- **Las conversaciones sí se guardan**, para que puedan volver mañana a la de
+  hoy.
+- **De memoria solo guardas lo que te han pedido recordar.** No vas apuntando
+  cosas por tu cuenta.
+
+Y hay cinco cosas que NO SABES, aunque insistan: cuánto tiempo se conserva
+todo, si hay copias de seguridad, quién puede verlo por dentro, si se cifra, y
+**si lo que te mandan se usa para entrenar modelos**. Las cinco se contestan
+igual: no lo sabes, está en los textos legales y en la página de precios, y si
+a esa persona le importa de verdad, que se lo pregunte a quien lleva Kairo.
+
+Esa última, con cuidado: **no digas que no se entrena con sus datos**. Puedes
+decir qué afirma la página de precios; afirmarlo tú es distinto, porque depende
+de un contrato con el proveedor del motor que desde aquí no ves. Y quien
+pregunta eso suele estar decidiendo si te manda un papel con su DNI: se merece
+la frontera exacta entre lo que sabes y lo que no, no una frase tranquilizadora.`;
+
 /* Lo que se le dice cuando NO tiene buscador.
    Antes esto estaba dentro del bloque de "no te inventes nada", como si
    fuese una verdad permanente. Dejó de serlo el día que Kairo aprendió a
@@ -485,6 +542,8 @@ export function construirPrompt({
   prompt += CAPACIDADES;
 
   prompt += bloqueProducto();
+
+  prompt += PRIVACIDAD;
 
   prompt += bloqueFecha(zonaValida(zonaHoraria));
 
