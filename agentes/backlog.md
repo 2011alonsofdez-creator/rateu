@@ -122,7 +122,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Lo que sigue sin poder leerse es la página `/revision` renderizada y la
   portada tal y como la ve un visitante.
 
-- **El reloj: medido, y el cron nuevo no basta. Hace falta un reloj externo o decir la verdad en la interfaz.** `[origen: guardian 2026-10-12 · el dueño actúa 2026-10-16 · medido 2026-10-18]`
+- **El reloj: medido, y el cron nuevo no basta. La verdad ya está en la interfaz (24-10); queda decidir si se paga un reloj externo.** `[origen: guardian 2026-10-12 · el dueño actúa 2026-10-16 · medido 2026-10-18 · mitad honesta hecha 2026-10-24]`
   **Resuelto por su parte**: el commit `67cb15e` ("Ring the clock three times an
   hour, not five times a day") pasa el cron de cada hora a cada 20 minutos, y
   su comentario añade algo que ningún agente había dicho: **un hueco no es un
@@ -226,6 +226,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Upstash QStash, una Scheduled Function), o aceptar el retraso y decírselo al
   usuario en la interfaz al programar un Co-Work, que es lo honesto si no se
   va a pagar por un reloj.
+
+  **Hecha la mitad honesta, el 24-10, y sin esperar la respuesta** —como el
+  21-10 con `/precios`—. De las dos vías, una costaba dinero y era suya; la
+  otra eran textos de interfaz y era mía, y llevaba doce días sin hacerse
+  mientras la interfaz prometía algo que la medición desmiente. Cambiado en
+  `kairo/src/lib/i18n.tsx` y `kairo/src/app/(app)/coworks/page.tsx`, **en los
+  dos idiomas**:
+  - **La promesa falsa, fuera.** `cw.how` decía *"con el de GitHub activado,
+    sale a la hora exacta que hayas puesto"*. Ahora dice que el reloj pasa
+    varias veces al día pero no a horas fijas, que el encargo sale **desde** la
+    hora puesta y nunca antes, y que de noche puede saltar al día siguiente.
+  - **`cw.everyDayAt`**: "Todos los días **a las** {h}:00" → "Todos los días
+    **a partir de** las {h}:00".
+  - **Ayuda nueva bajo el selector de hora** (`cw.hourHelp`), y una versión
+    distinta **a partir de las 20:00** (`cw.hourHelpLate`) que dice lo que el
+    propio backlog fijó el 20-10 como estándar: a esas horas el encargo no se
+    retrasa, **se salta el día**, y si se quiere todos los días sin falta, por
+    la mañana. El umbral sale de la medición: con huecos de unas 5 horas, desde
+    las 20:00 la siguiente pasada puede caer después de medianoche.
+  Comprobado con `npx tsc --noEmit` salida 0, `npx next build` salida 0, un
+  recuento de que las cuatro claves tocadas siguen definidas **dos veces** (una
+  por idioma) y **leyendo lo generado**: el bloque "¿Y quién lo despierta?" sale
+  pre-renderizado con el texto nuevo en `.next/server/app/coworks.html`, la
+  frase "hora exacta" ya no aparece en ese HTML, y las dos ayudas del selector
+  viajan en el bundle del cliente (el formulario solo se pinta al pulsar "Nuevo
+  Co-Work", así que ahí es donde tienen que estar).
+  **Lo que queda, y es suyo**: pagar un reloj externo (cron-job.org, Upstash
+  QStash, una Scheduled Function) o no pagarlo. Si lo paga, se deshacen estos
+  textos en diez minutos y el P1 se cierra entero. Si no, **la interfaz ya no
+  miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
 

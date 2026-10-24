@@ -376,7 +376,11 @@ const dict = {
     "cw.topicsPh": "IA, GTA 6, ofertas de PS5, Real Madrid",
     "cw.topicsHelp": "Sepáralos por comas. Cuanto más concreto, mejor sale.",
     "cw.hour": "¿A qué hora?",
-    "cw.everyDayAt": "Todos los días a las {h}:00",
+    "cw.hourHelp":
+      "Es la hora a partir de la que se hace. El reloj que despierta a Kairo pasa cada pocas horas, así que puede salir algo más tarde; nunca antes.",
+    "cw.hourHelpLate":
+      "Es la hora a partir de la que se hace, y a estas horas conviene saber una cosa: el reloj pasa cada pocas horas, así que si la siguiente pasada cae después de medianoche, este encargo salta al día siguiente. Si te importa tenerlo cada día sin falta, ponlo por la mañana.",
+    "cw.everyDayAt": "Todos los días a partir de las {h}:00",
     "cw.create": "Crear",
     "cw.save": "Guardar",
     "cw.cancel": "Cancelar",
@@ -408,7 +412,7 @@ const dict = {
     "cw.demo": "En modo demo no se pueden crear: esto es un ejemplo de cómo se ven.",
     "cw.howTitle": "¿Y quién lo despierta?",
     "cw.how":
-      "Un reloj llama a Kairo cada hora y hace lo que toque. Si solo tienes el de Vercel, el encargo sale a primera hora de la mañana; con el de GitHub activado, sale a la hora exacta que hayas puesto.",
+      "Un reloj pasa a despertar a Kairo y hace lo que toque. Con el de GitHub activado pasa varias veces al día, aunque no a horas fijas: el encargo sale desde la hora que pusiste, normalmente en las horas siguientes, y nunca antes —y si lo pones de noche, puede saltar al día siguiente—. Si solo tienes el de Vercel, sale a primera hora de la mañana. Por eso un Co-Work es «a partir de» una hora y no «a esa hora en punto»: preferimos decírtelo a que lo descubras esperando.",
     "auth.emailLabel": "Correo electrónico",
     "auth.passLabel": "Contraseña",
     "auth.nameLabel": "¿Cómo te llamas?",
@@ -831,7 +835,11 @@ const dict = {
     "cw.topicsPh": "AI, GTA 6, PS5 deals, Real Madrid",
     "cw.topicsHelp": "Separate them with commas. The more specific, the better it comes out.",
     "cw.hour": "At what time?",
-    "cw.everyDayAt": "Every day at {h}:00",
+    "cw.hourHelp":
+      "This is the time it runs from. The clock that wakes Kairo comes round every few hours, so it may go out a little later; never earlier.",
+    "cw.hourHelpLate":
+      "This is the time it runs from, and at this hour there is something worth knowing: the clock comes round every few hours, so if the next pass falls after midnight, this job slips to the next day. If you need it every day without fail, set it in the morning.",
+    "cw.everyDayAt": "Every day from {h}:00",
     "cw.create": "Create",
     "cw.save": "Save",
     "cw.cancel": "Cancel",
@@ -863,7 +871,7 @@ const dict = {
     "cw.demo": "You cannot create them in demo mode: this is an example of how they look.",
     "cw.howTitle": "And who wakes it up?",
     "cw.how":
-      "A clock calls Kairo every hour and does whatever is due. With only Vercel\u2019s clock the job goes out first thing in the morning; with GitHub\u2019s enabled, it goes out at the exact time you set.",
+      "A clock comes round to wake Kairo and does whatever is due. With the GitHub clock enabled it comes several times a day, though not at fixed times: the job goes out from the time you set, usually within the following hours, and never before — and if you set it late at night, it can slip to the next day. With only the Vercel clock it goes out first thing in the morning. That is why a Co-Work runs from a time rather than at it: we would rather tell you than have you find out by waiting.",
     "auth.emailLabel": "Email",
     "auth.passLabel": "Password",
     "auth.nameLabel": "What should we call you?",

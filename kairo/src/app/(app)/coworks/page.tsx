@@ -693,6 +693,20 @@ export default function CoworksPage() {
                 </option>
               ))}
             </select>
+            {/* La hora es "a partir de", no "en punto", y aquí se dice.
+                El reloj de GitHub pasa varias veces al día pero no a horas
+                fijas —medido once días seguidos: entre 4 y 8 pasadas de las
+                72 que pide el cron, con huecos de unas 5 horas—, así que
+                prometer la hora exacta era una promesa falsa. Cuando el
+                reloj se arregle (P1 del backlog), este texto vuelve a decir
+                "a su hora" y se quita el "a partir de" de `cw.everyDayAt`.
+                El umbral de las 20:00 sale de la medición: con huecos de unas
+                5 horas, a partir de esa hora la siguiente pasada del reloj
+                puede caer después de medianoche, y entonces el encargo no se
+                retrasa: se salta el día. Eso hay que decirlo distinto. */}
+            <p className="mt-1.5 max-w-prose text-[12.5px] leading-relaxed text-faint">
+              {t(hora >= 20 ? "cw.hourHelpLate" : "cw.hourHelp")}
+            </p>
 
             <div className="mt-5 flex gap-2">
               <button
