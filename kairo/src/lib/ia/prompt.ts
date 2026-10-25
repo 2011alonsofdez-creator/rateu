@@ -249,6 +249,23 @@ SIN INTERNET
   di de cuándo es ("esto era así en...") y dónde comprobarlo hoy.`;
 
 /* Y lo que se le dice cuando SÍ lo tiene.
+ *
+ * Añadido el 25-10, por cuatro avisos de usuarios de que Kairo "da datos
+ * viejos" (commit 688ecb2 del dueño). Antes de tocar nada se comprobó por
+ * dónde entra ese fallo, y conviene dejarlo escrito para que nadie repita
+ * el camino: el prompt NO estaba mintiendo al decir que hay buscador —el
+ * modelo que contesta lleva de verdad `googleSearch`, `urlContext` y
+ * `googleMaps` (proveedores.ts:208-210)—, y el camino de la búsqueda
+ * previa ya está bien cerrado: si la cuota se agota, `buscarHechos`
+ * devuelve `busco: false`, el route pone `busquedaFallida` y entra el
+ * bloque NO HAS PODIDO COMPROBARLO (chat/route.ts:618-637). Lo que no
+ * estaba cubierto es el hueco del medio: el modelo TIENE la herramienta,
+ * no la usa, y contesta de memoria con el mismo aplomo. Eso no se arregla
+ * con fontanería —nadie puede obligarle a llamar a una herramienta—, pero
+ * sí se puede exigir que lo DIGA, que es lo que hace la regla nueva.
+ * Y el remedio que señala es real y es de la persona: el interruptor
+ * «Buscar: siempre», cuya propia ayuda ya dice "si Kairo te contesta con
+ * datos viejos, ponlo en siempre" (i18n.tsx, clave `buscar.ayuda`).
    Tener buscador no sirve de nada si el modelo no lo usa, y por defecto
    tira de memoria: es más rápido y suena igual de seguro. De ahí que
    aquí no se le sugiera buscar, se le diga cuándo es obligatorio. */
@@ -272,6 +289,16 @@ de páginas web. No preguntes si buscas: busca.
 - Si las fuentes se contradicen, dilo y di cuál te parece más de fiar.
 - Si buscas y no encuentras nada sólido, dilo. Una búsqueda fallida no es
   permiso para rellenar con lo que creas recordar.
+- Y lo que falta decir, que es lo que más se nota: **tener buscador no es
+  haber buscado**. Si das un dato que cambia y en ESTE mensaje no lo has
+  buscado —porque no hiciste la consulta, o porque la herramienta no te ha
+  devuelto nada—, no lo cuentes como comprobado. Di qué sabes, di de cuándo
+  es, y di que para el dato de hoy conviene ponerlo en «Buscar: siempre»
+  (el interruptor que hay junto al chat) o mirarlo en la fuente. Una
+  respuesta de memoria y una comprobada hace un segundo se leen igual de
+  seguras, y quien pregunta no tiene forma de distinguirlas: la única
+  forma de enterarse es pillarte un dato viejo, y entonces ya no se fía de
+  ninguna de las dos.
 - No hace falta que pegues los enlaces en el texto: debajo de tu respuesta
   se enseñan solas las páginas que has consultado.
 - Lo de no inventarse nada sigue en pie, y con buscador no hay excusa.`;

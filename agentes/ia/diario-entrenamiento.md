@@ -71,6 +71,59 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-25 — Prompt maestro (área 1)
+
+**Qué cambié**: una regla nueva al final de `CON_INTERNET`, en
+`kairo/src/lib/ia/prompt.ts`: **tener buscador no es haber buscado**. Si Kairo
+da un dato que cambia y en ese mensaje no lo ha buscado, tiene que decirlo —qué
+sabe, de cuándo es— y señalar el interruptor «Buscar: siempre». Diez líneas, y
+solo salen cuando hay buscador.
+
+**Por qué**: el guardián ha encontrado esta mañana, en el commit `688ecb2` del
+dueño, que **cuatro personas han avisado de que Kairo da datos viejos**. Es el
+primer fallo de este sistema reportado por usuarios de verdad, así que manda
+sobre mi cola: el canje del 50% que tenía previsto para hoy pasa a mañana.
+
+**Lo que comprobé antes de tocar nada, y lo dejo escrito para que nadie repita
+el camino**: mi primera hipótesis era que el prompt mentía —que decía "tienes
+buscador" cuando no lo había—. **Es falsa**, y me alegro de haberlo mirado:
+
+- El modelo que contesta **sí lleva herramientas de verdad**:
+  `googleSearch`, `urlContext` y `googleMaps` (`proveedores.ts:208-210`).
+- Y el camino de la búsqueda previa **ya está bien cerrado**: si la cuota se
+  agota, `buscarHechos` devuelve `busco: false` (`buscar.ts:313-330`), el route
+  pone `busquedaFallida` (`chat/route.ts:618-637`) y entra el bloque
+  `NO HAS PODIDO COMPROBARLO`, que obliga a avisar. Eso ya estaba, y está bien.
+- Y si la cadena cae al respaldo de OpenRouter, `conBusqueda` se apaga solo
+  (`puedeBuscar`, `proveedores.ts:254-258`) y entra `SIN INTERNET`.
+
+**El hueco que sí queda es el del medio**: el modelo **tiene** la herramienta,
+**no la usa**, y contesta de memoria con el mismo aplomo. Eso no se arregla con
+fontanería —a un modelo no se le puede obligar a llamar a una herramienta—, pero
+sí se le puede exigir que **lo diga**. Es lo que hace la regla nueva.
+
+**Lo que no he hecho, y es importante no confundirlo**: esto **no arregla** que
+la cuota se agote a media tarde. Eso se arregla con dos claves más de Gemini en
+Vercel, es gratis, y es del dueño (P1 de hoy del guardián). Lo mío solo evita
+que, cuando pase, Kairo lo disimule.
+
+**Cómo lo comprobé**: el arnés de ayer sobre el `prompt.ts` real, con un caso
+más: que la regla salga **solo** con buscador.
+
+| Configuración | Líneas (ayer → hoy) | ¿Sale la regla? |
+|---|---|---|
+| adulto, sin buscador | 159 → **159** | **no**, y es lo correcto |
+| adulto + buscador (**producción**) | 172 → **182** | sí |
+| niño + buscador | 185 → **195** | sí |
+
+Más `npx tsc --noEmit` salida 0 y `npx next build` salida 0.
+
+**Qué necesito del dueño**: las dos claves de Gemini del P1 de hoy. Son gratis
+y son la mitad que yo no puedo poner.
+
+**Mañana toca**: el canje del 50% en `papeles.ts` (área 3), que hoy se ha
+quedado sin sitio. Y luego el área 6, tono, que lleva dos días saltada.
+
 ### 2026-10-24 — El cable del conocimiento (fuera de rotación, en lugar del área 6)
 
 **Qué cambié**: `kairo/src/lib/ia/prompt.ts`. Un bloque nuevo, `PRIVACIDAD`
