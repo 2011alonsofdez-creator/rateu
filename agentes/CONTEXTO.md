@@ -192,6 +192,25 @@ memoria, cuatro niveles— y no cobra por trámite. **Dónde pierde**: en la
 puerta. Kairo tiene **tres páginas públicas** (`/`, `/precios`, `/legal`) y
 ninguna responde a quien busca su problema.
 
+## Ya hay usuarios (2026-10-25)
+
+Hasta hoy los agentes razonaban con que Kairo no tiene usuarios —el reloj
+informa de **0 Co-Works y 0 papeles**, y de ahí salió el "suena en una casa
+vacía" del 22-10—. **Es falso para el chat.** El commit `688ecb2` del dueño
+(24-10) dice que **cuatro personas** avisaron de que Kairo da datos viejos, y
+explica por qué: con una sola clave de Gemini la cuota gratuita se agota a
+media tarde y el buscador deja de funcionar.
+
+Lo que esto cambia, y hay que tenerlo delante al priorizar: **lo que se
+prometa en la web ya lo lee alguien, y lo que falle ya lo nota alguien.** Lo
+de "no es urgente porque no hay nadie" vale para los Co-Works y los avisos de
+plazos; no vale para el chat.
+
+**Y la capa de Gemini, contestada de rebote**: ese mismo commit habla de
+*"Gemini's free tier"* como lo que le está pasando a Kairo, así que la cuenta
+es **gratuita**. Consecuencia directa: el "No" sobre entrenamiento **no vuelve**
+a `/precios`.
+
 ## Los tres números que importan al lanzar
 
 De la especificación, sección 8. Se miran cuando haya datos, no antes:

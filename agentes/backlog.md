@@ -13,6 +13,44 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Kairo deja de buscar cada día a media tarde, y lo arreglan dos claves gratis.** `[origen: guardian 2026-10-25]`
+  Lo dice el propio dueño en el commit `688ecb2` de ayer (*"Say how many Gemini
+  keys are in use"*), y hoy lo confirma el log de `revisar.yml`:
+  **"Gemini: 1 clave(s) · con una sola, la cuota gratuita se agota a media tarde
+  y deja de buscar"**.
+  Su mensaje de commit explica el mecanismo y añade dos cosas que nadie de este
+  sistema sabía: *"Gemini's free tier counts quota per key **and per model**, so
+  with a single key there is an hour of the day when the search stops working
+  and Kairo answers from memory instead — which is exactly what happened today,
+  and what **four "it gives me old data" reports** were really about"*, y
+  *"the code has taken **up to five keys** for a long time"*.
+  **Por qué es P1**: hay una parte de cada día en la que Kairo contesta de
+  memoria mientras el prompt lleva el bloque `BUSCAS ANTES DE CONTESTAR`
+  —o sea, el prompt le dice que tiene buscador cuando ya no lo tiene—, y eso
+  es justo el fallo del que se queja la gente.
+  **El arreglo es de dos minutos y no cuesta nada**: el código ya lee
+  `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` y `GEMINI_API_KEYS` (separadas por
+  comas) — `kairo/src/lib/ia/claves.ts:41-46` y `kairo/src/lib/coworks/salud.ts:360-363`—.
+  Dos claves más de AI Studio en Vercel, volver a desplegar, y la cuota se
+  triplica. **Son gratis**: no es lo mismo que pedir las de Claude y GPT.
+  **Es suyo** (variables de entorno, apartado 5 del protocolo). Lo único que
+  podríamos hacer aquí es que el prompt no prometa buscador cuando la cuota se
+  haya agotado, y eso ya lo decide `conBusqueda`, que mira las claves, no la
+  cuota; queda anotado para el entrenador.
+
+  **Y dos correcciones de contexto que salen del mismo commit, y nos tocan:**
+  1. **Kairo tiene usuarios.** Cuatro personas han avisado de que da datos
+     viejos. Llevamos desde el 22-10 razonando con que "el reloj suena en una
+     casa vacía" y que por eso no es urgente. Eso era verdad para los Co-Works
+     y los papeles —0 y 0—, pero **no para el chat**. Lo escribí yo, así que lo
+     corrijo yo: **ya hay gente usando Kairo y notando sus fallos.**
+  2. **La cuenta de Gemini está en la capa gratuita.** Su commit habla de
+     *"Gemini's free tier"* como lo que le pasa a Kairo hoy. Eso contesta la
+     pregunta del P1 del 20-10 **en el sentido malo**: el "No" sobre
+     entrenamiento **no puede volver a `/precios`**, y el bloque que escribió
+     ayer el entrenador —que prohíbe a Kairo negar que se entrene con los datos
+     del usuario— era necesario, no precaución de más.
+
 - **`/precios` promete que no se entrena con tus conversaciones, y eso depende de un ajuste que nadie ha mirado.** `[origen: crecimiento 2026-10-20]`
   La FAQ de la página de precios dice, en los dos idiomas
   (`kairo/src/app/precios/page.tsx:26-27` y `48-49`): *"¿Se usan mis
@@ -46,6 +84,14 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   ellas, y en la memoria solo entra lo que la persona pide. Eso es **más útil
   que un "No"** y es cierto en las dos capas, así que la página es honesta hoy
   sin saber en cuál está.
+  **Contestado de rebote el 24-10, y no por `notas.md`**: su commit `688ecb2`
+  habla de *"Gemini's free tier"* como lo que le está pasando a Kairo, así que
+  **la cuenta es gratuita**. Consecuencia: el "No" sobre entrenamiento **no
+  vuelve** a `/precios`, la página se queda como está —honesta— y el bloque
+  `PRIVACIDAD` del prompt se queda con su prohibición. Si algún día pasa la
+  cuenta a pago, se revisan las dos cosas. Queda pendiente solo que él lo
+  confirme con una línea, porque esto es deducción de un mensaje de commit,
+  no la pantalla de facturación.
   **Lo que sigue siendo suyo**: el minuto en AI Studio. Si la cuenta es de pago,
   el "No" vuelve, pero **como una frase más y no como toda la respuesta**, y lo
   pongo en diez minutos. Si es gratuita, no hay nada que deshacer. En los dos
