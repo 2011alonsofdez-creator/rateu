@@ -426,6 +426,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   una analítica sin cookies (Plausible, Umami, o la de Vercel, que ya está
   donde vive Kairo). **La decisión es del dueño** porque cuesta dinero o toca
   la configuración de Vercel; una vez elegida, el constructor la instala.
+  **Al día 12, sexto informe, y esta semana con una razón nueva que no es
+  teórica** `[radar 2026-10-25]`: Kairo **ya tiene usuarios** —cuatro personas
+  avisaron de que daba datos viejos— y de eso **nos hemos enterado leyendo un
+  mensaje de commit**, no mirando un panel. Un producto con gente dentro y sin
+  una sola cifra de uso no se puede dirigir: no sabemos si son cuatro de diez o
+  cuatro de mil, ni si han vuelto.
 
 - **El checklist de lanzamiento mide salud, no lanzamiento.** `[origen: radar 2026-10-13]`
   `agentes/lanzamiento/checklist.md` tiene 15 filas y todas van de si la web
@@ -438,18 +444,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   SSL, 10 usuarios reales una semana, analítica y un canal para fallos.
   Con 10 de 15 marcados hoy parece que falta poco, y falta casi todo. Se
   arregla añadiendo esos puntos al checklist, sin marcar.
+  **Al día 12, quinto informe** `[radar 2026-10-25]`: el checklist va ya por 17
+  filas (13 ✅ · 3 🟡 · 1 ⚪) y **todo lo que ha entrado desde entonces vuelve a
+  ser salud**. Es trabajo de un agente y no depende de ninguna decisión: lo
+  único que hace falta es que alguien lo ponga por delante de otra cosa.
 
 - **No hay ningún canal para recibir fallos.** `[origen: radar 2026-10-13]`
   La especificación lo pide ("un email basta al principio") y no existe. Con
   los primeros diez usuarios, lo que rompan se pierde si no hay dónde contarlo.
   Es un enlace en el pie y una dirección de correo; lo puede hacer el
   constructor en cuanto el dueño diga a qué dirección.
+  **Al día 12, sexto informe, y ya ha costado algo** `[radar 2026-10-25]`: los
+  **cuatro avisos** de datos viejos del 24-10 llegaron por donde pudieron, y lo
+  único que queda de ellos es una frase en un mensaje de commit. Sin un sitio
+  donde escribirlos, del quinto no va a quedar ni eso.
 
 - **Nadie ha comprobado que haya topes de gasto en Anthropic, Google y OpenAI.** `[origen: radar 2026-10-13]`
   No consta en el repositorio y no se puede comprobar desde aquí: son los
   paneles de los tres proveedores. Es lo único de la lista que puede costar
   dinero de un día para otro, y la especificación lo pone como obligatorio
   antes de enseñar Kairo a nadie. **Solo lo puede mirar el dueño.**
+  **Al día 12, sexto informe** `[radar 2026-10-25]`. Hoy sigue siendo barato
+  mirarlo: con un cerebro de tres y la capa gratuita de Gemini, el gasto real
+  es casi cero. Justo por eso es el momento de ponerlos, antes de que haya
+  tráfico y una factura.
 
 > Los dos de hoy van aquí y no en P1 a propósito: son reales, pero ponerlos por
 > delante de un reloj que falla sería mentir sobre lo que importa.
