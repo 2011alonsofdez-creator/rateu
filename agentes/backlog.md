@@ -305,6 +305,22 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **La página de memoria está entera en castellano, y no es un texto: es que no tiene idioma.** `[origen: constructor 2026-10-25]`
+  `kairo/src/app/(app)/memoria/page.tsx` **no importa `useUi` ni una sola vez**
+  (`grep -c useUi` → 0), así que todos sus textos están escritos a pelo en
+  español: el aviso del modo demo, la etiqueta "Añadir algo que quieras que
+  recuerde", el ejemplo "Soy alérgico al marisco" y los botones. Un usuario con
+  la interfaz en inglés se encuentra la página en español de golpe.
+  **Cómo salió**: buscando textos a pelo después de arreglar los del chat
+  (hecho hoy). El chat tenía cinco; esto es una página entera, así que es otra
+  tarea y no un remate de la de hoy.
+  **Trabajo**: una tarde. Es mecánico —claves nuevas en `i18n.tsx` en los dos
+  idiomas y `t()` en la página—, cabe entero en lo que un agente puede tocar y
+  no depende de ninguna decisión del dueño.
+  **Y antes de darlo por cerrado, barrer el resto**: `/ajustes` y `/gist` sí
+  llevan sus textos en bloques `es`/`en`, así que de las páginas de dentro
+  queda por mirar si hay más como `/memoria`.
+
 - **Kairo no sabe que alegar una multa quema el descuento del 50%.** `[origen: crecimiento 2026-10-23]`
   Lo dice la sede electrónica de la DGT en su página de alegaciones: hay **20
   días naturales desde el día siguiente** a la notificación para alegar, y *"con
@@ -482,6 +498,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Lo que falta para que el guardián lo vea cada mañana** son tres líneas en
   `.github/workflows/revisar.yml`, que es del dueño. El `jq` exacto está en el
   parte del 22-10; en cuanto diga que sí, se pega y queda cerrado del todo.
+
+- **El aviso de "no he podido buscar" solo existía en castellano.** `[hecho 2026-10-25]`
+  Lo encontré buscando qué podía hacer yo con el P1 de hoy del guardián —Kairo
+  deja de buscar cada tarde porque la cuota de Gemini se agota—. La fontanería
+  ya estaba bien: cuando la búsqueda no sale, el route manda a la interfaz
+  `{ t: "sin_busqueda", motivo: "cuota" }` y el chat pinta un aviso **encima**
+  de la respuesta diciendo que lo que viene puede estar desfasado. Está bien
+  pensado y bien colocado.
+  **Lo que estaba mal es que ese aviso estaba escrito a pelo en español**,
+  dentro del componente (`kairo/src/app/(app)/chat/page.tsx:1358-1366`), igual
+  que el enlace "Ver qué pasa" y que el recuadro de "Guardado en mi memoria" con
+  su "Ver memoria". O sea: **un usuario con la interfaz en inglés recibía la
+  advertencia en un idioma que puede no leer, justo en el mensaje en el que más
+  importa entenderla**. Es el peor sitio posible para un texto sin traducir.
+  **Arreglado**: cinco claves nuevas en `kairo/src/lib/i18n.tsx`
+  (`chat.sinBusquedaCuota`, `chat.sinBusqueda`, `chat.verQuePasa`,
+  `chat.guardado`, `chat.verMemoria`), **en los dos idiomas**, y el componente
+  las pide con `t()`.
+  **Comprobado** con `tsc --noEmit` 0, `next build` 0, que cada clave esté
+  **dos veces** (una por diccionario) y que cada una cayó en el suyo —se verificó
+  por posición respecto al diccionario inglés, no a ojo—, que **las ocho cadenas
+  (cuatro textos x dos idiomas) viajan en el bundle del cliente** (el chat es
+  cliente: si no están ahí, no se ven nunca) y que **ninguna de las viejas sigue
+  a pelo** en el componente.
+  Lo que esto no arregla, y conviene no confundirlo: que la cuota se agote. Eso
+  son dos claves de Gemini en Vercel, gratis, y es del dueño.
 
 - **`/contratos`: la tercera página de intención, y la primera que llega antes del problema.** `[hecho 2026-10-23]`
   `kairo/src/app/contratos/page.tsx` (servidor, con su `title`, `description`,

@@ -236,6 +236,13 @@ const dict = {
     "app.moreSources": "Ver {n} más",
     "app.searched": "Buscó:",
     "app.stopRead": "Parar",
+    "chat.sinBusquedaCuota":
+      "No he podido buscar en internet: se ha agotado la cuota de hoy. Lo de abajo sale de lo que recuerdo y puede estar desfasado.",
+    "chat.sinBusqueda":
+      "No he podido buscar en internet ahora mismo. Lo de abajo sale de lo que recuerdo y puede estar desfasado.",
+    "chat.verQuePasa": "Ver qué pasa",
+    "chat.guardado": "Guardado en mi memoria:",
+    "chat.verMemoria": "Ver memoria",
     "app.copied": "Copiado",
     "app.regen": "Regenerar",
     "app.regenWarn": "Vuelve a costar créditos",
@@ -695,6 +702,13 @@ const dict = {
     "app.moreSources": "Show {n} more",
     "app.searched": "Searched:",
     "app.stopRead": "Stop",
+    "chat.sinBusquedaCuota":
+      "I could not search the web: today\u2019s quota has run out. What follows comes from memory and may be out of date.",
+    "chat.sinBusqueda":
+      "I could not search the web just now. What follows comes from memory and may be out of date.",
+    "chat.verQuePasa": "See what is going on",
+    "chat.guardado": "Saved to my memory:",
+    "chat.verMemoria": "View memory",
     "app.copied": "Copied",
     "app.regen": "Regenerate",
     "app.regenWarn": "Costs credits again",

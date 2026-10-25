@@ -1357,11 +1357,9 @@ function KairoMessage({
             hay que leer lo que viene, y leerla después no sirve. */}
         {m.sinBusqueda && (
           <div className="mb-3 rounded-xl border border-gold/30 bg-gold/10 px-3 py-2 text-[13px] leading-relaxed text-gold">
-            {m.sinBusqueda === "cuota"
-              ? "No he podido buscar en internet: se ha agotado la cuota de hoy. Lo de abajo sale de lo que recuerdo y puede estar desfasado."
-              : "No he podido buscar en internet ahora mismo. Lo de abajo sale de lo que recuerdo y puede estar desfasado."}{" "}
+            {m.sinBusqueda === "cuota" ? t("chat.sinBusquedaCuota") : t("chat.sinBusqueda")}{" "}
             <Link href="/revision" className="underline underline-offset-2">
-              Ver qué pasa
+              {t("chat.verQuePasa")}
             </Link>
           </div>
         )}
@@ -1376,10 +1374,10 @@ function KairoMessage({
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-panel px-3 py-2 text-[13px] leading-relaxed text-muted">
             <span className="text-acento">✓</span>
             <span className="min-w-0 flex-1">
-              Guardado en mi memoria: <span className="text-fg">{m.recordado}</span>
+              {t("chat.guardado")} <span className="text-fg">{m.recordado}</span>
             </span>
             <Link href="/memoria" className="shrink-0 underline underline-offset-2 hover:text-fg">
-              Ver memoria
+              {t("chat.verMemoria")}
             </Link>
           </div>
         )}
