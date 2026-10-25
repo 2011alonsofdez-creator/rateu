@@ -27,7 +27,7 @@ export default async function AppLayout({
   if (hasSupabase && !perfil.modoEdad) redirect("/bienvenida");
 
   return (
-    <AppShell perfil={perfil} conversaciones={conversaciones}>
+    <AppShell publicada={process.env.VERCEL_PROJECT_PRODUCTION_URL ?? ""} perfil={perfil} conversaciones={conversaciones}>
       {children}
     </AppShell>
   );

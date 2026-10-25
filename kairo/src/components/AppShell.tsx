@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { VersionAntigua } from "./VersionAntigua";
 import { useUi } from "@/lib/i18n";
 import { CreditsProvider } from "@/lib/credits";
 import { PerfilProvider } from "@/lib/perfil-cliente";
@@ -15,10 +16,14 @@ import { Menu } from "@/components/Icons";
 export function AppShell({
   perfil,
   conversaciones,
+  publicada,
   children,
 }: {
   perfil: Perfil;
   conversaciones: Conversacion[];
+  /** El dominio publicado, para saber si estás en él. Lo pasa el
+   *  servidor: aquí no se puede leer el entorno. */
+  publicada: string;
   children: React.ReactNode;
 }) {
   const { t } = useUi();
@@ -71,6 +76,7 @@ export function AppShell({
               <Logo />
             </div>
 
+            <VersionAntigua publicada={publicada} />
             <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
           </div>
         </div>
