@@ -41,10 +41,20 @@ const NIVEL = "normal" as const;
  *  la app deja de funcionar sin internet, que es justo lo que se
  *  prometió; y sin lo último contesta explicando lo que ha hecho, con
  *  el código en medio de la explicación. */
-function encargo(peticion: string): string {
+function encargo(peticion: string, corta = false): string {
+  /* Con `corta`, después de que se cortara por tiempo. No es un capricho
+     de estilo: lo que cuesta es escribir, y una app con la mitad de
+     líneas se escribe en la mitad de tiempo. */
+  const brevedad = corta
+    ? `
+- CORTA. Lo mínimo que funcione: sin animaciones, sin iconos, sin
+  comentarios, sin temas de color. Fea pero entera es mejor que bonita
+  a medias.`
+    : "";
+
   return `Hazme una app web de una sola página que haga esto:
 
-${peticion}
+${peticion}${brevedad}
 
 Reglas, todas obligatorias:
 - UN SOLO archivo HTML, con el CSS y el JavaScript dentro.
@@ -96,6 +106,9 @@ export default function CodePage() {
   const [error, setError] = useState<string>();
   const [falloDeLaApp, setFalloDeLaApp] = useState<string>();
   const [modelo, setModelo] = useState<string>();
+  /* Se quedó a medias por tiempo. Lo escrito vale, pero no entero: lo
+     honesto es ofrecer una más corta, no reintentar lo mismo. */
+  const [seCorto, setSeCorto] = useState(false);
   const cortar = useRef<(() => void) | null>(null);
 
   /* Lo que grita el marco cuando la app de dentro se rompe. Se escucha
@@ -119,6 +132,7 @@ export default function CodePage() {
 
     setError(undefined);
     setFalloDeLaApp(undefined);
+    setSeCorto(false);
     setEnBruto("");
     setTrabajando(modo);
 
@@ -130,6 +144,10 @@ export default function CodePage() {
       },
       onModelo: setModelo,
       onError: (clave) => {
+        /* `sin_tiempo` no es "no he podido": es "iba demasiado lento y
+           me han cortado". Con un modelo gratis —que va en cola— es el
+           fallo más frecuente con diferencia, y el cartel genérico
+           mandaba a reintentar lo mismo, que vuelve a tardar lo mismo. */
         setError(
           clave === "sin_creditos"
             ? "gist.noCredits"
@@ -137,8 +155,11 @@ export default function CodePage() {
               ? "err.sesion"
               : clave === "red"
                 ? "err.red"
-                : "code.failed",
+                : clave === "sin_tiempo"
+                  ? "code.tooSlow"
+                  : "code.failed",
         );
+        if (clave === "sin_tiempo") setSeCorto(true);
       },
       onFin: (motivo) => {
         setTrabajando("");
@@ -216,9 +237,20 @@ export default function CodePage() {
       </div>
 
       {error && (
-        <p className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-[13.5px] leading-relaxed text-gold">
-          {t(error as Parameters<typeof t>[0])}
-        </p>
+        <div className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3">
+          <p className="text-[13.5px] leading-relaxed text-gold">
+            {t(error as Parameters<typeof t>[0])}
+          </p>
+          {seCorto && (
+            <button
+              onClick={() => pedir(encargo(peticion, true), "haciendo")}
+              disabled={Boolean(trabajando)}
+              className="mt-2.5 rounded-lg border border-gold/50 px-3 py-1.5 text-[13px] font-medium text-gold transition hover:bg-gold/10 disabled:opacity-50"
+            >
+              {t("code.shorter")}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Mientras escribe, y lo que quedó si no salió un archivo */}
