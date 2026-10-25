@@ -13,7 +13,8 @@ import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
 import {
-  Bolt, Brain, Chat, Clock, Close, Fichas, Papel, Pencil, Plug, Plus, Settings, Team, Trash,
+  Bolt, Brain, Chat, Clock, Close, Code, Fichas, Papel, Pencil, Plug, Plus, Settings, Team,
+  Trash,
 } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
@@ -21,6 +22,7 @@ const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/mentes", label: "app.mentes", icon: Brain },
   { href: "/gist", label: "app.gist", icon: Fichas },
   { href: "/paperwork", label: "app.paperwork", icon: Papel },
+  { href: "/code", label: "app.code", icon: Code },
   { href: "/team", label: "app.team", icon: Team },
   { href: "/coworks", label: "app.coworks", icon: Clock },
   { href: "/conectores", label: "app.connectors", icon: Plug },
