@@ -118,6 +118,23 @@ export async function buscarHechos(
      encontrado" en vez de soltar lo que recordaba. */
   let sinBuscar: Hallazgo | null = null;
 
+  /* Y lo otro, que no es lo mismo: BUSCÓ Y NO ENCONTRÓ.
+   *
+   * Durante un tiempo esto se devolvía directamente y ahí se acababa
+   * todo. Parecía razonable —ha buscado, no está, se dice y ya— y es
+   * justo el caso que dejaba a Kairo peor que cualquier buscador:
+   * preguntándole cómo quedó el Madrid ayer, Google le devolvía cuatro
+   * noticias de alrededor del partido (una de Mourinho, otra de que el
+   * Barça se reagrupa tras el clásico) y ninguna con el resultado. Y
+   * Kairo contestaba "lo he buscado y no lo he encontrado", con sus
+   * cuatro fuentes debajo, mientras el resultado estaba a un clic.
+   *
+   * "No está en internet" es una afirmación demasiado grande para
+   * sacarla de que un buscador no lo haya visto. Así que esto se guarda
+   * y se sigue bajando; solo se devuelve si NINGUNO lo encuentra, que
+   * entonces sí es verdad. */
+  let vacio: Hallazgo | null = null;
+
   const claves = clavesDeGemini();
 
   /* Sin clave de Gemini no se abandona: se baja directo al de repuesto.
@@ -343,9 +360,27 @@ export async function buscarHechos(
         });
       }
 
+      const hechos =
+        !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000);
+
+      /* Vacío: se guarda y se corta la cadena de Gemini. Cortarla es a
+         propósito —si este modelo ha buscado de verdad y no ha salido,
+         el siguiente de la misma casa va a buscar lo mismo y va a
+         tardar otro tanto—. Lo que puede cambiar algo es un buscador
+         distinto, y ésos están más abajo. */
+      if (!hechos) {
+        vacio = {
+          hechos: "",
+          fuentes: fuentes.fuentes,
+          busquedas: fuentes.busquedas,
+          modelo,
+          busco: true,
+        };
+        break;
+      }
+
       return {
-        hechos:
-          !texto || /^NADA ENCONTRADO/i.test(texto) ? "" : texto.slice(0, 6000),
+        hechos,
         fuentes: fuentes.fuentes,
         busquedas: fuentes.busquedas,
         modelo,
@@ -374,10 +409,12 @@ export async function buscarHechos(
    * se acaba; un buscador que depende de una sola casa se queda mudo el
    * día que esa casa dice basta.
    *
-   * Solo entra si hay clave de Anthropic puesta, y solo cuando lo de
-   * arriba ha fallado del todo: cuesta dinero de verdad (la búsqueda se
-   * factura aparte), así que es la red, no la primera opción. */
-  if (!sinBuscar || !sinBuscar.busco) {
+   * Y entran en DOS casos, no en uno: cuando Gemini no ha llegado a
+   * buscar (sin cuota, sin clave, caído) y cuando ha buscado y ha
+   * vuelto vacío. El segundo faltaba, y era el más frecuente de los
+   * dos: la cuota se agota una tarde, pero una búsqueda que no da con
+   * el dato pasa cualquier día. */
+  if (!sinBuscar || !sinBuscar.busco || vacio) {
     /* Con lo que quede del plazo, y con un mínimo: el repuesto también
        tiene techo. Sin esto, el plazo de dieciocho segundos gobernaba
        solo a Gemini y Claude arrancaba después sin ninguno —tres
@@ -394,10 +431,15 @@ export async function buscarHechos(
       queda,
       diario,
     );
-    if (repuesto) return repuesto;
+    /* Solo si trae algo. Un repuesto que tampoco encuentra nada no
+       mejora lo que ya teníamos de Gemini —que al menos trae las
+       fuentes que leyó—, así que en ese caso se devuelve aquello. */
+    if (repuesto?.hechos) return repuesto;
   }
 
-  return sinBuscar;
+  /* El orden importa: primero lo que buscó y no encontró (es verdad y
+     trae fuentes), y solo si no hubo ni eso, lo que ni llegó a buscar. */
+  return vacio ?? sinBuscar;
 }
 
 /* LOS REPUESTOS, EN ORDEN.
