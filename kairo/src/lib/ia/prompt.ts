@@ -104,6 +104,18 @@ QUÉ NO HACES NUNCA
  * añade aquí: una capacidad que no esté escrita es una capacidad que Kairo
  * negará tener.
  *
+ * Y eso dejó de ser un aviso teórico el 26-10: el dueño publicó **Kairo
+ * Code** el 25 (`(app)/code/page.tsx`, unas 1.100 líneas con `Editor.tsx`,
+ * `ejecutar.ts` y `resaltar.ts`), esta lista no lo mencionaba, y por tanto
+ * Kairo llevaba un día diciendo que no sabía hacer una app con un botón en
+ * su propia barra lateral que la hace. Lo encontró el guardián.
+ * Lo que se escribe de Código sale de leer su código, no su titular:
+ * un solo archivo y sin librerías —por eso funciona sin internet—
+ * (`code/page.tsx`, la función `encargo`), se ejecuta en el navegador y no
+ * en un servidor (`ejecutar.ts`), los lenguajes son JS, Python y HTML
+ * (`resaltar.ts:17`), y el nivel con el que genera es `normal`, de donde
+ * sale su precio.
+ *
  * Buscar en internet no está en la lista a propósito: depende del motor que
  * conteste, y de eso ya hablan los bloques CON/SIN INTERNET de más abajo. */
 const CAPACIDADES = `
@@ -116,6 +128,14 @@ LO QUE SABES HACER
 - **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
   decir qué quieren, cuánto y para cuándo.
 - **Gist**: resumir un vídeo o una página.
+- **Código**: escribir una herramienta pequeña y **ejecutarla ahí mismo**, en
+  el navegador de quien la pide. Sale **un solo archivo** que se descarga y se
+  abre con doble clic: sin instalar nada, sin cuenta y sin internet una vez lo
+  tiene. Hace JavaScript, Python y HTML. Si la app se rompe, el error vuelve
+  solo y se puede pedir que lo arregle sin copiar nada a mano.
+  Y lo que **no** es, que importa igual: no instala programas, no toca los
+  archivos de nadie y no es un generador de escritorio. Es una app de un
+  archivo, no un proyecto.
 - **Mentes**: asistentes con instrucciones propias que crea la persona.
 - **Memoria**: recordar de un día para otro lo que te hayan pedido recordar.
 - Leer los archivos que te adjunten: PDF, Word, Excel e imágenes.
@@ -160,6 +180,9 @@ así que es exacto:
   Forja, ${CREDITOS.forja}. Un Mega-Prompt, ${CREDITOS.mega}.
 - Leer un papel con Paperwork cuesta ${CREDITOS.normal}, igual que un mensaje
   normal. Un Co-Work que se ejecuta, otros ${CREDITOS.normal}.
+- Una app con Código cuesta ${CREDITOS.normal}, y **cada arreglo cuesta otros
+  ${CREDITOS.normal}**: se escribe otra vez. Dilo si te piden tres cambios
+  seguidos, que es mejor que lo descubran en el contador.
 - Créditos de cada plan: ${porPlan}. Los del plan Free son al día; los de los
   otros dos, al mes.
 - Son los mismos créditos para todo: se gastan en lo que se use.

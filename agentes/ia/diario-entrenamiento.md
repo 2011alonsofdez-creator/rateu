@@ -71,6 +71,59 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-26 — Conocimiento (área 3), pero no el que tenía previsto
+
+**Qué cambié**: dos cosas en `kairo/src/lib/ia/prompt.ts`, las dos sobre lo
+mismo. En `CAPACIDADES`, **Kairo Code**: que escribe una herramienta pequeña y
+**la ejecuta ahí mismo** en el navegador de quien la pide, que sale **un solo
+archivo** que se abre con doble clic sin instalar nada y sin internet, que hace
+JavaScript, Python y HTML, y que cuando se rompe el error vuelve solo. Con sus
+límites pegados: **no instala programas, no toca los archivos de nadie y no es
+un generador de escritorio**. Y en el bloque de precios, que una app cuesta
+`CREDITOS.normal` y **cada arreglo cuesta otros tantos**, porque se escribe otra
+vez.
+
+**Por qué, y por qué hoy**: el dueño publicó Kairo Code el 25-10 —unas 1.100
+líneas, con su ruta `/code`— y esta lista no lo mencionaba. El propio bloque
+`CAPACIDADES` dice de sí mismo que *"una capacidad que no esté escrita es una
+capacidad que Kairo negará tener"*, así que Kairo llevaba un día diciendo que no
+sabe hacer una app **con un botón en su propia barra lateral que la hace**. Lo
+encontró el guardián esta mañana.
+
+**De dónde sale cada frase, que es la parte que no se puede improvisar**: de
+leer el código, no el titular. Un solo archivo y sin librerías —por eso funciona
+sin internet— está en la función `encargo` de `code/page.tsx`; que se ejecuta en
+el navegador y no en un servidor, en `ejecutar.ts`; los tres lenguajes, en
+`resaltar.ts:17`; y el precio sale de que genera con nivel `normal`, lo mismo
+que dice su propia pantalla (`code.cost`: "Cuesta 4 créditos"). **Los límites los
+escribió él mismo** en el comentario de cabecera de `code/page.tsx`, y los he
+copiado en vez de inventarme otros: es la diferencia entre describir una función
+y venderla.
+
+**Lo primero que hice hoy no fue el prompt**: traer `origin/main` a la rama, que
+iba **8 commits** por detrás. Sin eso no se puede describir una función cuyo
+código no está delante, y además lo que se comprueba con `next build` sobre una
+rama vieja se comprueba contra una app que ya no existe (la lección del 18-10 y
+del 22-10). Entró **sin conflictos**, incluido `i18n.tsx`, que el constructor
+había tocado el 24 y el 25.
+
+**Cómo lo comprobé**: el arnés sobre el `prompt.ts` real, tres configuraciones.
+La capacidad **no** es condicional, así que tiene que salir en las tres, y sale:
+adulto 159 → **170** líneas, adulto+buscador 182 → **193**, niño 206. El precio
+sale **renderizado desde la constante** (`4`), no escrito a mano. Más
+`npx tsc --noEmit` salida 0 y `npx next build` salida 0 **ya con el código del
+dueño dentro**, que es de paso la comprobación de que el merge no rompió nada.
+
+**Qué necesito del dueño**: nada para esto.
+
+**Mañana toca**: el canje del 50% en `papeles.ts`, **que llevo dos días
+aplazando**. Lo digo con el número por delante para que se vea: el 24 lo dejé
+para el 25, el 25 ganó el fallo de los cuatro usuarios y hoy ha ganado una
+función que el producto negaba tener. Las dos veces por algo que estaba en
+producción y esto no, así que lo volvería a hacer igual; pero mañana no hay
+excusa, salvo que `notas.md` diga otra cosa. Después, el área 6, tono, que lleva
+tres días saltada.
+
 ### 2026-10-25 — Prompt maestro (área 1)
 
 **Qué cambié**: una regla nueva al final de `CON_INTERNET`, en
