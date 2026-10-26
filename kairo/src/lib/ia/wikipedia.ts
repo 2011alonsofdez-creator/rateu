@@ -56,6 +56,12 @@ const VACIAS = new Set([
   "pasado", "por", "porque", "que", "qué", "quien", "quienes", "se",
   "ser", "si", "sobre", "son", "su", "sus", "tal", "te", "tiene", "un",
   "una", "uno", "unos", "unas", "y", "ya",
+  /* Éstas no son de relleno: son trampas. "próximas elecciones" lleva
+     al artículo general de las elecciones, y "último Gran Premio" al de
+     la Fórmula 1. Quitarlas no hace que Wikipedia sepa cuál fue el
+     último; hace que al menos busque el tema y no la palabra. */
+  "proximo", "proxima", "proximos", "proximas",
+  "ultimo", "ultima", "ultimos", "ultimas",
   // y las de siempre en inglés, que la gente mezcla
   "the", "what", "who", "when", "where", "which", "is", "are", "was",
   "were", "did", "does", "do", "of", "in", "on", "at", "to", "for",
@@ -188,9 +194,19 @@ export function comoHechos(articulos: Articulo[]): string {
      diferencia entre un dato con su edad y un dato disfrazado de
      recién hecho. */
   const cabecera =
-    "Buscado en Wikipedia (no en un buscador web). Wikipedia es fiable " +
-    "para lo asentado y puede ir con horas de retraso en lo que acaba de " +
-    "pasar: si la pregunta es de hace un rato, dilo.";
+    "ESTO ES WIKIPEDIA, NO UN BUSCADOR WEB, y no va a contestar a todo.\n" +
+    "Son los artículos cuyo TÍTULO se parece a la pregunta, con su " +
+    "primer párrafo. Léelo así:\n" +
+    "- Si el artículo no contesta a lo que te han preguntado, di que no " +
+    "lo has encontrado. Es lo normal aquí y es una respuesta válida. No " +
+    "rellenes con lo que creas recordar ni fuerces el artículo a " +
+    "contestar.\n" +
+    "- Las fechas y los datos de estos artículos son del artículo, NO de " +
+    "hoy. Si te preguntan por lo próximo o lo último y aquí solo hay " +
+    "cosas pasadas, eso no es la respuesta: es que no está.\n" +
+    "- Wikipedia tarda horas o días en recoger lo que acaba de pasar. " +
+    "Para algo de ayer o de esta semana, avisa de que no lo has podido " +
+    "comprobar.";
 
   const cuerpo = articulos
     .map((a) => `- «${a.titulo}» (${a.url}):\n  ${a.extracto}`)
