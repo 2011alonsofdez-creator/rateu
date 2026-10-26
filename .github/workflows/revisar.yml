@@ -52,7 +52,7 @@ jobs:
           jq -r '
             .cerebros as $c
             | [
-                "Gemini: clave \(if $c.gemini.clave_recibida then "sí" else "NO" end)",
+                "Gemini: \(if $c.gemini.clave_recibida then "\($c.gemini.claves // 1) clave(s)" else "clave NO" end)\(if (($c.gemini.claves // 1) < 2) and $c.gemini.clave_recibida then " · con una sola, la cuota gratuita se agota a media tarde y deja de buscar" else "" end)",
                 "Claude: clave \(if $c.claude.clave_recibida then "sí" else "NO" end)",
                 "GPT: clave \(if $c.gpt.clave_recibida then "sí" else "NO" end)",
                 "Respaldo: clave \(if $c.extra.clave_recibida then "puesta" else "NO PUESTA" end) y \($c.extra.clave // "sin comprobar") · url \($c.extra.url // "sin poner") · configurados: \(($c.extra.configurados // []) | if length == 0 then "ninguno" else join(" , ") end)"

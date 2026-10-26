@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { clavesDeGemini } from "@/lib/ia/claves";
 import { testigoValido } from "@/lib/telegram";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
@@ -370,7 +371,19 @@ export async function GET() {
 
     cerebros: {
       activos,
-      gemini: { clave_recibida: claves.gemini.length > 0, ...disponibles(gem) },
+      gemini: {
+        clave_recibida: claves.gemini.length > 0,
+        /* CUÁNTAS, no solo si hay.
+ 
+           En la capa gratuita de Gemini la cuota va por clave Y por
+           modelo, así que con una sola hay una hora del día en que la
+           búsqueda deja de funcionar y Kairo contesta de memoria. El
+           código admite hasta cinco desde hace tiempo; lo que faltaba
+           era poder ver cuántas se están usando de verdad, porque
+           "clave sí" se lee igual con una que con tres. */
+        claves: clavesDeGemini().length,
+        ...disponibles(gem),
+      },
       claude: { clave_recibida: claves.claude.length > 0, ...disponibles(cla) },
       gpt: { clave_recibida: claves.gpt.length > 0, ...disponibles(gpt) },
       extra: (() => {

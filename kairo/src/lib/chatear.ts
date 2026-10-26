@@ -16,6 +16,18 @@ export type Respuesta = {
   onModelo?: (m: string) => void;
   /** Algo ha ido mal: se recibe la clave del error, no la excusa. */
   onError?: (clave: string, detalle?: string) => void;
+  /** Se acabó: ni llega más texto ni va a llegar.
+   *
+   *  Hace falta para cualquier pantalla que tenga que HACER algo con la
+   *  respuesta entera en vez de irla pintando —sacar el bloque de
+   *  código, guardar una ficha, apagar un cargando—. Sin esto, el que
+   *  llama se inventa un final, y el final inventado siempre llega
+   *  antes o después de tiempo.
+   *
+   *  Se llama una sola vez y SIEMPRE, también cuando hubo error o
+   *  cuando se cortó: un `finally` que no se ejecuta en el caso malo no
+   *  sirve para apagar nada. `motivo` dice cuál de los tres fue. */
+  onFin?: (motivo: "ok" | "error" | "cortado") => void;
 };
 
 export type Fallo =
@@ -31,9 +43,18 @@ export type Fallo =
 export function preguntar(
   texto: string,
   nivel: Level,
-  { onTexto, onModelo, onError }: Respuesta,
+  { onTexto, onModelo, onError, onFin }: Respuesta,
 ): () => void {
   const corte = new AbortController();
+
+  /* Una vez y no más: el final puede llegar por tres caminos y los tres
+     pasan por aquí. Avisar dos veces sería peor que no avisar. */
+  let acabado = false;
+  const acabar = (motivo: "ok" | "error" | "cortado") => {
+    if (acabado) return;
+    acabado = true;
+    onFin?.(motivo);
+  };
 
   (async () => {
     try {
@@ -58,8 +79,13 @@ export function preguntar(
                 ? "nivel"
                 : "modelo";
         onError?.(clave);
+        acabar("error");
         return;
       }
+
+      /* Un error que llega DENTRO del flujo no corta la lectura, así
+         que hay que acordarse de él para no decir "ok" al final. */
+      let fallo = false;
 
       const lector = res.body.getReader();
       const decoder = new TextDecoder();
@@ -84,13 +110,19 @@ export function preguntar(
 
           if (ev.t === "texto") onTexto(String(ev.v ?? ""));
           else if (ev.t === "meta") onModelo?.(String(ev.modelo ?? ""));
-          else if (ev.t === "error") onError?.(String(ev.v), ev.detalle ? String(ev.detalle) : undefined);
+          else if (ev.t === "error") {
+            onError?.(String(ev.v), ev.detalle ? String(ev.detalle) : undefined);
+            fallo = true;
+          }
         }
       }
+
+      acabar(fallo ? "error" : "ok");
     } catch (e) {
       // Abortar no es un fallo: es que el usuario ha cambiado de idea.
-      if ((e as Error)?.name === "AbortError") return;
+      if ((e as Error)?.name === "AbortError") return acabar("cortado");
       onError?.("red");
+      acabar("error");
     }
   })();
 
