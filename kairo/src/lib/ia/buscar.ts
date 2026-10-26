@@ -6,6 +6,7 @@ import { cadenaDe } from "./config";
 import { clavesDeGemini, esDeCuota } from "./claves";
 import { limpiarFallo } from "./fallos";
 import { partir } from "./proveedores";
+import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -133,12 +134,7 @@ export async function buscarHechos(
        plazo entero. Pero se lo lleva CON plazo: una llamada colgada sin
        techo se come el minuto de la función y deja al usuario sin
        respuesta en vez de con una peor. */
-    return (
-      (await conPlazo(
-        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
-        PLAZO,
-      )) ?? null
-    );
+    return deRepuesto(pregunta, contexto, hoy, modoEdad, PLAZO, diario);
   }
 
   /* TODA la cadena de Gemini, no los tres primeros.
@@ -174,12 +170,7 @@ export async function buscarHechos(
        plazo entero. Pero se lo lleva CON plazo: una llamada colgada sin
        techo se come el minuto de la función y deja al usuario sin
        respuesta en vez de con una peor. */
-    return (
-      (await conPlazo(
-        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
-        PLAZO,
-      )) ?? null
-    );
+    return deRepuesto(pregunta, contexto, hoy, modoEdad, PLAZO, diario);
   }
 
   /* Un cliente por clave, creados una vez. Si solo hay una, esto es
@@ -394,22 +385,124 @@ export async function buscarHechos(
        de la función ANTES de llamar al modelo que contesta. El usuario
        no recibía una respuesta peor: se quedaba sin respuesta. */
     const queda = Math.max(seAcaba - Date.now(), 0);
-    if (queda >= 4000) {
-      const conClaude = await conPlazo(
-        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
-        queda,
-      );
-      if (conClaude) return conClaude;
-    } else if (diario) {
-      diario.intentos.push({
-        modelo: "claude (repuesto)",
-        ms: 0,
-        resultado: "sin tiempo para el repuesto",
-      });
-    }
+    const repuesto = await deRepuesto(
+      pregunta,
+      contexto,
+      hoy,
+      modoEdad,
+      queda,
+      diario,
+    );
+    if (repuesto) return repuesto;
   }
 
   return sinBuscar;
+}
+
+/* LOS REPUESTOS, EN ORDEN.
+ *
+ * Primero Claude: busca en la web de verdad, igual que Google, así que
+ * contesta a lo de anoche. Cuesta dinero y hace falta clave, o sea que
+ * no siempre está puesto.
+ *
+ * Y detrás Wikipedia, que es la que no se acaba nunca: sin clave, sin
+ * tarjeta y sin cupo diario. Cubre menos —lo asentado sí, lo de hace
+ * cuatro horas no— y por eso va la última y no la primera. No viene a
+ * ser el buscador bueno: viene a que "no he podido mirar" deje de ser
+ * la única salida cuando se agota todo lo demás.
+ *
+ * El orden importa en un caso que no se ve desde fuera: con modo niño
+ * Claude no entra —a los menores les contesta la cadena de Gemini, que
+ * es la única con filtro de contenido por petición—, así que para ellos
+ * Wikipedia no es la segunda red: es la única. Hasta ahora un niño con
+ * la cuota de Gemini agotada se quedaba sin ninguna.
+ *
+ * Y entra para ellos aunque Claude no, porque lo que se decidió allí es
+ * QUIÉN ESCRIBE la respuesta, no de dónde salen los datos: aquí no
+ * escribe ningún modelo. Lo que se trae son entradillas de enciclopedia
+ * y la respuesta la sigue redactando Gemini con su filtro puesto.
+ */
+async function deRepuesto(
+  pregunta: string,
+  contexto: string,
+  hoy: string,
+  modoEdad: ModoEdad | null,
+  plazo: number,
+  diario?: Diario,
+): Promise<Hallazgo | null> {
+  /* Menos de dos segundos y medio no da ni para la llamada a Wikipedia,
+     que es la más corta de las dos. */
+  if (plazo < 2500) {
+    if (diario) {
+      diario.intentos.push({
+        modelo: "repuestos",
+        ms: 0,
+        resultado: "sin tiempo para los repuestos",
+      });
+    }
+    return null;
+  }
+
+  const empezo = Date.now();
+
+  /* Claude solo si da tiempo a algo más que a empezar: tres búsquedas de
+     servidor más la redacción no caben en cuatro segundos, y una llamada
+     que se corta a la mitad cuesta dinero y no devuelve nada. */
+  if (plazo >= 4000) {
+    const conClaude = await conPlazo(
+      buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+      plazo,
+    );
+    if (conClaude?.busco) return conClaude;
+  }
+
+  const queda = plazo - (Date.now() - empezo);
+  if (queda < 1500) {
+    if (diario) {
+      diario.intentos.push({
+        modelo: "wikipedia",
+        ms: 0,
+        resultado: "sin tiempo después de Claude",
+      });
+    }
+    return null;
+  }
+
+  const antes = Date.now();
+  const articulos = await articulosDe(pregunta, "es", queda);
+
+  /* Sin artículos se devuelve null, y no un hallazgo vacío. La
+     diferencia la nota el usuario: un hallazgo vacío hace que Kairo diga
+     "he mirado y no lo he encontrado", y eso aquí sería mentira. Que no
+     haya artículo en Wikipedia no quiere decir que no esté en internet;
+     quiere decir que no hemos podido mirar en internet. Devolver null
+     deja que lo diga tal cual. */
+  if (!articulos.length) {
+    if (diario) {
+      diario.intentos.push({
+        modelo: "wikipedia",
+        ms: Date.now() - antes,
+        resultado: "sin artículos (o Wikipedia no contestó)",
+      });
+    }
+    return null;
+  }
+
+  if (diario) {
+    diario.intentos.push({
+      modelo: "wikipedia",
+      ms: Date.now() - antes,
+      resultado: `OK · ${articulos.length} artículo(s)`,
+    });
+  }
+
+  return {
+    hechos: comoHechos(articulos),
+    fuentes: comoFuentes(articulos),
+    busquedas: articulos.map((a) => a.titulo),
+    modelo: "wikipedia",
+    busco: true,
+  };
 }
 
 /* EL BUSCADOR DE REPUESTO.
