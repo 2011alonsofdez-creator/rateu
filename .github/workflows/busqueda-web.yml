@@ -63,16 +63,31 @@ jobs:
           fi
 
           echo
-          echo "=== Lo que dice de buscar en la web ==="
-          # Las líneas donde se explica, con su alrededor para que se vea
-          # el JSON de ejemplo entero.
-          grep -n -i -A 30 -E 'web[_ -]search|server tool|:online|plugins' doc.txt \
-            | head -300 || echo "(no sale nada con esas palabras)"
+          # La documentación entera son más de sesenta mil líneas, casi
+          # todas del SDK de agentes. Buscar "web_search" a pelo devuelve
+          # cientos de aciertos que no vienen a cuento y entierra el
+          # único que importa (el primer intento murió así, con el grep
+          # reventado por tubería rota). Así que se busca la PÁGINA, por
+          # su dirección, y se lee entera desde donde empieza.
+          for pagina in \
+            "docs/guides/features/server-tools/web-search" \
+            "docs/guides/features/plugins/web-search"
+          do
+            linea=$(grep -n -m1 "^Source: https://openrouter.ai/${pagina}" doc.txt | cut -d: -f1 || true)
+            if [ -z "${linea:-}" ]; then
+              echo "── ${pagina}: no está en el texto"
+              continue
+            fi
 
-          echo
-          echo "=== Y lo que dice de lo que cuesta ==="
-          grep -n -i -B 3 -A 12 -E 'per request|per search|per result|\$0\.0' doc.txt \
-            | head -120 || echo "(no sale el precio)"
+            # Hasta donde empiece la página siguiente, o 260 líneas.
+            fin=$(awk -v ini="${linea}" 'NR>ini && /^Source: https:\/\/openrouter\.ai\//{print NR; exit}' doc.txt)
+            [ -z "${fin:-}" ] && fin=$((linea + 260))
+            [ $((fin - linea)) -gt 320 ] && fin=$((linea + 320))
+
+            echo
+            echo "════════════════ ${pagina}  (líneas ${linea}-${fin})"
+            sed -n "$((linea - 3)),${fin}p" doc.txt
+          done
 
       - name: 2 · Pedirle una búsqueda de verdad
         env:
