@@ -686,13 +686,22 @@ function ModelosGratis() {
 function Respaldo({ puesto }: { puesto: boolean }) {
   return (
     <div className="rounded-2xl border border-line bg-panel p-5">
-      <p className="text-[15px] font-semibold">🆓 Para que no se pare cuando Gemini se acabe</p>
+      <p className="text-[15px] font-semibold">🛟 Para que no se pare cuando Gemini se acabe</p>
 
       <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
         {puesto ? (
           <>
             Hay un respaldo puesto. El día que Gemini agote la cuota gratuita, Kairo tira de él
             en vez de quedarse mudo.
+            <span className="mt-2 block">
+              <strong className="text-fg">Que cueste dinero o no depende de qué modelos hayas
+              puesto</strong>, y no de que sea el respaldo: solo son gratis los que acaban en{" "}
+              <code className="font-mono">:free</code>. Lo que hay puesto hoy sale en{" "}
+              <code className="font-mono">/api/estado</code>, en{" "}
+              <code className="font-mono">cerebros.extra</code>, con su precio por millón al
+              lado; y el nombre y el precio exactos de cualquier modelo los saca el workflow{" "}
+              <code className="font-mono">buscar-modelo.yml</code> de este repositorio.
+            </span>
           </>
         ) : (
           <>
@@ -745,7 +754,11 @@ function Respaldo({ puesto }: { puesto: boolean }) {
               <Variable nombre="KAIRO_EXTRA_MODELOS" />
               <span className="mt-1.5 block text-[12.5px] text-faint">
                 Los modelos separados por comas, tal cual salen en OpenRouter (llevan una barra
-                y acaban en <code className="font-mono">:free</code>).
+                y acaban en <code className="font-mono">:free</code>).{" "}
+                <strong className="text-muted">Y copia el nombre entero, con el{" "}
+                <code className="font-mono">:free</code></strong>: casi todos tienen un gemelo
+                de pago con el nombre idéntico menos ese sufijo, así que perderlo no da ningún
+                error —empieza a cobrar sin avisar.
               </span>
             </li>
             <li>
@@ -762,9 +775,12 @@ function Respaldo({ puesto }: { puesto: boolean }) {
       )}
 
       <p className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[13px] leading-relaxed text-gold">
-        <strong>Para qué sirve y para qué no.</strong> Los modelos gratis tienen límites de uso
-        duros y van más lentos. Como red de seguridad para que Kairo no se quede mudo, cumplen.
-        Como motor principal con gente usándolo, no aguantan. Van los últimos de la cadena a
+        <strong>Para qué sirve y para qué no.</strong> Si pones los{" "}
+        <code className="font-mono">:free</code>, tienen límites de uso duros y van más lentos:
+        como red de seguridad para que Kairo no se quede mudo cumplen, y como motor principal
+        con gente usándolo no aguantan. Si pones modelos de pago responden mejor,{" "}
+        <strong>y entonces el respaldo tiene factura</strong>: conviene ponerle un tope de gasto
+        en OpenRouter antes de dejarlo así. En los dos casos van los últimos de la cadena a
         propósito: solo contestan cuando todos los demás han dicho que no.
       </p>
     </div>

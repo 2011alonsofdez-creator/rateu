@@ -47,6 +47,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
      novena parte. **Eso sí que parece un descuido de nombre**, del mismo tipo
      que el `:free` que destapamos el 21-10.
 
+  **Hecha la parte nuestra el 26-10: el panel del respaldo ya no dice que sea
+  gratis.** `/revision` es la página que Kairo tiene para contarle al dueño qué
+  le pasa a su instalación, y ese panel estaba escrito entero suponiendo un
+  respaldo gratuito: se titulaba **🆓**, decía *"modelos gratis de OpenRouter,
+  que no cuestan nada"* y su aviso final hablaba solo de los límites de los
+  gratuitos. Con dos modelos de pago en la cadena, **ese panel describía una
+  instalación que no es la que corre**. Cambiado en
+  `kairo/src/app/revision/page.tsx`:
+  - El título pierde el 🆓, que afirmaba el precio.
+  - Donde ya hay respaldo puesto, dice que **que cueste dinero o no depende de
+    qué modelos haya**, que solo son gratis los que acaban en `:free`, y
+    **dónde mirarlo**: `cerebros.extra` de `/api/estado` trae los configurados
+    con su precio por millón, y `buscar-modelo.yml` saca el nombre y el precio
+    exactos de cualquiera.
+  - La nota de la instalación lleva ahora **la trampa escrita**: copia el
+    nombre entero con el `:free`, porque casi todos tienen un gemelo de pago
+    con el nombre idéntico menos ese sufijo, y perderlo **no da ningún error,
+    empieza a cobrar**. Es lo que medimos el 21-10 y lo que ha vuelto a pasar.
+  - Y el aviso final cubre los dos casos: los gratuitos van lentos y con topes
+    duros; los de pago responden mejor **y el respaldo tiene factura**, así que
+    conviene un tope de gasto en OpenRouter antes de dejarlo así.
+  Comprobado con `tsc --noEmit` 0, `next build` 0 y **leyendo el bundle del
+  cliente**, que es donde tiene que estar porque el panel solo se pinta cuando
+  `/api/revision` ha contestado: las cuatro frases nuevas viajan y las viejas
+  ya no. (La frase "que no cuestan nada" sigue en el bundle a propósito: está
+  en la rama de "todavía no hay respaldo", donde invita a poner los gratuitos y
+  es verdad.)
+  **Lo que queda y es suyo**: las tres líneas de `jq` para que el guardián vea
+  el precio cada mañana sin medirlo a mano, y un tope de gasto en OpenRouter.
+
 - **Kairo Code existe en producción y el prompt no sabe que existe.** `[origen: guardian 2026-10-26]`
   El dueño ha publicado ayer una función nueva entera: *"Add Kairo Code: ask for
   an app, watch it written, see it run"* (`c52031d`), con su ruta
@@ -383,6 +413,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Y antes de darlo por cerrado, barrer el resto**: `/ajustes` y `/gist` sí
   llevan sus textos en bloques `es`/`en`, así que de las páginas de dentro
   queda por mirar si hay más como `/memoria`.
+  **Mirado el 26-10, y hay un segundo caso**: `kairo/src/app/revision/page.tsx`
+  tampoco importa `useUi` —907 líneas, todas en castellano—. Es menos grave que
+  `/memoria` porque `/revision` es la página de diagnóstico y la lee el dueño,
+  no un usuario cualquiera, así que va detrás en la cola; pero cuenta para el
+  mismo trabajo. Hoy se han tocado sus textos del respaldo manteniendo el
+  castellano, a propósito, para no dejar la página a medio idioma.
 
 - **Kairo no sabe que alegar una multa quema el descuento del 50%.** `[origen: crecimiento 2026-10-23]`
   Lo dice la sede electrónica de la DGT en su página de alegaciones: hay **20
