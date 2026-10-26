@@ -1,0 +1,141 @@
+name: Probar la búsqueda web de OpenRouter
+
+# ¿SABE BUSCAR EL RESPALDO, Y CUÁNTO CUESTA CADA BÚSQUEDA?
+#
+# Kairo busca con Google (por Gemini) y Gemini se agota: la capa
+# gratuita tiene tope por clave y por modelo, así que hay una hora de
+# la tarde en que Kairo deja de poder mirar y contesta de memoria con
+# un cartel amarillo encima.
+#
+# OpenRouter tiene buscador propio y ahí ya hay saldo. Pero la forma de
+# pedirlo ha cambiado —había un "plugin" que está anticuado y ahora son
+# "server tools"— y el precio que sale en las guías viejas no es el de
+# hoy. Escribir el código a ojo con eso es cómo se cuelan los fallos
+# que luego parecen de la clave.
+#
+# Así que primero se mira, y se mira desde aquí porque el ordenador
+# donde se escribe Kairo no llega a openrouter.ai.
+#
+# Se usa así: Actions -> Probar la búsqueda web de OpenRouter -> Run.
+#
+# El paso 1 no necesita nada. El paso 2 solo funciona si has guardado
+# tu clave en GitHub -> Settings -> Secrets and variables -> Actions ->
+# New repository secret, con el nombre OPENROUTER_KEY. La clave se
+# queda ahí: no sale en el registro ni la ve nadie.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pregunta:
+        description: 'Qué preguntarle (algo de ayer, para ver si se entera)'
+        required: false
+        default: '¿quién ganó el último Gran Premio de Fórmula 1 y qué día fue?'
+      modelo:
+        description: 'Con qué modelo'
+        required: false
+        default: 'deepseek/deepseek-v4-flash-0731'
+
+jobs:
+  mirar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: 1 · Cómo se pide, según ellos
+        run: |
+          set -uo pipefail
+
+          # La documentación en texto plano, que es la que no cambia de
+          # sitio cada dos semanas. Se prueban varias direcciones porque
+          # no todas existen en todo momento.
+          for u in \
+            "https://openrouter.ai/docs/llms-full.txt" \
+            "https://openrouter.ai/docs/llms.txt"
+          do
+            echo "── ${u}"
+            codigo=$(curl -sSL --max-time 90 -o doc.txt -w "%{http_code}" "${u}" || echo 000)
+            echo "   ${codigo}, $(wc -c < doc.txt 2>/dev/null || echo 0) bytes"
+            [ "${codigo}" = "200" ] && [ -s doc.txt ] && break
+          done
+
+          if [ ! -s doc.txt ]; then
+            echo "::warning::No se ha podido bajar la documentación."
+            exit 0
+          fi
+
+          echo
+          echo "=== Lo que dice de buscar en la web ==="
+          # Las líneas donde se explica, con su alrededor para que se vea
+          # el JSON de ejemplo entero.
+          grep -n -i -A 30 -E 'web[_ -]search|server tool|:online|plugins' doc.txt \
+            | head -300 || echo "(no sale nada con esas palabras)"
+
+          echo
+          echo "=== Y lo que dice de lo que cuesta ==="
+          grep -n -i -B 3 -A 12 -E 'per request|per search|per result|\$0\.0' doc.txt \
+            | head -120 || echo "(no sale el precio)"
+
+      - name: 2 · Pedirle una búsqueda de verdad
+        env:
+          CLAVE: ${{ secrets.OPENROUTER_KEY }}
+          PREGUNTA: ${{ inputs.pregunta }}
+          MODELO: ${{ inputs.modelo }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${CLAVE:-}" ]; then
+            echo "::notice::Sin el secreto OPENROUTER_KEY no se puede llamar de verdad. Lo de arriba sigue valiendo."
+            exit 0
+          fi
+
+          # Tres formas de pedir lo mismo. Una está anticuada, otra es la
+          # nueva y la tercera es el atajo del nombre. Se prueban las
+          # tres y se mira cuál contesta con fuentes: eso es lo que hay
+          # que escribir en Kairo, y adivinarlo sale caro.
+          intento () {
+            nombre="$1"; cuerpo="$2"
+            echo
+            echo "────────── ${nombre}"
+            codigo=$(curl -sS --max-time 120 -o r.json -w "%{http_code}" \
+              -X POST "https://openrouter.ai/api/v1/chat/completions" \
+              -H "Authorization: Bearer ${CLAVE}" \
+              -H "Content-Type: application/json" \
+              -H "HTTP-Referer: https://kairo.app" \
+              -H "X-Title: Kairo" \
+              -d "${cuerpo}" || echo 000)
+
+            echo "HTTP ${codigo}"
+            if [ "${codigo}" != "200" ]; then
+              jq -r '.error.message // .' r.json 2>/dev/null | head -5 || head -c 400 r.json
+              return
+            fi
+
+            echo "· id de la llamada: $(jq -r '.id // "?"' r.json)"
+            echo "· respuesta:"
+            jq -r '.choices[0].message.content // "(vacía)"' r.json | head -14
+            echo "· ¿trae fuentes?"
+            jq -r '
+              [ (.choices[0].message.annotations // [])[]
+                | .url_citation.url // .url // empty ] as $f
+              | if ($f|length) > 0
+                then "   sí, \($f|length): \($f | join(" , "))"
+                else "   NO (ni annotations ni citations)" end
+            ' r.json
+            echo "· lo que ha costado: $(jq -r '.usage.cost // "no lo dice"' r.json)"
+          }
+
+          p=$(jq -n --arg q "${PREGUNTA}" '$q')
+
+          intento "A · tools: web_search (lo nuevo)" \
+            "$(jq -n --arg m "${MODELO}" --argjson q "${p}" \
+              '{model:$m, messages:[{role:"user",content:$q}], tools:[{type:"web_search"}]}')"
+
+          intento "B · plugins: web (lo anticuado)" \
+            "$(jq -n --arg m "${MODELO}" --argjson q "${p}" \
+              '{model:$m, messages:[{role:"user",content:$q}], plugins:[{id:"web"}]}')"
+
+          intento "C · :online (el atajo del nombre)" \
+            "$(jq -n --arg m "${MODELO}:online" --argjson q "${p}" \
+              '{model:$m, messages:[{role:"user",content:$q}]}')"
+
+          echo
+          echo "La que conteste 200 CON fuentes es la que hay que escribir en Kairo."
