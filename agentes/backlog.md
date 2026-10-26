@@ -13,7 +13,70 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **Kairo deja de buscar cada día a media tarde, y lo arreglan dos claves gratis.** `[origen: guardian 2026-10-25]`
+- **El respaldo ya no es gratis: su primer modelo cuesta $0,44/M y nadie lo ve.** `[origen: guardian 2026-10-26]`
+  La cadena de respaldo de OpenRouter ha cambiado. Leído del log de
+  `revisar.yml` de hoy (ejecución 40278871292, 06:16 UTC), los configurados son
+  ahora **cuatro** y **dos no llevan `:free`**:
+
+  | Modelo | Precio, medido hoy | |
+  |---|---|---|
+  | `deepseek/deepseek-v4-flash-0731` | **$0,44/M entrada · $1,32/M salida** | **el primero de la cadena** |
+  | `anthropic/claude-haiku-5.5` | **$0,10/M · $0,50/M** | de pago |
+  | `nvidia/nemotron-3-ultra-550b-a55b:free` | $0 | gratis |
+  | `poolside/laguna-s-2.1:free` | $0 | gratis |
+
+  Medido con **su propio** `buscar-modelo.yml` (ejecuciones 40278943938 y
+  40278972899), no de memoria. Y sale del `thinkingmachines/inkling:free` que
+  estaba el 21-10.
+  **Esto puede ser a propósito**: un respaldo de pago responde mejor que uno
+  gratis, y él tiene saldo en OpenRouter. No lo marco como roto. Lo marco como
+  **invisible**, que es distinto y es nuestro problema:
+  1. **El log no dice los precios.** El 22-10 se construyó en `/api/estado` que
+     los devuelva y se le pidieron **tres líneas de `jq`** para que el guardián
+     los viera cada mañana. Siguen sin pegarse (cuarto día), **así que este
+     cambio no lo ha cantado el sistema: lo he tenido que medir a mano**. Con
+     esas tres líneas, mañana sale solo.
+  2. **No hay topes de gasto** en ningún proveedor (sexto informe del radar, 12
+     días). Un respaldo de pago sin tope es justo lo único que puede costar
+     dinero de un día para otro.
+  3. **Y hay un dato que conviene mirar antes de dejarlo así**: de los cuatro
+     `deepseek-v4-flash` del catálogo, el elegido —`-0731`— es **el más caro de
+     los cuatro**. `deepseek/deepseek-v4-flash-latest` cuesta **$0,05/M y
+     $0,16/M**: nueve veces menos de entrada y ocho de salida. Si lo que se
+     quería era un deepseek flash de pago, el `-latest` hace lo mismo por una
+     novena parte. **Eso sí que parece un descuido de nombre**, del mismo tipo
+     que el `:free` que destapamos el 21-10.
+
+- **Kairo Code existe en producción y el prompt no sabe que existe.** `[origen: guardian 2026-10-26]`
+  El dueño ha publicado ayer una función nueva entera: *"Add Kairo Code: ask for
+  an app, watch it written, see it run"* (`c52031d`), con su ruta
+  `kairo/src/app/(app)/code/page.tsx` y unas **1.100 líneas** nuevas
+  (`Editor.tsx`, `ejecutar.ts`, `despliegue.ts`, `resaltar.ts`).
+  **El problema**: el bloque `CAPACIDADES` de `kairo/src/lib/ia/prompt.ts` **no
+  la menciona**, y ese bloque dice de sí mismo, literalmente, que *"una
+  capacidad que no esté escrita es una capacidad que Kairo negará tener"*. Así
+  que hoy, si alguien le pide a Kairo que le haga una app, **Kairo contesta que
+  no sabe hacer eso** mientras hay un botón en su propia barra lateral que lo
+  hace.
+  **Arreglo**: dos o tres líneas en `CAPACIDADES`, del entrenador, en cuanto la
+  rama tenga el código delante. Hace falta **mirar `/code` y `ejecutar.ts`
+  primero** para describir lo que hace de verdad —y sobre todo sus límites— y no
+  prometer de más, que es el error contrario y peor.
+  **Y una consecuencia para el constructor**: la rama va **8 commits por detrás
+  de `main`** y uno de ellos toca `i18n.tsx`, que es donde el constructor ha
+  trabajado el 24 y el 25. Toca traer `main` antes de seguir, como el 18-10 y el
+  22-10: lo que se comprueba con `next build` sobre una rama vieja se comprueba
+  contra una app que ya no existe.
+
+- **~~Kairo deja de buscar cada día a media tarde~~ — HECHO POR EL DUEÑO, en menos de 24 h.** `[origen: guardian 2026-10-25 · hecho 2026-10-26]`
+  **El log de hoy dice `Gemini: 3 clave(s)`** y el aviso de "con una sola, la
+  cuota gratuita se agota a media tarde" ha desaparecido, porque el código solo
+  lo saca cuando hay una. Pidió el 25-10 a las 06:14 y estaba puesto el 26-10 a
+  las 06:16: **es la primera vez que algo que pedimos se arregla en el mismo
+  día**, y vale la pena decirlo tan alto como se dicen los retrasos. Lo que
+  sigue abierto de este asunto es solo la mitad del entrenador, ya hecha el
+  25-10: que Kairo avise cuando contesta de memoria.
+  Lo de abajo queda como estaba, para que se vea de dónde venía.
   Lo dice el propio dueño en el commit `688ecb2` de ayer (*"Say how many Gemini
   keys are in use"*), y hoy lo confirma el log de `revisar.yml`:
   **"Gemini: 1 clave(s) · con una sola, la cuota gratuita se agota a media tarde

@@ -21,3 +21,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-23 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 6 de 72, peor hueco 5 h 44 · vuelve a la banda | ok, los 4 entregaron | nada nuevo; octavo día con un cerebro |
 | 2026-10-24 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 6 de 72, peor hueco **4 h 57**: el mejor de los 11 días | ok, los 4 entregaron | nada nuevo roto; noveno día con un cerebro |
 | 2026-10-25 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **7 de 72**, peor hueco cerrado 4 h 23: su mejor día | ok, los 3 entregaron | **hay usuarios (4 avisos) y el buscador se muere cada tarde** |
+| 2026-10-26 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 7 de 72, peor hueco 5 h 34 | ok, los 4 entregaron | **puso las 3 claves de Gemini** · y el respaldo ya no es gratis: $0,44/M el primero |
