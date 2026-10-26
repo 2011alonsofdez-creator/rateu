@@ -59,6 +59,19 @@ jobs:
               ][]
           ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
 
+          # LAS REDES DE ABAJO, que son las que deciden si a media tarde
+          # Kairo sigue sabiendo lo de ayer o se queda contestando de
+          # memoria. Lo de arriba solo habla de Gemini.
+          jq -r '
+            .busqueda.repuestos as $r
+            | if $r == null then "Repuestos: esta version de Kairo aun no los dice (hay que desplegar)." else
+              [
+                "Repuesto 1 (web de pago, la que sabe lo de ayer): \(if $r.web_pagada then "SI, con \($r.web_pagada_modelo)" else "NO. Hace falta OpenRouter puesto como respaldo, o esta apagado con KAIRO_SIN_BUSCADOR_PAGADO" end)",
+                "Repuesto 2 (Claude): \(if $r.claude then "si" else "no (falta ANTHROPIC_API_KEY, y es opcional)" end)",
+                "Repuesto 3 (Wikipedia): siempre. No se agota, pero solo sabe de lo asentado, no de lo de ayer."
+              ][] end
+          ' estado.json | while IFS= read -r l; do echo "::notice::${l}"; done
+
           # Y lo que el proveedor de repuesto dice tener DE VERDAD con
           # esa clave. Si un nombre tuyo no está aquí, está mal escrito
           # o lo han retirado, y eso no se ve de ninguna otra forma.

@@ -7,6 +7,7 @@ import { clavesDeGemini, esDeCuota } from "./claves";
 import { limpiarFallo } from "./fallos";
 import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
+import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -401,9 +402,13 @@ export async function buscarHechos(
 
 /* LOS REPUESTOS, EN ORDEN.
  *
- * Primero Claude: busca en la web de verdad, igual que Google, así que
- * contesta a lo de anoche. Cuesta dinero y hace falta clave, o sea que
- * no siempre está puesto.
+ * Primero OpenRouter con el buscador puesto: busca en la web de verdad,
+ * igual que Google, así que contesta a lo de anoche. Cuesta unos 0,007 $
+ * la búsqueda, que es poco pero no es nada, y por eso va aquí y no
+ * arriba: solo cuando lo gratis ya ha dicho que no.
+ *
+ * Después Claude, que busca igual de bien y cuesta bastante más. Va
+ * detrás por eso, y porque hace falta una clave de Anthropic aparte.
  *
  * Y detrás Wikipedia, que es la que no se acaba nunca: sin clave, sin
  * tarjeta y sin cupo diario. Cubre menos —lo asentado sí, lo de hace
@@ -412,10 +417,11 @@ export async function buscarHechos(
  * la única salida cuando se agota todo lo demás.
  *
  * El orden importa en un caso que no se ve desde fuera: con modo niño
- * Claude no entra —a los menores les contesta la cadena de Gemini, que
- * es la única con filtro de contenido por petición—, así que para ellos
- * Wikipedia no es la segunda red: es la única. Hasta ahora un niño con
- * la cuota de Gemini agotada se quedaba sin ninguna.
+ * no entra ninguno de los dos de pago —a los menores les contesta la
+ * cadena de Gemini, que es la única con filtro de contenido por
+ * petición, y esa decisión no se amplía por la puerta de atrás—, así
+ * que para ellos Wikipedia no es la tercera red: es la única. Hasta
+ * ahora un niño con la cuota de Gemini agotada se quedaba sin ninguna.
  *
  * Y entra para ellos aunque Claude no, porque lo que se decidió allí es
  * QUIÉN ESCRIBE la respuesta, no de dónde salen los datos: aquí no
@@ -445,15 +451,24 @@ async function deRepuesto(
 
   const empezo = Date.now();
 
-  /* Claude solo si da tiempo a algo más que a empezar: tres búsquedas de
-     servidor más la redacción no caben en cuatro segundos, y una llamada
-     que se corta a la mitad cuesta dinero y no devuelve nada. */
+  /* Los de pago solo si da tiempo a algo más que a empezar: una búsqueda
+     más la redacción no cabe en cuatro segundos, y una llamada que se
+     corta a la mitad cuesta dinero y no devuelve nada. */
   if (plazo >= 4000) {
-    const conClaude = await conPlazo(
-      buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+    const conWeb = await conPlazo(
+      buscarEnLaWeb(pregunta, contexto, hoy, modoEdad, diario),
       plazo,
     );
-    if (conClaude?.busco) return conClaude;
+    if (conWeb?.busco) return conWeb;
+
+    const sobra = plazo - (Date.now() - empezo);
+    if (sobra >= 4000) {
+      const conClaude = await conPlazo(
+        buscarConClaude(pregunta, contexto, hoy, modoEdad, diario),
+        sobra,
+      );
+      if (conClaude?.busco) return conClaude;
+    }
   }
 
   const queda = plazo - (Date.now() - empezo);
@@ -503,6 +518,99 @@ async function deRepuesto(
     modelo: "wikipedia",
     busco: true,
   };
+}
+
+/* EL BUSCADOR DE PAGO, QUE ES EL QUE SABE LO DE AYER.
+ *
+ * OpenRouter le engancha un buscador al modelo y devuelve, aparte del
+ * texto, las páginas que ha leído. Esas páginas son la prueba: si no
+ * viene ninguna, no ha buscado, por muy seguro que suene lo que diga. Y
+ * entonces no cuela, igual que no cuela en Gemini ni en Claude. Su
+ * texto llega al prompt anunciado como "lo que acabas de buscar en
+ * internet"; darlo por bueno sin haber buscado sería blanquear un
+ * recuerdo viejo y presentarlo como comprobado.
+ */
+async function buscarEnLaWeb(
+  pregunta: string,
+  contexto: string,
+  hoy: string,
+  modoEdad: ModoEdad | null,
+  diario?: Diario,
+): Promise<Hallazgo | null> {
+  if (!hayBuscadorPagado()) {
+    if (diario) {
+      diario.intentos.push({
+        modelo: "buscador web",
+        ms: 0,
+        resultado: "no configurado (o apagado con KAIRO_SIN_BUSCADOR_PAGADO)",
+      });
+    }
+    return null;
+  }
+
+  /* Lo mismo que con Claude: a los menores les contesta la cadena de
+     Gemini porque es la única que acepta un filtro de contenido por
+     petición, y meter aquí otro modelo sería vaciar esa decisión sin
+     que nadie la revise. */
+  if (modoEdad === "nino" || modoEdad === null) return null;
+
+  const modelo = modeloDeBusqueda();
+  const empezo = Date.now();
+
+  try {
+    const salida = await preguntarConBuscador(
+      SISTEMA,
+      `Hoy es ${hoy}.\n` +
+        (contexto ? `De qué venían hablando: ${contexto}\n` : "") +
+        `\nBusca en internet y dime qué encuentras sobre esto:\n${pregunta.slice(0, 1500)}` +
+        `\n\nNo contestes de memoria. Busca primero, aunque creas que ya lo sabes.`,
+    );
+
+    if (!salida) return null;
+
+    if (!salida.fuentes.length) {
+      if (diario) {
+        diario.intentos.push({
+          modelo,
+          ms: Date.now() - empezo,
+          resultado: "NO buscó: contestó de memoria (se descarta)",
+        });
+      }
+      return { hechos: "", fuentes: [], busquedas: [], modelo, busco: false };
+    }
+
+    if (diario) {
+      diario.intentos.push({
+        modelo,
+        ms: Date.now() - empezo,
+        resultado: `OK · ${salida.fuentes.length} fuentes · ${salida.texto.length} caracteres`,
+      });
+    }
+
+    return {
+      hechos:
+        !salida.texto || /^NADA ENCONTRADO/i.test(salida.texto)
+          ? ""
+          : salida.texto.slice(0, 6000),
+      fuentes: salida.fuentes,
+      /* Aquí no se sabe qué escribió en el buscador —OpenRouter no lo
+         devuelve—, así que se enseñan los sitios leídos y ya. Inventar
+         una consulta para rellenar el hueco sería enseñar algo que no
+         ha pasado. */
+      busquedas: [],
+      modelo,
+      busco: true,
+    };
+  } catch (e) {
+    if (diario) {
+      diario.intentos.push({
+        modelo,
+        ms: Date.now() - empezo,
+        resultado: `ERROR · ${limpiarFallo(e)}`,
+      });
+    }
+    return null;
+  }
 }
 
 /* EL BUSCADOR DE REPUESTO.
