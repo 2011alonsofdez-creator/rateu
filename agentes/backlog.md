@@ -477,6 +477,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   pedidos—, así que prometer avisos a su hora sería mentir dos veces. Una
   tarde cada una.
 
+  **Cola reordenada el 26-10, y con medición detrás** `[crecimiento 2026-10-26]`:
+  la siguiente **ya no es `/resumir-video`**. Buscando hoy, "resumir un vídeo de
+  YouTube" devuelve **nueve herramientas que lo hacen gratis y varias sin
+  registro** (SummarizeYou, Felo, Noteey, NoteGPT, SlideSpeak, RecCloud,
+  VideoTranscriber, Monica…), así que esa página tendría que ganarles **mandando
+  al visitante a registrarse**: es la peor relación esfuerzo/entrada de las
+  tres. Y el 25-10 el dueño publicó **Kairo Código**, que abre una intención que
+  no estaba en la tabla del 17-10 —*"crear una app sin saber programar"*— con
+  **demanda española documentada** (tres guías de javadex, unavidaonline, skilzy,
+  iaempresa) y en la que **todas esas guías mandan a herramientas de
+  suscripción** de 20-25 €/mes.
+  **El orden nuevo**: (1) `/crear-una-app`, (2) la del "sin suscripción" —que
+  ahora tiene dos argumentos: los créditos **y** que Código no pide 20 € al
+  mes—, (3) `/avisos-de-plazos` cuando el reloj deje de dar 4-8 pasadas de 72,
+  y (4) `/resumir-video` la última; y si se escribe, no como "te resumo el
+  vídeo" sino como "y después del resumen, qué", que es lo que las nueve no
+  tienen.
+  **Y la restricción de redacción de `/crear-una-app`, que va dentro de la
+  tarea y no aparte, porque es cómo se escribe y no un trabajo más**: Kairo
+  Código **no** compite con Lovable, v0 ni Bolt —hacen otra cosa y cuestan otro
+  dinero— y **no es único**: Claude Artifacts hace lo mismo **en su plan
+  gratuito** y DeepSite (Hugging Face) saca literalmente el mismo archivo HTML
+  autónomo. Así que la página **no** puede decir "crea tu app", ni "crea tu
+  SaaS", ni "los únicos que…". Lo que sí puede decir, y es bastante: **una
+  herramienta pequeña, en un archivo, que se abre con doble clic, funciona sin
+  internet después, va en el móvil y cuesta 4 créditos en vez de una
+  suscripción** — y lo que no hace: ni base de datos, ni cuentas, ni despliegue,
+  tal y como lo escribió el dueño en la cabecera de `code/page.tsx`. Detalle y
+  fuentes en `agentes/mercado/2026-10-26-mercado.md`.
+
   **Decisión pendiente del dueño, y bloquea las tres que quedan** `[crecimiento 2026-10-23]`:
   **¿qué dice Kairo de las cláusulas abusivas?** `/contratos` se publicó el
   23-10 diciendo que Kairo **no** dice si un contrato es bueno, malo o abusivo,
