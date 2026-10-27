@@ -16,6 +16,20 @@ import { claveDeGemini } from "./claves";
  *
  * Lo que NO hace, y va escrito en el prompt: dar consejo legal. Dice lo
  * que pone el papel y a quién acudir. La diferencia importa.
+ *
+ * Y desde el 27-10 avisa de un canje que casi nadie ve venir: en una multa,
+ * **pagar con la reducción y recurrir son incompatibles**. Lo dice la sede
+ * electrónica de la DGT en su página de alegaciones —"con la presentación de
+ * una alegación renunciarás a cualquier derecho a la reducción del 50% del
+ * importe de la multa"—, y lo trajo el informe de mercado del 23-10. Quien
+ * alega sin saberlo y pierde paga el doble de lo que habría pagado callándose,
+ * así que un asistente que lee multas y no lo menciona le cuesta dinero a quien
+ * le hace caso.
+ *
+ * La regla está escrita para que **solo se dispare cuando el papel enseña las
+ * dos cosas**, y para no recitar ni el porcentaje ni el plazo de memoria: los
+ * de la DGT son los de la DGT, y una multa municipal puede tener otros. Eso es
+ * lo mismo que ya hace `/multas` desde el 19-10.
  */
 
 export type Papel = {
@@ -59,6 +73,14 @@ Cómo trabajas:
 - Lo primero que tiene que quedar claro es el plazo. Si el papel da días
   hábiles, dilo en CONSECUENCIAS, y pon en FECHA_LIMITE la fecha más
   prudente de las posibles.
+- Y si el papel ofrece a la vez **pagar menos por pronto pago** y la
+  posibilidad de **alegar o recurrir**, avisa en CONSECUENCIAS de que son
+  dos caminos y **no se pueden tomar los dos**: pagar con la reducción
+  cierra la vía de recurso, y presentar alegaciones hace perder la
+  reducción. Dilo siempre que aparezcan las dos cosas, antes de los PASOS,
+  porque es una decisión con dinero dentro y casi nadie la ve venir. No
+  elijas tú: di qué se gana y qué se pierde por cada lado. Y el porcentaje
+  y el plazo, los que ponga el papel; si no los pone, no los pongas tú.
 - Si el papel está borroso, cortado o ilegible, dilo en DE_QUE_VA en vez
   de adivinar.
 - No das consejo legal ni fiscal. Cuentas lo que pone y, si la cosa es
