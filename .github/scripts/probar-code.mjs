@@ -51,7 +51,7 @@ async function encargoDeKairo() {
   return new Function("peticion", "corta = false", cuerpo);
 }
 
-const { primerBloque } = await jiti.import(path.join(RAIZ, "src/lib/chatear.ts"));
+const { documentoHtml } = await jiti.import(path.join(RAIZ, "src/lib/chatear.ts"));
 
 const PETICION = process.argv[2] ?? "Una calculadora de notas: añado asignaturas con su nota y sus créditos y me da la media ponderada.";
 const MODELO = process.env.MODELO || "deepseek/deepseek-v4-flash-0731";
@@ -94,9 +94,9 @@ const datos = await r.json();
 const respuesta = datos.choices?.[0]?.message?.content ?? "";
 console.log(`Escrita en ${((Date.now() - empezo) / 1000).toFixed(1)}s · coste ${datos.usage?.cost ?? "?"}`);
 
-const codigo = primerBloque(respuesta);
+const codigo = documentoHtml(respuesta);
 if (!codigo) {
-  console.error("!! El extractor NO ha encontrado bloque de código.");
+  console.error("!! El extractor NO ha sacado ningún archivo de la respuesta.");
   console.error("Lo que contestó, por el principio:");
   console.error(respuesta.slice(0, 900));
   process.exit(1);

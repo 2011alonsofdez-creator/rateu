@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
-import { preguntar, primerBloque } from "@/lib/chatear";
+import { documentoHtml, preguntar } from "@/lib/chatear";
 import { esAvisoDelMarco, paraVistaPrevia } from "@/lib/ejecutar";
 import { descargarTexto } from "@/lib/copiar";
 import { Editor } from "@/components/Editor";
@@ -165,7 +165,7 @@ export default function CodePage() {
         setTrabajando("");
         if (motivo !== "ok") return;
 
-        const limpio = primerBloque(todo);
+        const limpio = documentoHtml(todo);
         if (limpio) {
           setCodigo(limpio);
           setEnBruto("");
