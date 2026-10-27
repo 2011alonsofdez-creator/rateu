@@ -46,7 +46,10 @@ jobs:
       - name: Preparar
         run: |
           npm install --no-save --no-package-lock jiti@2 playwright
-          npx playwright install --with-deps chromium
+          # Sin --with-deps: el runner ya trae las librerías y lo único
+          # que añadía eran fuentes de otros alfabetos. Tardaba ocho
+          # minutos en bajarlas para no usarlas.
+          npx playwright install chromium
 
       - name: Pedir la app y usarla
         id: probar

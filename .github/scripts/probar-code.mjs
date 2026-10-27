@@ -91,8 +91,34 @@ if (!r.ok) {
 }
 
 const datos = await r.json();
-const respuesta = datos.choices?.[0]?.message?.content ?? "";
-console.log(`Escrita en ${((Date.now() - empezo) / 1000).toFixed(1)}s · coste ${datos.usage?.cost ?? "?"}`);
+const eleccion = datos.choices?.[0];
+const respuesta = eleccion?.message?.content ?? "";
+
+/* POR QUÉ PARÓ, Y EN QUÉ SE GASTÓ EL SITIO.
+ 
+   Sin esto, una respuesta vacía y una respuesta cortada se leen igual
+   —"no ha devuelto archivo"— y se arreglan distinto. `finish_reason:
+   length` quiere decir que se quedó sin sitio para escribir, y si
+   además casi todo se fue en `reasoning_tokens`, es que se lo gastó
+   pensando: el mismo truco que ya nos mordió en Gemini, donde lo que
+   el modelo piensa se descuenta del techo de salida. */
+const u = datos.usage ?? {};
+const pensados = u.completion_tokens_details?.reasoning_tokens ?? 0;
+console.log(
+  `Escrita en ${((Date.now() - empezo) / 1000).toFixed(1)}s · coste ${u.cost ?? "?"}\n` +
+  `Paró porque: ${eleccion?.finish_reason ?? "?"} · salida ${u.completion_tokens ?? "?"} tokens` +
+  (pensados ? ` (de los cuales ${pensados} PENSANDO)` : "") +
+  `\nTexto: ${respuesta.length} caracteres`,
+);
+
+/* Algunos modelos mandan lo que piensan en un campo aparte. Si el texto
+   viene vacío pero eso tiene contenido, el archivo no se ha perdido:
+   está en el sitio equivocado, y eso se arregla en Kairo. */
+const aparte = eleccion?.message?.reasoning ?? "";
+if (!respuesta && aparte) {
+  console.log(`¡OJO! El texto viene vacío pero hay ${aparte.length} caracteres en 'reasoning'.`);
+  console.log(aparte.slice(0, 600));
+}
 
 const codigo = documentoHtml(respuesta);
 if (!codigo) {
