@@ -31,6 +31,14 @@ on:
         description: 'Con qué modelo'
         required: false
         default: 'deepseek/deepseek-v4-flash-0731'
+      techo:
+        description: 'Cuántos tokens de salida (lo que piensa sale de aquí también)'
+        required: false
+        default: '8192'
+      pensar:
+        description: 'auto | bajo | tope | nada'
+        required: false
+        default: 'auto'
 
 jobs:
   probar:
@@ -57,6 +65,8 @@ jobs:
         env:
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
           MODELO: ${{ inputs.modelo }}
+          TECHO: ${{ inputs.techo }}
+          PENSAR: ${{ inputs.pensar }}
         run: node .github/scripts/probar-code.mjs "${{ inputs.peticion }}"
 
       - name: Guardar la app y la foto

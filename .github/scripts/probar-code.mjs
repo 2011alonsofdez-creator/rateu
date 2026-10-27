@@ -55,6 +55,27 @@ const { documentoHtml } = await jiti.import(path.join(RAIZ, "src/lib/chatear.ts"
 
 const PETICION = process.argv[2] ?? "Una calculadora de notas: añado asignaturas con su nota y sus créditos y me da la media ponderada.";
 const MODELO = process.env.MODELO || "deepseek/deepseek-v4-flash-0731";
+
+/* CUÁNTO SE LE DEJA PENSAR, Y CUÁNTO SITIO TIENE PARA ESCRIBIR.
+ 
+   Pidiendo un comecocos, DeepSeek se gastó los 8192 tokens de salida
+   PENSANDO y devolvió el texto vacío: noventa segundos, créditos
+   cobrados y ni una línea del archivo. Lo que piensa sale del mismo
+   bolsillo que lo que escribe.
+ 
+   Hay dos palancas y no está claro cuál traga OpenRouter con cada
+   modelo, así que se prueban aquí antes de escribirlas en Kairo. */
+const TECHO = Number(process.env.TECHO || 8192);
+const PENSAR = process.env.PENSAR || "auto";
+
+const razonamiento =
+  PENSAR === "bajo"
+    ? { effort: "low" }
+    : PENSAR === "tope"
+      ? { max_tokens: 1500 }
+      : PENSAR === "nada"
+        ? { enabled: false }
+        : undefined;
 const CLAVE = process.env.OPENROUTER_KEY;
 if (!CLAVE) {
   console.error("Falta OPENROUTER_KEY.");
@@ -67,6 +88,7 @@ const texto = encargo(PETICION);
 console.log("═".repeat(60));
 console.log("PIDO:", PETICION);
 console.log("MODELO:", MODELO);
+console.log(`TECHO: ${TECHO} · PENSAR: ${PENSAR}`);
 console.log("═".repeat(60));
 
 const empezo = Date.now();
@@ -81,7 +103,8 @@ const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
   body: JSON.stringify({
     model: MODELO,
     messages: [{ role: "user", content: texto }],
-    max_tokens: 8192,
+    max_tokens: TECHO,
+    ...(razonamiento ? { reasoning: razonamiento } : {}),
   }),
 });
 
