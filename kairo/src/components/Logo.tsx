@@ -11,6 +11,7 @@ export function Marca({
   className = "h-7 w-7",
   solida = false,
   animada = false,
+  girando = false,
 }: {
   className?: string;
   /** true = un solo color (para fondos de color). false = degradado de marca. */
@@ -18,12 +19,19 @@ export function Marca({
   /** true mientras Kairo está trabajando: los círculos se van encendiendo
    *  por turnos. No es adorno: se ve quién está respondiendo. */
   animada?: boolean;
+  /** Y además dan vueltas despacio alrededor del punto del centro.
+   *
+   *  Es para las esperas largas: escribir una app entera son treinta o
+   *  cuarenta segundos, y un parpadeo que se repite cada 2,4 segundos
+   *  acaba leyéndose como una pantalla congelada. Con la vuelta, cada
+   *  momento es distinto del anterior y se nota que aquello sigue vivo. */
+  girando?: boolean;
 }) {
   const color = solida ? "currentColor" : "url(#kairoGrad)";
 
   return (
     <svg
-      className={`${className}${animada ? " marca-viva" : ""}`}
+      className={`${className}${animada ? " marca-viva" : ""}${girando ? " marca-gira" : ""}`}
       viewBox="0 0 100 100"
       fill="none"
       aria-hidden
@@ -36,7 +44,7 @@ export function Marca({
           </linearGradient>
         </defs>
       )}
-      <g stroke={color} strokeWidth="7.5" fill="none">
+      <g className="kairo-aros" stroke={color} strokeWidth="7.5" fill="none">
         <circle className="kairo-aro" style={{ animationDelay: RETARDOS[0] }} cx="50" cy="36" r="23" />
         <circle className="kairo-aro" style={{ animationDelay: RETARDOS[1] }} cx="36" cy="60" r="23" />
         <circle className="kairo-aro" style={{ animationDelay: RETARDOS[2] }} cx="64" cy="60" r="23" />
