@@ -1,0 +1,71 @@
+name: Probar Kairo Code
+
+# ¿LA APP QUE GENERA KAIRO FUNCIONA DE VERDAD?
+#
+# Code no se puede probar leyendo código: lo que falla en una app
+# generada falla al USARLA. Hasta ahora el único que las usaba era
+# Alonso, en su casa, después de pagar los créditos —y así apareció una
+# calculadora de notas que daba un número raro—.
+#
+# Esto pide una app con el MISMO encargo que usa la pantalla de Code,
+# la abre en un navegador de verdad, dice si arranca, si da errores y
+# qué se ve, y enseña el JavaScript entero para poder revisar las
+# cuentas a mano. La app y una foto quedan guardadas como artefacto.
+#
+# Lo que se prueba es el ENCARGO, no el modelo: si tres apps seguidas
+# salen con la misma manía, la manía está en lo que les pedimos.
+#
+# Gasta unos céntimos de OpenRouter por app. Necesita el secreto
+# OPENROUTER_KEY.
+#
+# Se usa así: Actions -> Probar Kairo Code -> Run workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      peticion:
+        description: 'Qué app pedir'
+        required: true
+        default: 'Una calculadora de notas: añado asignaturas con su nota y sus créditos y me da la media ponderada.'
+      modelo:
+        description: 'Con qué modelo'
+        required: false
+        default: 'deepseek/deepseek-v4-flash-0731'
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Preparar
+        run: |
+          npm install --no-save --no-package-lock jiti@2 playwright
+          npx playwright install --with-deps chromium
+
+      - name: Pedir la app y usarla
+        id: probar
+        continue-on-error: true
+        env:
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+          MODELO: ${{ inputs.modelo }}
+        run: node .github/scripts/probar-code.mjs "${{ inputs.peticion }}"
+
+      - name: Guardar la app y la foto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-generada
+          path: salida-code/
+          if-no-files-found: warn
+
+      - name: Y si hubo pegas, que se note
+        if: steps.probar.outcome == 'failure'
+        run: |
+          echo "::warning::La app generada tiene pegas. Están arriba, en el registro del paso anterior."
+          exit 1
