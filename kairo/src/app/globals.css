@@ -220,11 +220,36 @@ body {
   animation: kairo-relevo 2.4s ease-in-out infinite;
 }
 
+/* LA VUELTA, para las esperas largas.
+ 
+   Los tres aros giran juntos alrededor del punto del centro, que es
+   justo el que no se mueve. Al solaparse mientras giran, el conjunto se
+   lee con algo de profundidad sin dibujar nada en 3D.
+ 
+   Cinco segundos por vuelta: lo bastante lento para que no maree y lo
+   bastante vivo para que, a los treinta segundos de espera, siga sin
+   parecer que la pantalla se ha quedado colgada.
+ 
+   El centro de giro va en coordenadas del dibujo (el viewBox es
+   0 0 100 100) y el punto está en 50,51. Con `transform-box: view-box`
+   se dice explícitamente, porque si se toma la caja del grupo el eje se
+   va a otro sitio y el logo gira descentrado. */
+@keyframes kairo-vuelta {
+  to { transform: rotate(360deg); }
+}
+
+.marca-gira .kairo-aros {
+  animation: kairo-vuelta 5s linear infinite;
+  transform-box: view-box;
+  transform-origin: 50px 51px;
+}
+
 /* Quien ha pedido menos movimiento no ve ninguno: el logo se queda
    quieto y entero, sin medias tintas. */
 @media (prefers-reduced-motion: reduce) {
   .marca-viva,
-  .marca-viva .kairo-aro {
+  .marca-viva .kairo-aro,
+  .marca-gira .kairo-aros {
     animation: none;
     opacity: 1;
     transform: none;

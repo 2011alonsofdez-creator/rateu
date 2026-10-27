@@ -491,6 +491,29 @@ async function* deExtra(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
     ...(cabeceras ? { defaultHeaders: cabeceras } : {}),
   });
 
+  // Techo prudente: de un proveedor desconocido no sabemos cuánto aguanta.
+  const techo = Math.min(pet.maxSalida, 8192);
+
+  /* QUE LE QUEDE SITIO PARA ESCRIBIR.
+ 
+     Lo que un modelo PIENSA sale del mismo techo que lo que escribe, y
+     eso tiene una forma de fallar que no se parece a un fallo: pidiendo
+     un comecocos, DeepSeek se gastó los 8192 tokens enteros pensando
+     —noventa segundos, créditos cobrados— y devolvió el texto VACÍO.
+     Ni un error, ni una excepción. Kairo lo leía como "no me ha devuelto
+     un archivo", que es lo que se ve desde fuera y no lo que pasó.
+ 
+     Así que se le reserva sitio: piensa como mucho un tercio, y los dos
+     tercios de abajo son para escribir. Con esto el mismo juego salió en
+     34 segundos y funcionando.
+ 
+     `reasoning` es un añadido de OpenRouter —el SDK de OpenAI no lo
+     conoce, de ahí que entre por separado— y por eso solo se manda allí:
+     a otra pasarela le sobraría un campo que no espera. */
+  const limitarElPensar = esOpenRouter(base)
+    ? ({ reasoning: { max_tokens: Math.floor(techo / 3) } } as Record<string, unknown>)
+    : {};
+
   const flujo = await cliente.chat.completions.create({
     model: modelo,
     messages: [
@@ -500,9 +523,9 @@ async function* deExtra(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
         content: m.texto,
       })),
     ],
-    // Techo prudente: de un proveedor desconocido no sabemos cuánto aguanta.
-    max_tokens: Math.min(pet.maxSalida, 8192),
+    max_tokens: techo,
     stream: true,
+    ...limitarElPensar,
   });
 
   for await (const parte of flujo) {

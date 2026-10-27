@@ -7,6 +7,7 @@ import { documentoHtml, preguntar } from "@/lib/chatear";
 import { esAvisoDelMarco, paraVistaPrevia } from "@/lib/ejecutar";
 import { descargarTexto } from "@/lib/copiar";
 import { Editor } from "@/components/Editor";
+import { Pensando } from "@/components/Pensando";
 import { Code as IconoCode, Descarga, Play, Refresh } from "@/components/Icons";
 
 /* KAIRO CODE: pide una app, la ves escribirse, la ves funcionando.
@@ -256,13 +257,26 @@ export default function CodePage() {
       {/* Mientras escribe, y lo que quedó si no salió un archivo */}
       {(trabajando || (enBruto && !codigo)) && (
         <div className="mt-5 rounded-2xl border border-line bg-panel p-4">
-          <p className="text-[13px] text-acento">
-            {trabajando === "arreglando"
-              ? t("code.fixing")
-              : trabajando
-                ? t("code.writing")
-                : t("code.said")}
-          </p>
+          {trabajando ? (
+            /* La marca viva y girando, con las frases de aquí.
+ 
+               Antes esto era una línea de texto en el naranja de la
+               marca —el mismo que usan los avisos—, así que mientras
+               todo iba BIEN la pantalla parecía estar dándote un
+               problema. Y encima no se movía: cuarenta segundos
+               mirando una frase quieta se leen como colgado. */
+            <Pensando
+              nivel={NIVEL}
+              girando
+              fases={
+                trabajando === "arreglando"
+                  ? ["code.fixing"]
+                  : ["code.fase1", "code.fase2", "code.fase3", "code.fase4", "code.fase5"]
+              }
+            />
+          ) : (
+            <p className="text-[13px] text-muted">{t("code.said")}</p>
+          )}
           <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-faint">
             {enBruto.slice(-2000)}
           </pre>
