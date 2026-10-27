@@ -115,7 +115,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Lo que queda y es suyo**: las tres líneas de `jq` para que el guardián vea
   el precio cada mañana sin medirlo a mano, y un tope de gasto en OpenRouter.
 
-- **Kairo Code existe en producción y el prompt no sabe que existe.** `[origen: guardian 2026-10-26]`
+- **~~Kairo Code existe en producción y el prompt no sabe que existe~~ — HECHO.** `[origen: guardian 2026-10-26 · hecho 2026-10-26]`
+  Lo cerró el entrenador el mismo día: `CAPACIDADES` ya describe Código —un
+  archivo, se ejecuta en el navegador, JS/Python/HTML, el error vuelve solo— con
+  los límites copiados de la cabecera que escribió el dueño, y el bloque de
+  precios dice que cuesta 4 créditos y que **cada arreglo cuesta otros 4**.
+  Comprobado con el arnés: la capacidad no es condicional y sale en las tres
+  configuraciones. **Quedaba sin marcar aquí**, que es un fallo de libro mío:
+  un backlog que enseña como abierto algo cerrado hace perder el tiempo al
+  siguiente que lo lea. Marcado el 27-10.
   El dueño ha publicado ayer una función nueva entera: *"Add Kairo Code: ask for
   an app, watch it written, see it run"* (`c52031d`), con su ruta
   `kairo/src/app/(app)/code/page.tsx` y unas **1.100 líneas** nuevas
@@ -504,9 +512,11 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   La tabla entera, con las seis intenciones y sus fuentes, en
   `agentes/mercado/2026-10-17-mercado.md`.
 
-  **Partida el 19-10. Van tres de seis**: `/multas` (19-10),
-  `/cartas-de-hacienda` (20-10) y `/contratos` (23-10), las tres enteras y en
-  los dos idiomas (abajo, en Hecho). Quedan tres, por este orden:
+  **Partida el 19-10. Van cuatro de seis**: `/multas` (19-10),
+  `/cartas-de-hacienda` (20-10), `/contratos` (23-10) y `/crear-una-app`
+  (27-10), las cuatro enteras y en los dos idiomas (abajo, en Hecho). Quedan
+  dos: la del "sin suscripción" y `/avisos-de-plazos` —esta la última, que
+  necesita el reloj—. Y el orden viejo decía
   `/resumir-video`,
   una sobre el "sin suscripción" que `/precios` solo responde a medias, y
   `/avisos-de-plazos`, **que va la última a propósito**: es la única que
@@ -709,6 +719,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   a pelo** en el componente.
   Lo que esto no arregla, y conviene no confundirlo: que la cuota se agote. Eso
   son dos claves de Gemini en Vercel, gratis, y es del dueño.
+
+- **`/crear-una-app`: la cuarta página de intención, y la primera que adelanta a otra con una medición detrás.** `[hecho 2026-10-27]`
+  `kairo/src/app/crear-una-app/page.tsx` (servidor, con su `title`,
+  `description`, `canonical` y Open Graph propios) y `contenido.tsx` (cliente,
+  **español e inglés**), misma estructura que las tres anteriores. En
+  `sitemap.ts`.
+  **Por qué esta y no `/resumir-video`**, que era la que tocaba: el informe de
+  mercado del 26-10 midió que "resumir un vídeo de YouTube" lo hacen **nueve
+  herramientas gratis y varias sin registro**, así que esa página tendría que
+  ganarles **mandando al visitante a registrarse**. Kairo Código es de anteayer,
+  en español solo se cuenta apuntando a suscripciones de 20-25 €/mes, y es lo
+  único nuevo que Kairo tiene que contar.
+  **Las tres prohibiciones del informe, cumplidas y comprobadas en el HTML
+  generado**: no dice "crea tu app" ni "crea tu SaaS"; no nombra a Lovable, v0
+  ni Bolt; y no se llama única en ninguna parte —porque no lo es: Claude
+  Artifacts hace esto en su plan gratuito—. Lo que sí dice, todo sacado de leer
+  el código y no el titular: **un archivo** (sin librerías, por eso funciona sin
+  internet), **se ejecuta en el navegador** y se corta a los diez segundos, el
+  error vuelve solo, hace **JavaScript, Python y HTML**, va en el **móvil**, y
+  cuesta **4 créditos y cada arreglo otros 4**. Y una sección entera de lo que
+  **no** es: ni base de datos, ni cuentas, ni publicarse en internet, ni
+  instalar nada, ni un entorno de programación.
+  Los tres ejemplos son **los de su propia pantalla** (`code.ex1`, `ex2`,
+  `ex3`), a propósito: si la página promete algo que la herramienta no se
+  ofrece a hacer, el primer visitante lo nota.
+  Comprobado con `tsc --noEmit` 0, `next build` 0 y **leyendo el HTML
+  generado**: `title`, `description`, `canonical` absoluto, Open Graph, el
+  titular pre-renderizado, **las cuatro afirmaciones de precio y límites
+  presentes y las cuatro prohibiciones ausentes**, y el `sitemap.xml` con las
+  **cuatro** páginas de intención.
 
 - **`/contratos`: la tercera página de intención, y la primera que llega antes del problema.** `[hecho 2026-10-23]`
   `kairo/src/app/contratos/page.tsx` (servidor, con su `title`, `description`,
