@@ -1,0 +1,57 @@
+name: Probar Wikipedia
+
+# ¿SIGUE CONTESTANDO WIKIPEDIA?
+#
+# Wikipedia es la última red de Kairo: cuando se agota la cuota de
+# Gemini y no hay clave de Claude, es lo único que queda entre una
+# respuesta con datos y un "no he podido mirar".
+#
+# Una red que no se prueba no es una red. Y esta no se puede probar
+# desde el ordenador donde se escribe el código, que no tiene salida a
+# es.wikipedia.org; aquí sí la hay.
+#
+# Esto llama a Wikipedia DE VERDAD, con el mismo código que usa Kairo, y
+# enseña qué encuentra para cuatro preguntas corrientes. Si falla, falla
+# aquí y no delante de alguien.
+#
+# Se usa así: Actions -> Probar Wikipedia -> Run workflow -> Run.
+# Puedes escribir tu propia pregunta en la caja.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pregunta:
+        description: 'Una pregunta tuya (si lo dejas vacío, prueba cuatro normales)'
+        required: false
+        default: ''
+  schedule:
+    # Una vez por semana, los lunes. No es por vigilar a Wikipedia: es
+    # para enterarnos si cambia la forma de su respuesta, que es lo que
+    # dejaría a Kairo sin red sin que nadie lo notara.
+    - cron: '17 6 * * 1'
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Solo jiti, que es lo que hace falta para cargar un .ts suelto.
+      # Instalar Kairo entero serían tres minutos para no usar nada.
+      - name: Preparar
+        run: npm install --no-save --no-package-lock jiti@2
+
+      - name: Preguntarle a Wikipedia
+        env:
+          PREGUNTA: ${{ inputs.pregunta }}
+        run: |
+          if [ -n "${PREGUNTA}" ]; then
+            node .github/scripts/probar-wikipedia.mjs "${PREGUNTA}"
+          else
+            node .github/scripts/probar-wikipedia.mjs
+          fi

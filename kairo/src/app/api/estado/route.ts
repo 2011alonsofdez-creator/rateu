@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabase, pistaDeUrl } from "@/lib/supabase/config";
 import { cadenaDe, proveedoresActivos } from "@/lib/ia/config";
+import { hayBuscadorPagado, modeloDeBusqueda } from "@/lib/ia/buscar-web";
 import { claveExtra, EXTRA_URL, modelosExtra, puedeBuscar } from "@/lib/ia/proveedores";
 import { PRODUCTOS, enlaceDe, hayTienda, secretoWebhook } from "@/lib/pagos/config";
 import { clienteServidor } from "@/lib/supabase/server";
@@ -421,6 +422,20 @@ export async function GET() {
     busqueda: {
       apagada_a_mano: /^(1|true|si|sí)$/i.test(process.env.KAIRO_SIN_BUSQUEDA?.trim() ?? ""),
       modelos_que_buscan: cadenaDe("normal", "adulto").filter(puedeBuscar),
+      /* LAS REDES DE ABAJO.
+ 
+         Lo de arriba solo habla de Gemini, y eso deja sin explicar el
+         caso que más se sufre: Gemini agotado a media tarde. Desde
+         fuera se ve "no he podido buscar" y no hay forma de saber si es
+         que no hay repuesto o que el repuesto ha fallado, que se
+         arreglan distinto. Aquí no sale ninguna clave: solo si la hay. */
+      repuestos: {
+        web_pagada: hayBuscadorPagado(),
+        web_pagada_modelo: hayBuscadorPagado() ? modeloDeBusqueda() : "",
+        claude: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+        // Ésta no se puede apagar ni se acaba: no hace falta nada.
+        wikipedia: true,
+      },
     },
 
     /* Lo que Kairo va a intentar de verdad en cada nivel, ya filtrado por
