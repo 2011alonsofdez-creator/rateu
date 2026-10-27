@@ -13,7 +13,45 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **El respaldo ya no es gratis: su primer modelo cuesta $0,44/M y nadie lo ve.** `[origen: guardian 2026-10-26]`
+- **El respaldo ya no es gratis, y desde hoy se dispara cada tarde: el repuesto de búsqueda cuesta tokens + unos 2 céntimos por consulta.** `[origen: guardian 2026-10-26 · agravado 2026-10-27]`
+  **Lo de hoy, y cambia lo que ayer era una sospecha de coste en un gasto
+  diario.** El dueño publicó anoche seis commits que arreglan justo lo que
+  notaron los cuatro usuarios —que Kairo contesta de memoria cuando se agota
+  la cuota—, y para eso ha montado una escalera de repuestos de búsqueda. El
+  log de hoy la enseña por primera vez:
+  - **Repuesto 1 (web de pago, "la que sabe lo de ayer"): SÍ, con
+    `deepseek/deepseek-v4-flash-0731`.**
+  - Repuesto 2 (Claude): no, falta `ANTHROPIC_API_KEY`, y es opcional.
+  - Repuesto 3 (Wikipedia): siempre, no se agota, pero solo sabe de lo
+    asentado.
+  **Por qué esto es peor que lo de ayer**: ese `-0731` es el modelo que medí
+  ayer a **$0,44/M de entrada y $1,32/M de salida**, el más caro de las cuatro
+  variantes de su familia. Ayer solo era el respaldo del chat, que entra
+  cuando todo lo demás falla. **Hoy es el buscador de repuesto, y ese entra
+  cada tarde**, en cuanto se acaba la cuota gratuita de Gemini: no es un caso
+  raro, es la segunda mitad de cada día.
+  **Y encima no paga solo tokens.** Su propio código llama al plugin web de
+  OpenRouter con `plugins: [{ id: "web", max_results: 5 }]`
+  (`kairo/src/lib/ia/buscar-web.ts:516` en su rama). Ese plugin se cobra
+  **aparte de los tokens, por resultado**: la referencia que he encontrado es
+  de **$4 por 1.000 resultados, o sea unos 2 céntimos por consulta con 5
+  resultados**, y está servido por Exa
+  ([Simon Willison, marzo 2025](https://simonwillison.net/2025/Mar/10/llm-openrouter-04)).
+  **`(sin confirmar para 2026)`**: no he podido abrir la página de precios de
+  OpenRouter desde aquí, así que el orden de magnitud vale y la cifra exacta
+  hay que verla en su panel. El plugin ofrece varios motores (`auto`,
+  `native`, `exa`, `firecrawl`, `parallel`) y el precio puede depender del que
+  se use ([docs de TanStack](https://tanstack.com/ai/v0/docs/adapters/openrouter)).
+  **Lo que yo haría hoy, por orden**: (1) un **tope de gasto en OpenRouter**,
+  que es de dos minutos y es lo único que acota esto; (2) mirar si el `-0731`
+  es a propósito, porque `deepseek/deepseek-v4-flash-latest` cuesta **$0,05/M
+  y $0,16/M** —nueve veces menos— y para resumir cinco resultados de búsqueda
+  da igual de bien; (3) las tres líneas de `jq` del 22-10, que llevan seis
+  días y que habrían cantado esto sin que nadie lo midiera a mano.
+  **Y lo que no voy a decir**: que esto esté mal hecho. Es lo contrario: es el
+  arreglo del fallo que reportaron los usuarios, y además deja Wikipedia
+  debajo como red que no se agota. Lo que falta no es el diseño, es **el
+  tope**.
   La cadena de respaldo de OpenRouter ha cambiado. Leído del log de
   `revisar.yml` de hoy (ejecución 40278871292, 06:16 UTC), los configurados son
   ahora **cuatro** y **dos no llevan `:free`**:
