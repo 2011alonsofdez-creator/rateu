@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level } from "@/lib/mock";
 import { Marca } from "./Logo";
-import { Bolt } from "./Icons";
+import { IconoNivel } from "./IconoNivel";
 
 /* Lo que se ve mientras la IA trabaja.
    Dos cosas a la vez: qué está haciendo, y con qué cerebro. Esa etiqueta
@@ -109,7 +109,7 @@ export function Pensando({
           <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {elegido && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-[12px] text-muted">
-                <Bolt className="h-3 w-3" style={{ color: LEVELS[elegido].color }} />
+                <IconoNivel nivel={elegido} className="h-3 w-3" style={{ color: LEVELS[elegido].color }} />
                 {t(`app.${elegido}`)}
                 <span className="text-faint">{t("app.autoPicked")}</span>
               </span>

@@ -5,16 +5,8 @@ import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
 import { Marca } from "@/components/Logo";
-import {
-  Arrow,
-  Bolt,
-  Brain,
-  Clock,
-  Fichas,
-  Papel,
-  Plug,
-  Shield,
-} from "@/components/Icons";
+import { Arrow, Brain, Capas, Clock, Fichas, Papel, Plug, Shield } from "@/components/Icons";
+import { IconoNivel } from "@/components/IconoNivel";
 
 const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
   { name: "Claude", title: "brains.claude", desc: "brains.claudeDesc", color: "var(--acento)" },
@@ -37,7 +29,8 @@ const FEATURES: { icon: typeof Clock; title: TKey; desc: TKey }[] = [
   { icon: Papel, title: "features.paperwork", desc: "features.paperworkDesc" },
   { icon: Fichas, title: "features.gist", desc: "features.gistDesc" },
   { icon: Brain, title: "features.mentes", desc: "features.mentesDesc" },
-  { icon: Bolt, title: "features.mega", desc: "features.megaDesc" },
+  /* La tarjeta de MEGA lleva el dibujo de MEGA, no un rayo suelto. */
+  { icon: Capas, title: "features.mega", desc: "features.megaDesc" },
   { icon: Plug, title: "features.connect", desc: "features.connectDesc" },
   { icon: Shield, title: "features.ages", desc: "features.agesDesc" },
 ];
@@ -129,7 +122,7 @@ export default function Landing() {
                 <div className="flex items-center gap-3 rounded-xl border border-line bg-bg-soft px-3.5 py-2.5">
                   <span className="flex-1 text-[14px] text-faint">{t("app.placeholder")}</span>
                   <span className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[12px] text-muted">
-                    <Bolt className="h-3 w-3 text-green" />
+                    <IconoNivel nivel="fast" className="h-3 w-3 text-green" />
                     {t("app.fast")}
                   </span>
                   <span className="brand-grad grid h-7 w-7 place-items-center rounded-lg text-on-accent">
