@@ -54,6 +54,9 @@ type Cowork = {
   tipo: string;
   temas: string;
   zona: string;
+  /** Lo que eligió el dueño sobre buscar. Null en las cuentas donde
+   *  todavía no está pegada la migración 0018. */
+  busca: boolean | null;
 };
 
 type Sesion = NonNullable<Awaited<ReturnType<typeof clienteServidor>>>;
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
   // Con tu sesión: si el Co-Work no es tuyo, esto no devuelve nada.
   const { data: cowork, error } = await supabase
     .from("coworks")
-    .select("id, perfil_id, nombre, tipo, temas, zona")
+    .select("id, perfil_id, nombre, tipo, temas, zona, busca")
     .eq("id", id)
     .maybeSingle<Cowork>();
 
@@ -183,6 +186,7 @@ export async function POST(req: Request) {
     const brief = await redactarBrief({
       tipo: cowork.tipo as Tipo,
       temas: cowork.temas,
+      busca: cowork.busca,
       duenio: perfil.nombre ?? undefined,
       modoEdad: perfil.modo_edad,
       tono: perfil.tono ?? "cercano",

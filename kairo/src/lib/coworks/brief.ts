@@ -4,7 +4,7 @@ import { cadenaDe, nombreModelo } from "@/lib/ia/config";
 import { arrancar, type Trozo } from "@/lib/ia/proveedores";
 import { buscarHechos } from "@/lib/ia/buscar";
 import { construirPrompt } from "@/lib/ia/prompt";
-import { loDeLosDiasAnteriores, recetaDe, type Tipo } from "@/lib/coworks/recetas";
+import { loDeLosDiasAnteriores, recetaDe, vaABuscar, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -41,6 +41,8 @@ export type Brief = {
 export type EncargoBrief = {
   /** Qué tipo de Co-Work es. Si no se dice, el resumen de siempre. */
   tipo?: Tipo;
+  /** Lo que eligió el dueño sobre buscar, en los tipos que lo preguntan. */
+  busca?: boolean | null;
   /** "IA, GTA 6, ofertas de PS5" */
   temas: string;
   /** Cómo se llama, para saludar. */
@@ -143,7 +145,7 @@ export async function redactarBrief(
         un recuerdo disfrazado. */
   let hallazgo: Awaited<ReturnType<typeof buscarHechos>> = null;
 
-  if (receta.busca) {
+  if (vaABuscar(encargo.tipo, encargo.busca)) {
     hallazgo = await buscarHechos(
       receta.pregunta?.(contexto) ?? temas,
       "",
