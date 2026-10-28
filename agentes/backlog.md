@@ -521,11 +521,11 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   La tabla entera, con las seis intenciones y sus fuentes, en
   `agentes/mercado/2026-10-17-mercado.md`.
 
-  **Partida el 19-10. Van cuatro de seis**: `/multas` (19-10),
-  `/cartas-de-hacienda` (20-10), `/contratos` (23-10) y `/crear-una-app`
-  (27-10), las cuatro enteras y en los dos idiomas (abajo, en Hecho). Quedan
-  dos: la del "sin suscripción" y `/avisos-de-plazos` —esta la última, que
-  necesita el reloj—. Y el orden viejo decía
+  **Partida el 19-10. Van cinco de seis**: `/multas` (19-10),
+  `/cartas-de-hacienda` (20-10), `/contratos` (23-10), `/crear-una-app`
+  (27-10) y `/sin-suscripcion` (28-10), las cinco enteras y en los dos
+  idiomas (abajo, en Hecho). **Queda una**: `/avisos-de-plazos`, y va la
+  última porque necesita el reloj. Y el orden viejo decía
   `/resumir-video`,
   una sobre el "sin suscripción" que `/precios` solo responde a medias, y
   `/avisos-de-plazos`, **que va la última a propósito**: es la única que
@@ -728,6 +728,44 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   a pelo** en el componente.
   Lo que esto no arregla, y conviene no confundirlo: que la cuota se agote. Eso
   son dos claves de Gemini en Vercel, gratis, y es del dueño.
+
+- **`/sin-suscripcion`: la quinta página de intención, y la primera que lee sus cifras del código.** `[hecho 2026-10-28]`
+  `kairo/src/app/sin-suscripcion/page.tsx` (servidor, con su `title`,
+  `description`, `canonical` y Open Graph) y `contenido.tsx` (cliente,
+  **español e inglés**). En `sitemap.ts`.
+  **Qué responde**: la intención 6 de la tabla del 17-10, *"asistente de IA en
+  español sin suscripción"*, que era la única que `/precios` contestaba a
+  medias. Y es un reparto distinto: `/precios` explica **qué planes hay**; la
+  pregunta de la gente es **"¿me vas a cobrar todos los meses?"**. La página
+  responde eso: créditos gratis cada día sin tarjeta, paquetes que no caducan
+  si un mes hace falta más, y la cuota como opción y no como puerta.
+  **Lo nuevo de verdad, y es lo que la hace no envejecer**: las cifras **no
+  están escritas a mano**. Salen de `plans` y `creditPacks` de `lib/mock.ts`
+  —de donde las lee la página de precios— y de `CREDITOS` de `lib/ia/config.ts`,
+  que es lo que cobra la caja. Hasta la cuenta de "los créditos del día dan para
+  tres papeles" se calcula dividiendo. Si mañana cambia un precio, cambia aquí
+  solo. Es la misma regla del bloque de precios del prompt maestro, y existe
+  porque un número copiado a mano miente sin que nadie se entere.
+  **Y lleva una sección entera de lo que NO se va a contar**, que es la que más
+  me importa: que no somos los únicos —hay quien vende análisis sueltos sin
+  suscripción y quien tiene plan gratuito, informe del 23-10—, que lo gratuito
+  **no es ilimitado** (son créditos al día y con el modelo rápido, y cuando se
+  acaban Kairo deja de responder hasta mañana) y que **gratis no trae el motor
+  mejor**. Tampoco promete que se pueda comprar hoy: los botones dependen de
+  `NEXT_PUBLIC_TIENDA` (`lib/pagos/publico.ts:7`) y desde aquí no se puede
+  comprobar si están encendidos, así que manda a `/precios` a ver lo que cuesta
+  cada cosa en vez de decir "cómpralo ahora".
+  Comprobado con `tsc --noEmit` 0, `next build` 0 y **leyendo el HTML
+  generado**: título, descripción, `canonical` absoluto, titular
+  pre-renderizado, y las siete cifras saliendo **renderizadas** (15 créditos, 4
+  por herramienta, 3 papeles al día, 5,99 € / 19,99 €, 500 y 2.000 créditos,
+  9,99 € al mes). El `sitemap.xml`, con las **cinco** páginas de intención.
+  **Y la comprobación encontró un fallo de verdad**: los miles salían como
+  "2000" y no "2.000", porque `toLocaleString("es-ES")` depende de los datos de
+  locale del servidor y en el build no están completos. Arreglado formateando a
+  mano, igual que ya hacía la función de los euros por el mismo motivo. Es
+  pequeño, pero es exactamente lo que se escapa si uno da por bueno un
+  `next build` sin leer lo que ha salido.
 
 - **`/crear-una-app`: la cuarta página de intención, y la primera que adelanta a otra con una medición detrás.** `[hecho 2026-10-27]`
   `kairo/src/app/crear-una-app/page.tsx` (servidor, con su `title`,
