@@ -255,7 +255,7 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   hacer el constructor en una tarde si se le dice que sí, y encaja con el
   cambio de textos que ya pidió el de crecimiento.
 
-- **Las preguntas al dueño llevan 12 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-24]`
+- **Las preguntas al dueño llevan 16 días sin contestar, y bloquean cuatro tareas.** `[origen: guardian 2026-10-14 · edad revisada 2026-10-28]`
   `agentes/notas.md` sigue vacío. Las cuatro están estudiadas y preparadas, solo
   falta la decisión: si Kairo+ llega a MEGA, qué hacer con el reloj, si la
   tienda de pagos está encendida y si Kairo está lanzada. Mientras no lleguen,
@@ -271,6 +271,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   intención, la dirección para los fallos de usuarios y, desde ayer, qué dice
   Kairo de las cláusulas abusivas. Siete de ellas se contestan en menos de
   cinco minutos.
+  **Repaso del 28-10**: `notas.md` sigue vacío (dieciséis días). Pero hay que
+  decir lo otro también, porque si no esta línea miente: **el dueño contesta
+  con commits, no con notas**. Desde el 24-10 ha puesto las tres claves de
+  Gemini que le pedimos (en menos de 24 h), ha publicado Kairo Code, ha montado
+  tres repuestos de búsqueda y lleva doce commits más afinando Código. Lo que
+  no contesta son **las decisiones**: las claves de Claude y GPT o los textos de
+  la portada, los enlaces a las páginas de intención, la dirección para fallos y
+  el tope de gasto. Eso es lo que sigue bloqueado, y es más honesto decirlo así
+  que decir que no contesta.
 
 - **Dos precios más que chocan entre el documento y el código.** `[origen: entrenador 2026-10-14]`
   Un Co-Work ejecutado cobra **4** créditos (`api/coworks/ejecutar/route.ts:49`,

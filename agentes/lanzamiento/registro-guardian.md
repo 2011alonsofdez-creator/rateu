@@ -23,3 +23,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-25 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **7 de 72**, peor hueco cerrado 4 h 23: su mejor día | ok, los 3 entregaron | **hay usuarios (4 avisos) y el buscador se muere cada tarde** |
 | 2026-10-26 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | 7 de 72, peor hueco 5 h 34 | ok, los 4 entregaron | **puso las 3 claves de Gemini** · y el respaldo ya no es gratis: $0,44/M el primero |
 | 2026-10-27 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **5 de 72**, peor hueco 6 h 17 | ok, los 4 entregaron | el repuesto de búsqueda es de pago y **se dispara cada tarde** |
+| 2026-10-28 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **4 de 72**, peor hueco 6 h 18 | ok, los 3 entregaron | nada nuevo: los dos 🟡 son los de ayer, un día más viejos |
