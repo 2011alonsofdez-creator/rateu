@@ -1,4 +1,5 @@
 import { partir } from "@/lib/ia/proveedores";
+import { limpiarFallo } from "@/lib/ia/fallos";
 import { cadenaDe, nombreModelo } from "@/lib/ia/config";
 import { arrancar, type Trozo } from "@/lib/ia/proveedores";
 import { buscarHechos } from "@/lib/ia/buscar";
@@ -94,11 +95,32 @@ export function conRepuesto(cadena: string[], cuantos: number): string[] {
   return deOtra ? [...primeros.slice(0, cuantos - 1), deOtra] : primeros;
 }
 
-/** Escribe lo de hoy. Devuelve null si no se pudo (o no se debió). */
-export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null> {
+/* POR QUÉ NO SE PUDO.
+ *
+ * Esta función se come los fallos en silencio —tiene que hacerlo: si un
+ * modelo se cae se prueba el siguiente— y eso deja un agujero: cuando
+ * fallan TODOS, desde fuera se ve un "No ha podido hacerse" que vale
+ * igual para la cuota agotada, para un modelo retirado y para un texto
+ * que salió vacío. Tres averías distintas con el mismo cartel, y cada
+ * una se arregla de otra manera.
+ *
+ * Hemos perdido dos vueltas enteras adivinando cuál era. Así que ahora
+ * se apunta, y lo apuntado acaba en la pantalla.
+ */
+export type PorQueNo = string[];
+
+/** Escribe lo de hoy. Devuelve null si no se pudo (o no se debió).
+ *  `porQueNo`, si se pasa, se rellena con lo que fue fallando. */
+export async function redactarBrief(
+  encargo: EncargoBrief,
+  porQueNo?: PorQueNo,
+): Promise<Brief | null> {
   const hoy = encargo.hoy ?? new Date();
   const temas = encargo.temas.trim();
-  if (!temas) return null;
+  if (!temas) {
+    porQueNo?.push("el encargo está vacío");
+    return null;
+  }
 
   const receta = recetaDe(encargo.tipo);
 
@@ -128,7 +150,10 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
       encargo.modoEdad,
     ).catch(() => null);
 
-    if (!hallazgo || !hallazgo.busco) return null;
+    if (!hallazgo || !hallazgo.busco) {
+      porQueNo?.push("no se ha podido buscar en internet (¿cuota agotada?)");
+      return null;
+    }
 
     if (!hallazgo.hechos.trim()) {
       /* Se buscó y no había nada. Eso NO es un fallo: es la noticia del
@@ -160,7 +185,10 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
     loDeLosDiasAnteriores(encargo.anteriores);
 
   const cadena = cadenaDe("normal", encargo.modoEdad);
-  if (!cadena.length) return null;
+  if (!cadena.length) {
+    porQueNo?.push("ningún modelo disponible (¿faltan claves?)");
+    return null;
+  }
 
   for (const candidato of conRepuesto(cadena, 4)) {
     try {
@@ -208,7 +236,12 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
       }
 
       texto = texto.trim();
-      if (!texto) continue;
+      if (!texto) {
+        /* Vacío sin error es casi siempre el techo de salida: lo que el
+           modelo piensa se descuenta de lo que puede escribir. */
+        porQueNo?.push(`${candidato}: devolvió texto vacío`);
+        continue;
+      }
 
       // Las de la búsqueda y las que haya añadido el que escribe, sin repetir.
       const deLaBusqueda = hallazgo?.fuentes ?? [];
@@ -221,8 +254,9 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
         busquedas: hallazgo?.busquedas ?? [],
         modelo: nombreModelo(candidato),
       };
-    } catch {
-      // Se prueba con el siguiente de la cadena.
+    } catch (e) {
+      // Se prueba con el siguiente de la cadena, y se apunta el motivo.
+      porQueNo?.push(`${candidato}: ${limpiarFallo(e)}`);
     }
   }
 

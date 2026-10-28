@@ -174,6 +174,12 @@ export async function POST(req: Request) {
       });
     }
 
+    /* Lo que vaya fallando, apuntado. Acaba en la pantalla, debajo del
+       Co-Work, porque "No ha podido hacerse" vale igual para la cuota
+       agotada, para un modelo retirado y para un texto vacío, y cada
+       una se arregla de otra manera. */
+    const porQueNo: string[] = [];
+
     const brief = await redactarBrief({
       tipo: cowork.tipo as Tipo,
       temas: cowork.temas,
@@ -182,11 +188,14 @@ export async function POST(req: Request) {
       tono: perfil.tono ?? "cercano",
       zona: cowork.zona,
       anteriores: await loDeAntes(supabase, cowork.id),
-    });
+    }, porQueNo);
 
     if (!brief) {
-      await cerrar("error", "No he podido prepararlo ahora mismo.");
-      return fallo(502, "no_se_ha_podido");
+      const motivos = porQueNo.length
+        ? `\n\nLo que ha pasado:\n${porQueNo.map((m) => `- ${m}`).join("\n")}`
+        : "";
+      await cerrar("error", `No he podido prepararlo ahora mismo.${motivos}`);
+      return fallo(502, "no_se_ha_podido", porQueNo[0]);
     }
 
     /* Se cobra al final y con TU sesión: esto lo has pedido tú, así que
