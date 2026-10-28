@@ -77,78 +77,101 @@ const razonamiento =
         ? { enabled: false }
         : undefined;
 const CLAVE = process.env.OPENROUTER_KEY;
-if (!CLAVE) {
-  console.error("Falta OPENROUTER_KEY.");
-  process.exit(2);
-}
+
+/* UN ARCHIVO YA HECHO, SIN PASAR POR LA IA.
+ 
+   Para probar la prueba. Una comprobación que nunca ha visto fallar
+   nada no se sabe si comprueba: con esto se le dan a mano un juego
+   bueno y uno roto y se mira si distingue. Y de paso sirve para
+   repasar una app que salió mal sin volver a pagarla. */
+const YA_HECHO = process.env.YA_HECHO;
 
 const encargo = await encargoDeKairo();
 const texto = encargo(PETICION);
 
-console.log("═".repeat(60));
-console.log("PIDO:", PETICION);
-console.log("MODELO:", MODELO);
-console.log(`TECHO: ${TECHO} · PENSAR: ${PENSAR}`);
-console.log("═".repeat(60));
-
-const empezo = Date.now();
-const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${CLAVE}`,
-    "Content-Type": "application/json",
-    "HTTP-Referer": "https://kairo.app",
-    "X-Title": "Kairo",
-  },
-  body: JSON.stringify({
-    model: MODELO,
-    messages: [{ role: "user", content: texto }],
-    max_tokens: TECHO,
-    ...(razonamiento ? { reasoning: razonamiento } : {}),
-  }),
-});
-
-if (!r.ok) {
-  console.error("HTTP", r.status, (await r.text()).slice(0, 400));
-  process.exit(1);
+/* La clave solo hace falta para pedirle la app a la IA. Repasando un
+   archivo que ya existe no se llama a nadie, y exigirla ahí dejaba la
+   prueba sin poder correr en un sitio donde no hay clave —que es justo
+   donde se prueba la prueba—. */
+if (!YA_HECHO && !CLAVE) {
+  console.error("Falta OPENROUTER_KEY (o pasa YA_HECHO=ruta.html para repasar un archivo).");
+  process.exit(2);
 }
 
-const datos = await r.json();
-const eleccion = datos.choices?.[0];
-const respuesta = eleccion?.message?.content ?? "";
+let codigo;
 
-/* POR QUÉ PARÓ, Y EN QUÉ SE GASTÓ EL SITIO.
+if (YA_HECHO) {
+  codigo = await fs.readFile(YA_HECHO, "utf8");
+  console.log("═".repeat(60));
+  console.log("ARCHIVO YA HECHO:", YA_HECHO);
+  console.log(`${codigo.length} caracteres · sin pasar por la IA`);
+  console.log("═".repeat(60));
+} else {
+  console.log("═".repeat(60));
+  console.log("PIDO:", PETICION);
+  console.log("MODELO:", MODELO);
+  console.log(`TECHO: ${TECHO} · PENSAR: ${PENSAR}`);
+  console.log("═".repeat(60));
+
+  const empezo = Date.now();
+  const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${CLAVE}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://kairo.app",
+      "X-Title": "Kairo",
+    },
+    body: JSON.stringify({
+      model: MODELO,
+      messages: [{ role: "user", content: texto }],
+      max_tokens: TECHO,
+      ...(razonamiento ? { reasoning: razonamiento } : {}),
+    }),
+  });
+
+  if (!r.ok) {
+    console.error("HTTP", r.status, (await r.text()).slice(0, 400));
+    process.exit(1);
+  }
+
+  const datos = await r.json();
+  const eleccion = datos.choices?.[0];
+  const respuesta = eleccion?.message?.content ?? "";
+
+  /* POR QUÉ PARÓ, Y EN QUÉ SE GASTÓ EL SITIO.
  
-   Sin esto, una respuesta vacía y una respuesta cortada se leen igual
-   —"no ha devuelto archivo"— y se arreglan distinto. `finish_reason:
-   length` quiere decir que se quedó sin sitio para escribir, y si
-   además casi todo se fue en `reasoning_tokens`, es que se lo gastó
-   pensando: el mismo truco que ya nos mordió en Gemini, donde lo que
-   el modelo piensa se descuenta del techo de salida. */
-const u = datos.usage ?? {};
-const pensados = u.completion_tokens_details?.reasoning_tokens ?? 0;
-console.log(
-  `Escrita en ${((Date.now() - empezo) / 1000).toFixed(1)}s · coste ${u.cost ?? "?"}\n` +
-  `Paró porque: ${eleccion?.finish_reason ?? "?"} · salida ${u.completion_tokens ?? "?"} tokens` +
-  (pensados ? ` (de los cuales ${pensados} PENSANDO)` : "") +
-  `\nTexto: ${respuesta.length} caracteres`,
-);
+     Sin esto, una respuesta vacía y una respuesta cortada se leen igual
+     —"no ha devuelto archivo"— y se arreglan distinto. `finish_reason:
+     length` quiere decir que se quedó sin sitio para escribir, y si
+     además casi todo se fue en `reasoning_tokens`, es que se lo gastó
+     pensando: el mismo truco que ya nos mordió en Gemini, donde lo que
+     el modelo piensa se descuenta del techo de salida. */
+  const u = datos.usage ?? {};
+  const pensados = u.completion_tokens_details?.reasoning_tokens ?? 0;
+  console.log(
+    `Escrita en ${((Date.now() - empezo) / 1000).toFixed(1)}s · coste ${u.cost ?? "?"}\n` +
+    `Paró porque: ${eleccion?.finish_reason ?? "?"} · salida ${u.completion_tokens ?? "?"} tokens` +
+    (pensados ? ` (de los cuales ${pensados} PENSANDO)` : "") +
+    `\nTexto: ${respuesta.length} caracteres`,
+  );
 
-/* Algunos modelos mandan lo que piensan en un campo aparte. Si el texto
-   viene vacío pero eso tiene contenido, el archivo no se ha perdido:
-   está en el sitio equivocado, y eso se arregla en Kairo. */
-const aparte = eleccion?.message?.reasoning ?? "";
-if (!respuesta && aparte) {
-  console.log(`¡OJO! El texto viene vacío pero hay ${aparte.length} caracteres en 'reasoning'.`);
-  console.log(aparte.slice(0, 600));
-}
+  /* Algunos modelos mandan lo que piensan en un campo aparte. Si el texto
+     viene vacío pero eso tiene contenido, el archivo no se ha perdido:
+     está en el sitio equivocado, y eso se arregla en Kairo. */
+  const aparte = eleccion?.message?.reasoning ?? "";
+  if (!respuesta && aparte) {
+    console.log(`¡OJO! El texto viene vacío pero hay ${aparte.length} caracteres en 'reasoning'.`);
+    console.log(aparte.slice(0, 600));
+  }
 
-const codigo = documentoHtml(respuesta);
-if (!codigo) {
-  console.error("!! El extractor NO ha sacado ningún archivo de la respuesta.");
-  console.error("Lo que contestó, por el principio:");
-  console.error(respuesta.slice(0, 900));
-  process.exit(1);
+  codigo = documentoHtml(respuesta);
+  if (!codigo) {
+    console.error("!! El extractor NO ha sacado ningún archivo de la respuesta.");
+    console.error("Lo que contestó, por el principio:");
+    console.error(respuesta.slice(0, 900));
+    process.exit(1);
+  }
 }
 
 await fs.mkdir(SALIDA, { recursive: true });
@@ -168,7 +191,19 @@ if (/<link[^>]+href\s*=\s*["']https?:/i.test(codigo))
 if (/\b(fetch|XMLHttpRequest)\s*\(/.test(codigo))
   pegas.push("llama a internet desde el JavaScript");
 
-// --- A ejecutarla ---------------------------------------------------
+// --- A ejecutarla, Y A USARLA ---------------------------------------
+/* ABRIRLA NO BASTA, HAY QUE TOCARLA.
+ *
+ * Esto antes cargaba la página, miraba que hubiera texto y daba el
+ * visto bueno. Y por eso daba por buena justo la app que vino a
+ * probar: un juego de la galleta que enseñaba su botón de Iniciar y,
+ * al pulsarlo, no pintaba nada. El banco no pulsaba, así que no veía
+ * el único momento en el que fallaba.
+ *
+ * Es la tercera vez en este proyecto que una comprobación pasa sin
+ * comprobar nada. Así que ahora se pulsa, y lo que se mira después no
+ * es si "parece" que pasó algo: se leen los píxeles del lienzo.
+ */
 const pw = await import("playwright");
 const navegador = await pw.chromium.launch();
 const pagina = await navegador.newPage({ viewport: { width: 420, height: 880 } });
@@ -177,25 +212,117 @@ const errores = [];
 pagina.on("console", (m) => { if (m.type() === "error") errores.push(m.text().slice(0, 200)); });
 pagina.on("pageerror", (e) => errores.push("REVIENTA: " + String(e).slice(0, 200)));
 
+/* Un diálogo abierto (un alert, un confirm) congela la página y deja
+   la prueba esperando hasta que se acabe el tiempo. Se cierran solos. */
+pagina.on("dialog", (d) => d.dismiss().catch(() => {}));
+
 await pagina.goto(`file://${archivo}`);
 await pagina.waitForTimeout(1200);
 
-const visto = await pagina.evaluate(() => ({
+/* ¿HAY ALGO DIBUJADO EN EL LIENZO?
+ 
+   Leyendo los píxeles, no suponiendo. Un juego que no arranca deja el
+   lienzo de un solo color —casi siempre negro o transparente— y desde
+   fuera eso se ve exactamente igual que uno que va bien y aún no ha
+   empezado. La diferencia está en los datos, así que se miran. */
+const miraLienzos = () => pagina.evaluate(() => {
+  const salida = [];
+  for (const c of document.querySelectorAll("canvas")) {
+    const ctx = c.getContext("2d");
+    if (!ctx || !c.width || !c.height) { salida.push({ tipo: "sin 2d o sin tamaño" }); continue; }
+    try {
+      const d = ctx.getImageData(0, 0, c.width, c.height).data;
+      const vistos = new Set();
+      // Uno de cada doscientos píxeles: de sobra para saber si hay dibujo.
+      for (let i = 0; i < d.length; i += 4 * 200) {
+        vistos.add(`${d[i]},${d[i+1]},${d[i+2]},${d[i+3]}`);
+        if (vistos.size > 6) break;
+      }
+      salida.push({ ancho: c.width, alto: c.height, colores: vistos.size });
+    } catch (e) {
+      salida.push({ tipo: "no se ha podido leer: " + String(e).slice(0, 60) });
+    }
+  }
+  return salida;
+});
+
+const retrato = () => pagina.evaluate(() => ({
   texto: (document.body.innerText || "").replace(/\s+/g, " ").trim().slice(0, 700),
   botones: [...document.querySelectorAll("button")].map((b) => b.innerText.trim()).filter(Boolean).slice(0, 12),
   campos: [...document.querySelectorAll("input,select,textarea")].map((c) => c.getAttribute("placeholder") || c.getAttribute("aria-label") || c.id || c.type).slice(0, 12),
 }));
 
-await pagina.screenshot({ path: path.join(SALIDA, "app.png"), fullPage: true });
-await navegador.close();
+const visto = await retrato();
+const lienzosAntes = await miraLienzos();
+await pagina.screenshot({ path: path.join(SALIDA, "app-1-al-abrir.png"), fullPage: true });
 
-console.log("\n── Se ve esto ──");
+console.log("\n── Al abrirla ──");
 console.log(visto.texto || "(la página está EN BLANCO)");
-console.log("\nBotones:", visto.botones.join(" · ") || "(ninguno)");
+console.log("Botones:", visto.botones.join(" · ") || "(ninguno)");
 console.log("Campos :", visto.campos.join(" · ") || "(ninguno)");
+if (lienzosAntes.length) console.log("Lienzos:", JSON.stringify(lienzosAntes));
 
-if (!visto.texto) pegas.push("la página sale en blanco");
-if (errores.length) pegas.push(`${errores.length} error(es) de JavaScript`);
+if (!visto.texto && !lienzosAntes.length) pegas.push("la página sale en blanco");
+if (errores.length) pegas.push(`${errores.length} error(es) de JavaScript al abrir`);
+
+/* AHORA SE PULSA.
+ 
+   El botón que de verdad arranca la cosa: se busca por lo que pone, y
+   si no hay nada que lo parezca, el primero que haya. Teclas también,
+   que en un juego el botón a veces solo da paso al teclado. */
+const CUAL = /empezar|empieza|iniciar|inicio|start|jugar|juega|comenzar|comienza|play/i;
+const antesDePulsar = errores.length;
+
+const botones = await pagina.locator("button:visible").all();
+let pulsado = null;
+for (const b of botones) {
+  const txt = ((await b.innerText().catch(() => "")) || "").trim();
+  if (CUAL.test(txt)) { pulsado = { b, txt }; break; }
+}
+if (!pulsado && botones.length) {
+  pulsado = { b: botones[0], txt: ((await botones[0].innerText().catch(() => "")) || "(sin texto)").trim() };
+}
+
+console.log("\n── Al usarla ──");
+if (!pulsado) {
+  console.log("No hay ningún botón que pulsar.");
+} else {
+  console.log(`Pulso: "${pulsado.txt}"`);
+  await pulsado.b.click({ timeout: 4000 }).catch((e) => console.log("  no se ha dejado pulsar:", String(e).slice(0, 90)));
+  await pagina.waitForTimeout(600);
+
+  // Y un par de teclas, que muchos juegos esperan eso.
+  for (const tecla of ["Space", "ArrowUp", "ArrowRight"]) {
+    await pagina.keyboard.press(tecla).catch(() => {});
+    await pagina.waitForTimeout(250);
+  }
+  await pagina.waitForTimeout(900);
+
+  const despues = await retrato();
+  const lienzosDespues = await miraLienzos();
+  await pagina.screenshot({ path: path.join(SALIDA, "app-2-al-usarla.png"), fullPage: true });
+
+  if (lienzosDespues.length) console.log("Lienzos:", JSON.stringify(lienzosDespues));
+  if (despues.texto !== visto.texto) console.log("La pantalla ha cambiado.");
+  else if (!lienzosDespues.length) console.log("La pantalla NO ha cambiado en nada.");
+
+  const nuevos = errores.length - antesDePulsar;
+  if (nuevos > 0) pegas.push(`${nuevos} error(es) de JavaScript AL PULSAR`);
+
+  /* Un lienzo de un solo color después de darle a empezar es
+     exactamente lo que se ve como "le doy y no sale nada". */
+  const muertos = lienzosDespues.filter((l) => l.colores !== undefined && l.colores <= 1);
+  if (muertos.length) {
+    pegas.push(`el lienzo sigue EN BLANCO después de pulsar (${muertos.length} de ${lienzosDespues.length})`);
+  }
+
+  /* Y si no hay lienzo ni cambió nada, tampoco ha pasado nada. */
+  if (!lienzosDespues.length && despues.texto === visto.texto && despues.texto) {
+    pegas.push("pulsar el botón no cambia nada en la pantalla");
+  }
+}
+
+await navegador.close();
 
 console.log("\n── Qué tal ──");
 if (errores.length) for (const e of errores) console.log("  JS:", e);
