@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -285,18 +285,32 @@ function Coworks() {
   const contratar = params.get("contratar");
   const puesto = params.get("puesto");
 
+  /* Una sola vez, y SIN tocar la dirección.
+ 
+     La primera versión limpiaba la barra con `router.replace` aquí
+     dentro, y eso era pedir problemas: cambiar la dirección hace que
+     `useSearchParams` cambie, y con esta pantalla metida en un
+     Suspense, una navegación puede volver a montar el componente
+     entero. Volver a montarlo pone TODOS los estados en su valor de
+     fábrica —el tipo incluido—, o sea que el formulario se quedaba con
+     lo que llegó por la barra y el tipo se iba por su cuenta. Un
+     "Abogado" que por dentro resultó ser el Vigilante.
+ 
+     Con el cerrojo no hace falta navegar: se rellena una vez y la
+     barra se queda como esté. Recargar no vuelve a abrirlo porque el
+     cerrojo sigue echado en esa pestaña. */
+  const yaRelleno = useRef(false);
+
   useEffect(() => {
-    if (!contratar) return;
+    if (!contratar || yaRelleno.current) return;
+    yaRelleno.current = true;
     setEditando("nuevo");
     setTipo("encargo");
     setNombre((puesto ?? "").slice(0, 120));
     setTemas(contratar.slice(0, 600));
     setAviso(undefined);
     setPista(undefined);
-    /* Y se limpia la dirección: si no, recargar la página vuelve a
-       abrir el formulario y parece que no se ha guardado nada. */
-    router.replace("/coworks");
-  }, [contratar, puesto, router]);
+  }, [contratar, puesto]);
 
   const abrirNuevo = () => {
     setEditando("nuevo");
