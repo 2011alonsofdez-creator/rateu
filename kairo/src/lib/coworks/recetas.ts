@@ -44,6 +44,13 @@ export type Receta = {
   nombre: string;
   /** Si hay que buscar en internet antes de escribir. */
   busca: boolean;
+  /** Si lo decide el dueño en vez de la receta.
+   *
+   *  Los cuatro tipos que escribimos nosotros lo tienen decidido: el
+   *  resumen de temas busca, el repaso no, y no hay nada que preguntar.
+   *  Un encargo tuyo puede ser cualquier cosa, así que ahí la respuesta
+   *  no está en el código: está en lo que quieras tú. */
+  buscaLoEligeElDuenio?: boolean;
   /** Si no cuesta créditos. Solo el vigilante, que no llama a nadie. */
   gratis?: boolean;
   /** Si hay que escribir algo en «temas». El vigilante mira siempre lo
@@ -328,7 +335,12 @@ Lo que no se hace:
 const ENCARGO: Receta = {
   tipo: "encargo",
   nombre: "Encargo",
+  /* De fábrica no busca, y lo decide el dueño con un interruptor.
+     Que NO busque sea lo de fábrica no es pereza: es que empezar a
+     gastar unos céntimos al día en todos los encargos que ya existen,
+     sin que nadie lo haya pedido, sería cobrar por sorpresa. */
   busca: false,
+  buscaLoEligeElDuenio: true,
 
   comoEscribirlo: `
 
@@ -402,3 +414,15 @@ export const esGratis = (tipo: string | null | undefined) =>
 /** Los que necesitan que escribas algo en «temas». */
 export const necesitaTemas = (tipo: string | null | undefined) =>
   recetaDe(tipo).pideTemas !== false;
+
+/** Los que preguntan al dueño si buscar o no. */
+export const preguntaSiBusca = (tipo: string | null | undefined) =>
+  recetaDe(tipo).buscaLoEligeElDuenio === true;
+
+/** ¿Busca este Co-Work? La receta manda, salvo donde la receta dice
+ *  que mande el dueño. En un sitio y no repartido, porque esto decide
+ *  si se gasta dinero y hay tres caminos que lo preguntan. */
+export function vaABuscar(tipo: string | null | undefined, eligio: boolean | null | undefined): boolean {
+  const receta = recetaDe(tipo);
+  return receta.buscaLoEligeElDuenio ? Boolean(eligio) : receta.busca;
+}

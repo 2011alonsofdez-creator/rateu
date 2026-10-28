@@ -271,9 +271,29 @@ async function hacerUno(
        guarde. */
     const porQueNo: string[] = [];
 
+    /* SI ESTE ENCARGO TIENE QUE BUSCAR, PREGUNTADO APARTE.
+ 
+       La lista de pendientes la devuelve una función de SQL, y esa no
+       trae la columna nueva. Se podría cambiar la función, pero es la
+       que saca el trabajo de TODAS las cuentas de madrugada y cambiarle
+       la forma a una función en Postgres es tirarla y volverla a crear:
+       si eso sale mal a las tres de la mañana, no se ejecuta nada de
+       nadie. Una consulta corta de una columna cuesta mucho menos que
+       ese riesgo.
+ 
+       Si la migración 0018 no está pegada, la consulta falla y se lee
+       como "no buscar", que es lo que hacía antes. */
+    const { data: ajuste } = await supabase
+      .from("coworks")
+      .select("busca")
+      .eq("id", c.id)
+      .maybeSingle();
+    const eligioBuscar = (ajuste as { busca?: boolean } | null)?.busca ?? false;
+
     const brief = await redactarBrief({
       tipo: c.tipo as Tipo,
       temas: c.temas,
+      busca: eligioBuscar,
       duenio: c.duenio ?? undefined,
       modoEdad: c.modo_edad,
       tono: c.tono ?? "cercano",

@@ -9,7 +9,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Marca } from "@/components/Logo";
 import { Section } from "@/components/Section";
 import { Chat as ChatIcon, Clock, Pencil, Play, Plus, Trash } from "@/components/Icons";
-import { esTipo, type Tipo } from "@/lib/coworks/recetas";
+import { esTipo, preguntaSiBusca, type Tipo } from "@/lib/coworks/recetas";
 import type { Fuente } from "@/lib/tipos";
 
 /* Co-Works: los encargos que se ejecutan solos.
@@ -35,6 +35,7 @@ type Cowork = {
   activo: boolean;
   ultima_vez: string | null;
   creado_el: string;
+  busca?: boolean | null;
 };
 
 type Resultado = {
@@ -252,6 +253,7 @@ function Coworks() {
   const [temas, setTemas] = useState("");
   const [hora, setHora] = useState(7);
   const [tipo, setTipo] = useState<Tipo>("brief");
+  const [busca, setBusca] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   const [probando, setProbando] = useState("");
@@ -306,6 +308,9 @@ function Coworks() {
     yaRelleno.current = true;
     setEditando("nuevo");
     setTipo("encargo");
+    /* De fábrica apagado: que contratar no empiece a gastar
+       solo. Quien lo quiera, lo enciende aquí mismo. */
+    setBusca(false);
     setNombre((puesto ?? "").slice(0, 120));
     setTemas(contratar.slice(0, 600));
     setAviso(undefined);
@@ -336,6 +341,7 @@ function Coworks() {
     setTemas("");
     setHora(7);
     setTipo("brief");
+    setBusca(false);
     setAviso(undefined);
     setPista(undefined);
   };
@@ -346,6 +352,7 @@ function Coworks() {
     setTemas(c.temas);
     setHora(c.hora);
     setTipo(esTipo(c.tipo) ? c.tipo : "brief");
+    setBusca(c.busca === true);
     setAviso(undefined);
   };
 
@@ -371,6 +378,7 @@ function Coworks() {
       ...(tipo === "salud" ? {} : { temas: temas.trim() }),
       hora,
       zona: zonaDelNavegador(),
+      ...(preguntaSiBusca(tipo) ? { busca } : {}),
     };
 
     try {
@@ -758,6 +766,26 @@ function Coworks() {
                 <p className="mt-1.5 text-[12.5px] text-faint">
                   {texto(tipo).ay ?? t("cw.topicsHelp")}
                 </p>
+
+                {/* Buscar o no, solo donde lo decide el dueño. El primer
+                    Abogado que se ejecutó acabó diciendo "compruébalo en
+                    el BOE": eso es justo lo que haría esto. */}
+                {preguntaSiBusca(tipo) && (
+                  <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-bg-soft px-3.5 py-3">
+                    <input
+                      type="checkbox"
+                      checked={busca}
+                      onChange={(e) => setBusca(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--acento)]"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[13.5px] font-medium">{t("cw.search")}</span>
+                      <span className="mt-0.5 block text-[12.5px] leading-relaxed text-faint">
+                        {t("cw.searchHelp")}
+                      </span>
+                    </span>
+                  </label>
+                )}
               </>
             )}
 

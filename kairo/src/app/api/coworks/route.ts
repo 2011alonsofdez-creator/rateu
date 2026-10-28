@@ -1,7 +1,7 @@
 import { clienteServidor } from "@/lib/supabase/server";
 import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { faltaColumna } from "@/lib/supabase/compat";
-import { esTipo, necesitaTemas, recetaDe } from "@/lib/coworks/recetas";
+import { esTipo, necesitaTemas, recetaDe, preguntaSiBusca } from "@/lib/coworks/recetas";
 
 export const runtime = "nodejs";
 export const preferredRegion = "fra1";
@@ -19,7 +19,7 @@ export const preferredRegion = "fra1";
  * una petición no.
  */
 
-const COLUMNAS = "id, nombre, tipo, temas, hora, zona, activo, ultima_vez, creado_el";
+const COLUMNAS = "id, nombre, tipo, temas, hora, zona, activo, busca, ultima_vez, creado_el";
 const COLUMNAS_RESULTADO =
   "id, cowork_id, dia, estado, contenido, fuentes, modelo, conversacion_id, creado_el";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -106,6 +106,11 @@ export async function POST(req: Request) {
       hora: horaValida(cuerpo?.hora),
       zona: zonaValida(cuerpo?.zona),
       activo: cuerpo?.activo !== false,
+      /* Solo donde la receta pregunta. En los demás la decisión no es
+         del dueño, y guardar ahí un `true` que nadie va a mirar es
+         dejar puesta una trampa para el que lea esto dentro de un
+         año. */
+      ...(preguntaSiBusca(tipo) ? { busca: cuerpo?.busca === true } : {}),
     })
     .select(COLUMNAS)
     .maybeSingle();
@@ -158,6 +163,11 @@ export async function PATCH(req: Request) {
   if (cuerpo?.hora !== undefined) cambios.hora = horaValida(cuerpo.hora);
   if (cuerpo?.zona !== undefined) cambios.zona = zonaValida(cuerpo.zona);
   if (cuerpo?.activo !== undefined) cambios.activo = Boolean(cuerpo.activo);
+  /* Cambiar de opinión sobre buscar sí se permite —es lo que más se
+     va a tocar: lo pones, ves lo que cuesta, lo quitas—. El tipo no
+     se comprueba aquí porque no se puede cambiar (ver arriba), así
+     que el que lo tenga apagado nunca manda este campo. */
+  if (cuerpo?.busca !== undefined) cambios.busca = cuerpo.busca === true;
 
   if (!Object.keys(cambios).length) return fallo(400, "nada_que_cambiar");
 
