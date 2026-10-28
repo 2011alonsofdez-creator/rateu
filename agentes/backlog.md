@@ -564,6 +564,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   tal y como lo escribió el dueño en la cabecera de `code/page.tsx`. Detalle y
   fuentes en `agentes/mercado/2026-10-26-mercado.md`.
 
+  **Y una segunda decisión suya, que no bloquea escribirlas pero sí que sirvan
+  de algo** `[radar 2026-10-28]`: **ninguna de las cinco está enlazada desde
+  la web**. Están las cinco en el `sitemap.xml` y no se llega a ninguna desde
+  ninguna parte de Kairo, así que existen para Google y no para un visitante.
+  Son **cinco enlaces en el pie** y lo hace el constructor en diez minutos;
+  lleva **cinco días pedido** (parte del 23-10) y se contesta con un sí.
+
   **Decisión pendiente del dueño, y bloquea las tres que quedan** `[crecimiento 2026-10-23]`:
   **¿qué dice Kairo de las cláusulas abusivas?** `/contratos` se publicó el
   23-10 diciendo que Kairo **no** dice si un contrato es bueno, malo o abusivo,
