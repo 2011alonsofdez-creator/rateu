@@ -12,10 +12,7 @@ import { useHistorial } from "@/lib/historial";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
-import {
-  Bolt, Brain, Chat, Clock, Close, Code, Fichas, Papel, Pencil, Plug, Plus, Settings, Team,
-  Trash,
-} from "./Icons";
+import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plug, Plus, Settings, Team, Trash } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/chat", label: "app.chats", icon: Chat },
@@ -57,6 +54,20 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const { credits, total } = useCredits();
   const perfil = usePerfil();
   const pct = Math.round((credits / total) * 100);
+
+  /* LA BARRA TIENE QUE AVISAR, NO SOLO MEDIR.
+ 
+     Era siempre del naranja de la marca, al 95% y al 3%. Una barra que
+     se ve igual cuando vas sobrado que cuando estás a punto de quedarte
+     sin nada no avisa de nada: solo decora. Avisar es lo único que
+     hace que valga la pena ponerla.
+ 
+     Y el número se queda al lado, porque la barra contesta "¿cuánto me
+     queda?" y no contesta la que de verdad importa antes de pulsar:
+     "¿me llega para un Mega?". Eso son 120, y eso solo lo dice el
+     número. */
+  const comoVa =
+    pct <= 10 ? "bg-red" : pct <= 25 ? "bg-gold" : "brand-grad";
 
   const [editando, setEditando] = useState<string>();
   const [borrando, setBorrando] = useState<string>();
@@ -231,13 +242,18 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         >
           <div className="flex items-center justify-between text-[13px]">
             <span className="inline-flex items-center gap-1.5 font-medium">
-              <Bolt className="h-3.5 w-3.5 text-gold" />
+              <Credito className="h-3.5 w-3.5 text-gold" />
               {credits.toLocaleString(lang)}
             </span>
             <span className="text-faint">{t("app.credits")}</span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel-hi">
-            <div className="brand-grad h-full rounded-full" style={{ width: `${pct}%` }} />
+            <div
+              className={`${comoVa} h-full rounded-full transition-[width,background-color] duration-500`}
+              /* Un hilo mínimo aunque no quede nada: una barra vacía
+                 del todo se lee como "esto está roto". */
+              style={{ width: `${Math.max(pct, 2)}%` }}
+            />
           </div>
         </Link>
 

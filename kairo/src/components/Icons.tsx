@@ -56,6 +56,24 @@ export const Settings = ({ className, style }: P) => (
     <path d="M19.4 14.5a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2v.2a2 2 0 11-4 0v-.1a1.7 1.7 0 00-2.9-1.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00-1.2-2.9H3a2 2 0 110-4h.1a1.7 1.7 0 001.3-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 002.9-1.2V3a2 2 0 114 0v.1a1.7 1.7 0 002.9 1.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 001.2 2.9H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1.4z" />
   </svg>
 );
+/* EL CRÉDITO.
+ *
+ * Era el mismo rayo que el de los niveles, y eso hacía dos cosas mal a
+ * la vez: el rayo es de videojuego donde lo que se enseña es dinero, y
+ * el mismo dibujo significaba dos cosas distintas —cuánto te queda y
+ * cuánta potencia gasta esta pregunta— en pantallas que se ven juntas.
+ *
+ * El rombo no se parece a nada de Kairo (la marca son círculos), así que
+ * se lee como lo que es: una ficha. Y el rayo se queda donde siempre
+ * quiso decir potencia.
+ */
+export const Credito = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M12 3.2 20.8 12 12 20.8 3.2 12 12 3.2Z" strokeWidth="1.7" />
+    <path d="M12 8.4 15.6 12 12 15.6 8.4 12 12 8.4Z" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 export const Bolt = ({ className, style }: P) => (
   <svg {...base(className)} style={style} fill="currentColor" stroke="none">
     <path d="M13.5 2L4 13.2h6L9.9 22 20 10.5h-6.4L13.5 2z" />
