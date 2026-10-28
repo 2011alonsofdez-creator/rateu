@@ -1,3 +1,4 @@
+import { partir } from "@/lib/ia/proveedores";
 import { cadenaDe, nombreModelo } from "@/lib/ia/config";
 import { arrancar, type Trozo } from "@/lib/ia/proveedores";
 import { buscarHechos } from "@/lib/ia/buscar";
@@ -68,6 +69,31 @@ function vueltaDelDia(hoy: Date, zona: string): number {
   );
 }
 
+/* LOS INTENTOS, CON UNO DE OTRA CASA SIEMPRE DENTRO.
+ *
+ * Se prueban unos cuantos modelos y se para en el primero que escriba.
+ * Pero cogerlos a pelo por orden tenía un agujero: la cadena empieza
+ * por los de Gemini y el proveedor de repuesto va al final, así que
+ * "los cuatro primeros" eran cuatro Gemini. El día que Gemini falla
+ * —la cuota, un modelo retirado, lo que sea— fallaban los cuatro por
+ * el mismo motivo y el repuesto, que estaba puesto y pagado, no se
+ * llegaba a tocar nunca.
+ *
+ * Cuatro intentos de la misma casa no son cuatro intentos: son uno
+ * repetido. Así que el último sitio se le guarda a alguien de otra
+ * casa, si en la cadena hay alguno.
+ */
+export function conRepuesto(cadena: string[], cuantos: number): string[] {
+  const primeros = cadena.slice(0, cuantos);
+  if (primeros.length < cuantos) return primeros;
+
+  const casa = partir(primeros[0]).proveedor;
+  if (primeros.some((id) => partir(id).proveedor !== casa)) return primeros;
+
+  const deOtra = cadena.slice(cuantos).find((id) => partir(id).proveedor !== casa);
+  return deOtra ? [...primeros.slice(0, cuantos - 1), deOtra] : primeros;
+}
+
 /** Escribe lo de hoy. Devuelve null si no se pudo (o no se debió). */
 export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null> {
   const hoy = encargo.hoy ?? new Date();
@@ -136,7 +162,7 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
   const cadena = cadenaDe("normal", encargo.modoEdad);
   if (!cadena.length) return null;
 
-  for (const candidato of cadena.slice(0, 4)) {
+  for (const candidato of conRepuesto(cadena, 4)) {
     try {
       const arranque = await arrancar({
         id: candidato,
@@ -145,7 +171,25 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
         maxSalida: 4000,
         esfuerzo: "medio",
         modoEdad: encargo.modoEdad,
-        pensar: -1,
+        /* UN TECHO AL PENSAR, O NO ESCRIBE NADA.
+ 
+           Esto estuvo en -1 —"piensa lo que quieras"— junto a un tope
+           de salida de 4000. Y en Gemini eso no son dos presupuestos:
+           es uno. Lo que piensa se descuenta de lo que puede escribir,
+           así que el modelo se gastaba los 4000 pensando, llegaba al
+           límite y devolvía texto VACÍO. Sin error y sin excepción: el
+           bucle lo veía vacío, pasaba al siguiente, y los cuatro
+           hacían lo mismo. Desde fuera, "No ha podido hacerse".
+ 
+           La trampa ya estaba escrita en buscar.ts, en un comentario
+           largo, desde que nos mordió allí. Aquí seguía puesta porque
+           este camino no lo había recorrido nadie: el único Co-Work
+           que se había ejecutado de verdad era el Vigilante, y ése no
+           llama a ningún modelo.
+ 
+           Mil es de sobra para ordenar un encargo de media página, y
+           deja tres mil para escribirlo. */
+        pensar: 1024,
       });
 
       let texto = "";
