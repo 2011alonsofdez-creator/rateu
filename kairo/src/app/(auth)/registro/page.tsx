@@ -9,6 +9,7 @@ import { hasSupabase } from "@/lib/supabase/config";
 import { razonDeAuth, textoDeRazon } from "@/lib/supabase/errores";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
+import { BotonGoogle } from "@/components/BotonGoogle";
 
 /** Años cumplidos a día de hoy. */
 export function edadEn(fecha: string): number | null {
@@ -150,6 +151,10 @@ function Formulario() {
       <BotonPrincipal type="submit" cargando={cargando}>
         {cargando ? t("auth.working") : t("auth.registerCta")}
       </BotonPrincipal>
+
+      {/* Si Google no está dado de alta en Supabase, un aviso en
+          castellano en vez del error en crudo del servidor. */}
+      <BotonGoogle onFallo={() => setError(t(textoDeRazon("otro")))} />
 
       <p className="text-center text-[12px] leading-relaxed text-faint">{t("auth.terms")}</p>
 
