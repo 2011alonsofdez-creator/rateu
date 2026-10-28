@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useUi } from "@/lib/i18n";
+import { useUi, type TKey } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
-import { preguntar, primerBloque } from "@/lib/chatear";
+import { documentoHtml, preguntar } from "@/lib/chatear";
 import { esAvisoDelMarco, paraVistaPrevia } from "@/lib/ejecutar";
 import { descargarTexto } from "@/lib/copiar";
 import { Editor } from "@/components/Editor";
+import { Pensando } from "@/components/Pensando";
+import { CodigoEnVivo } from "@/components/CodigoEnVivo";
 import { Code as IconoCode, Descarga, Play, Refresh } from "@/components/Icons";
 
 /* KAIRO CODE: pide una app, la ves escribirse, la ves funcionando.
@@ -41,6 +43,37 @@ const NIVEL = "normal" as const;
  *  la app deja de funcionar sin internet, que es justo lo que se
  *  prometió; y sin lo último contesta explicando lo que ha hecho, con
  *  el código en medio de la explicación. */
+/* POR DÓNDE VA, MIRANDO EL ARCHIVO.
+ *
+ * Esto antes era un reloj: una frase cada 1,9 segundos, pasara lo que
+ * pasara. O sea que "Ya casi" no quería decir que casi estuviera;
+ * quería decir que habían pasado ocho segundos. Y si el modelo tardaba
+ * medio minuto, el cartel decía "Ya casi" durante veinte segundos.
+ *
+ * Un cartel que no mira lo que cuenta es un cartel que miente despacio.
+ * Y aquí no hace falta: el archivo va llegando a trozos, así que se
+ * puede saber de verdad por dónde va. Las marcas se buscan de la más
+ * tardía a la más temprana, porque en un HTML van en ese orden y lo que
+ * interesa es la última que haya aparecido.
+ */
+const FASES_CODE = {
+  piensa: ["code.f.piensa1", "code.f.piensa2"],
+  empieza: ["code.f.empieza1", "code.f.empieza2"],
+  estilo: ["code.f.estilo1", "code.f.estilo2", "code.f.estilo3"],
+  pantalla: ["code.f.pantalla1", "code.f.pantalla2", "code.f.pantalla3"],
+  logica: ["code.f.logica1", "code.f.logica2", "code.f.logica3"],
+  casi: ["code.f.casi1", "code.f.casi2", "code.f.casi3"],
+} as const satisfies Record<string, readonly TKey[]>;
+
+function faseDe(bruto: string): keyof typeof FASES_CODE {
+  if (!bruto.trim()) return "piensa";
+  if (/<\/html>/i.test(bruto)) return "casi";
+  if (/<script[\s>]/i.test(bruto)) return "logica";
+  if (/<body[\s>]/i.test(bruto)) return "pantalla";
+  if (/<style[\s>]/i.test(bruto)) return "estilo";
+  return "empieza";
+}
+
 function encargo(peticion: string, corta = false): string {
   /* Con `corta`, después de que se cortara por tiempo. No es un capricho
      de estilo: lo que cuesta es escribir, y una app con la mitad de
@@ -165,7 +198,7 @@ export default function CodePage() {
         setTrabajando("");
         if (motivo !== "ok") return;
 
-        const limpio = primerBloque(todo);
+        const limpio = documentoHtml(todo);
         if (limpio) {
           setCodigo(limpio);
           setEnBruto("");
@@ -256,16 +289,27 @@ export default function CodePage() {
       {/* Mientras escribe, y lo que quedó si no salió un archivo */}
       {(trabajando || (enBruto && !codigo)) && (
         <div className="mt-5 rounded-2xl border border-line bg-panel p-4">
-          <p className="text-[13px] text-acento">
-            {trabajando === "arreglando"
-              ? t("code.fixing")
-              : trabajando
-                ? t("code.writing")
-                : t("code.said")}
-          </p>
-          <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-faint">
-            {enBruto.slice(-2000)}
-          </pre>
+          {trabajando ? (
+            /* La marca viva y girando, con las frases de aquí.
+ 
+               Antes esto era una línea de texto en el naranja de la
+               marca —el mismo que usan los avisos—, así que mientras
+               todo iba BIEN la pantalla parecía estar dándote un
+               problema. Y encima no se movía: cuarenta segundos
+               mirando una frase quieta se leen como colgado. */
+            <Pensando
+              nivel={NIVEL}
+              girando
+              fases={
+                trabajando === "arreglando"
+                  ? ["code.fixing"]
+                  : [...FASES_CODE[faseDe(enBruto)]]
+              }
+            />
+          ) : (
+            <p className="text-[13px] text-muted">{t("code.said")}</p>
+          )}
+          <CodigoEnVivo texto={enBruto} />
         </div>
       )}
 

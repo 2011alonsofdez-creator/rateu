@@ -139,8 +139,53 @@ export function zonaDelNavegador(): string | undefined {
 }
 
 /** El primer bloque de código de una respuesta, para el botón de
- *  "ponlo en el editor". Sin bloque, no hay botón. */
+ *  "ponlo en el editor". Sin bloque, no hay botón.
+ *
+ *  Lo que va pegado a las vallas de apertura se acepta entero y no solo
+ *  si son letras: hay modelos que escriben ```html, otros ```HTML y
+ *  otros ```html title="app.html". Con `[a-z]*` los dos últimos no
+ *  casaban y el bloque se perdía. */
 export function primerBloque(texto: string): string | null {
-  const m = texto.match(/```[a-z]*\n([\s\S]*?)```/i);
+  const m = texto.match(/```[^\n]*\n([\s\S]*?)```/);
   return m ? m[1].replace(/\n$/, "") : null;
+}
+
+/* De <!doctype html> (o <html) hasta </html>. Null si ahí no hay un
+   documento. Si falta el cierre se devuelve hasta el final: una app
+   cortada a medias se puede ver y se puede mandar a arreglar; tirarla
+   no deja nada. */
+const ABRE_HTML = /<!doctype\s+html|<html[\s>]/i;
+
+function recortarHtml(texto: string): string | null {
+  const i = texto.search(ABRE_HTML);
+  if (i === -1) return null;
+
+  const j = texto.toLowerCase().lastIndexOf("</html>");
+  return (j === -1 ? texto.slice(i) : texto.slice(i, j + 7)).trim() || null;
+}
+
+/** EL ARCHIVO DE UNA RESPUESTA DE KAIRO CODE.
+ *
+ *  Se le pide al modelo que conteste SOLO con el archivo dentro de un
+ *  bloque de código, y casi siempre lo hace. Casi.
+ *
+ *  Pidiendo un comecocos escribió el juego entero, bien, y sin las
+ *  vallas de ```. Kairo buscaba el bloque, no lo encontraba y contestaba
+ *  "no me ha devuelto un archivo": créditos gastados, espera, y la
+ *  pantalla igual que antes, con la app completa dentro de la respuesta
+ *  que acabábamos de tirar.
+ *
+ *  Así que si no hay vallas se busca el documento directamente. No es
+ *  tragar con cualquier cosa: tiene que haber un <!doctype html> o un
+ *  <html>, y lo de fuera se recorta. Una negativa o una pregunta siguen
+ *  devolviendo null, que es lo que hace que se avise en vez de poner
+ *  texto suelto en el editor. */
+export function documentoHtml(texto: string): string | null {
+  const bloque = primerBloque(texto);
+  if (bloque) {
+    const dentro = recortarHtml(bloque);
+    if (dentro) return dentro;
+  }
+
+  return recortarHtml(texto);
 }
