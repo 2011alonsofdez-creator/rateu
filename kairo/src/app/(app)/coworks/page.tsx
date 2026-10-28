@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { Markdown } from "@/components/Markdown";
@@ -142,6 +142,21 @@ const TIPOS_UI: TipoUi[] = [
       d: "Checks every day that Kairo is still standing, and only writes when something is wrong.",
     },
   },
+  {
+    id: "encargo",
+    es: {
+      n: "Un encargo tuyo",
+      d: "Lo que tú le escribas, hecho cada día igual. Es lo que hay detrás de contratar a alguien en Team.",
+      ph: "Repasa mis contratos y dime si hay alguna cláusula abusiva",
+      ay: "Escríbelo como se lo dirías a una persona que empieza mañana. Esto no busca en internet: para novedades, usa el resumen de temas.",
+    },
+    en: {
+      n: "A job of your own",
+      d: "Whatever you write, done the same way every day. It is what hiring someone in Team actually creates.",
+      ph: "Go through my contracts and tell me if any clause is unfair",
+      ay: "Write it as you would tell someone starting tomorrow. This does not search the web: for news, use the topics digest.",
+    },
+  },
 ];
 
 const tipoUi = (id: string): TipoUi => TIPOS_UI.find((x) => x.id === id) ?? TIPOS_UI[0];
@@ -202,7 +217,19 @@ const zonaDelNavegador = () => {
   }
 };
 
+/* La página lee la dirección (?contratar= y ?puesto=, que es como se
+   llega desde Team), y eso obliga a envolverla: sin el Suspense, Next
+   no puede adelantar nada del HTML y la compilación se para. Mismo
+   apaño que en el chat, por lo mismo. */
 export default function CoworksPage() {
+  return (
+    <Suspense fallback={null}>
+      <Coworks />
+    </Suspense>
+  );
+}
+
+function Coworks() {
   const { t, lang } = useUi();
   const es = lang === "es";
   /** Lo que se enseña de un tipo, en el idioma de quien mira. */
@@ -246,6 +273,30 @@ export default function CoworksPage() {
       .catch(() => {})
       .finally(() => setCargando(false));
   }, [perfil.demo]);
+
+  /* LLEGAR DESDE TEAM CON EL PUESTO YA ESCRITO.
+ 
+     Team enseña fichas —Abogado, Contable— y al contratar manda aquí
+     con el encargo escrito en la dirección. Se abre el formulario ya
+     relleno en vez de soltar a alguien delante de una caja vacía
+     después de haber pulsado "Contratar", que es la forma más rápida
+     de que no contrate nadie. */
+  const params = useSearchParams();
+  const contratar = params.get("contratar");
+  const puesto = params.get("puesto");
+
+  useEffect(() => {
+    if (!contratar) return;
+    setEditando("nuevo");
+    setTipo("encargo");
+    setNombre((puesto ?? "").slice(0, 120));
+    setTemas(contratar.slice(0, 600));
+    setAviso(undefined);
+    setPista(undefined);
+    /* Y se limpia la dirección: si no, recargar la página vuelve a
+       abrir el formulario y parece que no se ha guardado nada. */
+    router.replace("/coworks");
+  }, [contratar, puesto, router]);
 
   const abrirNuevo = () => {
     setEditando("nuevo");
@@ -668,7 +719,7 @@ export default function CoworksPage() {
                   /* El ejemplo es el del tipo elegido: «IA, GTA 6» no
                      ayuda nada si lo que estás creando es un repaso. */
                   placeholder={texto(tipo).ph ?? t("cw.topicsPh")}
-                  rows={2}
+                  rows={tipo === "encargo" ? 4 : 2}
                   maxLength={600}
                   className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-[14.5px] outline-none transition placeholder:text-faint focus:border-line-hi"
                 />
