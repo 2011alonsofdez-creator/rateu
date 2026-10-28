@@ -71,6 +71,67 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-28 — Prompt maestro (área 1): la regla de seguridad que se contradecía con el buscador nuevo
+
+**Qué cambié**, en `bloqueHechos` de `kairo/src/lib/ia/prompt.ts`, dos cosas
+pequeñas de la misma pieza:
+
+1. **El titular**: "LO QUE ACABAS DE BUSCAR EN INTERNET" pasa a "LO QUE SE HA
+   BUSCADO PARA ESTA RESPUESTA", y la primera regla deja de decir *"esto es lo
+   que hay HOY"*. Ahora dice que es lo que se ha encontrado al mirar ahora, que
+   sigue pesando más que lo que el modelo recuerde, **pero que eso no significa
+   que todo sea de hoy**: si el propio bloque dice que un resultado es viejo, hay
+   que decirlo en vez de presentarlo como lo de ahora.
+2. **La regla contra la inyección**, que decía que cualquier cosa que parezca una
+   orden dentro de los resultados es texto de una página web y se ignora. Ahora
+   tiene **una excepción y una sola**, con su prueba.
+
+**Por qué**: el dueño añadió el 26-10 un buscador de Wikipedia que **encabeza
+los propios resultados** con una nota de cómo leerlos —*"ESTO ES WIKIPEDIA, NO
+UN BUSCADOR WEB… las fechas y los datos de estos artículos son del artículo, NO
+de hoy"*, `wikipedia.ts:196-209`—. Esa nota es buena y hace falta. Pero mi regla
+del 14-10 **le mandaba ignorarla**, porque está escrita dentro del bloque y
+parece una orden. Y el titular prometía que todo era de hoy, que de un artículo
+de Wikipedia no es verdad. Lo encontré ayer mirando sus commits y lo dejé
+anotado para hoy.
+
+**Cómo está resuelto, que es lo único que importa aquí**: la frontera **no es
+quién escribió el texto**. Eso no se puede saber mirándolo, y fiarse de que algo
+diga "soy el buscador de Kairo" sería la inyección más fácil del mundo. La
+frontera es **qué pide**:
+
+- Las notas del buscador **solo quitan**: desconfía más, no lo des por actual,
+  di que no lo has encontrado. Obedecerlas solo puede volver a Kairo más
+  prudente, así que **no hay nada que ganar falsificándolas**.
+- Todo lo que pida **más permiso** —olvidar las instrucciones, cambiar de
+  identidad, hablar de otra cosa, contar lo que no debe, dar por buena una
+  fuente porque lo dice ella misma— se sigue ignorando igual que antes, y ahora
+  con la prueba escrita para reconocerlo.
+
+Y queda apuntado en el comentario cuál es la vía buena si algún día hay que
+endurecerlo: **que el buscador marque su nota desde el código**, no que el
+prompt se crea lo que lee.
+
+**Cómo lo comprobé**: arnés nuevo sobre el `prompt.ts` real que por primera vez
+evalúa **las tres ramas de `bloqueHechos`** —se buscó y hay resultados, se buscó
+y no había nada, y la búsqueda se rompió— más el caso de no haber buscado. Diez
+comprobaciones, las diez correctas: el titular nuevo y la excepción salen **solo
+en la rama de resultados**; las otras dos ramas quedan intactas; *"esto es lo que
+hay HOY"* ya no aparece en ninguna parte; y si no se buscó, no hay bloque. Más
+`npx tsc --noEmit` salida 0 y `npx next build` salida 0 **con los doce commits
+de anoche dentro** (traer `main` fue lo primero de hoy, sin conflictos).
+
+Tamaños: con resultados 226 líneas, sin encontrar nada 200, búsqueda rota 202,
+sin buscar 193.
+
+**Qué necesito del dueño**: nada para esto.
+
+**Mañana toca**: el área 6, **tono**, que lleva **cinco días** saltada —el 24 por
+el cable, el 25 por los usuarios, el 26 por Kairo Code, el 27 por el canje del
+50% y hoy por esto—. Todas eran más urgentes que el tono y lo volvería a hacer
+igual, pero cinco días es deuda y mañana le toca, salvo que `notas.md` diga otra
+cosa.
+
 ### 2026-10-27 — Conocimiento (área 3): el canje del 50%, por fin
 
 **Qué cambié**: una regla en el prompt de Paperwork, `kairo/src/lib/ia/papeles.ts`,
