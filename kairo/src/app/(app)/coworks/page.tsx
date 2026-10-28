@@ -310,6 +310,24 @@ function Coworks() {
     setTemas(contratar.slice(0, 600));
     setAviso(undefined);
     setPista(undefined);
+
+    /* Y ahora sí se limpia la barra, pero por la puerta de al lado.
+ 
+       `router.replace` navegaba, y navegar aquí volvía a montar la
+       pantalla y se llevaba por delante el tipo recién puesto —el
+       "Abogado" que resultó ser el Vigilante—. `history.replaceState`
+       cambia lo que pone en la barra y ya: no navega, no remonta, no
+       toca nada de React.
+ 
+       Y hay que limpiarla, porque si no, recargar vuelve a abrir el
+       formulario relleno con el mismo encargo y acabas contratando al
+       abogado tres veces. */
+    try {
+      window.history.replaceState(null, "", "/coworks");
+    } catch {
+      /* Si el navegador no deja, se queda la barra como está: molesta,
+         pero no rompe nada. */
+    }
   }, [contratar, puesto]);
 
   const abrirNuevo = () => {
