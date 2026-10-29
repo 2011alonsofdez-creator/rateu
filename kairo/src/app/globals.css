@@ -23,8 +23,24 @@
   --line: rgba(180, 200, 255, 0.1);
   --line-hi: rgba(180, 200, 255, 0.19);
   --fg: #ecedf2;
-  --muted: #989ba6;
-  --faint: #676a76;
+  /* SUBIDOS A PROPÓSITO, Y NO POR GUSTO.
+ 
+     `faint` es el gris de la letra pequeña —"cuesta 4 créditos", "si no
+     se te ocurre nada"— y estaba en 3,4:1 sobre un panel. El mínimo
+     recomendado para texto pequeño es 4,5:1, o sea que la mitad de las
+     pistas de Kairo estaban por debajo de lo legible. No se leían mal:
+     se leían con esfuerzo, que es peor, porque nadie se queja, solo
+     deja de leerlas.
+ 
+     Los dos valores están calculados contra el fondo de los PANELES,
+     que es el más claro de los dos y por tanto el caso peor: así se
+     cumple también sobre el fondo de la app.
+ 
+     Y suben los dos a la vez para que siga habiendo escalera: si solo
+     subiera el pequeño, la pista pesaría lo mismo que la descripción y
+     no se sabría dónde mirar primero. */
+  --muted: #cacad6;
+  --faint: #9797a0;
   --acento: #ff4a1c;
   --acento-2: #ff7a18;
   --gold: #fbbf24;
@@ -44,9 +60,12 @@
   --panel-hi: #f2f2f4;
   --line: rgba(18, 18, 20, 0.11);
   --line-hi: rgba(18, 18, 20, 0.2);
-  --fg: #121214;
-  --muted: #5b5b64;
-  --faint: #8b8b95;
+  /* Lo mismo en claro, y aquí era más flagrante: la letra pequeña
+     estaba en 3,4:1 sobre blanco. El negro del título baja un punto
+     para acompañar; casi no se ve, pero sostiene la escalera. */
+  --fg: #0d0d0f;
+  --muted: #3a3a42;
+  --faint: #5e5e68;
   /* Más profundo en claro: sobre blanco, el ascua viva deslumbra. */
   --acento: #e0380c;
   --acento-2: #f2660f;
