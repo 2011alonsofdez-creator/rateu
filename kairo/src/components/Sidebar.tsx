@@ -102,7 +102,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {onClose && (
           <button
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-panel-hi hover:text-fg lg:hidden"
+            className="grid h-8 w-8 place-items-center rounded-lg transition hover:bg-row lg:hidden"
             aria-label={t("menu.close")}
           >
             <Close className="h-5 w-5" />
@@ -114,7 +114,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <Link
           href="/chat"
           onClick={onClose}
-          className="flex items-center gap-2.5 rounded-xl border border-line-hi px-3 py-2.5 text-[14px] font-medium transition hover:bg-panel-hi"
+          className="flex items-center gap-2.5 rounded-xl border border-line-hi px-3 py-2.5 text-[14px] font-medium transition hover:bg-row"
         >
           <Plus className="h-4 w-4" />
           {t("app.newChat")}
@@ -132,7 +132,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               href={item.href}
               onClick={onClose}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] transition ${
-                active ? "bg-panel-hi font-medium text-fg" : "text-muted hover:bg-panel hover:text-fg"
+                active ? "bg-row-sel font-medium" : "hover:bg-row"
               }`}
             >
               <Icon className="h-[18px] w-[18px]" />
@@ -175,7 +175,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                     className="mb-0.5 w-full rounded-lg border border-acento bg-panel px-3 py-[6px] text-[13.5px] outline-none"
                   />
                 ) : borrando === c.id ? (
-                  <div className="mb-0.5 flex items-center gap-2 rounded-lg bg-panel px-3 py-[7px] text-[13px]">
+                  <div className="mb-0.5 flex items-center gap-2 rounded-lg bg-row-sel px-3 py-[7px] text-[13px]">
                     <span className="min-w-0 flex-1 truncate text-muted">
                       {t("chat.deleteAsk")}
                     </span>
@@ -200,8 +200,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                       title={c.titulo}
                       className={`block truncate rounded-lg py-[7px] pl-3 pr-14 text-[13.5px] transition ${
                         abierta === c.id
-                          ? "bg-panel-hi font-medium text-fg"
-                          : "text-muted hover:bg-panel hover:text-fg"
+                          ? "bg-row-sel font-medium"
+                          : "hover:bg-row"
                       }`}
                     >
                       {c.titulo}
@@ -212,7 +212,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                         onClick={() => setEditando(c.id)}
                         title={t("chat.rename")}
                         aria-label={t("chat.rename")}
-                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-panel-hi hover:text-fg"
+                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-row-sel hover:text-fg"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
@@ -220,7 +220,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                         onClick={() => setBorrando(c.id)}
                         title={t("chat.delete")}
                         aria-label={t("chat.delete")}
-                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-panel-hi hover:text-gold"
+                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-row-sel hover:text-gold"
                       >
                         <Trash className="h-3.5 w-3.5" />
                       </button>
@@ -261,7 +261,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           <Link
             href="/ajustes"
             onClick={onClose}
-            className="flex flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] transition hover:bg-panel"
+            className="flex flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] transition hover:bg-row"
           >
             <span className="brand-grad grid h-7 w-7 place-items-center rounded-full text-[12px] font-bold text-on-accent">
               {(perfil.nombre || "?").charAt(0).toUpperCase()}
