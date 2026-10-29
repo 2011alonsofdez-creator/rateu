@@ -11,6 +11,7 @@ import {
   cadenaDe,
   nombreModelo,
 } from "@/lib/ia/config";
+import { nivelesDe } from "@/lib/planes";
 import {
   aceptaArchivos,
   arrancar,
@@ -364,7 +365,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const permitidos = NIVELES_POR_PLAN[perfil.plan];
+  const permitidos = nivelesDe(perfil.plan, perfil.creditos_extra ?? 0);
   const saldo = perfil.creditos + perfil.creditos_extra;
 
   /* En automático se mira la pregunta, y luego se recorta a lo que el
