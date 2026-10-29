@@ -13,6 +13,39 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Supreme vende "Co-Works ilimitados" y la base de datos para a 10, sin mirar el plan.** `[origen: crecimiento 2026-10-29]`
+  Medido en el repositorio, no buscado fuera, y los dos sitios se contradicen.
+  Lo que vende `kairo/src/lib/mock.ts` (`plans`):
+  - Free, 0 €: **no los menciona**.
+  - Kairo+, 9,99 €/mes: "**3 Co-Works activos**" / "3 active Co-Works".
+  - Supreme, 24,99 €/mes: "**Co-Works ilimitados**" / "Unlimited Co-Works".
+
+  Lo que hace `limitar_coworks()`:
+  ```sql
+  select count(*) into cuantos from public.coworks where perfil_id = new.perfil_id;
+  if cuantos >= 10 then
+    raise exception 'Has llegado al máximo de 10 Co-Works.' using errcode = 'P0001';
+  ```
+  **Diez, para todo el mundo, sin consultar el plan.** Idéntico en las dos
+  migraciones que lo definen (`TODO_DE_UNA_VEZ.sql:1058-1080` y
+  `0009_coworks.sql:339-361`), y es un `trigger before insert`, así que no hay
+  API que lo esquive. Buscado un `plan` en `api/coworks/` y `lib/coworks/`: el
+  único que aparece viaja para armar el prompt, no para el tope.
+  **Por qué es P1 y no una errata**: es la única cosa de todo el informe de hoy
+  que puede acabar en una devolución. Quien paga 24,99 € por "ilimitados" se
+  choca con el número diez. Y de propina, el de 9,99 € está usando un tercio de
+  lo que compró porque la página le dijo que tenía 3.
+  **No lo toco yo**: los planes y lo que cobran están en el apartado 5 del
+  protocolo. **La decisión es de una línea y tiene dos salidas**:
+  1. **Se corrige el texto** —Supreme pasa a "10 Co-Works", igual que los
+     demás— y eso lo hace el constructor en diez minutos, porque es texto de
+     `mock.ts`. Pero deja a Supreme sin nada que lo distinga aquí.
+  2. **Se sube el tope para Supreme**, y entonces hay que tocar la función de la
+     base de datos para que mire el plan. Eso es una migración nueva y es suya.
+  **Y mientras se decide, lo que no se puede dejar es la frase "ilimitados"**,
+  porque es la única de las tres que es falsa en contra del que paga.
+  Detalle y cuentas en `agentes/mercado/2026-10-29-mercado.md`.
+
 - **~~Team contrata de verdad desde anoche, y el prompt no sabe qué es un Team~~ — HECHO.** `[origen: guardian 2026-10-29 · hecho 2026-10-29]`
   Lo cerró el entrenador el mismo día, dos horas después de encontrarlo: viñeta
   **Team** en `CAPACIDADES` (`kairo/src/lib/ia/prompt.ts`), escrita desde el
@@ -77,6 +110,26 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   2. Kairo **no** lo hace, y entonces hay que reescribir la ficha del Abogado
      y su encargo —que es lo que ya dice la página.
   Una línea en `agentes/notas.md` basta: "el abogado sí señala abusivas" o "no".
+
+  **Hay una tercera, y me corrijo: es mejor que las dos que escribí yo**
+  `[crecimiento 2026-10-29]`. No hace falta elegir entre prometerlo y callarse:
+  **Kairo te dice qué dice tu cláusula y qué exige la ley, señala lo que falta y
+  lo que no cuadra, y no te pone una nota de riesgo ni te firma que algo es
+  abusivo.** Sostiene las dos cosas a la vez, no contradice a `/contratos`, y la
+  ficha del Abogado puede prometerlo sin mentir.
+  **Y no es un invento mío para salir del paso**: una de las comparativas del
+  propio sector advierte de que estas herramientas detectan **cláusulas
+  ausentes e incoherencias** pero **no juzgan si un trato es bueno**, y
+  recomienda llevar sus alertas a un abogado en los contratos que importan
+  ([kissmyskills](https://kissmyskills.com/es/blogs/news/ai-contract-review-tools-compared)).
+  Para calibrar: una revisión legal básica con abogado se cita en **150-400 €**.
+  **Lo que cambia si se elige la primera salida**, y conviene saberlo antes: ahí
+  compiten Prudencia AI (riesgos **por gravedad y con la norma**), ClausIA (**3
+  análisis gratis sin registro**) y precioalquiler (**9,99 € el análisis**), y
+  arriba Maite.ai a 99-120 €/mes con derecho español nativo —los tres últimos
+  `(sin verificar)`—. Donde **nadie** compite es en lo otro: ninguna es un
+  abogado que **vuelve solo cada día**. Detalle en
+  `agentes/mercado/2026-10-29-mercado.md`.
 
 - **El respaldo ya no es gratis, y desde hoy se dispara cada tarde: el repuesto de búsqueda cuesta tokens + unos 2 céntimos por consulta.** `[origen: guardian 2026-10-26 · agravado 2026-10-27]`
   **Lo de hoy, y cambia lo que ayer era una sospecha de coste en un gasto
@@ -734,6 +787,33 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   y los cuatro abren la misma página. Es mejor que no tener nada, y por eso no
   es P1, pero quien busque la política de cookies no la va a encontrar.
 
+
+- **Lo único que Kairo regala y que ChatGPT y Gemini cobran a 20 $ al mes no está escrito en ninguna parte.** `[origen: crecimiento 2026-10-29]`
+  **ChatGPT Tasks y Gemini Scheduled Actions cuestan los dos ~20 $ al mes**
+  —ChatGPT Plus y Google AI Pro—, el tope de las dos es de **10 tareas
+  programadas**, y **en Gemini el plan gratuito no puede usarlas**
+  ([techbuzz](https://www.techbuzz.ai/articles/google-gemini-catches-up-to-chatgpt-with-scheduled-actions),
+  [digitalcitizen](https://www.digitalcitizen.life/gemini-scheduled-actions-how-to-automate-tasks-with-google-gemini/),
+  [flozic](https://www.flozic.ai/blog/comparison/gemini-vs-chatgpt))
+  *(de resultados de búsqueda, sin abrir la web; las cifras bailan entre 19,99 $
+  y 20 $ según la fuente)*.
+  En Kairo, un Co-Work cuesta **4 créditos** (`CREDITOS.normal`) y el plan
+  gratuito trae **15 al día**. O sea que el encargo programado, que es la frase
+  con la que se vende Kairo, **se puede probar sin tarjeta**. Y el tope es el
+  mismo 10 que tienen ellos, así que ahí no se pierde nada.
+  **Qué hacer**: que la portada y la página de precios lo digan. Hoy el plan
+  Free de `mock.ts` ni menciona los Co-Works, y la portada no compara con nadie.
+  Es una tarde y es texto, dentro de lo que un agente puede tocar.
+  **Cómo se escribe, que aquí está todo el riesgo**: la frase verdadera **no**
+  es "tres Co-Works gratis al día". Los 15 créditos son los mismos del chat, así
+  que tres ejecuciones se comen el día entero. Lo que sí se puede decir es
+  "**tu primer Co-Work no te cuesta una suscripción**", y la comparación con los
+  20 $ al mes, que es cierta y comprobable.
+  **Y lo que no se dice**: que Kairo sea la única. No lo es; lo que es es la
+  única que no te pide suscribirte para empezar.
+  **Por qué no va arriba de la P2 aunque sea de hoy**: el pie de la web son
+  diez minutos y está prometido en el parte del 29-10, y además esto necesita
+  que a las páginas se pueda llegar. Primero el pie, luego esto.
 
 - **`/revision` tampoco tiene idioma: 907 líneas, todas en castellano.** `[origen: constructor 2026-10-25, separado 2026-10-29]`
   Es lo que quedaba de la tarea de `/memoria`, que se cerró hoy. `grep -c useUi`

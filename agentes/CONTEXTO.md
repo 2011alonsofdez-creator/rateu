@@ -211,6 +211,48 @@ plazos; no vale para el chat.
 es **gratuita**. Consecuencia directa: el "No" sobre entrenamiento **no vuelve**
 a `/precios`.
 
+## Lo que cuesta "trabajar mientras no estás", y con quién compite Team (2026-10-29)
+
+Dos cosas que cambian cómo se razona, y por eso están aquí y no solo en el
+informe del día.
+
+**1. Ya hay precio de referencia para la frase con la que se vende Kairo.**
+**ChatGPT Tasks y Gemini Scheduled Actions cuestan los dos ~20 $ al mes**
+—ChatGPT Plus y Google AI Pro—, el tope de las dos es de **10 tareas
+programadas a la vez**, y **en Gemini el plan gratuito no las puede usar**
+([techbuzz](https://www.techbuzz.ai/articles/google-gemini-catches-up-to-chatgpt-with-scheduled-actions),
+[digitalcitizen](https://www.digitalcitizen.life/gemini-scheduled-actions-how-to-automate-tasks-with-google-gemini/),
+[flozic](https://www.flozic.ai/blog/comparison/gemini-vs-chatgpt)), de
+resultados de búsqueda y con las cifras bailando entre 19,99 $ y 20 $.
+Lo que eso fija, y hay que usarlo al priorizar y al redactar:
+- El tope de **10 Co-Works** de Kairo **no es una carencia**: es el mismo que
+  tienen los dos grandes. Dejar de disculparse por él.
+- Un Co-Work cuesta **4 créditos** y el plan Free trae **15 al día**, así que
+  Kairo deja **probar sin tarjeta** lo que ellos cobran a 20 $. Es el argumento
+  de precio más fuerte que tiene y no está escrito en ninguna parte (P2).
+- Pero la frase honesta **no** es "tres Co-Works gratis al día": esos 15
+  créditos son los mismos del chat.
+
+**2. Team dejó de ser un escaparate el 28-10, y entró en un mercado con
+precio.** El botón de Contratar crea un Co-Work de verdad, y la ficha del
+Abogado promete revisar contratos. Quien ya hace eso en español:
+**Prudencia AI** (riesgos y desequilibrios **por gravedad y con la norma que
+los justifica**, prueba gratuita), **ClausIA** (cláusula por cláusula contra la
+ley española, **3 análisis gratis sin registro**) y **precioalquiler.com**
+(solo alquiler, **9,99 € el análisis**, contra la LAU y la Ley 12/2023); arriba,
+**Maite.ai** a 99-120 €/mes con derecho español nativo y **Luminance** a precio
+empresarial. **Los tres últimos `(sin verificar)`**: salieron en títulos de
+resultados y una segunda búsqueda dirigida no los reprodujo —el mismo fallo que
+con Lexlyia—, y desde la sede no se puede abrir ninguna web.
+**Dónde no compite nadie**: ninguna de ellas es un abogado **que vuelve solo
+cada día**. Son herramientas de subir un archivo. Eso es lo que Kairo tiene y
+nadie más, y es por donde hay que contarlo.
+**Y el dato que decide la pregunta pendiente de las cláusulas abusivas**: una
+comparativa del propio sector advierte de que estas herramientas detectan
+cláusulas ausentes e incoherencias pero **no juzgan si un trato es bueno**
+([kissmyskills](https://kissmyskills.com/es/blogs/news/ai-contract-review-tools-compared)).
+La prudencia de `/contratos` no es timidez: es la posición del sector.
+
 ## Los tres números que importan al lanzar
 
 De la especificación, sección 8. Se miran cuando haya datos, no antes:
