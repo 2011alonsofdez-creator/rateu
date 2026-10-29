@@ -13,7 +13,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **Team contrata de verdad desde anoche, y el prompt no sabe qué es un Team.** `[origen: guardian 2026-10-29]`
+- **~~Team contrata de verdad desde anoche, y el prompt no sabe qué es un Team~~ — HECHO.** `[origen: guardian 2026-10-29 · hecho 2026-10-29]`
+  Lo cerró el entrenador el mismo día, dos horas después de encontrarlo: viñeta
+  **Team** en `CAPACIDADES` (`kairo/src/lib/ia/prompt.ts`), escrita desde el
+  código y no desde el titular —un miembro es un Co-Work de tipo `encargo`, de
+  ahí salen el tope de diez, el no buscar de fábrica y el precio—. Comprobado
+  en tres capas (estructural 9/9, arnés 40/40, `tsc` y `next build` a 0).
+  Commit `701e6eb`. El detalle queda en `agentes/ia/diario-entrenamiento.md`.
+  Lo que **no** entró, a propósito, es lo de las cláusulas abusivas: eso es el
+  P1 de abajo y lo decide el dueño.
   Es la tercera vez que pasa lo mismo en el mismo sitio, y esta vez lo dice el
   propio comentario del bloque.
   Anoche el dueño publicó nueve commits, y dos cambian lo que Kairo **es**:
@@ -510,29 +518,19 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **La página de memoria está entera en castellano, y no es un texto: es que no tiene idioma.** `[origen: constructor 2026-10-25]`
-  `kairo/src/app/(app)/memoria/page.tsx` **no importa `useUi` ni una sola vez**
-  (`grep -c useUi` → 0), así que todos sus textos están escritos a pelo en
-  español: el aviso del modo demo, la etiqueta "Añadir algo que quieras que
-  recuerde", el ejemplo "Soy alérgico al marisco" y los botones. Un usuario con
-  la interfaz en inglés se encuentra la página en español de golpe.
-  **Cómo salió**: buscando textos a pelo después de arreglar los del chat
-  (hecho hoy). El chat tenía cinco; esto es una página entera, así que es otra
-  tarea y no un remate de la de hoy.
-  **Trabajo**: una tarde. Es mecánico —claves nuevas en `i18n.tsx` en los dos
-  idiomas y `t()` en la página—, cabe entero en lo que un agente puede tocar y
-  no depende de ninguna decisión del dueño.
-  **Y antes de darlo por cerrado, barrer el resto**: `/ajustes` y `/gist` sí
-  llevan sus textos en bloques `es`/`en`, así que de las páginas de dentro
-  queda por mirar si hay más como `/memoria`.
-  **Mirado el 26-10, y hay un segundo caso**: `kairo/src/app/revision/page.tsx`
-  tampoco importa `useUi` —907 líneas, todas en castellano—. Es menos grave que
-  `/memoria` porque `/revision` es la página de diagnóstico y la lee el dueño,
-  no un usuario cualquiera, así que va detrás en la cola; pero cuenta para el
-  mismo trabajo. Hoy se han tocado sus textos del respaldo manteniendo el
-  castellano, a propósito, para no dejar la página a medio idioma.
-
-- **Kairo no sabe que alegar una multa quema el descuento del 50%.** `[origen: crecimiento 2026-10-23]`
+- **~~Kairo no sabe que alegar una multa quema el descuento del 50%~~ — HECHO.** `[origen: crecimiento 2026-10-23 · hecho 2026-10-27, marcado 2026-10-29]`
+  Entregado por el entrenador el 27-10 en `kairo/src/lib/ia/papeles.ts`: regla
+  nueva en `SISTEMA` que obliga a avisar en CONSECUENCIAS, cuando el papel
+  ofrezca las dos cosas, de que **son dos caminos y no se pueden tomar los
+  dos**, sin elegir por el usuario. Y con el cuidado que pedía esta ficha: el
+  porcentaje y el plazo salen del papel, no de memoria, porque los 20 días y el
+  50% son de la DGT y una multa municipal puede tener otros.
+  **Un cambio sobre lo que decía esta ficha**: no fue por `conocimiento/`, fue
+  derecho al prompt de Paperwork. Es lo correcto —esa carpeta no viaja al
+  producto, que es el fallo del 21-10— y además `papeles.ts` es donde se
+  escriben las CONSECUENCIAS.
+  Lo marco hoy porque llevaba dos días hecho y sin marcar, y un backlog que no
+  se marca manda al constructor a repetir trabajo.
   Lo dice la sede electrónica de la DGT en su página de alegaciones: hay **20
   días naturales desde el día siguiente** a la notificación para alegar, y *"con
   la presentación de una alegación renunciarás a cualquier derecho a la
@@ -736,11 +734,60 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   y los cuatro abren la misma página. Es mejor que no tener nada, y por eso no
   es P1, pero quien busque la política de cookies no la va a encontrar.
 
+
+- **`/revision` tampoco tiene idioma: 907 líneas, todas en castellano.** `[origen: constructor 2026-10-25, separado 2026-10-29]`
+  Es lo que quedaba de la tarea de `/memoria`, que se cerró hoy. `grep -c useUi`
+  en `kairo/src/app/revision/page.tsx` sigue dando **0**.
+  **Va al final de la cola a propósito, y conviene que se quede aquí**: es la
+  página de diagnóstico, la lee el dueño y la lee en español. Cambiarla no
+  arregla nada que le pase a un usuario; es coherencia. Y es la página más
+  larga del proyecto, así que sería un día entero de trabajo mecánico a cambio
+  de muy poco.
+  **Cuando se haga**, el patrón ya está probado dos veces (el chat el 25-10 y
+  `/memoria` hoy): claves nuevas en `i18n.tsx` en los dos idiomas, `t()` en la
+  página, las frases con una parte resaltada partidas en dos o tres claves, y
+  se comprueba contando las coincidencias del texto español en `.next/static`:
+  si sale **una** es que está solo en el diccionario; si salen dos, la página
+  todavía lo lleva escrito a pelo.
+  **Barrido terminado hoy, que era lo que faltaba para cerrar la otra**: de las
+  páginas que no importan `useUi`, las cinco de intención y `/mentes` están
+  bien —las de intención llevan el texto en su `contenido.tsx` en los dos
+  idiomas y `/mentes` delega en `MentesCliente`—, así que `/revision` es **el
+  único caso que queda** en todo el proyecto.
 ## P3
 
 - (vacío)
 
 ## Hecho
+
+- **`/memoria` ya habla los dos idiomas.** `[hecho 2026-10-29]`
+  `kairo/src/app/(app)/memoria/page.tsx` no importaba `useUi` ni una vez, así
+  que quien tenía la interfaz en inglés se encontraba la página entera en
+  español de golpe: los avisos, la etiqueta de añadir, el ejemplo «Soy
+  alérgico al marisco», los botones, el «¿Seguro?» de borrarlo todo y hasta
+  los tres recuerdos de ejemplo del modo demostración.
+  **Entregado**: **31 claves `mem.*`** nuevas en `kairo/src/lib/i18n.tsx`, en
+  los dos idiomas, y la página entera pasada a `t()` (29 sustituciones).
+  Reutiliza `app.cancel`, que ya existía. Tres detalles que no eran obvios:
+  - Las frases con un trozo resaltado van **partidas en dos o tres claves**
+    (`mem.lead` + `mem.leadQuote` + `mem.leadEnd`), porque `t()` devuelve
+    texto y no JSX. Así el `<span>` sigue envolviendo lo mismo en inglés.
+  - El plural ya no se arma con un ternario dentro de una plantilla: son dos
+    claves, `mem.one` y `mem.many` con `{n}`, porque "1 cosa / N cosas" no
+    se parte igual en los dos idiomas.
+  - **Los recuerdos de ejemplo salen del estado**. Antes se metían en
+    `setRecuerdos` al cargar, y traducidos ahí se habrían quedado congelados
+    en el idioma que hubiera al entrar. Ahora la lista que se pinta se
+    deriva (`const lista = perfil.demo ? ejemplos(t) : recuerdos`), así que
+    cambian de idioma solos y sin volver a llamar a la API.
+  **Comprobado**: `npx tsc --noEmit` salida 0, `npx next build` salida 0, las
+  31 claves presentes en los dos diccionarios y en el mismo orden, 31 usadas
+  y 0 huérfanas, y en el bundle de cliente cada texto español sale **una sola
+  vez** —la del diccionario—, que es la prueba de que la página ya no lo
+  lleva escrito a pelo, mientras los ingleses («Add something you want it to
+  remember», «Forget everything», «My name is Alonso and I am from Ceuta») sí
+  viajan. No he podido verlo con los ojos: la sede no abre la web.
+  **Lo que queda**, separado como P2 propio para no perderlo: `/revision`.
 
 - **`/api/estado` ya dice el precio de los modelos de respaldo, no solo que existen.** `[hecho 2026-10-22]`
   Cierra el P2 del 20-10. En `kairo/src/app/api/estado/route.ts`: una función
