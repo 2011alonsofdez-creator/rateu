@@ -13,6 +13,63 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Team contrata de verdad desde anoche, y el prompt no sabe qué es un Team.** `[origen: guardian 2026-10-29]`
+  Es la tercera vez que pasa lo mismo en el mismo sitio, y esta vez lo dice el
+  propio comentario del bloque.
+  Anoche el dueño publicó nueve commits, y dos cambian lo que Kairo **es**:
+  *"Make Team hire for real, as a Co-Work the owner writes himself"* y *"Let a
+  hired job look things up, if its owner says so"*. Con ellos van dos
+  migraciones nuevas, `0017_team.sql` y `0018_encargo_busca.sql`.
+  **Qué he comprobado**, no supuesto:
+  - `git show origin/main:kairo/src/app/(app)/team/page.tsx | grep -c BotonAunNo`
+    da **0**. Hasta ayer esa pantalla era un escaparate con botones de "aún
+    no"; hoy el botón de Contratar lleva a
+    `/coworks?puesto=…&contratar=…` con el encargo ya escrito
+    (`team/page.tsx:114`). Contratar a alguien **crea un Co-Work de verdad**.
+  - `grep -in "team\|equipo" kairo/src/lib/ia/prompt.ts` no devuelve **nada**.
+    `CAPACIDADES` habla de Co-Works (línea 126) y no menciona Team.
+  **La regla que esto rompe la escribió el propio archivo**, en el comentario
+  de `CAPACIDADES` (líneas 103-105): *"una capacidad que no esté escrita es una
+  capacidad que Kairo negará tener"*. Y tres líneas más abajo está contado el
+  26-10, cuando pasó con Kairo Código y lo encontró el guardián. Hoy es igual:
+  hay un botón en su propia barra lateral que contrata a un abogado, y si
+  alguien le escribe *"¿qué es el Team?"* o *"quiero contratar a alguien"*,
+  Kairo dirá que eso no existe.
+  **Para el entrenador**, y lo que se escriba sale de leer el código, no el
+  titular: Team **no es una Mente** —lo dice el comentario del archivo: una
+  Mente cambia *cómo* responde, un miembro del Team se encarga de *un trabajo*,
+  es un puesto—; contratar **crea un Co-Work** que se ejecuta a la hora
+  elegida y deja el trabajo hecho en un chat; y **todavía no puede abrir tus
+  archivos**, eso llega con Conectores (`team/page.tsx:149`). Hay cuatro
+  puestos: Abogado, Contable, Comercial y Administrativo. Antes de escribirlo,
+  leer `(app)/team/page.tsx` y `lib/coworks/recetas.ts`.
+  Las dos migraciones están en `main`, así que la tabla existe; si están
+  aplicadas en producción no lo puedo ver desde aquí (`/revision` pide cuenta):
+  ⚪, no 🔴.
+
+- **La ficha del Abogado promete señalar cláusulas abusivas; `/contratos` dice que Kairo no hace eso.** `[origen: guardian 2026-10-29 · la decisión la pidió crecimiento el 2026-10-23]`
+  Las dos frases están hoy en producción, a la vez. Literales:
+  - `(app)/team/page.tsx:21` — *"Revisa contratos, señala cláusulas abusivas y
+    te las explica sin latinajos"*. Y el encargo que se le manda al Co-Work
+    (línea 20) le pide explicar *"cuándo es abusiva"*, **cada día**.
+  - `/contratos`, la página de intención escrita el 23-10, dice que Kairo
+    **no** juzga si un contrato es bueno, malo o abusivo.
+  **No es un desliz de redacción, es la decisión que quedó sin tomar.**
+  Crecimiento la planteó el 23-10, la página pública la contestó de una manera
+  y el producto por dentro la contesta de la otra. Mientras eran una página y
+  un escaparate, la contradicción no llegaba a nadie. Desde anoche el
+  escaparate contrata.
+  **Y pesa más de lo que parece**: "abusiva" es una calificación jurídica, y
+  `/contratos` la evita a propósito. Si la ficha la promete, el Co-Work la
+  entrega **todos los días a la hora elegida y por escrito**, que es bastante
+  más difícil de desdecir que una respuesta en un chat.
+  **No la decido yo. Hay dos salidas, y la única que no vale es dejar las dos:**
+  1. Kairo **sí** señala cláusulas abusivas, y entonces hay que reescribir
+     `/contratos` y decir con qué límites.
+  2. Kairo **no** lo hace, y entonces hay que reescribir la ficha del Abogado
+     y su encargo —que es lo que ya dice la página.
+  Una línea en `agentes/notas.md` basta: "el abogado sí señala abusivas" o "no".
+
 - **El respaldo ya no es gratis, y desde hoy se dispara cada tarde: el repuesto de búsqueda cuesta tokens + unos 2 céntimos por consulta.** `[origen: guardian 2026-10-26 · agravado 2026-10-27]`
   **Lo de hoy, y cambia lo que ayer era una sospecha de coste en un gasto
   diario.** El dueño publicó anoche seis commits que arreglan justo lo que
