@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level, type Nivel } from "@/lib/mock";
-import { NIVELES_POR_PLAN } from "@/lib/planes";
+import { nivelesDe } from "@/lib/planes";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { escuchar, hayMicrofono } from "@/lib/voz";
 import { pitido } from "@/lib/sonido";
@@ -47,7 +47,7 @@ export function Composer({
 }) {
   const { t, lang } = useUi();
   const perfil = usePerfil();
-  const permitidos = NIVELES_POR_PLAN[perfil.plan];
+  const permitidos = nivelesDe(perfil.plan, perfil.creditosExtra ?? 0);
   const [text, setText] = useState("");
   const [menu, setMenu] = useState(false);
   const [menuMente, setMenuMente] = useState(false);

@@ -91,9 +91,30 @@ export async function POST(req: Request) {
   const temas = necesitaTemas(tipo) ? recortar(cuerpo?.temas, 600) : "";
   if (necesitaTemas(tipo) && !temas) return fallo(400, "sin_temas");
 
-  const { perfil } = await miPerfil<{ id: string }>(supabase, "id");
+  const { perfil } = await miPerfil<{ id: string; plan: string }>(supabase, "id, plan");
 
   if (!perfil) return fallo(401, "sin_sesion");
+
+  /* UNO EN EL PLAN GRATIS, Y NO POR TACAÑERÍA.
+ 
+     Un Co-Work se ejecuta cada mañana y cuesta 4 créditos cada vez. Con
+     veinte al día, el quinto ya no cabe: antes de esto se podían crear
+     diez, y a partir del quinto fallaban todos los días en silencio.
+     Prometer cinco trabajadores y que cuatro no aparezcan nunca es peor
+     que decir que hay uno.
+ 
+     Y es lo que de verdad se paga en Kairo. Lo demás son momentos
+     sueltos que una cuenta nueva te vuelve a dar; esto es continuidad
+     —un encargo que aparece cada mañana y que se acuerda de lo de
+     ayer—, y eso no se consigue registrándose otra vez. */
+  if (perfil.plan === "free") {
+    const { count } = await supabase
+      .from("coworks")
+      .select("id", { count: "exact", head: true })
+      .eq("perfil_id", perfil.id);
+
+    if ((count ?? 0) >= 1) return fallo(409, "solo_uno_gratis");
+  }
 
   const { data, error } = await supabase
     .from("coworks")
