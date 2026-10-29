@@ -71,6 +71,84 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-29 — Prompt maestro (área 1): Kairo ya sabe que su Team contrata
+
+**Qué cambié**, en `CAPACIDADES` de `kairo/src/lib/ia/prompt.ts`: una viñeta
+nueva, **Team**, pegada a la de Co-Works porque se define desde ella. Diez
+líneas, y cada una contesta una pregunta que alguien va a hacer: qué es (se
+contrata a alguien para un trabajo que se repite), **que un miembro es un
+Co-Work** con el encargo escrito por su dueño, que se ejecuta a su hora y deja
+el trabajo en un chat, que cuesta lo mismo que cualquier Co-Work, que **de
+fábrica no busca en internet** y el interruptor lo pone quien contrata, que
+todavía no abre archivos —eso llega con Conectores—, que **no es una Mente**
+(una Mente cambia cómo hablas; un miembro del Team es un puesto), y que el
+tope son **diez por cuenta**, Co-Works y Team juntos.
+
+**Por qué**: anoche el dueño publicó *"Make Team hire for real, as a Co-Work
+the owner writes himself"*, y el botón de Contratar dejó de ser un "aún no"
+(`(app)/team/page.tsx:114`: ya lleva el encargo a `/coworks`, y en el archivo
+no queda ni un `BotonAunNo`). `CAPACIDADES` no lo mencionaba. Y la regla de ese
+bloque la escribió el propio archivo: *"una capacidad que no esté escrita es
+una capacidad que Kairo negará tener"*. O sea que había un botón en su barra
+lateral que contrata a un abogado y un Kairo que iba a decir que eso no existe.
+Tercera vez en el mismo sitio —la segunda fue Kairo Código, el 26-10— y las
+tres las encontró el guardián, hoy a las 07:00.
+
+**De dónde sale cada frase, porque esto no se escribe del titular**: la que lo
+decide todo es `0017_team.sql` con el comentario de `ENCARGO` en
+`coworks/recetas.ts:310` — *"un miembro del Team no es una pieza nueva, es un
+Co-Work cuyo encargo lo escribe su dueño"*. De ahí se hereda lo demás sin
+inventar nada: el tope de diez está en `limitar_coworks()`
+(`TODO_DE_UNA_VEZ.sql:1067`, `if cuantos >= 10 then raise exception`), el no
+buscar de fábrica en `0018_encargo_busca.sql` (`busca boolean not null default
+false`) y el precio ya estaba en el bloque de precios, que lo lee de
+`CREDITOS.normal`, así que no he escrito ninguna cifra a mano.
+
+Y un detalle que vale más que el cambio, de la migración 0018: *"el primer
+Abogado que se ejecutó acabó diciendo «compruébalo en el BOE»"*. **Team no está
+publicado y ya se está usando.**
+
+**Cómo lo comprobé**, tres capas:
+
+1. **Estructural**, que es la que pilla el fallo del 23-10 —escribir algo que
+   nunca llega al prompt—: saco el literal de `CAPACIDADES` con una expresión
+   regular y compruebo que la viñeta está **dentro**, que lo de Código y Mentes
+   sigue estando, que la regla de cierre sigue, y que el comentario **no** está
+   dentro. 9 de 9.
+2. **Renderizado**, con el arnés sobre el `prompt.ts` real: copia byte a byte
+   con los seis `import` redirigidos a stubs y el cuerpo comprobado idéntico
+   línea por línea. Cinco casos —adulto con y sin buscador, niño, adolescente y
+   `modoEdad: null`— por ocho comprobaciones: **40 de 40**. Team sale en los
+   cinco, el precio sigue saliendo de `CREDITOS` (`otros 4`) y el comentario no
+   se ha colado en ninguno.
+3. `npx tsc --noEmit` salida **0** y `npx next build` salida **0**, con los
+   nueve commits de anoche dentro (traer `main` fue lo primero, sin conflictos)
+   y `/team` compilando.
+
+Tamaños: adulto con buscador **203** líneas (ayer 193), sin buscador 180, niño
+216, adolescente 214.
+
+**Qué necesito del dueño**: nada para esto. Pero sigue pendiente la decisión
+que pide el P1 de hoy del guardián y que yo no puedo tomar: la ficha del
+Abogado promete *"señala cláusulas abusivas"* y `/contratos` dice que Kairo no
+juzga si un contrato es abusivo. **He dejado el prompt sin tomar partido**: la
+viñeta dice qué es Team y cómo funciona, y no dice ni una palabra de cláusulas
+abusivas. Cuando él conteste en `notas.md`, el cambio es de dos líneas; antes
+de que conteste, cualquier cosa que escribiera aquí sería elegir por él.
+
+**Mañana toca**: el área 6, **tono**, que hoy cumple **siete días** saltada: el
+24 por el cable del conocimiento, el 25 por los usuarios, el 26 por Kairo
+Código, el 27 por el canje del 50%, el 28 por la inyección del buscador y hoy
+por Team. Las siete veces lo de delante era correctness y el tono es acabado,
+y volvería a elegir igual las siete. Pero prometerlo otra vez en esta línea ya
+no vale de nada, así que me pongo una regla y la dejo escrita: **el tono va el
+próximo día que el hallazgo del guardián no sea 🔴**, y si choca otra vez con
+un 🟡, el 🟡 se queda en el backlog y el tono se hace. Lo que hay esperando
+está levantado desde el 12-10 y no hace falta volver a buscarlo: los cuatro
+`TONOS` son adjetivos y no instrucciones (pieza 1 del mapa), y a `QUÉ NO HACES
+NUNCA` le faltan dos tics muy visibles —resumir lo que acaba de decir y
+ofrecerse a seguir ayudando al final—.
+
 ### 2026-10-28 — Prompt maestro (área 1): la regla de seguridad que se contradecía con el buscador nuevo
 
 **Qué cambié**, en `bloqueHechos` de `kairo/src/lib/ia/prompt.ts`, dos cosas

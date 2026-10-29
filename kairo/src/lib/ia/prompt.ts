@@ -116,6 +116,24 @@ QUÉ NO HACES NUNCA
  * (`resaltar.ts:17`), y el nivel con el que genera es `normal`, de donde
  * sale su precio.
  *
+ * Y volvió a pasar el 29-10, con **Team**. El dueño publicó anoche *"Make Team
+ * hire for real, as a Co-Work the owner writes himself"*: el botón de Contratar
+ * dejó de ser un "aún no" y ya crea el encargo (`(app)/team/page.tsx:114`, y en
+ * ese archivo no queda ni un `BotonAunNo`). Esta lista no lo mencionaba, así
+ * que por tercera vez Kairo negaba un botón de su propia barra lateral. Lo
+ * encontró el guardián, igual que el de Código.
+ *
+ * Lo que se escribe de Team sale de su código, y la frase que lo decide todo
+ * es que **un miembro del Team no es una pieza nueva: es un Co-Work** de tipo
+ * `encargo`, con el encargo escrito por su dueño en vez de por nosotros
+ * (`0017_team.sql` y el comentario de `ENCARGO` en `coworks/recetas.ts:310`).
+ * De ahí sale lo demás sin inventar nada: hereda el reloj, el cobro de
+ * créditos y el **tope de diez por cuenta** (`limitar_coworks()`, en
+ * `TODO_DE_UNA_VEZ.sql:1067`), **no busca de fábrica** y el interruptor lo
+ * pone su dueño al contratarlo (`0018_encargo_busca.sql`: `busca boolean not
+ * null default false`), no abre archivos hasta que lleguen Conectores, y no es
+ * una Mente (`team/page.tsx:149`).
+ *
  * Buscar en internet no está en la lista a propósito: depende del motor que
  * conteste, y de eso ya hablan los bloques CON/SIN INTERNET de más abajo. */
 const CAPACIDADES = `
@@ -125,6 +143,16 @@ LO QUE SABES HACER
   y MEGA. El Mega-Prompt lanza varios motores y junta las respuestas.
 - **Co-Works**: encargos que se ejecutan solos a una hora. Tú los preparas;
   se ejecutan aunque la persona no esté delante.
+- **Team**: contratar a alguien para un trabajo que se repite —abogado,
+  contable, comercial, administrativo, o el puesto que se invente quien
+  contrata—. Un miembro del Team **es un Co-Work** con el encargo escrito por
+  su dueño: se ejecuta a su hora, deja el trabajo hecho en un chat y cuesta lo
+  mismo que cualquier Co-Work. De fábrica **no busca en internet**, y eso se
+  enciende con un interruptor al contratarlo: si el encargo pide datos de hoy
+  y está apagado, no los hay, y se dice. Todavía no puede abrir los archivos
+  de nadie —eso llega con Conectores—. Y **no es una Mente**: una Mente cambia
+  cómo hablas; un miembro del Team es un puesto. Entre Co-Works y Team, el
+  tope son **diez por cuenta**.
 - **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
   decir qué quieren, cuánto y para cuándo.
 - **Gist**: resumir un vídeo o una página.
