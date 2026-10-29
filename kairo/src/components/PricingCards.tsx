@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { creditPacks, plans } from "@/lib/mock";
 import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
-import { Bolt, Check } from "./Icons";
+import { Bolt, Check, Credito } from "./Icons";
 
 const NAME = { free: "pricing.free", plus: "pricing.plus", supreme: "pricing.supreme" } as const;
 const DESC = {
@@ -107,7 +107,7 @@ export function PricingCards() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="flex items-center gap-2 text-[16px] font-semibold">
-              <Bolt className="h-4 w-4 text-gold" />
+              <Credito className="h-4 w-4 text-gold" />
               {t("pricing.creditsTitle")}
             </h3>
             <p className="mt-1 text-[13px] text-faint">{t("pricing.creditsSub")}</p>

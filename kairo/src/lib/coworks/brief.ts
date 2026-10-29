@@ -1,8 +1,10 @@
+import { partir } from "@/lib/ia/proveedores";
+import { limpiarFallo } from "@/lib/ia/fallos";
 import { cadenaDe, nombreModelo } from "@/lib/ia/config";
 import { arrancar, type Trozo } from "@/lib/ia/proveedores";
 import { buscarHechos } from "@/lib/ia/buscar";
 import { construirPrompt } from "@/lib/ia/prompt";
-import { loDeLosDiasAnteriores, recetaDe, type Tipo } from "@/lib/coworks/recetas";
+import { loDeLosDiasAnteriores, recetaDe, vaABuscar, type Tipo } from "@/lib/coworks/recetas";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -39,6 +41,8 @@ export type Brief = {
 export type EncargoBrief = {
   /** Qué tipo de Co-Work es. Si no se dice, el resumen de siempre. */
   tipo?: Tipo;
+  /** Lo que eligió el dueño sobre buscar, en los tipos que lo preguntan. */
+  busca?: boolean | null;
   /** "IA, GTA 6, ofertas de PS5" */
   temas: string;
   /** Cómo se llama, para saludar. */
@@ -68,11 +72,57 @@ function vueltaDelDia(hoy: Date, zona: string): number {
   );
 }
 
-/** Escribe lo de hoy. Devuelve null si no se pudo (o no se debió). */
-export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null> {
+/* LOS INTENTOS, CON UNO DE OTRA CASA SIEMPRE DENTRO.
+ *
+ * Se prueban unos cuantos modelos y se para en el primero que escriba.
+ * Pero cogerlos a pelo por orden tenía un agujero: la cadena empieza
+ * por los de Gemini y el proveedor de repuesto va al final, así que
+ * "los cuatro primeros" eran cuatro Gemini. El día que Gemini falla
+ * —la cuota, un modelo retirado, lo que sea— fallaban los cuatro por
+ * el mismo motivo y el repuesto, que estaba puesto y pagado, no se
+ * llegaba a tocar nunca.
+ *
+ * Cuatro intentos de la misma casa no son cuatro intentos: son uno
+ * repetido. Así que el último sitio se le guarda a alguien de otra
+ * casa, si en la cadena hay alguno.
+ */
+export function conRepuesto(cadena: string[], cuantos: number): string[] {
+  const primeros = cadena.slice(0, cuantos);
+  if (primeros.length < cuantos) return primeros;
+
+  const casa = partir(primeros[0]).proveedor;
+  if (primeros.some((id) => partir(id).proveedor !== casa)) return primeros;
+
+  const deOtra = cadena.slice(cuantos).find((id) => partir(id).proveedor !== casa);
+  return deOtra ? [...primeros.slice(0, cuantos - 1), deOtra] : primeros;
+}
+
+/* POR QUÉ NO SE PUDO.
+ *
+ * Esta función se come los fallos en silencio —tiene que hacerlo: si un
+ * modelo se cae se prueba el siguiente— y eso deja un agujero: cuando
+ * fallan TODOS, desde fuera se ve un "No ha podido hacerse" que vale
+ * igual para la cuota agotada, para un modelo retirado y para un texto
+ * que salió vacío. Tres averías distintas con el mismo cartel, y cada
+ * una se arregla de otra manera.
+ *
+ * Hemos perdido dos vueltas enteras adivinando cuál era. Así que ahora
+ * se apunta, y lo apuntado acaba en la pantalla.
+ */
+export type PorQueNo = string[];
+
+/** Escribe lo de hoy. Devuelve null si no se pudo (o no se debió).
+ *  `porQueNo`, si se pasa, se rellena con lo que fue fallando. */
+export async function redactarBrief(
+  encargo: EncargoBrief,
+  porQueNo?: PorQueNo,
+): Promise<Brief | null> {
   const hoy = encargo.hoy ?? new Date();
   const temas = encargo.temas.trim();
-  if (!temas) return null;
+  if (!temas) {
+    porQueNo?.push("el encargo está vacío");
+    return null;
+  }
 
   const receta = recetaDe(encargo.tipo);
 
@@ -95,14 +145,17 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
         un recuerdo disfrazado. */
   let hallazgo: Awaited<ReturnType<typeof buscarHechos>> = null;
 
-  if (receta.busca) {
+  if (vaABuscar(encargo.tipo, encargo.busca)) {
     hallazgo = await buscarHechos(
       receta.pregunta?.(contexto) ?? temas,
       "",
       encargo.modoEdad,
     ).catch(() => null);
 
-    if (!hallazgo || !hallazgo.busco) return null;
+    if (!hallazgo || !hallazgo.busco) {
+      porQueNo?.push("no se ha podido buscar en internet (¿cuota agotada?)");
+      return null;
+    }
 
     if (!hallazgo.hechos.trim()) {
       /* Se buscó y no había nada. Eso NO es un fallo: es la noticia del
@@ -134,9 +187,12 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
     loDeLosDiasAnteriores(encargo.anteriores);
 
   const cadena = cadenaDe("normal", encargo.modoEdad);
-  if (!cadena.length) return null;
+  if (!cadena.length) {
+    porQueNo?.push("ningún modelo disponible (¿faltan claves?)");
+    return null;
+  }
 
-  for (const candidato of cadena.slice(0, 4)) {
+  for (const candidato of conRepuesto(cadena, 4)) {
     try {
       const arranque = await arrancar({
         id: candidato,
@@ -145,7 +201,25 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
         maxSalida: 4000,
         esfuerzo: "medio",
         modoEdad: encargo.modoEdad,
-        pensar: -1,
+        /* UN TECHO AL PENSAR, O NO ESCRIBE NADA.
+ 
+           Esto estuvo en -1 —"piensa lo que quieras"— junto a un tope
+           de salida de 4000. Y en Gemini eso no son dos presupuestos:
+           es uno. Lo que piensa se descuenta de lo que puede escribir,
+           así que el modelo se gastaba los 4000 pensando, llegaba al
+           límite y devolvía texto VACÍO. Sin error y sin excepción: el
+           bucle lo veía vacío, pasaba al siguiente, y los cuatro
+           hacían lo mismo. Desde fuera, "No ha podido hacerse".
+ 
+           La trampa ya estaba escrita en buscar.ts, en un comentario
+           largo, desde que nos mordió allí. Aquí seguía puesta porque
+           este camino no lo había recorrido nadie: el único Co-Work
+           que se había ejecutado de verdad era el Vigilante, y ése no
+           llama a ningún modelo.
+ 
+           Mil es de sobra para ordenar un encargo de media página, y
+           deja tres mil para escribirlo. */
+        pensar: 1024,
       });
 
       let texto = "";
@@ -164,7 +238,12 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
       }
 
       texto = texto.trim();
-      if (!texto) continue;
+      if (!texto) {
+        /* Vacío sin error es casi siempre el techo de salida: lo que el
+           modelo piensa se descuenta de lo que puede escribir. */
+        porQueNo?.push(`${candidato}: devolvió texto vacío`);
+        continue;
+      }
 
       // Las de la búsqueda y las que haya añadido el que escribe, sin repetir.
       const deLaBusqueda = hallazgo?.fuentes ?? [];
@@ -177,8 +256,9 @@ export async function redactarBrief(encargo: EncargoBrief): Promise<Brief | null
         busquedas: hallazgo?.busquedas ?? [],
         modelo: nombreModelo(candidato),
       };
-    } catch {
-      // Se prueba con el siguiente de la cadena.
+    } catch (e) {
+      // Se prueba con el siguiente de la cadena, y se apunta el motivo.
+      porQueNo?.push(`${candidato}: ${limpiarFallo(e)}`);
     }
   }
 

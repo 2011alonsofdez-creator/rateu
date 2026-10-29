@@ -19,21 +19,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
 import { Marca } from "@/components/Logo";
-import {
-  Bolt,
-  Brain,
-  Chevron,
-  Chat as ChatIcon,
-  Check,
-  Clock,
-  Copy,
-  Altavoz,
-  Fichas,
-  Papel,
-  Pencil,
-  Stop,
-  Refresh,
-} from "@/components/Icons";
+import { Altavoz, Bolt, Brain, Chat as ChatIcon, Check, Chevron, Clock, Copy, Credito, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
 
 /* Respuestas de ejemplo. Solo se usan en modo demo, cuando no hay
    Supabase ni clave de Gemini configurados. */
@@ -1115,7 +1101,7 @@ function Chat() {
         )}
 
         <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
-          <Bolt className="h-3 w-3 text-gold" />
+          <Credito className="h-3 w-3 text-gold" />
           {credits.toLocaleString(lang)} {t("app.credits")}
         </span>
       </div>

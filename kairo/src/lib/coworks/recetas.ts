@@ -21,7 +21,7 @@
 /** Los tipos que existen. La lista está cerrada también en la base de
  *  datos (`coworks_tipo_check`), y en las dos a propósito: un tipo que
  *  aparece por descuido se ejecuta solo todos los días. */
-export const TIPOS = ["brief", "salud", "repaso", "precio", "idioma"] as const;
+export const TIPOS = ["brief", "salud", "repaso", "precio", "idioma", "encargo"] as const;
 export type Tipo = (typeof TIPOS)[number];
 
 export const esTipo = (v: unknown): v is Tipo =>
@@ -44,6 +44,13 @@ export type Receta = {
   nombre: string;
   /** Si hay que buscar en internet antes de escribir. */
   busca: boolean;
+  /** Si lo decide el dueño en vez de la receta.
+   *
+   *  Los cuatro tipos que escribimos nosotros lo tienen decidido: el
+   *  resumen de temas busca, el repaso no, y no hay nada que preguntar.
+   *  Un encargo tuyo puede ser cualquier cosa, así que ahí la respuesta
+   *  no está en el código: está en lo que quieras tú. */
+  buscaLoEligeElDuenio?: boolean;
   /** Si no cuesta créditos. Solo el vigilante, que no llama a nadie. */
   gratis?: boolean;
   /** Si hay que escribir algo en «temas». El vigilante mira siempre lo
@@ -296,6 +303,76 @@ Lo que no se hace:
 };
 
 /* --------------------------------------------------------------
+   5. EL ENCARGO  (lo que hay detrás de "contratar a alguien")
+   -------------------------------------------------------------- */
+
+/* LAS OTRAS CUATRO RECETAS LAS ESCRIBIMOS NOSOTROS. ÉSTA LA ESCRIBE ÉL.
+ *
+ * Team prometía desde hace tiempo "le pones nombre, le dices de qué se
+ * encarga, y lo hace siempre igual sin que se lo expliques cada vez", y
+ * el botón contestaba "aún no". Esto es ese botón.
+ *
+ * Y no es una pieza nueva al lado de lo que había: es un Co-Work más.
+ * Un miembro del Team ya era, mirándolo de cerca, un trabajo que se
+ * repite a una hora —que es exactamente un Co-Work— solo que con el
+ * encargo escrito por su dueño en vez de por nosotros. Colgarlo de ahí
+ * le da gratis todo lo que esa maquinaria ya tiene resuelto: el reloj,
+ * la reserva para que no se ejecute dos veces, el cobro de créditos, el
+ * tope de diez, el aviso cuando falla y el historial.
+ *
+ * LO QUE ESCRIBE EL DUEÑO VA ENTRE MARCAS, y eso aquí NO es por
+ * desconfiar de él —es su casa y es su encargo— sino porque ese texto
+ * se pega dentro de un prompt que ya lleva instrucciones: sin un borde
+ * claro, un encargo que empiece por "olvida todo lo anterior" no se
+ * sabría si manda sobre el trabajo o sobre Kairo entero. Con el borde,
+ * manda sobre su trabajo y hasta ahí.
+ *
+ * De momento NO busca en internet, y es a propósito: un encargo puede
+ * ser cualquier cosa y buscar siempre serían diez segundos y medio
+ * céntimo en cada uno, también en los que no lo necesitan. Para lo que
+ * necesita datos de hoy ya está el Daily Brief, que es justo eso.
+ */
+const ENCARGO: Receta = {
+  tipo: "encargo",
+  nombre: "Encargo",
+  /* De fábrica no busca, y lo decide el dueño con un interruptor.
+     Que NO busque sea lo de fábrica no es pereza: es que empezar a
+     gastar unos céntimos al día en todos los encargos que ya existen,
+     sin que nadie lo haya pedido, sería cobrar por sorpresa. */
+  busca: false,
+  buscaLoEligeElDuenio: true,
+
+  comoEscribirlo: `
+
+## LO QUE ESTÁS ESCRIBIENDO AHORA
+
+Un encargo que te dejó hecho el dueño de esta casa para que lo repitas
+cada día. Abajo, entre marcas, está escrito de su puño y letra.
+${NADIE_HA_PREGUNTADO}
+
+Cómo va:
+- Haz lo que pone ahí dentro. Ni más ni menos: si pide tres cosas, van
+  las tres; si pide una, va una y se acaba.
+- Si pide un formato —una lista, una tabla, un correo— ése es el
+  formato. Si no lo pide, el que mejor se lea para eso.
+- Hoy no es ayer: no digas "como siempre" ni "lo de costumbre". No te
+  acuerdas de los otros días; solo tienes lo que te pasen abajo.
+- Si para hacerlo bien te faltara algo que no está escrito, no te lo
+  inventes: hazlo con lo que hay y acaba con una línea diciendo qué te
+  haría falta para que salga mejor.
+- Si el encargo pidiera datos de hoy —precios, noticias, resultados— tú
+  no has mirado nada. Dilo en vez de ponerlos de memoria.`,
+
+  encargo: (c) =>
+    `Esto es lo que te dejó encargado, tal y como lo escribió:\n\n` +
+    `<<<EL ENCARGO\n${c.temas}\nFIN DEL ENCARGO>>>\n\n` +
+    `Hazlo para hoy, ${c.fecha}. ` +
+    `(Vuelta ${c.vuelta}: si el encargo admite variar, no lo plantees igual que la vez anterior.)`,
+
+  paraElChat: (temas) => temas.trim().slice(0, 120) || "Tu encargo de hoy",
+};
+
+/* --------------------------------------------------------------
    El índice
    -------------------------------------------------------------- */
 
@@ -321,6 +398,7 @@ const RECETAS: Record<Tipo, Receta> = {
   repaso: REPASO,
   precio: PRECIO,
   idioma: IDIOMA,
+  encargo: ENCARGO,
   salud: VIGILANTE,
 };
 
@@ -336,3 +414,15 @@ export const esGratis = (tipo: string | null | undefined) =>
 /** Los que necesitan que escribas algo en «temas». */
 export const necesitaTemas = (tipo: string | null | undefined) =>
   recetaDe(tipo).pideTemas !== false;
+
+/** Los que preguntan al dueño si buscar o no. */
+export const preguntaSiBusca = (tipo: string | null | undefined) =>
+  recetaDe(tipo).buscaLoEligeElDuenio === true;
+
+/** ¿Busca este Co-Work? La receta manda, salvo donde la receta dice
+ *  que mande el dueño. En un sitio y no repartido, porque esto decide
+ *  si se gasta dinero y hay tres caminos que lo preguntan. */
+export function vaABuscar(tipo: string | null | undefined, eligio: boolean | null | undefined): boolean {
+  const receta = recetaDe(tipo);
+  return receta.buscaLoEligeElDuenio ? Boolean(eligio) : receta.busca;
+}

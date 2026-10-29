@@ -9,7 +9,8 @@ import { escuchar, hayMicrofono } from "@/lib/voz";
 import { pitido } from "@/lib/sonido";
 import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
 import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
-import { Bolt, Brain, Chevron, Clip, Close, Globo, Mic, Send } from "./Icons";
+import { Brain, Chevron, Clip, Close, Globo, Mic, Send } from "./Icons";
+import { IconoNivel } from "./IconoNivel";
 import { siguienteModo, type ModoBusqueda } from "@/lib/buscar-modo";
 import Link from "next/link";
 
@@ -564,7 +565,8 @@ export function Composer({
                 aria-expanded={menu}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
               >
-                <Bolt
+                <IconoNivel
+                  nivel={current ? current.id : "auto"}
                   className="h-3.5 w-3.5"
                   style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
                 />
@@ -591,7 +593,7 @@ export function Composer({
                       level === "auto" ? "bg-panel-hi" : ""
                     }`}
                   >
-                    <Bolt className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--acento-2)" }} />
+                    <IconoNivel nivel="auto" className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--acento-2)" }} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13.5px] font-medium">{t("app.auto")}</span>
                       <span className="block text-[12px] text-faint">{t("app.autoDesc")}</span>
@@ -605,7 +607,8 @@ export function Composer({
 
                     const contenido = (
                       <>
-                        <Bolt
+                        <IconoNivel
+                          nivel={l.id}
                           className="mt-0.5 h-4 w-4 shrink-0"
                           style={{ color: bloqueado ? "var(--faint)" : LEVELS[l.id].color }}
                         />

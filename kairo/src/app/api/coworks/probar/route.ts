@@ -54,6 +54,9 @@ type Cowork = {
   tipo: string;
   temas: string;
   zona: string;
+  /** Lo que eligió el dueño sobre buscar. Null en las cuentas donde
+   *  todavía no está pegada la migración 0018. */
+  busca: boolean | null;
 };
 
 type Sesion = NonNullable<Awaited<ReturnType<typeof clienteServidor>>>;
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
   // Con tu sesión: si el Co-Work no es tuyo, esto no devuelve nada.
   const { data: cowork, error } = await supabase
     .from("coworks")
-    .select("id, perfil_id, nombre, tipo, temas, zona")
+    .select("id, perfil_id, nombre, tipo, temas, zona, busca")
     .eq("id", id)
     .maybeSingle<Cowork>();
 
@@ -174,19 +177,29 @@ export async function POST(req: Request) {
       });
     }
 
+    /* Lo que vaya fallando, apuntado. Acaba en la pantalla, debajo del
+       Co-Work, porque "No ha podido hacerse" vale igual para la cuota
+       agotada, para un modelo retirado y para un texto vacío, y cada
+       una se arregla de otra manera. */
+    const porQueNo: string[] = [];
+
     const brief = await redactarBrief({
       tipo: cowork.tipo as Tipo,
       temas: cowork.temas,
+      busca: cowork.busca,
       duenio: perfil.nombre ?? undefined,
       modoEdad: perfil.modo_edad,
       tono: perfil.tono ?? "cercano",
       zona: cowork.zona,
       anteriores: await loDeAntes(supabase, cowork.id),
-    });
+    }, porQueNo);
 
     if (!brief) {
-      await cerrar("error", "No he podido prepararlo ahora mismo.");
-      return fallo(502, "no_se_ha_podido");
+      const motivos = porQueNo.length
+        ? `\n\nLo que ha pasado:\n${porQueNo.map((m) => `- ${m}`).join("\n")}`
+        : "";
+      await cerrar("error", `No he podido prepararlo ahora mismo.${motivos}`);
+      return fallo(502, "no_se_ha_podido", porQueNo[0]);
     }
 
     /* Se cobra al final y con TU sesión: esto lo has pedido tú, así que

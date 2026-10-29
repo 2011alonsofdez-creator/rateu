@@ -56,6 +56,80 @@ export const Settings = ({ className, style }: P) => (
     <path d="M19.4 14.5a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2v.2a2 2 0 11-4 0v-.1a1.7 1.7 0 00-2.9-1.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00-1.2-2.9H3a2 2 0 110-4h.1a1.7 1.7 0 001.3-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 002.9-1.2V3a2 2 0 114 0v.1a1.7 1.7 0 002.9 1.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 001.2 2.9H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1.4z" />
   </svg>
 );
+/* EL CRÉDITO.
+ *
+ * Era el mismo rayo que el de los niveles, y eso hacía dos cosas mal a
+ * la vez: el rayo es de videojuego donde lo que se enseña es dinero, y
+ * el mismo dibujo significaba dos cosas distintas —cuánto te queda y
+ * cuánta potencia gasta esta pregunta— en pantallas que se ven juntas.
+ *
+ * El rombo no se parece a nada de Kairo (la marca son círculos), así que
+ * se lee como lo que es: una ficha. Y el rayo se queda donde siempre
+ * quiso decir potencia.
+ */
+export const Credito = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M12 3.2 20.8 12 12 20.8 3.2 12 12 3.2Z" strokeWidth="1.7" />
+    <path d="M12 8.4 15.6 12 12 15.6 8.4 12 12 8.4Z" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/* UN ICONO POR NIVEL.
+ *
+ * Los cinco llevaban el mismo rayo y solo cambiaba el color. El color
+ * solo no distingue: de un vistazo son cinco cosas idénticas, y para
+ * quien no separa bien los colores son LA MISMA. La forma tiene que
+ * decir algo, y aquí cada una dice lo que hace su nivel.
+ *
+ * El rayo no se va: se queda en Rápido, que es donde siempre quiso
+ * decir velocidad en vez de "nivel" en general.
+ */
+
+/** Automático: decide él. */
+export const Varita = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M4.5 19.5 15 9" strokeWidth="1.8" strokeLinecap="round" />
+    <path
+      d="M17.5 3.2l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4z"
+      fill="currentColor"
+      stroke="none"
+    />
+    <path
+      d="M6.2 4.2l.55 1.45L8.2 6.2l-1.45.55L6.2 8.2l-.55-1.45L4.2 6.2l1.45-.55L6.2 4.2z"
+      fill="currentColor"
+      stroke="none"
+    />
+  </svg>
+);
+
+/** Normal: redactar, resumir, explicar. Texto, literalmente. */
+export const Renglones = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M4.5 7h15M4.5 12h15M4.5 17h9" strokeWidth="1.9" strokeLinecap="round" />
+  </svg>
+);
+
+/** Forja: programar, analizar, crear.
+ *
+ *  La cabeza va maciza a propósito. El primer intento era de línea fina
+ *  y a trece píxeles —el tamaño real del menú— se deshacía y parecía
+ *  una lupa. Una mancha sólida aguanta el tamaño pequeño. */
+export const Martillo = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M3.2 20.8 11 13" strokeWidth="2.1" strokeLinecap="round" />
+    <path d="M9.9 6.3 14.1 2.1l7.8 7.8-4.2 4.2-7.8-7.8z" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** MEGA: varios cerebros a la vez, uno encima de otro. */
+export const Capas = ({ className, style }: P) => (
+  <svg {...base(className)} style={style} fill="none">
+    <path d="M12 2.8 21 7.4 12 12 3 7.4l9-4.6z" strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M3.6 11.8 12 16.1l8.4-4.3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3.6 16.2 12 20.5l8.4-4.3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const Bolt = ({ className, style }: P) => (
   <svg {...base(className)} style={style} fill="currentColor" stroke="none">
     <path d="M13.5 2L4 13.2h6L9.9 22 20 10.5h-6.4L13.5 2z" />

@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { clienteNavegador } from "@/lib/supabase/client";
-import { LOGIN_GOOGLE, SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
+import { SUPABASE_HOST, hasSupabase } from "@/lib/supabase/config";
+import { BotonGoogle } from "@/components/BotonGoogle";
 import { razonDeAuth, textoDeRazon, type Razon } from "@/lib/supabase/errores";
 import { Aviso, BotonPrincipal, Campo } from "@/components/Campo";
 import { ModoDemo } from "@/components/ModoDemo";
@@ -82,22 +83,7 @@ function Formulario() {
     setReenviado(true);
   };
 
-  const conGoogle = async () => {
-    setRazon(null);
-    const supabase = clienteNavegador();
-    if (!supabase) return;
 
-    const { error: err } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?volver=${encodeURIComponent(volver)}`,
-      },
-    });
-
-    // Si Google no está dado de alta en Supabase, mejor un aviso claro
-    // que la pantalla de error en crudo que devuelve el servidor.
-    if (err) setRazon("otro");
-  };
 
   return (
     <form onSubmit={entrar} className="space-y-4">
@@ -168,23 +154,7 @@ function Formulario() {
         </Link>
       </p>
 
-      {LOGIN_GOOGLE && (
-        <>
-          <div className="flex items-center gap-3 py-1">
-            <span className="h-px flex-1 bg-line" />
-            <span className="text-[12px] text-faint">{t("auth.or")}</span>
-            <span className="h-px flex-1 bg-line" />
-          </div>
-
-          <button
-            type="button"
-            onClick={conGoogle}
-            className="w-full rounded-xl border border-line-hi px-4 py-2.5 text-[14.5px] font-medium transition hover:bg-panel-hi"
-          >
-            {t("auth.google")}
-          </button>
-        </>
-      )}
+      <BotonGoogle volver={volver} onFallo={() => setRazon("otro")} />
 
       <p className="pt-2 text-center text-[13.5px] text-muted">
         {t("auth.noAccount")}{" "}
