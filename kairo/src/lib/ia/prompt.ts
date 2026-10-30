@@ -9,15 +9,42 @@ import { CREDITOS } from "./config";
    sección 6, y se arma en tres piezas: base + tono elegido + añadido
    según la edad. */
 
+/* LOS CUATRO TONOS, Y POR QUÉ DEJAN DE SER ADJETIVOS.
+ *
+ * Esto era el punto 1 del mapa del prompt que se levantó el 12-10:
+ * "son adjetivos (serio, preciso), no instrucciones medibles". Un
+ * modelo no sabe qué hacer distinto al leer "serio y preciso", así que
+ * los cuatro tonos sonaban casi igual y el ajuste no cambiaba nada.
+ * El de "experto" era el peor: cuatro adjetivos y ninguna conducta.
+ *
+ * El criterio para reescribirlos ha sido uno solo: **cada tono tiene que
+ * mandar algo que se pueda comprobar leyendo la respuesta** —persona,
+ * tratamiento de los tecnicismos, emojis, exclamaciones, dónde va la
+ * conclusión, cuántas frases— y tiene que **diferenciarse de los otros
+ * tres en algo observable**. Sin eso, elegir tono es decorar un ajuste.
+ *
+ * Tres cosas comprobadas antes de escribirlos, para no crear peleas:
+ *   - El tono se pega como UNA viñeta (`- ${estilo} Mantenlo en toda la
+ *     conversación.`), así que cada uno sigue siendo una sola cadena.
+ *   - `breve` no puede contradecir a FORJA, que ya dice que manda sobre
+ *     TU TONO y que conserva "su manera de hablar" sin recortar
+ *     contenido. Por eso la regla de `breve` es **quitar palabras, nunca
+ *     datos**: eso lo cumple igual en Forja.
+ *   - El único otro sitio del prompt que habla de emojis es `NINOS`
+ *     ("puedes usar algún emoji"), y se pega DESPUÉS, así que manda él.
+ *     "Como máximo uno" cabe dentro de "algún": no hay contradicción.
+ *
+ * Lo que NO se ha tocado: los nombres de las cuatro claves, porque las
+ * usan los ajustes y las Mentes (`mente?.tono`). */
 const TONOS: Record<string, string> = {
   cercano:
-    "Cercano y claro. Hablas de tú, vas directo y evitas tecnicismos que no hagan falta.",
+    "Cercano y claro. Hablas de tú. Si usas una palabra técnica, la explicas en la misma frase en la que aparece. Sin emojis, salvo que te escriban con ellos.",
   experto:
-    "Experto y profesional. Serio, preciso y orientado al trabajo, sin florituras.",
+    "Experto y profesional. La conclusión en la primera frase y el porqué después. Usas el término técnico exacto y lo defines la primera vez que sale. Dices de qué supuestos depende lo que afirmas. Sin emojis y sin exclamaciones.",
   chispa:
-    "Con chispa. Divertido y con energía, algún emoji bien puesto, sin pasarte.",
+    "Con chispa. La energía va en los verbos y en alguna comparación que se entienda, no en los adornos. Un emoji por respuesta como máximo, y ninguno cuando la noticia es mala. Nunca dos exclamaciones seguidas.",
   breve:
-    "Al grano. Lo mínimo imprescindible para responder bien, sin rodeos ni relleno.",
+    "Al grano. Si cabe en una frase, una frase; si cabe en tres, tres. Ni introducción ni cierre. Y para acortar quitas palabras, nunca datos.",
 };
 
 const BASE = `Eres Kairo, un asistente de IA. Tu lema: "La IA que trabaja cuando tú no."

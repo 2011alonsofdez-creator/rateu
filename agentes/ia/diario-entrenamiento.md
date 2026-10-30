@@ -37,7 +37,7 @@ internet (sí/no) → archivos → Forja → Mente → modo de edad.
 | 3 | `BASE` › CÓMO RESPONDES | L28-34 | Ir al grano, listas solo si aclaran | Correcto, pero "primero miras" es falso cuando no hay buscador |
 | 4 | `BASE` › NO TE INVENTAS NADA | L36-50 | La sección más trabajada del prompt | Bien. No tocar sin motivo fuerte |
 | 5 | `BASE` › LÍMITES | L52-58 | Médico/legal/financiero, autolesión | Bien |
-| 6 | `BASE` › QUÉ NO HACES NUNCA | L60-65 | 4 tics de IA prohibidos | **El hueco más claro.** Faltan dos tics muy visibles: resumir lo que acaba de decir y ofrecerse a seguir ayudando al final. Área 6 |
+| 6 | `BASE` › QUÉ NO HACES NUNCA | L79-92 | **6** tics de IA prohibidos | **Corregido el 30-10**: esta fila decía que faltaban dos tics —resumir lo que acaba de decir y ofrecerse a seguir ayudando—. Se pusieron el **17-10** (`a00059c`), y la fila se quedó sin actualizar trece días, repetida como pendiente los días 28 y 29. Hoy está completa y bien escrita, con la distinción entre cortesía de relleno y un siguiente paso concreto |
 | 7 | `SIN_INTERNET` | L72-86 | Qué decir sin buscador | Bien, y bien razonado el por qué está separado |
 | 8 | `CON_INTERNET` | L87-115 | Cuándo es obligatorio buscar | Bien. Es una lista de casos, no un "puedes buscar" |
 | 9 | `bloqueFecha()` | L124-167 | Qué día es hoy, zona del usuario | Bien. Resuelve el "mi conocimiento llega hasta 2024" |
@@ -58,8 +58,11 @@ piedra cada semana.
 **Lo que marca el trabajo de las próximas semanas**, por orden de lo que más
 cambiaría las respuestas:
 
-1. Los 4 tonos son adjetivos, no instrucciones (pieza 1) y faltan dos tics de
-   IA en QUÉ NO HACES NUNCA (pieza 6). Las dos cosas son área 6, Tono.
+1. ~~Los 4 tonos son adjetivos, no instrucciones (pieza 1) y faltan dos tics de
+   IA en QUÉ NO HACES NUNCA (pieza 6). Las dos cosas son área 6, Tono.~~
+   **Las dos hechas**: los tics el 17-10 (`a00059c`) y los cuatro tonos el
+   30-10. Lo que queda de tono ya no está en el mapa: habrá que volver a
+   mirarlo cuando el banco de pruebas diga cómo suenan de verdad.
 2. No hay ni un ejemplo en `agentes/ia/ejemplos/` ni una línea en
    `agentes/ia/conocimiento/`: las carpetas están con su README y nada más.
    Áreas 2 y 3.
@@ -70,6 +73,94 @@ cambiaría las respuestas:
 ---
 
 ## Entradas
+
+### 2026-10-30 — Tono (área 6): los cuatro tonos dejan de ser adjetivos
+
+**Hoy ha tocado tono**, octavo día después de apuntarlo, y ha tocado porque
+ayer me puse la regla por escrito: *va el próximo día cuyo hallazgo del
+guardián no sea 🔴*. El de hoy es 🟡 —la página de precios vende el plan
+gratis viejo— y además es texto de `mock.ts`, o sea del constructor y no mío.
+Así que la regla se ha cumplido sola el primer día que ha podido.
+
+**Y antes de lo de hoy, una corrección mía, que va primero porque la he
+repetido dos veces.** Mi mapa del 12-10 decía que a `QUÉ NO HACES NUNCA` le
+faltaban dos tics —resumir lo que acaba de decir y ofrecerse a seguir
+ayudando— y lo repetí como pendiente en las entradas del 28 y del 29. **Están
+puestos desde el 17-10**, en el commit `a00059c`, *"los dos tics que delatan a
+una IA"*, que fue un día de área 6 que no conté. Lo encontré hoy al ir a
+escribirlos: estaban ya en las líneas 84-92, mejor escritos de lo que los
+habría puesto, con la distinción entre cortesía de relleno y un siguiente paso
+concreto. **El mapa llevaba trece días desactualizado en su punto más citado**,
+y lo arreglo donde toca: en el mapa, no solo aquí.
+
+**Qué cambié**, entonces, el punto que sí quedaba, y que era el número 1 de la
+lista de prioridades de ese mismo mapa: **`TONOS`**, los cuatro, en
+`kairo/src/lib/ia/prompt.ts`.
+
+Lo que había era una frase de adjetivos por tono. El de `experto` entero era
+*"Serio, preciso y orientado al trabajo, sin florituras"*: cuatro adjetivos y
+**ninguna conducta**. Un modelo no sabe qué hacer distinto al leer eso, así que
+los cuatro tonos sonaban casi igual y elegir tono en los ajustes no cambiaba
+nada observable.
+
+El criterio para reescribirlos ha sido uno y está escrito en el comentario:
+**cada tono tiene que mandar algo que se pueda comprobar leyendo la respuesta y
+diferenciarse de los otros tres en algo observable.** Lo que mandan ahora:
+
+| Tono | Lo que se puede comprobar |
+|---|---|
+| cercano | habla de tú · explica el tecnicismo **en la misma frase** · sin emojis salvo que te escriban con ellos |
+| experto | **la conclusión en la primera frase** y el porqué después · usa el término exacto y lo define la primera vez · dice de qué supuestos depende · sin emojis y sin exclamaciones |
+| chispa | la energía **en los verbos** · **un emoji por respuesta como máximo** · ninguno si la noticia es mala · nunca dos exclamaciones seguidas |
+| breve | una frase si cabe en una, tres si caben en tres · ni introducción ni cierre · **para acortar quita palabras, nunca datos** |
+
+**Tres comprobaciones que hice antes de escribir, para no crear peleas** —y van
+en el comentario, que es donde sirven:
+
+1. El tono se pega como **una sola viñeta** (`- ${estilo} Mantenlo en toda la
+   conversación.`), así que cada tono sigue siendo una cadena y no cuatro
+   líneas: si lo hubiera partido, el "Mantenlo" habría quedado colgando de la
+   última.
+2. **`breve` no puede contradecir a FORJA**, que ya dice que manda sobre TU TONO
+   y que conserva "su manera de hablar" sin recortar contenido (líneas
+   559-562). Por eso su regla es **quitar palabras, nunca datos**: así se cumple
+   igual dentro de Forja, y no vuelve la contradicción que se arregló el 12-10.
+3. **Los emojis**: el único otro sitio del prompt que los menciona es `NINOS`
+   —"puedes usar algún emoji"— y se pega **después**, así que manda él. "Como
+   máximo uno" cabe dentro de "algún", así que no hay conflicto. No he tocado
+   `NINOS` ni nada del modo de edad.
+
+**Lo que no he tocado a propósito**: los nombres de las cuatro claves, porque
+los usan los ajustes y las Mentes (`mente?.tono`). Cambiarlos habría dejado sin
+tono a cualquiera que ya tuviera uno elegido.
+
+**Cómo lo comprobé**: arnés nuevo sobre el `prompt.ts` real —copia con los seis
+`import` redirigidos y el cuerpo verificado idéntico línea por línea—, con
+**37 comprobaciones y 37 correctas**:
+- Los cuatro tonos: cada frase nueva **dentro del bloque TU TONO** (no solo en
+  el prompt), la viñeta sigue cerrando con "Mantenlo en toda la conversación.",
+  y **no asoma ninguna de las reglas de los otros tres** —que es lo que prueba
+  que de verdad se diferencian—.
+- **Una Mente con tono propio impone el suyo** y desplaza al de los ajustes.
+- **Un tono desconocido sigue cayendo en `cercano`**, como antes.
+- El comentario no viaja al prompt.
+
+Más `npx tsc --noEmit` salida **0** y `npx next build` salida **0**, con los
+cuatro commits del dueño de anoche dentro (traer `main` fue lo primero: el plan
+gratis nuevo, `0019_plan_gratis.sql`, sin conflictos).
+
+**Tamaño: sigue en 203 líneas** para los cuatro tonos. Era de esperar y
+conviene decirlo: el tono es una viñeta, así que esto añade contenido sin
+añadir ni una línea al prompt.
+
+**Qué necesito del dueño**: nada para esto. Lo que sí le toca sigue igual:
+la decisión de las cláusulas abusivas —que hoy cumple **siete días**— y el tope
+de gasto en OpenRouter.
+
+**Mañana toca**: el área 7, **recorte**, que es la que cierra la rotación. Y hay
+material concreto: el prompt ha crecido de 182 líneas el 25-10 a 203 hoy, con
+`CAPACIDADES` a 36 líneas y un bloque `PRIVACIDAD` de 25 que nadie ha vuelto a
+leer desde el 24-10. Antes de seguir añadiendo, un día de quitar.
 
 ### 2026-10-29 — Prompt maestro (área 1): Kairo ya sabe que su Team contrata
 
