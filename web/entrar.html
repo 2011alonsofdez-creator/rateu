@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Datafactura</title>
+<meta name="description" content="Entra en tu cuenta de Datafactura o crea una nueva con 5 créditos gratis.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b4ed8'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='white'/%3E%3Cpath d='M11 17l3 3 6-6' stroke='%231b4ed8' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css?v=20260919">
+</head>
+<body>
+<div class="banda-demo">⚠️ MODO DEMO — los pagos son simulados. Las cuentas y la lectura con IA son reales.</div>
+<header class="cabecera">
+  <div class="contenedor cabecera-int">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b4ed8"/><path d="M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="white"/><path d="M11 17l3 3 6-6" stroke="#1b4ed8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Datafactura
+    </a>
+    <nav class="nav"><a href="index.html">← Volver a la web</a></nav>
+  </div>
+</header>
+
+<main class="acceso">
+  <div class="acceso-caja">
+    <div class="acceso-tabs" role="tablist">
+      <button type="button" role="tab" id="tab-entrar" aria-selected="true">Entrar</button>
+      <button type="button" role="tab" id="tab-registro" aria-selected="false">Crear cuenta</button>
+    </div>
+
+    <h1 data-titulo>Entra en tu cuenta</h1>
+    <p class="nota" data-subtitulo style="margin-bottom:22px">Usa el correo y la contraseña con los que te registraste.</p>
+
+    <div class="aviso aviso-error oculto" data-error role="alert"></div>
+
+    <form id="formulario" novalidate>
+      <label class="campo">
+        <span>Correo electrónico</span>
+        <input type="email" name="email" autocomplete="email" required placeholder="tu@gestoria.es">
+      </label>
+      <label class="campo">
+        <span>Contraseña</span>
+        <input type="password" name="password" autocomplete="current-password" required minlength="8" placeholder="Mínimo 8 caracteres">
+      </label>
+      <button class="btn btn-primario" style="width:100%" type="submit" data-enviar>Entrar</button>
+    </form>
+
+    <p class="nota" style="margin-top:20px" data-pie-registro>
+      Al crear la cuenta recibes <strong>5 créditos gratis</strong> (5 documentos) y aceptas los
+      <a href="terminos.html">términos</a> y la <a href="privacidad.html">política de privacidad</a>.
+    </p>
+  </div>
+</main>
+
+<script defer src="auth.js?v=20260919"></script>
+<script defer src="entrar.js?v=20260919"></script>
+</body>
+</html>

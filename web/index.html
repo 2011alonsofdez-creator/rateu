@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datafactura — Facturas y tickets a Excel, sin teclear</title>
+<meta name="description" content="Sube tus facturas y tickets en PDF o foto. La IA lee el emisor, el NIF, la base, el IVA, el IRPF y el total, te lo enseña en una tabla editable junto al documento y lo exportas a Excel o CSV para tu programa de contabilidad.">
+<meta name="theme-color" content="#0d1b2a">
+<meta property="og:title" content="Datafactura — Facturas y tickets a Excel, sin teclear">
+<meta property="og:description" content="La IA lee tus facturas y tickets, tú revisas y exportas a Excel. Pensado para gestorías, asesorías y autónomos.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b4ed8'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='white'/%3E%3Cpath d='M11 17l3 3 6-6' stroke='%231b4ed8' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css?v=20260919">
+</head>
+<body>
+<a class="salto" href="#principal">Saltar al contenido</a>
+
+<div class="banda-demo">⚠️ MODO DEMO — los pagos de esta web son simulados. No se cobra nada.</div>
+
+<header class="cabecera">
+  <div class="contenedor cabecera-int">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b4ed8"/><path d="M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="white"/><path d="M11 17l3 3 6-6" stroke="#1b4ed8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Datafactura
+    </a>
+    <nav class="nav">
+      <a class="enlace-nav" href="#como-funciona">Cómo funciona</a>
+      <a class="enlace-nav" href="#ejemplo">Ejemplo</a>
+      <a class="enlace-nav" href="#precios">Precios</a>
+      <a class="btn btn-fantasma btn-s" href="entrar.html">Entrar</a>
+      <a class="btn btn-primario btn-s" href="entrar.html?registro=1">Probar gratis</a>
+    </nav>
+  </div>
+</header>
+
+<main id="principal">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="contenedor hero-grid">
+      <div>
+        <p class="antetitulo">Para gestorías, asesorías y autónomos</p>
+        <h1>Deja de teclear facturas <span>una por una</span>.</h1>
+        <p class="entradilla">Sube tus facturas y tickets —PDF, JPG o PNG, todos a la vez— y la inteligencia artificial extrae el emisor, el NIF, la base imponible, el IVA, la retención y el total. Tú revisas, corriges lo que haga falta y descargas el Excel listo para tu programa de contabilidad.</p>
+        <div class="hero-acciones">
+          <a class="btn btn-primario" href="entrar.html?registro=1">Probar gratis con 5 documentos</a>
+          <a class="btn btn-secundario" href="#ejemplo">Ver un ejemplo real</a>
+        </div>
+        <ul class="hero-puntos">
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> Sin tarjeta y sin instalar nada.</li>
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> Te avisa de los documentos dudosos y de los números que no cuadran.</li>
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> Exporta a Excel (.xlsx) o CSV en un clic.</li>
+        </ul>
+      </div>
+
+      <!-- Vista previa de la aplicación -->
+      <div class="tarjeta" style="padding:0;overflow:hidden;box-shadow:var(--sombra-l)">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--linea-2);display:flex;align-items:center;gap:8px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#e3e8ef"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#e3e8ef"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#e3e8ef"></span>
+          <span class="nota" style="margin-left:8px">Datafactura · 14 documentos procesados</span>
+        </div>
+        <table class="tabla-demo">
+          <thead><tr><th>Documento</th><th>Emisor</th><th>Base</th><th>IVA</th><th>Total</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>F-2026-0148.pdf</td><td>Suministros Vega S.L.</td><td class="val">412,00</td><td class="val">86,52</td><td class="val">498,52</td><td><span class="pastilla p-verde">Revisado</span></td></tr>
+            <tr><td>ticket-cafe.jpg</td><td>Bar El Molino</td><td class="val">8,64</td><td class="val">0,86</td><td class="val">9,50</td><td><span class="pastilla p-verde">Revisado</span></td></tr>
+            <tr><td>gasolinera.jpg</td><td>Estación Norte</td><td class="val">52,07</td><td class="val">10,93</td><td class="val">63,00</td><td><span class="pastilla p-ambar">Revisar</span></td></tr>
+            <tr><td>asesoria-marzo.pdf</td><td>Lomas Asesores</td><td class="val">300,00</td><td class="val">63,00</td><td class="val">318,00</td><td><span class="pastilla p-azul">IRPF 15%</span></td></tr>
+            <tr><td>hotel-sevilla.pdf</td><td>Hotel Giralda</td><td class="val">181,82</td><td class="val">18,18</td><td class="val">200,00</td><td><span class="pastilla p-verde">Revisado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ANTES Y DESPUÉS ============ -->
+  <section class="seccion seccion-gris" id="ejemplo">
+    <div class="contenedor">
+      <div class="centro" style="max-width:700px;margin-inline:auto">
+        <p class="antetitulo">Antes y después</p>
+        <h2>La foto de un ticket, convertida en una fila de datos</h2>
+        <p class="entradilla" style="margin:16px auto 0">Esto es exactamente lo que ves en la herramienta: el documento a la izquierda, los datos extraídos a la derecha y, al pasar por cada campo, el trozo del ticket de donde ha salido.</p>
+      </div>
+
+      <div class="comparativa revelar" style="margin-top:46px">
+        <!-- Izquierda: el ticket -->
+        <div class="comparativa-lado">
+          <div class="comparativa-tit">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="14" height="12" rx="2"/><circle cx="7.5" cy="8.5" r="1.5"/><path d="M4 14l4-4 3 3 2-2 3 3"/></svg>
+            Antes · foto del ticket
+          </div>
+          <div class="comparativa-cuerpo">
+            <svg class="ticket-demo" viewBox="0 0 220 320" role="img" aria-label="Foto de un ticket de compra de Bar El Molino por 9,50 euros">
+              <defs>
+                <linearGradient id="arrugas" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ffffff"/><stop offset="42%" stop-color="#f1f2f0"/>
+                  <stop offset="58%" stop-color="#fdfdfc"/><stop offset="100%" stop-color="#eceeec"/>
+                </linearGradient>
+              </defs>
+              <g transform="rotate(-2.5 110 160)">
+                <path d="M18 14h184v292l-14-8-14 8-14-8-14 8-14-8-14 8-14-8-14 8-14-8-14 8-14-8-14 8z" fill="url(#arrugas)" stroke="#dfe3e0"/>
+                <path d="M60 14v292M148 14v292" stroke="#e8eae7" stroke-width="6" opacity=".6"/>
+                <text x="110" y="48" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="500" fill="#1d2b3a">BAR EL MOLINO</text>
+                <text x="110" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">C/ Mayor 12 · Valencia</text>
+                <text x="110" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">NIF B96812345</text>
+                <path d="M30 96h160" stroke="#c9cfd5" stroke-dasharray="3 3"/>
+                <text x="30" y="118" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">2 CAFE CON LECHE</text>
+                <text x="190" y="118" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">3,20</text>
+                <text x="30" y="136" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">1 TOSTADA TOMATE</text>
+                <text x="190" y="136" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">2,90</text>
+                <text x="30" y="154" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">1 ZUMO NARANJA</text>
+                <text x="190" y="154" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">3,40</text>
+                <path d="M30 166h160" stroke="#c9cfd5" stroke-dasharray="3 3"/>
+                <text x="30" y="188" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">BASE IMPONIBLE</text>
+                <text x="190" y="188" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">8,64</text>
+                <text x="30" y="206" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">IVA 10%</text>
+                <text x="190" y="206" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#1d2b3a">0,86</text>
+                <rect x="26" y="216" width="168" height="26" rx="4" fill="#e8eeff" stroke="#1b4ed8" stroke-width="1.5"/>
+                <text x="32" y="234" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="#163fae">TOTAL</text>
+                <text x="188" y="234" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#163fae">9,50 €</text>
+                <text x="30" y="262" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">TARJETA ****4417</text>
+                <text x="30" y="280" font-family="JetBrains Mono, monospace" font-size="10" fill="#5a6b7d">14/03/2026  09:42</text>
+                <text x="110" y="298" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#8595a6">GRACIAS POR SU VISITA</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="flecha-demo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M14 7l5 5-5 5"/></svg>
+        </div>
+
+        <!-- Derecha: los datos -->
+        <div class="comparativa-lado">
+          <div class="comparativa-tit">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8h14M8 8v8"/></svg>
+            Después · datos listos para contabilidad
+          </div>
+          <div class="comparativa-cuerpo" style="background:var(--papel);align-items:flex-start">
+            <table class="tabla-demo">
+              <tbody>
+                <tr><td style="color:var(--gris)">Emisor</td><td class="val">Bar El Molino</td></tr>
+                <tr><td style="color:var(--gris)">NIF emisor</td><td class="val">B96812345</td></tr>
+                <tr><td style="color:var(--gris)">Fecha</td><td class="val">2026-03-14</td></tr>
+                <tr><td style="color:var(--gris)">Nº factura</td><td class="val" style="color:var(--gris-claro)">— (ticket)</td></tr>
+                <tr><td style="color:var(--gris)">Base imponible</td><td class="val">8,64 €</td></tr>
+                <tr><td style="color:var(--gris)">IVA</td><td class="val">10 % · 0,86 €</td></tr>
+                <tr><td style="color:var(--gris)">Retención IRPF</td><td class="val" style="color:var(--gris-claro)">—</td></tr>
+                <tr><td style="color:var(--gris)">Total</td><td class="val"><span class="marcado">9,50 €</span></td></tr>
+                <tr><td style="color:var(--gris)">Forma de pago</td><td class="val">Tarjeta</td></tr>
+                <tr><td style="color:var(--gris)">Concepto</td><td class="val">Desayunos (hostelería)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 18px;border-top:1px solid var(--linea-2);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span class="pastilla p-verde">Los números cuadran: 8,64 + 0,86 = 9,50</span>
+            <span class="nota">13 segundos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CÓMO FUNCIONA ============ -->
+  <section class="seccion" id="como-funciona">
+    <div class="contenedor">
+      <div class="centro" style="max-width:660px;margin-inline:auto">
+        <p class="antetitulo">Cómo funciona</p>
+        <h2>Tres pasos, y el Excel está hecho</h2>
+      </div>
+      <div class="rejilla-3">
+        <article class="paso revelar">
+          <div class="paso-num">1</div>
+          <h3>Sube todo de golpe</h3>
+          <p>Arrastra las facturas y los tickets del mes: PDF, JPG o PNG, tantos como quieras a la vez. Se procesan en cola y vas viendo los resultados según llegan.</p>
+        </article>
+        <article class="paso revelar">
+          <div class="paso-num">2</div>
+          <h3>Revisa campo por campo</h3>
+          <p>Cada documento aparece a la izquierda y sus datos a la derecha, en una tabla que puedes editar. Al pulsar la lupa de un campo, te señala en el documento de dónde lo ha sacado.</p>
+        </article>
+        <article class="paso revelar">
+          <div class="paso-num">3</div>
+          <h3>Descarga el Excel</h3>
+          <p>Marca cada documento como revisado y exporta todo a Excel (.xlsx) o CSV, con una columna por campo y una fila por documento, listo para importar.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AVISOS ============ -->
+  <section class="seccion seccion-gris">
+    <div class="contenedor hero-grid">
+      <div>
+        <p class="antetitulo">Lo que nos diferencia</p>
+        <h2>Te dice de qué no está segura, en vez de que te fíes a ciegas</h2>
+        <p class="entradilla" style="margin-top:18px">Un lector de facturas que nunca se equivoca no existe. Uno que te avisa de dónde puede haberse equivocado, sí. Por eso cada documento llega con su propio semáforo.</p>
+        <ul class="lista-check" style="margin-top:28px">
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> <span><strong>Números que no cuadran:</strong> si base imponible + IVA − IRPF no da el total, el documento se marca en rojo con la cuenta hecha, para que veas dónde falla.</span></li>
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> <span><strong>Campos dudosos:</strong> los datos que la IA ha leído con poca seguridad salen resaltados en ámbar, uno a uno, no el documento entero.</span></li>
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> <span><strong>Datos que faltan:</strong> si no encuentra el NIF, la fecha o el total, lo dice en vez de inventárselo.</span></li>
+          <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg> <span><strong>Los dudosos, primero:</strong> puedes filtrar la lista para revisar solo los que tienen aviso y despachar el resto en bloque.</span></li>
+        </ul>
+      </div>
+      <div class="tarjeta revelar" style="box-shadow:var(--sombra-m)">
+        <h3 style="margin-bottom:18px">Ejemplo de aviso</h3>
+        <div class="aviso aviso-error" style="margin-bottom:14px">
+          <strong>Los números no cuadran.</strong><br>
+          Base 52,07 + IVA 10,93 = 63,00, pero el total dice 64,00. Revisa el total y la base antes de exportar.
+        </div>
+        <div class="aviso" style="background:var(--ambar-bg);color:var(--ambar);border-color:var(--ambar-bd)">
+          <strong>2 datos leídos con dudas.</strong><br>
+          El NIF del emisor y la fecha están sobre una zona arrugada del ticket. Compruébalos con el documento al lado.
+        </div>
+        <p class="nota" style="margin-top:16px">Cada aviso indica el campo exacto y lo resalta en la tabla, para que no tengas que releer el documento entero.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRECIOS ============ -->
+  <section class="seccion" id="precios">
+    <div class="contenedor">
+      <div class="centro" style="max-width:680px;margin-inline:auto">
+        <p class="antetitulo">Precios</p>
+        <h2>Un crédito, un documento</h2>
+        <p class="entradilla" style="margin:16px auto 0">Sin permanencia: cancelas cuando quieras desde tu cuenta. Precios en euros; IVA no incluido.</p>
+      </div>
+
+      <div class="precios">
+        <article class="plan">
+          <h3>Gratis</h3>
+          <div class="plan-precio">0 €<small> /mes</small></div>
+          <p class="plan-creditos">5 créditos · 5 documentos</p>
+          <ul>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Todas las funciones, sin recortes</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Exportación a Excel y CSV</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Sin tarjeta</li>
+          </ul>
+          <a class="btn btn-secundario" href="entrar.html?registro=1">Empezar gratis</a>
+        </article>
+
+        <article class="plan plan-destacado">
+          <h3>Pro</h3>
+          <div class="plan-precio">19 €<small> /mes</small></div>
+          <p class="plan-creditos">200 créditos al mes · 0,095 € por documento</p>
+          <ul>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Subida masiva de documentos</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Avisos de descuadre y baja confianza</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Historial de documentos procesados</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Soporte por correo</li>
+          </ul>
+          <a class="btn btn-primario" href="entrar.html?registro=1&amp;plan=pro">Elegir Pro</a>
+        </article>
+
+        <article class="plan">
+          <h3>Empresa</h3>
+          <div class="plan-precio">59 €<small> /mes</small></div>
+          <p class="plan-creditos">1.000 créditos al mes · 0,059 € por documento</p>
+          <ul>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Todo lo del plan Pro</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Pensado para gestorías con varios clientes</li>
+            <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> Soporte prioritario</li>
+          </ul>
+          <a class="btn btn-secundario" href="entrar.html?registro=1&amp;plan=empresa">Elegir Empresa</a>
+        </article>
+      </div>
+
+      <p class="nota centro" style="margin-top:26px">
+        Un crédito equivale a un documento procesado. Los créditos se renuevan cada mes y no se acumulan.
+        Si un documento falla, el crédito se te devuelve automáticamente.
+        <strong>Ahora mismo los pagos son simulados</strong> — puedes probarlo todo sin gastar un euro.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="seccion seccion-gris">
+    <div class="contenedor faq">
+      <div class="centro" style="margin-bottom:34px">
+        <p class="antetitulo">Preguntas frecuentes</p>
+        <h2>Lo que conviene saber antes de empezar</h2>
+      </div>
+
+      <details open>
+        <summary>¿Funciona con fotos de tickets arrugados o mal iluminados?</summary>
+        <p>Funciona, pero con menos precisión, y es justo decirlo. Un PDF de factura generado por ordenador se lee prácticamente siempre bien. Una foto pierde exactitud cuando el papel está arrugado sobre las cifras, hay sombras o reflejos del flash, el ticket sale torcido o cortado, la impresión térmica está desvaída (los tickets viejos de gasolinera o supermercado son el caso típico) o la foto está movida. En esos casos lo normal es que acierte el comercio y el total, y dude en el NIF, la fecha o el desglose del IVA. Por eso cada dato lleva su nivel de confianza, los dudosos salen marcados en ámbar y siempre tienes el documento al lado para comprobarlo. Consejo práctico: aplana el ticket, ponlo sobre una superficie lisa, con luz difusa y la cámara paralela al papel; así la diferencia es notable.</p>
+      </details>
+      <details>
+        <summary>¿Y si la IA se equivoca en un dato?</summary>
+        <p>Lo corriges a mano en la tabla, que es editable campo a campo, y se queda guardado para la exportación. La última palabra siempre la tienes tú: la herramienta no exporta nada que no hayas podido revisar antes.</p>
+      </details>
+      <details>
+        <summary>¿Qué campos extrae exactamente?</summary>
+        <p>Nombre y NIF del emisor, nombre y NIF del cliente, número de factura, fecha de emisión, base imponible, tipo y cuota de IVA, porcentaje y cuota de retención de IRPF si la hay, total, moneda, forma de pago y concepto. En los tickets simples, los campos de cliente suelen venir vacíos porque no figuran en el papel.</p>
+      </details>
+      <details>
+        <summary>¿En qué formato sale el Excel?</summary>
+        <p>En dos formatos: un archivo .xlsx que abre Excel, LibreOffice o Numbers, y un CSV con punto y coma como separador y codificación compatible con Excel en español. Una fila por documento y una columna por campo, más el estado de revisión y los avisos.</p>
+      </details>
+      <details>
+        <summary>¿Qué pasa con mis documentos? ¿Se guardan?</summary>
+        <p>Los documentos se envían al servidor solo para que la IA los lea, y no se almacenan: no se escriben en disco ni quedan en ninguna carpeta pública. En tu cuenta queda el nombre del archivo y la fecha en el historial, para que sepas qué has consumido. Más detalle en la <a href="privacidad.html">política de privacidad</a>.</p>
+      </details>
+      <details>
+        <summary>¿Puedo cancelar cuando quiera?</summary>
+        <p>Sí. No hay permanencia ni penalización: se cancela desde la página de tu cuenta con un botón y vuelves al plan gratuito.</p>
+      </details>
+      <details>
+        <summary>¿Por qué pone «modo demo» en los pagos?</summary>
+        <p>Porque esta versión todavía no tiene pasarela de pago conectada: el registro, las cuentas, los créditos y la lectura con IA son reales y funcionan, pero el cobro está simulado y no se carga nada en ninguna tarjeta. Está señalizado en todas las pantallas donde aparece un precio.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ CIERRE ============ -->
+  <section class="seccion">
+    <div class="contenedor centro" style="max-width:620px">
+      <h2>Prueba con cinco facturas tuyas</h2>
+      <p class="entradilla" style="margin:16px auto 28px">Sin tarjeta, sin instalar nada. En cinco minutos sabrás si te ahorra la tarde de los lunes.</p>
+      <a class="btn btn-primario" href="entrar.html?registro=1">Crear mi cuenta gratis</a>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <div class="pie-cols">
+      <div>
+        <a class="logo" href="index.html">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b4ed8"/><path d="M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="white"/><path d="M11 17l3 3 6-6" stroke="#1b4ed8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Datafactura
+        </a>
+        <p style="margin-top:14px;font-size:.9rem;max-width:34ch">Extracción automática de datos de facturas y tickets para gestorías, asesorías y autónomos.</p>
+      </div>
+      <div><h4>Producto</h4><ul>
+        <li><a href="#como-funciona">Cómo funciona</a></li>
+        <li><a href="#ejemplo">Ejemplo</a></li>
+        <li><a href="#precios">Precios</a></li>
+        <li><a href="app.html">La herramienta</a></li>
+      </ul></div>
+      <div><h4>Cuenta</h4><ul>
+        <li><a href="entrar.html">Entrar</a></li>
+        <li><a href="entrar.html?registro=1">Crear cuenta</a></li>
+        <li><a href="cuenta.html">Mi plan</a></li>
+      </ul></div>
+      <div><h4>Legal</h4><ul>
+        <li><a href="aviso-legal.html">Aviso legal</a></li>
+        <li><a href="privacidad.html">Privacidad</a></li>
+        <li><a href="terminos.html">Términos</a></li>
+        <li><a href="cookies.html">Cookies</a></li>
+      </ul></div>
+    </div>
+    <div class="pie-fin">
+      <span>© 2026 Datafactura · Contacto: <a href="mailto:hola@datafactura.es">hola@datafactura.es</a></span>
+      <span>⚠️ Modo demo: los pagos son simulados.</span>
+    </div>
+  </div>
+</footer>
+
+<script defer src="main.js?v=20260919"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi cuenta · Datafactura</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b4ed8'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='white'/%3E%3Cpath d='M11 17l3 3 6-6' stroke='%231b4ed8' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css?v=20260919">
+</head>
+<body class="app-body">
+<div class="banda-demo">⚠️ MODO DEMO — los pagos y las suscripciones de esta web son simulados. No se cobra nada.</div>
+
+<header class="cabecera">
+  <div class="contenedor app-barra" style="max-width:1180px">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b4ed8"/><path d="M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="white"/><path d="M11 17l3 3 6-6" stroke="#1b4ed8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Datafactura
+    </a>
+    <nav class="nav">
+      <a class="enlace-nav" href="app.html">Mis documentos</a>
+      <span class="creditos-pastilla" data-creditos>
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M11 1L3 11h5l-1 8 8-10h-5z"/></svg>
+        <span data-creditos-num>—</span> créditos
+      </span>
+      <div class="menu-cuenta">
+        <button type="button" aria-haspopup="true">
+          <span class="avatar" data-iniciales>··</span>
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+        </button>
+        <div class="menu-desplegable">
+          <div style="padding:9px 12px;border-bottom:1px solid var(--linea-2);margin-bottom:5px">
+            <div style="font-size:.82rem;font-weight:600;word-break:break-all" data-email>—</div>
+            <div class="nota">Plan <span data-plan-nombre>—</span></div>
+          </div>
+          <a href="app.html">Mis documentos</a>
+          <a href="index.html">Ir a la web</a>
+          <button type="button" data-salir>Cerrar sesión</button>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="contenedor" style="padding-block:34px 60px;max-width:1180px">
+  <h1 style="font-size:1.7rem;margin-bottom:6px">Mi cuenta</h1>
+  <p class="nota" style="margin-bottom:26px">Tu plan, tus créditos y lo que has procesado.</p>
+
+  <div class="cuenta-grid">
+    <div class="tarjeta">
+      <p class="nota">Plan actual</p>
+      <div class="dato-grande" data-plan-grande>—</div>
+      <p class="nota" data-precio-plan>—</p>
+      <p class="nota" data-renovacion style="margin-top:10px"></p>
+    </div>
+    <div class="tarjeta">
+      <p class="nota">Créditos disponibles</p>
+      <div class="dato-grande" data-creditos-grande>—</div>
+      <p class="nota">Un crédito = un documento procesado.</p>
+    </div>
+    <div class="tarjeta">
+      <p class="nota">Documentos procesados</p>
+      <div class="dato-grande" data-total-docs>—</div>
+      <p class="nota">Desde que creaste la cuenta, el <span data-creado>—</span>.</p>
+    </div>
+  </div>
+
+  <div class="tarjeta" style="margin-top:20px">
+    <h2 style="font-size:1.15rem;margin-bottom:6px">Cambiar de plan</h2>
+    <p class="nota" style="margin-bottom:6px">Sin permanencia: cancelas cuando quieras y vuelves al plan gratuito.</p>
+    <div class="aviso" style="background:var(--ambar-bg);color:var(--ambar);border-color:var(--ambar-bd);margin:16px 0">
+      <strong>⚠️ Modo demo:</strong> el cambio de plan y el cobro son simulados. No hay pasarela de pago conectada y no se carga nada en ninguna tarjeta.
+    </div>
+    <div class="precios" style="margin-top:0" data-planes></div>
+    <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-peligro btn-s oculto" type="button" data-cancelar>Cancelar mi suscripción</button>
+      <span class="nota" data-nota-cancelar></span>
+    </div>
+  </div>
+
+  <div class="tarjeta" style="margin-top:20px">
+    <h2 style="font-size:1.15rem;margin-bottom:14px">Historial</h2>
+    <ul class="historial" data-historial><li class="nota">Cargando…</li></ul>
+  </div>
+
+  <p class="nota" style="margin-top:26px">
+    <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> ·
+    <a href="terminos.html">Términos</a> · <a href="cookies.html">Cookies</a>
+  </p>
+</main>
+
+<!-- Pago simulado -->
+<div class="modal-fondo" data-modal-pago role="dialog" aria-modal="true" aria-labelledby="t-pago">
+  <div class="modal">
+    <h2 id="t-pago">Pago simulado</h2>
+    <p class="nota">Plan <strong data-pago-plan>Pro</strong> · <strong data-pago-precio>19 €</strong>/mes</p>
+    <div class="aviso" style="background:var(--ambar-bg);color:var(--ambar);border-color:var(--ambar-bd);margin-top:16px">
+      <strong>⚠️ MODO DEMO.</strong> Esta pantalla imita un cobro para que puedas probar el producto entero.
+      <strong>No se cobra absolutamente nada.</strong>
+    </div>
+    <div class="tarjeta-falsa" style="margin-top:16px">
+      <div><span>Tarjeta</span><span>4242 4242 4242 4242</span></div>
+      <div><span>Caducidad</span><span>12/30</span></div>
+      <div><span>CVC</span><span>123</span></div>
+      <div><span>Titular</span><span>TARJETA DE PRUEBA</span></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-fantasma" type="button" data-cerrar-modal style="flex:1">Cancelar</button>
+      <button class="btn btn-primario" type="button" data-confirmar-pago style="flex:1.4">Simular pago</button>
+    </div>
+  </div>
+</div>
+
+<div class="tostadas"></div>
+<script defer src="auth.js?v=20260919"></script>
+<script defer src="cuenta.js?v=20260919"></script>
+</body>
+</html>
