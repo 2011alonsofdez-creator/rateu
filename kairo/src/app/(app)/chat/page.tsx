@@ -813,7 +813,14 @@ function Chat() {
             setPaso(null);
             const v = String(ev.v);
             setError(
-              v === "sin_tiempo"
+              /* Dos cosas distintas que antes caían en el mismo cajón:
+                 una respuesta cortada a media frase SÍ deja texto y se
+                 puede seguir; un Mega-Prompt cuyos cerebros no llegaron
+                 no deja nada, y decirle a alguien "pídele que siga" ahí
+                 es mandarlo a continuar un folio en blanco. */
+              v === "mega_sin_tiempo"
+                ? "err.sin_tiempo"
+                : v === "sin_tiempo"
                 ? "err.tiempo"
                 : v === "cuota_dia"
                 ? "err.cuotaDia"

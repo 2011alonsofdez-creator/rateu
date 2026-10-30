@@ -340,7 +340,20 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
           maxSalida: 6000,
           esfuerzo: "alto",
           modoEdad: op.modoEdad,
-          pensar: 8192,
+          /* POCO PENSAR, Y A PROPÓSITO.
+           *
+           * Estaba en 8192, que es lo que se le pide a una respuesta que
+           * va a leer alguien. Pero esto no lo lee nadie: es material
+           * para fundir, y aquí la cuenta es otra. Con tanto presupuesto
+           * un Opus se pasa el turno entero pensando y los veintidós
+           * segundos se acaban antes de la primera palabra: el modelo no
+           * ha fallado, ha llegado tarde, y lo que se guarda es texto
+           * vacío.
+           *
+           * Tres puntos de vista que llegan valen más que uno profundo
+           * que no llega. El que sí piensa a fondo es el que funde al
+           * final, que es el que se lee. */
+          pensar: 512,
         },
         parada,
       ).catch((e) => {
@@ -371,7 +384,7 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
   if (!respuestas.length) {
     if (cortados) {
       throw new Error(
-        `KAIRO_SIN_TIEMPO: ${cortados} de ${equipo.length} cerebros no han llegado a tiempo`,
+        `No han llegado a tiempo ${cortados} de ${equipo.length} cerebros del Mega-Prompt (KAIRO_SIN_TIEMPO)`,
       );
     }
     throw ultimoFallo ?? new Error("mega: ningún modelo ha contestado a tiempo");
