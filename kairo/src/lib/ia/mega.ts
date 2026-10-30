@@ -103,6 +103,38 @@ type Respuesta = {
   busquedas: string[];
 };
 
+/* DE QUÉ CASA ES UN MODELO.
+ *
+ * El proveedor no vale como casa desde que se puede entrar por una
+ * pasarela. Por OpenRouter caben Claude, GPT y DeepSeek, y los tres
+ * llegan como `extra:`, así que contando por proveedor los tres eran
+ * "la misma casa": MEGA fichaba a uno y rellenaba con Geminis. El
+ * equipo acababa siendo un modelo de pasarela y DOS Geminis, que es
+ * exactamente lo que el reparto por casas quiere evitar.
+ *
+ * En una pasarela el nombre viene como "casa/modelo", así que la casa
+ * de verdad es lo que va antes de la barra.
+ *
+ * Y se traducen los nombres de los proveedores propios para que
+ * `claude:claude-opus-5-5` y `extra:anthropic/claude-opus-5.5` cuenten
+ * como la misma casa, que lo son: si tienes las dos puertas abiertas,
+ * fichar a Anthropic dos veces es el mismo error con otra cara. */
+const CASA_DEL_PROVEEDOR: Record<string, string> = {
+  gemini: "google",
+  claude: "anthropic",
+  gpt: "openai",
+};
+
+export function casaDe(id: string): string {
+  const { proveedor, modelo } = partir(id);
+  if (proveedor !== "extra") return CASA_DEL_PROVEEDOR[proveedor] ?? proveedor;
+
+  const barra = modelo.indexOf("/");
+  /* Una pasarela sin barra en el nombre no dice de quién es: se la deja
+     como casa propia en vez de inventarle una. */
+  return barra === -1 ? "extra" : modelo.slice(0, barra).toLowerCase();
+}
+
 /* El equipo: de casas distintas mientras las haya.
  *
  * Preguntarle tres veces a la misma casa da tres respuestas parecidas, y
@@ -114,9 +146,9 @@ export function elegirEquipo(cadena: string[], maximo = 3): string[] {
   const casas = new Set<string>();
 
   for (const id of cadena) {
-    const { proveedor } = partir(id);
-    if (casas.has(proveedor)) continue;
-    casas.add(proveedor);
+    const casa = casaDe(id);
+    if (casas.has(casa)) continue;
+    casas.add(casa);
     equipo.push(id);
     if (equipo.length >= maximo) return equipo;
   }
