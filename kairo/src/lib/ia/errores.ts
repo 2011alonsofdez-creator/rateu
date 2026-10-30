@@ -16,6 +16,14 @@ export function clasificarError(fallo: unknown) {
      no va a funcionar nunca. Con el mensaje genérico, quien lo ha puesto
      en la lista no tiene forma de saber que el problema es el nombre que
      escribió él. */
+  /* "No ha dado tiempo" lo levanta Kairo, no el proveedor, así que no
+     trae código de estado ninguno y sin esto caía en el cajón de
+     "algo ha ido mal". Va de las primeras porque es un diagnóstico
+     seguro —lo ha escrito este mismo código— y porque la salida es
+     distinta a todas las demás: aquí no hay nada que arreglar, hay que
+     volver a intentarlo o pedir menos. */
+  if (/KAIRO_SIN_TIEMPO/.test(texto(fallo))) return "sin_tiempo";
+
   if (NO_SIRVE.test(texto(fallo))) return "modelo_no_sirve";
 
   if (estado === 401) return "clave_invalida";

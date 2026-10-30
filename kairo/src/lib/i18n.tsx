@@ -380,6 +380,7 @@ const dict = {
     "err.vetado":
       "Ese modelo gratuito solo se le sirve a agentes de programación, no a una web. Lo he apartado y he seguido con los demás. Tu clave está bien.",
     "err.sobrecargado": "Los servidores de Gemini están saturados ahora mismo. Lo he reintentado sin suerte: prueba otra vez en unos segundos.",
+    "err.sin_tiempo": "No ha dado tiempo: los cerebros del MEGA tardaban más de lo que cabe en una respuesta. No es la cuota y no se te ha cobrado de más. Vuelve a intentarlo, o pregunta algo más corto.",
     "err.modelo": "La IA no ha podido responder. Inténtalo otra vez.",
     "err.tiempo":
       "Se ha acabado el tiempo y la respuesta se ha quedado a medias. Lo escrito está guardado: pídele que siga.",
@@ -881,6 +882,7 @@ const dict = {
     "err.vetado":
       "That free model is only served to coding agents, not to a web app. I set it aside and carried on with the others. Your key is fine.",
     "err.sobrecargado": "Gemini\u2019s servers are overloaded right now. I retried without luck: give it a few seconds and try again.",
+    "err.sin_tiempo": "It ran out of time: the MEGA brains were taking longer than one answer allows. This is not a quota problem. Try again, or ask something shorter.",
     "err.modelo": "The AI could not answer. Please try again.",
     "err.tiempo":
       "Time ran out and the answer is cut short. What was written is saved: ask it to carry on.",

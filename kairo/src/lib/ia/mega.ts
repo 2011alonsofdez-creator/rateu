@@ -287,8 +287,51 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
   /* A los candidatos se les pide una respuesta completa pero no
      interminable: lo que escriban no se enseña, se funde. El espacio
      largo se lo queda la respuesta final, que es la que se lee. */
-  const encargos = equipo.map((id) =>
-    conPrisa(
+  /* Cuántos se han quedado sin tiempo. Si al final no contesta nadie, la
+     diferencia entre "no dio tiempo" y "falló el proveedor" es lo único
+     que le sirve a quien está mirando la pantalla. */
+  let cortados = 0;
+
+  const encargos = equipo.map((id) => {
+    /* Nunca más de lo que quede: si se les dan 22 segundos cuando solo
+       quedan 15, la respuesta final nace muerta. Como mucho, la mitad
+       de lo que reste. */
+    const suyo = Math.min(
+      op.msParaCandidatos ?? 32_000,
+      Math.max(3000, (plazo - Date.now()) / 2),
+    );
+
+    /* SE LE PIDE QUE PARE, NO SE LE TIRA LO ESCRITO.
+     *
+     * Antes esto era una carrera contra un reloj: si el modelo no había
+     * terminado, se devolvía `null` y se perdía TODO lo que llevara
+     * escrito. Y lo que llevaba escrito no es poco ni es gratis: un Opus
+     * cortado a los 22 segundos ya había mandado miles de palabras, el
+     * proveedor las había cobrado, y acababan en la basura.
+     *
+     * Peor aún era lo que veía el usuario. Con los tres candidatos
+     * tirados no quedaba ninguna respuesta, así que se subía "el último
+     * error que hubo" —que podía ser la cuota agotada de otro modelo
+     * distinto— y la pantalla decía "se ha agotado la cuota" cuando lo
+     * que había pasado era que no dio tiempo. Dos cosas que no se
+     * arreglan igual.
+     *
+     * Ahora el reloj enciende un interruptor y `recoger` sale del bucle
+     * y DEVUELVE lo que lleve. Un candidato a medias sigue sirviendo:
+     * no se enseña, se funde con los demás. */
+    const seAcabo = { ya: false };
+    const reloj = setTimeout(() => {
+      seAcabo.ya = true;
+      cortados++;
+    }, suyo);
+
+    const parada = {
+      get ya() {
+        return seAcabo.ya || rendirse.ya;
+      },
+    };
+
+    return conPrisa(
       recoger(
         {
           id,
@@ -299,21 +342,21 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
           modoEdad: op.modoEdad,
           pensar: 8192,
         },
-        rendirse,
-      ),
-      /* Y nunca más de lo que quede: si se les da 22 segundos cuando
-         solo quedan 15, la respuesta final nace muerta. Se les deja
-         como mucho la mitad de lo que reste. */
-      Math.min(op.msParaCandidatos ?? 32_000, Math.max(3000, (plazo - Date.now()) / 2)),
-    ).catch((e) => {
-      /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
-         saberlo: es el que aparta al modelo un rato y el que sabe decir
-         "cuota agotada" en vez de "algo ha ido mal". */
-      op.alFallar?.(id, e);
-      ultimoFallo = e;
-      return null;
-    }),
-  );
+        parada,
+      ).catch((e) => {
+        /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
+           saberlo: es el que aparta al modelo un rato y el que sabe decir
+           "cuota agotada" en vez de "algo ha ido mal". */
+        op.alFallar?.(id, e);
+        ultimoFallo = e;
+        return null;
+      }),
+      /* Un tope duro por detrás. El interruptor de arriba solo se mira
+         cuando llega un trozo nuevo, así que una conexión que se cuelga
+         sin mandar nada no lo vería nunca y esperaría para siempre. */
+      suyo + 6000,
+    ).finally(() => clearTimeout(reloj));
+  });
 
   const llegadas = await Promise.all(encargos);
   rendirse.ya = true;
@@ -321,8 +364,16 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
 
   /* Ninguno ha contestado. Se sube el error de verdad del último que
      falló, no uno inventado: dentro va el código de estado, y es lo que
-     convierte "algo ha ido mal" en "se ha agotado la cuota del día". */
+     convierte "algo ha ido mal" en "se ha agotado la cuota del día".
+     Pero si lo que pasó es que se les acabó el tiempo, ese error es de
+     otro modelo y de otro problema: decir "cuota" cuando lo que falta
+     son segundos manda a quien lo lee a mirar donde no es. */
   if (!respuestas.length) {
+    if (cortados) {
+      throw new Error(
+        `KAIRO_SIN_TIEMPO: ${cortados} de ${equipo.length} cerebros no han llegado a tiempo`,
+      );
+    }
     throw ultimoFallo ?? new Error("mega: ningún modelo ha contestado a tiempo");
   }
 
