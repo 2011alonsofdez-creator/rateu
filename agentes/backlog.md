@@ -13,6 +13,45 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Anoche mejoró el plan gratis en el código, y la página sigue vendiendo el de antes.** `[origen: guardian 2026-10-30]`
+  Esto es lo contrario del P1 de ayer y es el mismo problema: **la copia de los
+  planes y el código se han separado**, y hoy va en contra de Kairo, no del
+  usuario. El dueño publicó anoche *"Let a free account actually try Kairo, and
+  taste the best of it once"*, y es un cambio bueno y grande. Lo que no cambió
+  es lo que se lee en la web.
+
+  | Lo que vende `lib/mock.ts` (Free) | Lo que hace el código |
+  |---|---|
+  | "15 créditos al día" | **20** (`planes.ts:10` y `0019_plan_gratis.sql`: `set creditos = 20`) |
+  | "Modelo rápido" | **rápido Y normal** (`planes.ts`: `free: ["fast", "normal"]`), o sea que **Code, Gist y Paperwork ya funcionan gratis** |
+  | nada | **150 créditos de bienvenida que no caducan**, y mientras duran abren **Forja y MEGA**: dan para probar **un MEGA**, que cuesta 120 (`nivelesDe()` en `planes.ts`) |
+  | nada | el tope real de Co-Works en gratis es **1** (`api/coworks/route.ts`: `if (perfil.plan === "free") … >= 1 → 409 solo_uno_gratis`) |
+
+  **Lo que esto le cuesta hoy**: la puerta de Kairo es mejor de lo que su propia
+  página dice. Quien entre en `/precios` lee que gratis son 15 créditos y el
+  modelo rápido, y por tanto que **no puede probar Paperwork ni Código**, que es
+  justo lo que acaba de abrirse. Es la mejora mejor contada del mes y no está
+  contada en ninguna parte.
+
+  **Y una parte es culpa mía, así que la digo primero**:
+  `kairo/src/app/sin-suscripcion/contenido.tsx:13` tiene
+  `const GRATIS_AL_DIA = 15;` **escrito a mano**, en la página que el
+  constructor publicó el 28-10 presentándola como *"la primera que lee sus
+  cifras del código"*. Leía `plans`, `creditPacks` y `CREDITOS`, y dejó fuera
+  justo la cifra más importante. **Un día después ya estaba mal.** El arreglo es
+  el que esa página decía que hacía: leerlo de `CREDITOS_PLAN.free`.
+
+  **Lo que sí funcionó, y es el argumento de cómo arreglar lo demás**: el bloque
+  de precios del prompt lee `CREDITOS_PLAN` de verdad, así que **Kairo ya está
+  diciendo 20 sin que nadie haya tocado nada**. El código no envejece; el texto
+  copiado a mano, sí.
+
+  **Qué hacer, y casi todo es del constructor**: las tres viñetas del Free y la
+  del tope de 1 son texto de `mock.ts`; el `GRATIS_AL_DIA` es una línea. Lo
+  único que no es mío ni suyo es si el plan gratis debe anunciar los 150 de
+  bienvenida y el tope de 1 —eso es decidir cómo se vende—, y se contesta con un
+  sí.
+
 - **Supreme vende "Co-Works ilimitados" y la base de datos para a 10, sin mirar el plan.** `[origen: crecimiento 2026-10-29]`
   Medido en el repositorio, no buscado fuera, y los dos sitios se contradicen.
   Lo que vende `kairo/src/lib/mock.ts` (`plans`):
