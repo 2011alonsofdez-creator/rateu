@@ -22,7 +22,7 @@ export function clasificarError(fallo: unknown) {
      seguro —lo ha escrito este mismo código— y porque la salida es
      distinta a todas las demás: aquí no hay nada que arreglar, hay que
      volver a intentarlo o pedir menos. */
-  if (/KAIRO_SIN_TIEMPO/.test(texto(fallo))) return "sin_tiempo";
+  if (/KAIRO_SIN_TIEMPO/.test(texto(fallo))) return "mega_sin_tiempo";
 
   if (NO_SIRVE.test(texto(fallo))) return "modelo_no_sirve";
 

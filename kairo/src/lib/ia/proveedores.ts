@@ -509,9 +509,18 @@ async function* deExtra(pet: Peticion, modelo: string): AsyncGenerator<Trozo> {
  
      `reasoning` es un añadido de OpenRouter —el SDK de OpenAI no lo
      conoce, de ahí que entre por separado— y por eso solo se manda allí:
-     a otra pasarela le sobraría un campo que no espera. */
+     a otra pasarela le sobraría un campo que no espera.
+     Y el tercio es un TOPE, no una cuota: si quien llama pide pensar
+     menos, manda él. Hace falta, porque el tercio solo arregla la mitad
+     del problema. Evita que el texto salga vacío, sí, pero dos mil
+     fichas de pensamiento siguen siendo medio minuto antes de la
+     primera palabra, y eso en el Mega-Prompt —donde cada cerebro tiene
+     veintidós segundos— es llegar tarde sin haber fallado nada. */
+  const pedido = pet.pensar > 0 ? pet.pensar : Number.POSITIVE_INFINITY;
   const limitarElPensar = esOpenRouter(base)
-    ? ({ reasoning: { max_tokens: Math.floor(techo / 3) } } as Record<string, unknown>)
+    ? ({
+        reasoning: { max_tokens: Math.min(Math.floor(techo / 3), pedido) },
+      } as Record<string, unknown>)
     : {};
 
   const flujo = await cliente.chat.completions.create({
