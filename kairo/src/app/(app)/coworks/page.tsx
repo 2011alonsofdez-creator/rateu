@@ -393,7 +393,9 @@ function Coworks() {
         setAviso(
           j?.error === "demasiados"
             ? "cw.limit"
-            : j?.error === "falta_migracion"
+            : j?.error === "solo_uno_gratis"
+              ? "cw.onlyOneFree"
+              : j?.error === "falta_migracion"
               ? "cw.needsMigration"
               : "cw.failed",
         );

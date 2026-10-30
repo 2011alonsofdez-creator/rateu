@@ -96,6 +96,13 @@ export default function TeamPage() {
           ? `Tu equipo, ${perfil.nombre || "el tuyo"}. Cada miembro se encarga de un trabajo concreto y lo hace siempre igual: un abogado que revisa tus contratos, un contable que ordena tus facturas, un comercial que contesta a tus clientes. Tú le dices de qué se ocupa y él se ocupa.`
           : `Your team, ${perfil.nombre || "yours"}. Each member owns one job and does it the same way every time: a lawyer who reviews your contracts, a bookkeeper who sorts your invoices, a sales rep who answers your customers. You say what they handle, and they handle it.`
       }
+      /* Fuera la etiqueta de "Próximamente". Decía "esta sección llega
+         en la versión 2" y la sección ya contrata: al darle a Contratar
+         se crea un Co-Work que trabaja solo a su hora. Un cartel que
+         desmiente a la pantalla que lo lleva encima hace dudar de todo
+         lo demás, y lo que queda por llegar —leer tus archivos— ya se
+         dice abajo, donde toca y sin exagerar. */
+      soon={false}
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {FICHAS[lang].map((f) => (

@@ -19,12 +19,46 @@
   --bg: #090a0d;
   --bg-soft: #0d0f14;
   --panel: #121419;
+  /* LOS DOS TONOS DE UNA FILA DE LISTA (la barra de la izquierda).
+
+     Antes una fila usaba `panel` al pasar el cursor y `panel-hi` al estar
+     abierta, y en modo claro eso no funcionaba: `panel` es blanco puro,
+     o sea MÁS claro que el fondo de la barra, mientras que `panel-hi` es
+     más oscuro. Pasar el cursor aclaraba y abrir oscurecía, cada uno para
+     su lado, y los dos tan de cerca que no se veía ninguno: 1,03:1 contra
+     el fondo de la barra. Lo que se veía de verdad era la letra, que
+     pasaba de gris a negro.
+ 
+     Ahora la letra ya está en `fg` siempre —se pidió así, y además es lo
+     legible—, de modo que el sombreado tiene que hacer todo el trabajo.
+     Estos dos tonos van los dos para el MISMO lado en cada modo (en
+     oscuro aclarando, en claro oscureciendo) y con un escalón medido:
+     reposo → cursor ≈ 1,09:1, reposo → abierta ≈ 1,23:1. Igual de
+     visibles en los dos modos, que es lo que no pasaba antes. */
+  --row: #161920;
+  --row-sel: #21252e;
   --panel-hi: #1b1e26;
   --line: rgba(180, 200, 255, 0.1);
   --line-hi: rgba(180, 200, 255, 0.19);
   --fg: #ecedf2;
-  --muted: #989ba6;
-  --faint: #676a76;
+  /* SUBIDOS A PROPÓSITO, Y NO POR GUSTO.
+ 
+     `faint` es el gris de la letra pequeña —"cuesta 4 créditos", "si no
+     se te ocurre nada"— y estaba en 3,4:1 sobre un panel. El mínimo
+     recomendado para texto pequeño es 4,5:1, o sea que la mitad de las
+     pistas de Kairo estaban por debajo de lo legible. No se leían mal:
+     se leían con esfuerzo, que es peor, porque nadie se queja, solo
+     deja de leerlas.
+ 
+     Los dos valores están calculados contra el fondo de los PANELES,
+     que es el más claro de los dos y por tanto el caso peor: así se
+     cumple también sobre el fondo de la app.
+ 
+     Y suben los dos a la vez para que siga habiendo escalera: si solo
+     subiera el pequeño, la pista pesaría lo mismo que la descripción y
+     no se sabría dónde mirar primero. */
+  --muted: #cacad6;
+  --faint: #9797a0;
   --acento: #ff4a1c;
   --acento-2: #ff7a18;
   --gold: #fbbf24;
@@ -41,12 +75,17 @@
   --bg: #ffffff;
   --bg-soft: #f6f6f7;
   --panel: #ffffff;
+  --row: #ededf0;
+  --row-sel: #dfdfe5;
   --panel-hi: #f2f2f4;
   --line: rgba(18, 18, 20, 0.11);
   --line-hi: rgba(18, 18, 20, 0.2);
-  --fg: #121214;
-  --muted: #5b5b64;
-  --faint: #8b8b95;
+  /* Lo mismo en claro, y aquí era más flagrante: la letra pequeña
+     estaba en 3,4:1 sobre blanco. El negro del título baja un punto
+     para acompañar; casi no se ve, pero sostiene la escalera. */
+  --fg: #0d0d0f;
+  --muted: #3a3a42;
+  --faint: #5e5e68;
   /* Más profundo en claro: sobre blanco, el ascua viva deslumbra. */
   --acento: #e0380c;
   --acento-2: #f2660f;
@@ -62,6 +101,8 @@
   --color-bg-soft: var(--bg-soft);
   --color-panel: var(--panel);
   --color-panel-hi: var(--panel-hi);
+  --color-row: var(--row);
+  --color-row-sel: var(--row-sel);
   --color-line: var(--line);
   --color-line-hi: var(--line-hi);
   --color-fg: var(--fg);
