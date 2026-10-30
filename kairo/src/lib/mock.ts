@@ -1,5 +1,6 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
+import { CREDITOS_PLAN } from "./planes";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
@@ -181,17 +182,30 @@ export const plans: Plan[] = [
     id: "free",
     monthly: 0,
     yearly: 0,
+    /* LOS CRÉDITOS SALEN DE `CREDITOS_PLAN`, NO ESCRITOS A MANO.
+       Decían 15 y el código daba 20 desde el 29-10: el plan gratis
+       mejoró y esta tarjeta siguió vendiendo el de antes durante un día,
+       que es lo que pasa siempre con una cifra copiada. Ahora no puede
+       volver a pasar.
+       Y los niveles: el plan gratis tiene `["fast", "normal"]`
+       (`planes.ts`), así que decir "Modelo rápido" dejaba fuera a
+       Paperwork, Gist y Código, que van en normal y ya funcionan gratis.
+       El "1 Co-Work" no es un adorno: es el tope real del plan gratis
+       (`api/coworks/route.ts`, `solo_uno_gratis`), y no decirlo es dejar
+       que alguien cree el segundo y se encuentre un error. */
     bullets: {
       es: [
-        "15 créditos al día",
-        "Modelo rápido",
+        `${CREDITOS_PLAN.free} créditos al día`,
+        "Modelos rápido y normal: chat, Paperwork, Gist y Código",
+        "1 Co-Work, que trabaja solo a su hora",
         "Historial de 30 días",
         "1 Mente propia",
         "Archivos hasta 5 MB",
       ],
       en: [
-        "15 credits per day",
-        "Fast model",
+        `${CREDITOS_PLAN.free} credits per day`,
+        "Fast and standard models: chat, Paperwork, Gist and Code",
+        "1 Co-Work, working on its own at its hour",
         "30-day history",
         "1 Mind of your own",
         "Files up to 5 MB",

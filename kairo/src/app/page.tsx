@@ -7,6 +7,7 @@ import { PricingCards } from "@/components/PricingCards";
 import { Marca } from "@/components/Logo";
 import { Arrow, Brain, Capas, Clock, Fichas, Papel, Plug, Shield } from "@/components/Icons";
 import { IconoNivel } from "@/components/IconoNivel";
+import { CREDITOS_PLAN } from "@/lib/planes";
 
 const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
   { name: "Claude", title: "brains.claude", desc: "brains.claudeDesc", color: "var(--acento)" },
@@ -77,7 +78,9 @@ export default function Landing() {
               </Link>
             </div>
 
-            <p className="mt-4 text-[13px] text-faint">{t("hero.note")}</p>
+            <p className="mt-4 text-[13px] text-faint">
+              {t("hero.note").replace("{n}", String(CREDITOS_PLAN.free))}
+            </p>
           </div>
 
           {/* Vista previa del chat */}

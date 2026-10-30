@@ -30,7 +30,7 @@ const dict = {
       "Kairo usa los tres mejores modelos del mundo y elige solo el adecuado para cada tarea. Tú escribes; él decide, trabaja y te avisa.",
     "hero.cta": "Empezar gratis",
     "hero.cta2": "Ver cómo funciona",
-    "hero.note": "Sin tarjeta. 15 créditos gratis cada día.",
+    "hero.note": "Sin tarjeta. {n} créditos gratis cada día.",
 
     "brains.title": "Tres cerebros. Una sola IA.",
     "brains.sub":
@@ -519,7 +519,13 @@ const dict = {
     "auth.haveAccount": "¿Ya tienes cuenta?",
     "auth.goLogin": "Entrar",
     "auth.registerTitle": "Crea tu cuenta",
-    "auth.registerSub": "15 créditos gratis cada día. Sin tarjeta.",
+    /* Esta sigue con la cifra escrita, y no por gusto: la pinta
+       `(auth)/registro/page.tsx`, y `(auth)/` no se toca sin permiso del
+       dueño (apartado 5 del protocolo). Para que leyera `CREDITOS_PLAN`
+       hace falta un `{n}` aquí y un `.replace()` allí, que es una línea
+       suya. Pedido en el parte del 30-10. Mientras, al menos dice la
+       verdad: 20, no 15. */
+    "auth.registerSub": "20 créditos gratis cada día. Sin tarjeta.",
     "auth.registerCta": "Crear cuenta",
     "auth.terms": "Al crear la cuenta aceptas los términos y la política de privacidad.",
     "auth.checkTitle": "Revisa tu correo",
@@ -581,7 +587,7 @@ const dict = {
       "Kairo runs the world's three best models and picks the right one for every task. You type; it decides, works, and tells you when it's done.",
     "hero.cta": "Start free",
     "hero.cta2": "See how it works",
-    "hero.note": "No card required. 15 free credits every day.",
+    "hero.note": "No card required. {n} free credits every day.",
 
     "brains.title": "Three minds. One AI.",
     "brains.sub":
@@ -1066,7 +1072,7 @@ const dict = {
     "auth.haveAccount": "Already have an account?",
     "auth.goLogin": "Log in",
     "auth.registerTitle": "Create your account",
-    "auth.registerSub": "15 free credits every day. No card required.",
+    "auth.registerSub": "20 free credits every day. No card required.",
     "auth.registerCta": "Create account",
     "auth.terms": "By creating an account you accept the terms and the privacy policy.",
     "auth.checkTitle": "Check your email",

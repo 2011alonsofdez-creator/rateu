@@ -13,7 +13,23 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **Anoche mejoró el plan gratis en el código, y la página sigue vendiendo el de antes.** `[origen: guardian 2026-10-30]`
+- **Anoche mejoró el plan gratis en el código, y la página seguía vendiendo el de antes** — **lo mío, hecho**; queda lo suyo. `[origen: guardian 2026-10-30 · hecho en parte 2026-10-30]`
+  **Hecho hoy por el constructor** (detalle en `## Hecho`): el 15 estaba en
+  **cinco** sitios, no en dos —el guardián encontró dos—, y los cinco leen ya
+  `CREDITOS_PLAN.free`, salvo uno que no puedo tocar. Corregidas también las
+  dos viñetas falsas del plan gratuito y añadido el tope real de 1 Co-Work.
+  **Lo que sigue siendo suyo, y son dos líneas**:
+  1. **¿Se anuncian los 150 créditos de bienvenida?** Existen en el código
+     (`nivelesDe()` en `planes.ts`) y abren Forja y MEGA mientras duran, o sea
+     que dan para probar **un MEGA**. Yo no lo he puesto porque anunciar un
+     regalo es decidir cómo se vende, no corregir un dato. Se contesta con un sí.
+  2. **Una línea en `(auth)/registro/page.tsx`**, que es zona prohibida del
+     apartado 5. El texto de la página de registro —el sitio exacto donde
+     alguien decide— sigue con la cifra escrita a mano; hoy la he puesto en 20
+     para que al menos sea verdad, pero para que la lea del código hace falta
+     cambiar `t("auth.registerSub")` por `t("auth.registerSub").replace("{n}", …)`
+     ahí dentro. Lo hago yo en diez segundos con su permiso.
+
   Esto es lo contrario del P1 de ayer y es el mismo problema: **la copia de los
   planes y el código se han separado**, y hoy va en contra de Kairo, no del
   usuario. El dueño publicó anoche *"Let a free account actually try Kairo, and
@@ -878,6 +894,52 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **El plan gratis ya se vende como el que es, y el 15 sale del código en cinco sitios.** `[hecho 2026-10-30]`
+  El guardián encontró esta mañana que el dueño subió el plan gratuito el 29-10
+  —de 15 a 20 créditos al día, con el nivel normal incluido— y que la web seguía
+  vendiendo el de antes. **Al buscarlo, el 15 no estaba en dos sitios: estaba en
+  cinco**, y el peor no era ninguno de los dos que se habían visto.
+
+  | Dónde | Estaba | Ahora |
+  |---|---|---|
+  | `lib/mock.ts`, viñetas del Free (es y en) | "15 créditos al día" | `` `${CREDITOS_PLAN.free} créditos al día` `` |
+  | `lib/i18n.tsx`, `hero.note` (es y en) — **la portada** | "15 créditos gratis cada día" | `{n}`, interpolado en `app/page.tsx` |
+  | `lib/i18n.tsx`, `auth.registerSub` (es y en) — **la página de registro** | "15 créditos gratis cada día" | **20, todavía a mano**: lo pinta `(auth)/`, que no se toca |
+  | `sin-suscripcion/page.tsx`, los metadatos — **lo que ve Google** | "15 créditos cada día" | de `CREDITOS_PLAN.free` |
+  | `sin-suscripcion/contenido.tsx:13` | `const GRATIS_AL_DIA = 15;` | `= CREDITOS_PLAN.free` |
+
+  **El peor de los cinco era el de registro**: el dueño acababa de hacer la
+  puerta más generosa y la página donde alguien decide registrarse seguía
+  ofreciendo la de antes.
+  **Y el más vergonzoso era mío**: `GRATIS_AL_DIA = 15` estaba escrito **justo
+  debajo** del comentario que presumía de que esa página "no puede desfasarse
+  sola", publicado el 28-10. Tardó **un día** en desfasarse. El comentario ahora
+  lo cuenta, en vez de presumir.
+
+  **Las dos viñetas falsas del plan gratuito, corregidas**: decía "Modelo
+  rápido" cuando el código ya da `["fast", "normal"]`, o sea que **Paperwork,
+  Gist y Código ya funcionan gratis** y la tarjeta decía lo contrario. Y
+  **añadida una que faltaba**: "1 Co-Work, que trabaja solo a su hora", que es el
+  tope real del plan gratis (`api/coworks/route.ts`, `solo_uno_gratis`). No
+  decirlo era dejar que alguien creara el segundo y se encontrara un error.
+
+  **Los planes de pago, sin tocar a propósito**: Kairo+ sigue diciendo "3
+  Co-Works activos" y Supreme "Co-Works ilimitados" contra el tope de 10. Eso es
+  el P1 del 29-10 y es una decisión suya: corregir el texto o subir el tope.
+  Cambiarlo yo sería decidir qué vende Supreme.
+
+  **Comprobado**: `npx tsc --noEmit` **0** y `npx next build` **0**; `grep` de
+  "15 créditos", "15 credits" y `= 15;` en todo `src` da **cero**; el HTML
+  generado de `/sin-suscripcion` dice 20 y su `<meta name="description">`
+  también —que es lo que lee Google—; el de `/precios` trae las tres viñetas
+  nuevas del Free y ya no dice 15; y la portada renderiza "Sin tarjeta. 20
+  créditos gratis cada día." **sin dejar ningún `{n}` literal**.
+  **Y una lección de método**: buscar la viñeta inglesa entera en el bundle daba
+  **cero**, y no era un fallo. Una cadena con plantilla no viaja entera: en el
+  bundle está como ``en:[`${t.CREDITOS_PLAN.free} credits per day``. Lo que hay
+  que buscar es el trozo más la interpolación, no la frase montada. Buscar la
+  frase entera y concluir "no está" habría sido el falso negativo perfecto.
 
 - **`/memoria` ya habla los dos idiomas.** `[hecho 2026-10-29]`
   `kairo/src/app/(app)/memoria/page.tsx` no importaba `useUi` ni una vez, así

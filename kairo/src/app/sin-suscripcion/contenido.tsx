@@ -5,12 +5,19 @@ import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { creditPacks, plans } from "@/lib/mock";
 import { CREDITOS } from "@/lib/ia/config";
+import { CREDITOS_PLAN } from "@/lib/planes";
 
 /* Las cifras salen de donde las saca la página de precios, no de aquí:
    `plans` y `creditPacks` de `lib/mock.ts`, y `CREDITOS` de
    `lib/ia/config.ts`, que es lo que cobra de verdad cada nivel. Así esta
-   página no puede desfasarse sola. */
-const GRATIS_AL_DIA = 15;
+   página no puede desfasarse sola.
+
+   El 30-10 resultó que sí podía, y por esta línea: `GRATIS_AL_DIA`
+   estaba escrito a mano justo debajo del comentario que presumía de lo
+   contrario. El dueño subió el plan gratis de 15 a 20 el 29 y la página
+   siguió diciendo 15 al día siguiente. Ahora sale de `CREDITOS_PLAN`,
+   que es lo que de verdad recarga cada día. */
+const GRATIS_AL_DIA = CREDITOS_PLAN.free;
 
 const T = {
   es: {
