@@ -1,4 +1,4 @@
-import { modelosExtra, partir, proveedorActivo } from "@/lib/ia/proveedores";
+import { EXTRA_URL, claveExtra, modelosExtra, partir, proveedorActivo } from "@/lib/ia/proveedores";
 import { VOTANTES_MAX, type Miembro } from "./tipos";
 
 /* Quién se sienta en la mesa.
@@ -16,7 +16,72 @@ import { VOTANTES_MAX, type Miembro } from "./tipos";
  * vote, porque quien redacta la propuesta tiene ventaja sobre lo que se
  * vota. Separar las dos cosas es lo que impide que el que escribe el
  * acta decida también el resultado.
+ *
+ * LAS SEIS CASAS VIENEN DE SERIE. Antes el consejo se formaba con
+ * KAIRO_EXTRA_MODELOS, que es la lista de repuesto del CHAT, y el
+ * resultado fue un consejo de NVIDIA y poolside deliberando sobre una
+ * sanción administrativa: modelos de programar opinando de derecho,
+ * porque estaban en una lista puesta para otra cosa. El consejo trae
+ * ahora su propia plantilla, y esa lista solo rellena huecos.
  */
+
+/* Las casas del consejo, y por dónde entra cada una.
+ *
+ * `nativo` es la cadena por las claves propias de Kairo; `porRouter`, la
+ * misma casa a través de OpenRouter. Se prefiere la nativa: ya la tienes
+ * contratada, así que no se paga dos veces lo mismo.
+ *
+ * Cada una es una cadena con suplentes porque los modelos se retiran, se
+ * quedan sin cuota y los "preview" dejan de servirse de un día para
+ * otro. Vale más un miembro con un modelo modesto que una silla vacía. */
+const PLANTILLA: { casa: string; nativo?: string[]; porRouter: string[] }[] = [
+  {
+    casa: "Google",
+    nativo: [
+      "gemini-pro-latest",
+      "gemini-3.1-pro-preview",
+      "gemini-flash-latest",
+      "gemini-3.8-flash",
+      "gemini-flash-lite-latest",
+    ],
+    porRouter: ["google/gemini-4-argon", "google/gemini-3.1-pro-preview", "google/gemini-2.5-pro"],
+  },
+  {
+    casa: "OpenAI",
+    nativo: ["gpt:gpt-5.1", "gpt:gpt-5", "gpt:gpt-5-mini"],
+    porRouter: ["openai/gpt-6.1-sol", "openai/gpt-5.5", "openai/gpt-5.1"],
+  },
+  {
+    casa: "xAI",
+    porRouter: ["x-ai/grok-4.7", "x-ai/grok-4.6", "x-ai/grok-4.5", "x-ai/grok-4.3"],
+  },
+  {
+    casa: "DeepSeek",
+    porRouter: [
+      "deepseek/deepseek-v4-pro",
+      "deepseek/deepseek-v3.2",
+      "deepseek/deepseek-chat-v3.1",
+    ],
+  },
+  {
+    casa: "Qwen",
+    porRouter: [
+      "qwen/qwen3.8-max-prime",
+      "qwen/qwen3.8-max-0902",
+      "qwen/qwen3.7-max",
+      "qwen/qwen3.5-397b-a17b",
+    ],
+  },
+];
+
+/** La cadena del secretario, por sus dos puertas. */
+const SECRETARIO = {
+  nativo: ["claude:claude-opus-5-5", "claude:claude-opus-5", "claude:claude-sonnet-5-5"],
+  porRouter: ["anthropic/claude-opus-5", "anthropic/claude-opus-4.1", "anthropic/claude-sonnet-4.5"],
+};
+
+/** Qué proveedor nativo le toca a cada casa, cuando lo tiene. */
+const NATIVO: Record<string, "gemini" | "gpt"> = { Google: "gemini", OpenAI: "gpt" };
 
 /** De qué casa es un modelo de OpenRouter, por su prefijo. */
 const CASAS: Record<string, string> = {
@@ -39,6 +104,7 @@ const CASAS: Record<string, string> = {
   amazon: "Amazon",
   moonshotai: "Moonshot",
   "z-ai": "Z.ai",
+  poolside: "poolside",
 };
 
 function casaDe(modelo: string): string {
@@ -49,76 +115,33 @@ function casaDe(modelo: string): string {
   return prefijo ? prefijo : modelo;
 }
 
-/** El nombre corto del modelo, sin la casa delante. */
-function modeloDe(ref: string): string {
-  return partir(ref).modelo;
+const modeloDe = (ref: string): string => partir(ref).modelo;
+
+/** Con el prefijo que entiende Kairo para el proveedor de repuesto. */
+const porRouter = (ids: string[]): string[] => ids.map((m) => `extra:${m}`);
+
+/* ¿Se puede llamar por OpenRouter?
+ *
+ * Deliberadamente NO se usa `proveedorActivo("extra")`: esa función
+ * exige además que KAIRO_EXTRA_MODELOS tenga algo, porque para el chat
+ * un proveedor sin modelos listados no sirve de nada. El consejo trae
+ * los suyos, así que le basta con la clave y la dirección. Atarlo a esa
+ * comprobación dejaba el consejo sin formar por una lista que es de
+ * otra parte de la aplicación. */
+function hayRouter(): boolean {
+  return Boolean(claveExtra().trim()) && Boolean(EXTRA_URL());
 }
 
-/* Los nativos van primero, y hay dos razones.
+/* Si quieres mandar tú, esta variable gana sobre la plantilla.
  *
- * La barata: ya tienes esas claves contratadas, así que no pagas en
- * OpenRouter lo que puedes gastar en casa.
- *
- * La buena: los nativos son los únicos que aceptan archivos
- * (`aceptaArchivos` descarta "extra"), y eso importa más adelante. */
-function nativos(): { casa: string; refs: string[] }[] {
-  const lista: { casa: string; refs: string[] }[] = [];
-  /* Las cadenas salen de CADENAS en ia/config.ts, que son los
-     identificadores comprobados contra cuentas de verdad. Lo mejor
-     primero y, detrás, lo que casi seguro contesta: en un consejo vale
-     más un miembro con un modelo modesto que una silla vacía. */
-  if (proveedorActivo("gemini")) {
-    lista.push({
-      casa: "Google",
-      refs: [
-        "gemini-pro-latest",
-        "gemini-3.1-pro-preview",
-        "gemini-flash-latest",
-        "gemini-3.8-flash",
-        "gemini-flash-lite-latest",
-      ],
-    });
-  }
-  if (proveedorActivo("gpt")) {
-    lista.push({ casa: "OpenAI", refs: ["gpt:gpt-5.1", "gpt:gpt-5", "gpt:gpt-5-mini"] });
-  }
-  return lista;
-}
-
-/* El secretario. Siempre un Claude, y siempre sin voto.
- *
- * Lo normal es que vaya por la clave nativa de Anthropic. Pero si no la
- * hay y en cambio tienes un Claude configurado en OpenRouter, ese hace
- * de secretario igual: sería absurdo dejar el consejo sin acta teniendo
- * al modelo disponible por otra puerta, solo porque entra por la de
- * atrás. Es el mismo modelo; cambia quién cobra la llamada. */
-function secretario(): Miembro | null {
-  if (proveedorActivo("claude")) {
-    return {
-      id: "M6",
-      casa: "Anthropic",
-      modelo: "claude-opus-5-5",
-      refs: ["claude:claude-opus-5-5", "claude:claude-opus-5", "claude:claude-sonnet-5-5"],
-      secretario: true,
-    };
-  }
-
-  if (proveedorActivo("extra")) {
-    const porOpenRouter = modelosExtra().find(
-      (ref) => casaDe(partir(ref).modelo) === "Anthropic",
-    );
-    if (porOpenRouter) {
-      return {
-        id: "M6",
-        casa: "Anthropic",
-        modelo: modeloDe(porOpenRouter),
-        refs: [porOpenRouter],
-        secretario: true,
-      };
-    }
-  }
-
-  return null;
+ * Es propia del consejo y NO es KAIRO_EXTRA_MODELOS: esa es la del chat,
+ * y mezclarlas fue justo lo que sentó modelos de programar en una
+ * deliberación jurídica. */
+function plantillaPropia(): string[] {
+  return (process.env.KAIRO_CONSEJO_MODELOS ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
 }
 
 export type Composicion = {
@@ -130,6 +153,25 @@ export type Composicion = {
   aviso: string | null;
 };
 
+/** El secretario: nativo si hay clave propia, y si no por OpenRouter. */
+function secretario(propia: string[]): Miembro | null {
+  const hecho = (refs: string[]): Miembro => ({
+    id: "M6",
+    casa: "Anthropic",
+    modelo: modeloDe(refs[0]),
+    refs,
+    secretario: true,
+  });
+
+  // Si lo has elegido tú a mano, manda lo tuyo.
+  const tuyo = propia.filter((m) => casaDe(m) === "Anthropic");
+  if (tuyo.length && hayRouter()) return hecho(porRouter(tuyo));
+
+  if (proveedorActivo("claude")) return hecho(SECRETARIO.nativo);
+  if (hayRouter()) return hecho(porRouter(SECRETARIO.porRouter));
+  return null;
+}
+
 /* Forma el consejo con lo que haya configurado.
  *
  * No falla por estar incompleto: un consejo de cuatro casas distintas
@@ -137,12 +179,14 @@ export type Composicion = {
  * que no deliberar. Lo que sí hace es DECIRLO, porque un consejo de dos
  * es un consejo de dos y presentarlo como seis sería mentir. */
 export function formarConsejo(): Composicion {
-  const sec = secretario();
+  const propia = plantillaPropia();
+  const router = hayRouter();
+  const sec = secretario(propia);
   const vistas = new Set<string>();
   const votantes: Miembro[] = [];
 
   const añadir = (casa: string, refs: string[]) => {
-    if (votantes.length >= VOTANTES_MAX) return;
+    if (votantes.length >= VOTANTES_MAX || !refs.length) return;
     const clave = casa.toLowerCase();
     // Ni la casa del secretario ni ninguna repetida.
     if (vistas.has(clave)) return;
@@ -157,15 +201,24 @@ export function formarConsejo(): Composicion {
     });
   };
 
-  for (const n of nativos()) añadir(n.casa, n.refs);
+  if (propia.length) {
+    /* Plantilla propia: se respeta tal cual, sin añadir nada por detrás.
+       Si te has molestado en escribir la lista, es que sabes a quién
+       quieres sentar. */
+    if (router) for (const m of propia) añadir(casaDe(m), porRouter([m]));
+  } else {
+    // La plantilla de serie: cada casa por su mejor puerta disponible.
+    for (const c of PLANTILLA) {
+      const puerta = NATIVO[c.casa];
+      if (c.nativo && puerta && proveedorActivo(puerta)) añadir(c.casa, c.nativo);
+      else if (router) añadir(c.casa, porRouter(c.porRouter));
+    }
 
-  /* Y los de OpenRouter rellenan los huecos que queden. Van después a
-     propósito: así las casas que ya tienes en nativo no se pagan dos
-     veces, y OpenRouter aporta justo las que Kairo no habla de serie
-     —Grok, DeepSeek, Qwen—, que es para lo que hace falta. */
-  if (proveedorActivo("extra")) {
-    for (const ref of modelosExtra()) {
-      añadir(casaDe(partir(ref).modelo), [ref]);
+    /* Y si aún sobran sillas, las rellenan los modelos de repuesto del
+       chat. Van los últimos a propósito: esa lista está puesta para otra
+       cosa, así que puede completar el consejo pero no definirlo. */
+    if (proveedorActivo("extra")) {
+      for (const ref of modelosExtra()) añadir(casaDe(partir(ref).modelo), [ref]);
     }
   }
 
@@ -175,17 +228,24 @@ export function formarConsejo(): Composicion {
   if (!sec) {
     aviso =
       "No hay secretario: hace falta un modelo de Anthropic, por su clave propia " +
-      "(ANTHROPIC_API_KEY) o añadiendo uno en KAIRO_EXTRA_MODELOS. Sin él nadie " +
+      "(ANTHROPIC_API_KEY) o por OpenRouter (KAIRO_EXTRA_KEY). Sin él nadie " +
       "verifica los datos ni redacta la propuesta.";
   } else if (votantes.length < 2) {
     aviso =
       "Hacen falta al menos dos votantes de casas distintas para que haya debate. " +
-      "Añade modelos en KAIRO_EXTRA_MODELOS o pon la clave de Gemini o de OpenAI.";
+      (propia.length
+        ? "Añade más casas en KAIRO_CONSEJO_MODELOS, o borra esa variable para usar la plantilla de serie."
+        : "Con una clave de OpenRouter (KAIRO_EXTRA_KEY) el consejo se completa solo.");
   } else if (votantes.length < VOTANTES_MAX) {
+    /* El remedio depende de por qué falta gente: si has escrito tú la
+       plantilla, el consejo es el que pediste y mandarte a poner una
+       clave que ya tienes sería un consejo inútil. */
+    const remedio = propia.length
+      ? "Añade más casas en KAIRO_CONSEJO_MODELOS, o borra esa variable para usar la plantilla de serie."
+      : "Con una clave de OpenRouter (KAIRO_EXTRA_KEY) entran las casas que faltan.";
     aviso =
       `Consejo de ${votantes.length + 1} en vez de 6: ` +
-      `${votantes.map((m) => m.casa).join(", ")} y el secretario. ` +
-      "Para completarlo, añade modelos de otras casas en KAIRO_EXTRA_MODELOS.";
+      `${votantes.map((m) => m.casa).join(", ")} y el secretario. ${remedio}`;
   }
 
   return { miembros, votantes, sec, aviso };
