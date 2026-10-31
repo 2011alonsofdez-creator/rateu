@@ -76,6 +76,24 @@ async function unaVez(
   }
 }
 
+/* ¿Esto se ha quedado a medias?
+ *
+ * El flujo de `arrancar` entrega texto y no el motivo por el que el
+ * modelo paró, así que no hay forma de preguntar si agotó su
+ * presupuesto. Queda mirar cómo termina: una respuesta acabada cierra
+ * con puntuación o con el fin de un bloque. Si termina en mitad de una
+ * palabra es que se cortó, y eso hay que decirlo: una respuesta
+ * truncada se lee como completa y sus últimas frases, que suelen ser
+ * las conclusiones, no están. */
+function pareceCortado(texto: string): boolean {
+  /* Solo en respuestas largas. Una corta que acaba en lista o en una
+     palabra suelta está acabada, y avisar ahí sería gritar «cortada» en
+     respuestas perfectas: la alarma dejaría de significar nada. */
+  if (texto.length < 4000) return false;
+  const fin = texto.trimEnd().slice(-1);
+  return !/[.!?:;»"'`)\]}\d]/.test(fin);
+}
+
 /* Dejar el error en algo que se pueda leer.
  *
  * Un 429 de Google son cuatro mil caracteres de JSON con el mismo aviso
@@ -388,7 +406,7 @@ async function ronda(
 
   await Promise.all(
     quienes.map(async (m) => {
-      const r = await preguntar(m.refs, sistema, texto(m), 6000);
+      const r = await preguntar(m.refs, sistema, texto(m), 8000);
       const v: Intervencion = r.ok
         ? { miembro: m.id, texto: r.texto, ok: true, modelo: r.modelo }
         : { miembro: m.id, texto: "", ok: false, error: r.error };
@@ -487,8 +505,19 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
         `## Lo que haría falta saber\n` +
         `Los datos que faltan y que más cambiarían la respuesta. Si no falta nada, omite ` +
         `este apartado.`,
-      7000,
+      12000,
     );
+
+    if (r.ok && pareceCortado(r.texto)) {
+      console.warn("[consejo] la respuesta parece cortada por el límite de escritura");
+      emitir({
+        t: "fase",
+        fase: "aviso",
+        detalle:
+          "La respuesta parece haberse quedado a medias por el límite de escritura. " +
+          "Vuelve a lanzarla, o acota la pregunta para que quepa entera.",
+      });
+    }
 
     emitir(
       r.ok
@@ -610,12 +639,22 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       `entonces Y". Un desacuerdo bien explicado vale más que un consenso de mentira.\n` +
       `- Ninguna cifra que no se sostuviera en la verificación.\n` +
       `- Entre 400 y 800 palabras, en prosa útil para quien tiene que decidir algo.`,
-    6000,
+    10000,
   );
 
   if (!prop.ok) {
     emitir({ t: "error", mensaje: `El secretario no pudo redactar la propuesta: ${prop.error}` });
     return;
+  }
+  if (pareceCortado(prop.texto)) {
+    console.warn("[consejo] la propuesta parece cortada por el límite de escritura");
+    emitir({
+      t: "fase",
+      fase: "aviso",
+      detalle:
+        "La respuesta acordada parece haberse quedado a medias por el límite de " +
+        "escritura. Los miembros la han firmado tal como está.",
+    });
   }
   emitir({ t: "propuesta", texto: prop.texto });
 
