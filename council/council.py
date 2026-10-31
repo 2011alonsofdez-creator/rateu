@@ -164,9 +164,21 @@ def preguntar(modelo: str, sistema: str, usuario: str, clave: str, par: dict) ->
                 raise RuntimeError(ultimo)
             msg = elecciones[0].get("message") or {}
             texto = (msg.get("content") or "").strip()
+            fin = elecciones[0].get("finish_reason") or elecciones[0].get("native_finish_reason")
             if not texto:
-                ultimo = "respuesta vacia"
+                razona = (msg.get("reasoning") or "")
+                if fin == "length" or razona:
+                    ultimo = (
+                        f"sin texto: el modelo agoto max_tokens "
+                        f"({par.get('max_tokens')}) razonando antes de responder"
+                        f"{f'; {len(razona)} caracteres de razonamiento' if razona else ''}. "
+                        "Sube max_tokens en la configuracion."
+                    )
+                else:
+                    ultimo = f"respuesta vacia (finish_reason={fin})"
                 raise RuntimeError(ultimo)
+            if fin == "length":
+                log(f"    aviso: {modelo} truncado por max_tokens; la respuesta puede quedar a medias")
             return {
                 "ok": True,
                 "texto": texto,

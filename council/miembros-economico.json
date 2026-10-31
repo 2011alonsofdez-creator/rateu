@@ -7,5 +7,5 @@
     { "id": "M4", "fabricante": "DeepSeek", "modelo": "deepseek/deepseek-chat-v3.1",  "alternativas": ["deepseek/deepseek-v3.2"] },
     { "id": "M5", "fabricante": "Qwen",     "modelo": "qwen/qwen3.8-27b",             "alternativas": ["qwen/qwen3.5-35b-a3b"] }
   ],
-  "parametros": { "temperature": 0.3, "max_tokens": 4000, "timeout_segundos": 300, "reintentos": 3 }
+  "parametros": { "temperature": 0.3, "max_tokens": 10000, "timeout_segundos": 300, "reintentos": 3 }
 }
