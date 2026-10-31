@@ -103,6 +103,38 @@ type Respuesta = {
   busquedas: string[];
 };
 
+/* DE QUÉ CASA ES UN MODELO.
+ *
+ * El proveedor no vale como casa desde que se puede entrar por una
+ * pasarela. Por OpenRouter caben Claude, GPT y DeepSeek, y los tres
+ * llegan como `extra:`, así que contando por proveedor los tres eran
+ * "la misma casa": MEGA fichaba a uno y rellenaba con Geminis. El
+ * equipo acababa siendo un modelo de pasarela y DOS Geminis, que es
+ * exactamente lo que el reparto por casas quiere evitar.
+ *
+ * En una pasarela el nombre viene como "casa/modelo", así que la casa
+ * de verdad es lo que va antes de la barra.
+ *
+ * Y se traducen los nombres de los proveedores propios para que
+ * `claude:claude-opus-5-5` y `extra:anthropic/claude-opus-5.5` cuenten
+ * como la misma casa, que lo son: si tienes las dos puertas abiertas,
+ * fichar a Anthropic dos veces es el mismo error con otra cara. */
+const CASA_DEL_PROVEEDOR: Record<string, string> = {
+  gemini: "google",
+  claude: "anthropic",
+  gpt: "openai",
+};
+
+export function casaDe(id: string): string {
+  const { proveedor, modelo } = partir(id);
+  if (proveedor !== "extra") return CASA_DEL_PROVEEDOR[proveedor] ?? proveedor;
+
+  const barra = modelo.indexOf("/");
+  /* Una pasarela sin barra en el nombre no dice de quién es: se la deja
+     como casa propia en vez de inventarle una. */
+  return barra === -1 ? "extra" : modelo.slice(0, barra).toLowerCase();
+}
+
 /* El equipo: de casas distintas mientras las haya.
  *
  * Preguntarle tres veces a la misma casa da tres respuestas parecidas, y
@@ -114,9 +146,9 @@ export function elegirEquipo(cadena: string[], maximo = 3): string[] {
   const casas = new Set<string>();
 
   for (const id of cadena) {
-    const { proveedor } = partir(id);
-    if (casas.has(proveedor)) continue;
-    casas.add(proveedor);
+    const casa = casaDe(id);
+    if (casas.has(casa)) continue;
+    casas.add(casa);
     equipo.push(id);
     if (equipo.length >= maximo) return equipo;
   }
@@ -255,8 +287,51 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
   /* A los candidatos se les pide una respuesta completa pero no
      interminable: lo que escriban no se enseña, se funde. El espacio
      largo se lo queda la respuesta final, que es la que se lee. */
-  const encargos = equipo.map((id) =>
-    conPrisa(
+  /* Cuántos se han quedado sin tiempo. Si al final no contesta nadie, la
+     diferencia entre "no dio tiempo" y "falló el proveedor" es lo único
+     que le sirve a quien está mirando la pantalla. */
+  let cortados = 0;
+
+  const encargos = equipo.map((id) => {
+    /* Nunca más de lo que quede: si se les dan 22 segundos cuando solo
+       quedan 15, la respuesta final nace muerta. Como mucho, la mitad
+       de lo que reste. */
+    const suyo = Math.min(
+      op.msParaCandidatos ?? 32_000,
+      Math.max(3000, (plazo - Date.now()) / 2),
+    );
+
+    /* SE LE PIDE QUE PARE, NO SE LE TIRA LO ESCRITO.
+     *
+     * Antes esto era una carrera contra un reloj: si el modelo no había
+     * terminado, se devolvía `null` y se perdía TODO lo que llevara
+     * escrito. Y lo que llevaba escrito no es poco ni es gratis: un Opus
+     * cortado a los 22 segundos ya había mandado miles de palabras, el
+     * proveedor las había cobrado, y acababan en la basura.
+     *
+     * Peor aún era lo que veía el usuario. Con los tres candidatos
+     * tirados no quedaba ninguna respuesta, así que se subía "el último
+     * error que hubo" —que podía ser la cuota agotada de otro modelo
+     * distinto— y la pantalla decía "se ha agotado la cuota" cuando lo
+     * que había pasado era que no dio tiempo. Dos cosas que no se
+     * arreglan igual.
+     *
+     * Ahora el reloj enciende un interruptor y `recoger` sale del bucle
+     * y DEVUELVE lo que lleve. Un candidato a medias sigue sirviendo:
+     * no se enseña, se funde con los demás. */
+    const seAcabo = { ya: false };
+    const reloj = setTimeout(() => {
+      seAcabo.ya = true;
+      cortados++;
+    }, suyo);
+
+    const parada = {
+      get ya() {
+        return seAcabo.ya || rendirse.ya;
+      },
+    };
+
+    return conPrisa(
       recoger(
         {
           id,
@@ -265,23 +340,36 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
           maxSalida: 6000,
           esfuerzo: "alto",
           modoEdad: op.modoEdad,
-          pensar: 8192,
+          /* POCO PENSAR, Y A PROPÓSITO.
+           *
+           * Estaba en 8192, que es lo que se le pide a una respuesta que
+           * va a leer alguien. Pero esto no lo lee nadie: es material
+           * para fundir, y aquí la cuenta es otra. Con tanto presupuesto
+           * un Opus se pasa el turno entero pensando y los veintidós
+           * segundos se acaban antes de la primera palabra: el modelo no
+           * ha fallado, ha llegado tarde, y lo que se guarda es texto
+           * vacío.
+           *
+           * Tres puntos de vista que llegan valen más que uno profundo
+           * que no llega. El que sí piensa a fondo es el que funde al
+           * final, que es el que se lee. */
+          pensar: 512,
         },
-        rendirse,
-      ),
-      /* Y nunca más de lo que quede: si se les da 22 segundos cuando
-         solo quedan 15, la respuesta final nace muerta. Se les deja
-         como mucho la mitad de lo que reste. */
-      Math.min(op.msParaCandidatos ?? 32_000, Math.max(3000, (plazo - Date.now()) / 2)),
-    ).catch((e) => {
-      /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
-         saberlo: es el que aparta al modelo un rato y el que sabe decir
-         "cuota agotada" en vez de "algo ha ido mal". */
-      op.alFallar?.(id, e);
-      ultimoFallo = e;
-      return null;
-    }),
-  );
+        parada,
+      ).catch((e) => {
+        /* Que uno falle no para el Mega-Prompt, pero quien llama tiene que
+           saberlo: es el que aparta al modelo un rato y el que sabe decir
+           "cuota agotada" en vez de "algo ha ido mal". */
+        op.alFallar?.(id, e);
+        ultimoFallo = e;
+        return null;
+      }),
+      /* Un tope duro por detrás. El interruptor de arriba solo se mira
+         cuando llega un trozo nuevo, así que una conexión que se cuelga
+         sin mandar nada no lo vería nunca y esperaría para siempre. */
+      suyo + 6000,
+    ).finally(() => clearTimeout(reloj));
+  });
 
   const llegadas = await Promise.all(encargos);
   rendirse.ya = true;
@@ -289,8 +377,16 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
 
   /* Ninguno ha contestado. Se sube el error de verdad del último que
      falló, no uno inventado: dentro va el código de estado, y es lo que
-     convierte "algo ha ido mal" en "se ha agotado la cuota del día". */
+     convierte "algo ha ido mal" en "se ha agotado la cuota del día".
+     Pero si lo que pasó es que se les acabó el tiempo, ese error es de
+     otro modelo y de otro problema: decir "cuota" cuando lo que falta
+     son segundos manda a quien lo lee a mirar donde no es. */
   if (!respuestas.length) {
+    if (cortados) {
+      throw new Error(
+        `No han llegado a tiempo ${cortados} de ${equipo.length} cerebros del Mega-Prompt (KAIRO_SIN_TIEMPO)`,
+      );
+    }
     throw ultimoFallo ?? new Error("mega: ningún modelo ha contestado a tiempo");
   }
 

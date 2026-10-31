@@ -83,8 +83,16 @@ const PISTAS: RegExp[] = [
 
   // Resultados, noticias y tiempo atmosférico
   palabra("(resultado|resultados|marcador|clasificacion|partido|elecciones)"),
+  /* "¿Cómo quedó el Madrid-Barça?" es como se pregunta un resultado de
+     verdad, y no casaba con nada: la frase no lleva ni "resultado" ni
+     "partido", lleva los nombres de los dos equipos, que no están en
+     ninguna lista ni pueden estarlo. Lo que sí se repite es el verbo. */
+  palabra("(como (quedo|quedaron|queda|quedan|va|van|iba|iban|acabo|acabaron|termino|terminaron))"),
   palabra("(noticia|noticias|que ha pasado|que esta pasando)"),
-  palabra("(el tiempo|va a llover|temperatura|pronostico)"),
+  /* "el tiempo" estaba; "qué tiempo va a hacer mañana" no, que es como
+     lo dice todo el mundo. Y el tiempo de mañana es el caso más claro
+     de dato que Kairo no se puede saber de memoria. */
+  palabra("(el tiempo|que tiempo|va a llover|temperatura|pronostico)"),
   palabra("(news|weather|score|standings)"),
 
   // Normas que cambian
