@@ -256,32 +256,32 @@ export type Encargo = {
 
 type Emitir = (e: Evento) => void;
 
-/* Un PDF no lo pueden leer todos.
+/* Sacar el texto de lo que se adjunte.
  *
- * `aceptaArchivos` descarta a los de OpenRouter, así que Grok, DeepSeek
- * y Qwen se quedarían fuera del material mientras los nativos lo leen
- * entero. Un consejo donde la mitad ha visto el documento y la otra
- * mitad no, no es un consejo: es una encerrona.
+ * Primero se intenta leer el PDF aquí mismo, con un extractor de texto.
+ * No es optimización: es quitar de en medio tres formas de fallar que ya
+ * nos costaron dos deliberaciones enteras.
  *
- * Por eso se transcribe UNA vez, con un nativo, y a partir de ahí todos
- * trabajan sobre el mismo texto. Cuesta una llamada de más y vale la
- * pena: la deliberación vuelve a ser entre iguales.
+ *   · Pedirle la transcripción a un modelo depende de su cuota. Con la
+ *     capa gratuita de Gemini agotada, el documento no se leía.
+ *   · Depende de que su proveedor lleve el archivo. Los de OpenRouter no
+ *     lo llevan, así que el secretario contestaba —con razón— que no
+ *     había recibido nada, y ese "no he recibido nada" se convertía en
+ *     el material sobre el que deliberaban los seis.
+ *   · Y depende de que el modelo no se invente lo que no ve.
  *
- * Y el que transcribe tiene que poder MIRAR el archivo. Parece obvio y
- * no lo fue: con el secretario entrando por OpenRouter, se le mandaba un
- * PDF que su proveedor descarta por el camino, él contestaba con toda
- * la razón que no había recibido nada, y ese "no he recibido nada" se
- * convertía en el material sobre el que deliberaban los seis. Una hora
- * de consejo sobre un acuse de recibo. De ahí que aquí se busque un
- * lector que acepte archivos y, si no lo hay, se diga en vez de
- * deliberar sobre humo. */
-async function transcribir(
+ * Un PDF con capa de texto no necesita nada de eso: el texto está
+ * dentro. Se saca, es idéntico para los seis y no cuesta una llamada.
+ *
+ * El modelo queda para lo que de verdad hace falta: imágenes, y PDFs
+ * escaneados sin capa de texto, donde no hay nada que extraer. */
+async function leerAdjuntos(
   c: Composicion,
   adjuntos: Adjunto[],
   emitir: Emitir,
 ): Promise<string> {
   if (!adjuntos.length) {
-    console.log("[consejo] sin archivos adjuntos: se delibera solo con la pregunta");
+    console.log("[consejo] sin archivos: se delibera solo con la pregunta");
     return "";
   }
 
@@ -289,68 +289,91 @@ async function transcribir(
     `[consejo] ${adjuntos.length} archivo(s): ` +
       adjuntos.map((a) => `${a.nombre} (${a.tipo}, ${Math.round(a.bytes / 1024)} KB)`).join(", "),
   );
-
-  /* Solo valen los identificadores nativos: los de OpenRouter no llevan
-     el archivo, y mandárselo es pedirle que describa algo que no ve. */
-  const lectores = c.miembros
-    .flatMap((m) => m.refs.map((ref) => ({ m, ref })))
-    .filter(({ ref }) => aceptaArchivos(ref));
-
-  if (!lectores.length) {
-    console.warn("[consejo] ningún miembro acepta archivos: nadie puede leer el documento");
-    emitir({
-      t: "fase",
-      fase: "aviso",
-      detalle:
-        "Ningún miembro puede abrir archivos: todos entran por OpenRouter, que no " +
-        "los admite. El consejo delibera solo con lo que escribas. Para que lea el " +
-        "documento, pon la clave de Gemini, de OpenAI o de Anthropic, o pega el texto " +
-        "en la pregunta.",
-    });
-    return "";
-  }
-
   emitir({ t: "fase", fase: "transcribiendo", detalle: `${adjuntos.length} archivo(s)` });
 
-  const r = await preguntar(
-    lectores.map(({ ref }) => ref),
-    "Transcribes documentos para que otros los lean. No resumes, no " +
-      "interpretas y no añades nada tuyo: vuelcas el contenido en texto plano, " +
-      "respetando el orden, los títulos y las cifras. Si hay tablas, las pasas " +
-      "a texto legible. Si una parte es ilegible, lo escribes entre corchetes. " +
-      "Si no ves ningún archivo, responde exactamente SIN_ARCHIVO y nada más.",
-    "Transcribe íntegramente el contenido de los archivos adjuntos.",
-    16000,
-    adjuntos,
-  );
+  const trozos: string[] = [];
+  const paraElModelo: Adjunto[] = [];
 
-  if (!r.ok) {
-    emitir({
-      t: "fase",
-      fase: "aviso",
-      detalle: `No se pudieron transcribir los archivos (${r.error}). El consejo delibera sin ellos.`,
-    });
-    return "";
+  for (const a of adjuntos) {
+    if (a.tipo !== "application/pdf") {
+      paraElModelo.push(a); // una imagen no tiene texto que extraer
+      continue;
+    }
+    try {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const pdf = await getDocumentProxy(new Uint8Array(Buffer.from(a.datos, "base64")));
+      const { totalPages, text } = await extractText(pdf, { mergePages: true });
+      const limpio = String(text ?? "").trim();
+
+      /* Poco texto en varias páginas = escaneo sin capa de texto. Ahí no
+         hay nada que extraer y lo que toca es que lo mire un modelo. */
+      if (limpio.length < Math.max(80, totalPages * 40)) {
+        console.warn(
+          `[consejo] ${a.nombre}: solo ${limpio.length} caracteres en ${totalPages} páginas; parece escaneado, va al modelo`,
+        );
+        paraElModelo.push(a);
+        continue;
+      }
+
+      console.log(`[consejo] ${a.nombre}: ${limpio.length} caracteres de ${totalPages} páginas`);
+      trozos.push(`--- ${a.nombre} (${totalPages} páginas) ---\n${limpio}`);
+    } catch (e) {
+      console.warn(`[consejo] ${a.nombre}: no se pudo abrir (${e}); va al modelo`);
+      paraElModelo.push(a);
+    }
   }
 
-  /* Si el lector dice que no vio nada, eso NO es material: es un acuse
-     de recibo. Mandarlo al consejo sería hacerles deliberar sobre el
-     fallo en vez de sobre el documento, y encima pagando por ello. */
-  if (/^\s*SIN_ARCHIVO/i.test(r.texto) || r.texto.trim().length < 40) {
-    console.warn(`[consejo] el lector no vio el archivo. Respondió: ${r.texto.slice(0, 200)}`);
-    emitir({
-      t: "fase",
-      fase: "aviso",
-      detalle:
-        "El archivo llegó vacío o no se pudo leer, así que no se manda al consejo. " +
-        "Si es un PDF escaneado sin texto, prueba con uno que tenga el texto reconocido.",
-    });
-    return "";
+  // Lo que no se ha podido extraer, que lo mire quien sepa ver archivos.
+  if (paraElModelo.length) {
+    const lectores = c.miembros
+      .flatMap((m) => m.refs.map((ref) => ({ m, ref })))
+      .filter(({ ref }) => aceptaArchivos(ref));
+
+    if (!lectores.length) {
+      console.warn("[consejo] ningún miembro acepta archivos y quedan sin leer");
+      emitir({
+        t: "fase",
+        fase: "aviso",
+        detalle:
+          `Sin leer: ${paraElModelo.map((a) => a.nombre).join(", ")}. Son imágenes o ` +
+          "PDFs escaneados, y ningún miembro puede abrirlos porque todos entran por " +
+          "OpenRouter. Pon la clave de Gemini, de OpenAI o de Anthropic, o pega el texto.",
+      });
+    } else {
+      const r = await preguntar(
+        lectores.map(({ ref }) => ref),
+        "Transcribes documentos para que otros los lean. No resumes, no " +
+          "interpretas y no añades nada tuyo: vuelcas el contenido en texto plano, " +
+          "respetando el orden, los títulos y las cifras. Si hay tablas, las pasas " +
+          "a texto legible. Si una parte es ilegible, lo escribes entre corchetes. " +
+          "Si no ves ningún archivo, responde exactamente SIN_ARCHIVO y nada más.",
+        "Transcribe íntegramente el contenido de los archivos adjuntos.",
+        16000,
+        paraElModelo,
+      );
+
+      /* Un "no he recibido nada" NO es material: mandarlo al consejo es
+         hacerles deliberar sobre el fallo en vez de sobre el documento. */
+      if (!r.ok || /^\s*SIN_ARCHIVO/i.test(r.texto) || r.texto.trim().length < 40) {
+        const motivo = r.ok ? `el lector no vio el archivo` : r.error;
+        console.warn(`[consejo] transcripción fallida: ${motivo}`);
+        emitir({
+          t: "fase",
+          fase: "aviso",
+          detalle:
+            `No se pudo leer ${paraElModelo.map((a) => a.nombre).join(", ")}: ${motivo}. ` +
+            "El consejo delibera sin ese material.",
+        });
+      } else {
+        console.log(`[consejo] transcrito por ${r.modelo}: ${r.texto.length} caracteres`);
+        trozos.push(r.texto);
+      }
+    }
   }
 
-  console.log(`[consejo] documento transcrito: ${r.texto.length} caracteres con ${r.modelo}`);
-  emitir({ t: "transcrito", letras: r.texto.length, de: lectores[0].m.casa });
-  return r.texto;
+  const todo = trozos.join("\n\n").trim();
+  if (todo) emitir({ t: "transcrito", letras: todo.length, de: "el documento" });
+  return todo;
 }
 
 /** Lanza una ronda a todos a la vez y va emitiendo según llegan. */
@@ -409,7 +432,7 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
   if (c.aviso) emitir({ t: "fase", fase: "aviso", detalle: c.aviso });
 
   const sec = c.sec!;
-  const transcrito = await transcribir(c, enc.adjuntos, emitir);
+  const transcrito = await leerAdjuntos(c, enc.adjuntos, emitir);
   const material = recortarMaterial([enc.material, transcrito].filter(Boolean).join("\n\n"), MATERIAL_MAX);
   console.log(
     `[consejo] material que recibe el consejo: ${material.length} caracteres` +
