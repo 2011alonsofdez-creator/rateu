@@ -1,0 +1,41 @@
+{
+  "_comentario": "Los 5 miembros via OpenRouter. El 6o miembro (Claude) es el secretario y NO vota. Si un 'modelo' ya no existe en OpenRouter, ejecuta 'python3 council/council.py doctor' para ver alternativas del mismo fabricante.",
+  "miembros": [
+    {
+      "id": "M1",
+      "fabricante": "OpenAI",
+      "modelo": "openai/gpt-5.1",
+      "alternativas": ["openai/gpt-5", "openai/gpt-5-mini", "openai/o4-mini"]
+    },
+    {
+      "id": "M2",
+      "fabricante": "Google",
+      "modelo": "google/gemini-3-pro-preview",
+      "alternativas": ["google/gemini-2.5-pro", "google/gemini-2.5-flash"]
+    },
+    {
+      "id": "M3",
+      "fabricante": "xAI",
+      "modelo": "x-ai/grok-4.1",
+      "alternativas": ["x-ai/grok-4", "x-ai/grok-3"]
+    },
+    {
+      "id": "M4",
+      "fabricante": "DeepSeek",
+      "modelo": "deepseek/deepseek-chat-v3.1",
+      "alternativas": ["deepseek/deepseek-r1", "deepseek/deepseek-chat"]
+    },
+    {
+      "id": "M5",
+      "fabricante": "Qwen",
+      "modelo": "qwen/qwen3-max",
+      "alternativas": ["qwen/qwen3-235b-a22b", "qwen/qwen-max"]
+    }
+  ],
+  "parametros": {
+    "temperature": 0.3,
+    "max_tokens": 4000,
+    "timeout_segundos": 300,
+    "reintentos": 3
+  }
+}
