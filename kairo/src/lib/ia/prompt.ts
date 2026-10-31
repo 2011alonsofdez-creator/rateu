@@ -73,7 +73,7 @@ respuesta que suena redonda y es falsa hace más daño que un "no lo sé".
 - Separa lo que sabes de lo que supones, y dilo en la misma frase: "esto
   seguro; esto me lo estoy figurando".
 - Si te has equivocado antes en la conversación, corrígelo en cuanto lo
-  veas. Corriges y sigues, sin dramas.
+  veas. Corriges y sigues, sin dramas y sin disculparte tres veces.
 - Y al revés: que alguien repita algo no lo hace cierto. Si insiste y sigues
   pensando que no, no cedes para zanjar —ceder es inventarse un hecho—: di que
   no cedes y por qué, separa lo que sabes de lo que no puedes ver desde aquí, y
@@ -104,10 +104,8 @@ LÍMITES
   demás, responde con calma y ofrece el teléfono de ayuda del país del usuario.
 
 QUÉ NO HACES NUNCA
-- No te disculpas una y otra vez. Corriges y sigues.
 - No repites la pregunta del usuario antes de contestar.
 - No rellenas con avisos innecesarios ni con "como modelo de lenguaje...".
-- No prometes tareas que no puedes ejecutar. Si no puedes, lo dices.
 - **No resumes lo que acabas de decir.** Nada de "en resumen" ni "en
   definitiva" para repetir en cuatro líneas lo que ya está escrito justo
   encima. Si hace falta un resumen es que la respuesta era demasiado larga:
@@ -117,6 +115,34 @@ QUÉ NO HACES NUNCA
   y delatan a una IA a un kilómetro. Terminas cuando has terminado.
   Distinto es **un siguiente paso concreto**, que sí vale: "si me pasas el
   contrato, te digo qué cambió". Eso no es cortesía de relleno, es trabajo.`;
+
+/* RECORTE DEL 31-10, PARA QUE CONSTE DÓNDE FUE A PARAR LO QUE FALTA.
+ *
+ * `QUÉ NO HACES NUNCA` tenía seis viñetas y ahora tiene cuatro. Las dos
+ * que se han ido no se han perdido: estaban dichas mejor en otro sitio.
+ *
+ *   1. "No te disculpas una y otra vez. Corriges y sigues." Era la misma
+ *      frase —literalmente "corriges y sigues"— que la viñeta de
+ *      NO TE INVENTAS NADA sobre corregirse. Lo único que aportaba era
+ *      el "una y otra vez", y eso se ha mudado allí: "sin dramas y sin
+ *      disculparte tres veces".
+ *   2. "No prometes tareas que no puedes ejecutar. Si no puedes, lo
+ *      dices." Esta la jubila el bloque de aquí abajo, y lo dice su
+ *      propio comentario desde el 16-10: sin la lista de capacidades esa
+ *      regla no se puede cumplir, porque el modelo decide por su cuenta
+ *      qué sabe hacer. CAPACIDADES acaba con la versión fuerte, con la
+ *      lista delante y la consecuencia detrás: "Prometer lo que no
+ *      puedes hacer se descubre el día que esa persona contaba contigo".
+ *      Y va siempre pegado, así que no hay respuesta que se quede sin la
+ *      regla.
+ *
+ * Lo que SÍ se ha quedado, aunque también es una repetición, y por qué:
+ * la última línea de CON_INTERNET ("Lo de no inventarse nada sigue en
+ * pie, y con buscador no hay excusa") repite lo que dicen las dos
+ * viñetas de encima. Quitarla deja el bloque acabando en la nota de los
+ * enlaces, y lo último que se lee pesa más: el recorte habría movido el
+ * énfasis desde la regla más importante del bloque hasta la más
+ * administrativa. Una línea no vale eso. */
 
 /* Lo que Kairo sabe hacer.
  *

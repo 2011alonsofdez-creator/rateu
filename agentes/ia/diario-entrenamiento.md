@@ -74,6 +74,98 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-10-31 — Recorte (área 7): dos viñetas menos y una que me he dejado a propósito
+
+**Área 7, la que cierra la rotación**, y con la medición delante, que es lo que
+esta área pide. `notas.md` sigue vacío: dieciocho días.
+
+**Qué cambié**, en `kairo/src/lib/ia/prompt.ts`: `QUÉ NO HACES NUNCA` tenía
+**seis** viñetas y ahora tiene **cuatro**. Las dos que se han ido estaban
+dichas mejor en otro sitio, y en los dos casos lo he comprobado antes de
+quitarlas:
+
+1. *"No te disculpas una y otra vez. Corriges y sigues."* Era **la misma
+   frase**, literalmente —"corriges y sigues"—, que la viñeta de
+   `NO TE INVENTAS NADA` sobre corregirse en cuanto lo veas. Lo único que
+   aportaba era el *"una y otra vez"*, así que **lo he mudado allí**: ahora esa
+   viñeta acaba en "sin dramas **y sin disculparte tres veces**". El arnés
+   comprueba que "Corriges y sigues" aparece **una sola vez** en el prompt
+   renderizado, que antes eran dos.
+2. *"No prometes tareas que no puedes ejecutar. Si no puedes, lo dices."* A
+   esta la jubila `CAPACIDADES`, **y lo dice su propio comentario desde el
+   16-10**: *"El prompt ya decía «no prometas tareas que no puedes ejecutar»,
+   pero no decía cuáles son. Sin la lista, esa regla no se puede cumplir"*.
+   `CAPACIDADES` acaba con la versión fuerte —la lista delante y la
+   consecuencia detrás: *"Prometer lo que no puedes hacer se descubre el día
+   que esa persona contaba contigo"*— y **va pegado siempre**
+   (`construirPrompt` lo añade sin condición), así que no hay ninguna respuesta
+   que se quede sin la regla. Lo que he quitado es la versión incumplible.
+
+**Y una que NO he quitado, aunque también es una repetición, porque el recorte
+habría costado más de lo que ahorra**: la última línea de `CON_INTERNET`, *"Lo
+de no inventarse nada sigue en pie, y con buscador no hay excusa"*, repite lo
+que dicen las dos viñetas de encima. Pero es **lo último del bloque**, y el
+mapa de este mismo prompt dice que lo último que lee el modelo pesa más:
+quitarla deja el bloque acabando en la nota administrativa de los enlaces y
+mueve el énfasis desde la regla más importante hasta la más tonta. **Una línea
+no vale eso**, y lo dejo escrito en el comentario para que el próximo día de
+recorte no vuelva a levantar la piedra.
+
+**La medición, que es la mitad de esta área**:
+
+| Caso | Antes | Después |
+|---|---|---|
+| adulto, con buscador | 203 | **201** |
+| adulto, sin buscador | 180 | **178** |
+| adulto, con resultados de búsqueda | 236 | **234** |
+| niño | 216 | **214** |
+| adolescente | 214 | **212** |
+| forja | 215 | **213** |
+
+Dos líneas en los seis casos, que es lo que se esperaba: lo quitado está en
+`BASE`, que va en todos. **Y digo lo que no voy a disimular: dos líneas de 203
+es un 1%.** Este prompt está apretado. Las duplicaciones de verdad eran estas
+dos y ya no están; el resto de lo que parece repetido, al leerlo con cuidado,
+no lo es —`PRIVACIDAD` tiene veinticuatro líneas y ninguna sobra, porque la
+pregunta de si se entrena con sus datos se contesta en tres capas y las tres
+hacen falta—. Un día de recorte que quita el 1% y deja por escrito por qué no
+quita más es mejor que uno que corta algo que importa para presumir de cifra.
+
+**Cómo lo comprobé**: arnés sobre el `prompt.ts` real —copia con los seis
+`import` redirigidos y el cuerpo verificado idéntico línea por línea—, **14
+comprobaciones y 14 correctas**: que las dos frases ya no están, que
+"Corriges y sigues" aparece una sola vez, que **lo que decían sigue dicho** en
+su sitio nuevo, que `QUÉ NO HACES NUNCA` conserva sus cuatro propias y son
+**exactamente cuatro**, que la línea que decidí dejar sigue cerrando
+`CON_INTERNET`, y que el comentario del recorte no viaja al prompt. Más
+`npx tsc --noEmit` **0** y `npx next build` **0**, con los cuatro commits del
+dueño de anoche dentro (MEGA, `ahora.ts`, `errores.ts`).
+
+**Y una cosa que me pasó y que cuento porque es justo el fallo del que presumí
+ayer**: la primera pasada del arnés dio **tres fallos**, y los tres eran de la
+sonda, no del prompt. (a) Buscaba *"Prometer lo que no puedes hacer se descubre
+el día"* entera, y en el fuente esa frase **va partida por un salto de línea**,
+así que no casaba nunca. (b) Cortaba el bloque de `QUÉ NO HACES NUNCA` "hasta
+LÍMITES", y `LÍMITES` va **antes**, no después, así que el corte se comía el
+prompt entero y contaba veintitantas viñetas. (c) Buscaba el final de
+`CON_INTERNET` con un `indexOf("\n\n")` que devolvía −1 y le cortaba el punto
+final. **Los tres los comprobé en el fuente antes de tocar nada**, y lo que
+cambió fue la sonda. Es la misma lección de ayer, del revés: ayer un `grep` dio
+cero y no era un fallo; hoy un arnés dio tres y tampoco. Una comprobación que
+falla hay que comprobarla también.
+
+**Qué necesito del dueño**: nada para esto. Lo suyo sigue igual: las cláusulas
+abusivas (octavo día), el tope de gasto en OpenRouter y —lo nuevo de hoy, que
+es un minuto y lo encontró el guardián— **reordenar `KAIRO_EXTRA_MODELOS` para
+poner Claude delante de deepseek**, con lo que un MEGA pasa a ser Gemini + GPT
++ Claude, que es lo que promete la portada.
+
+**Mañana toca**: vuelve a empezar la rotación, así que el **área 1, prompt
+maestro**. Y hay un sitio marcado: el bloque `CAPACIDADES` dice que Kairo hace
+Co-Works y Team, pero **no dice nada de que un encargo pueda buscar o no**, y
+desde el 28-10 ese interruptor existe (`0018_encargo_busca.sql`). Un usuario que
+pregunte "¿mi abogado del Team mira el BOE?" tiene hoy una respuesta inventada.
+
 ### 2026-10-30 — Tono (área 6): los cuatro tonos dejan de ser adjetivos
 
 **Hoy ha tocado tono**, octavo día después de apuntarlo, y ha tocado porque
