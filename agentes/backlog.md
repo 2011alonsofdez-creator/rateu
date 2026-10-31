@@ -13,6 +13,39 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Dos topes por plan que la web vende y el código no aplica, y una función que se vende y no existe.** `[origen: constructor 2026-10-31]`
+  Salieron de barrer la palabra "ilimitado" por todo el código, que es lo que
+  faltaba por hacer después de arreglar la de Supreme. Las tres son suyas
+  porque las tres son "cómo se vende", no un dato falso contra quien paga.
+
+  **1. Las Mentes por plan no se aplican.** El tope real es **30 para todo el
+  mundo** (`limitar_mentes()`, `TODO_DE_UNA_VEZ.sql:82-93`), no consulta el plan,
+  y **no hay ningún otro tope en ninguna parte**: ni en `api/mentes/route.ts`,
+  ni en `lib/mentes.ts`, ni en las acciones. Lo confirma el propio producto: el
+  aviso que ve el usuario es "Has llegado al máximo de **30** Mentes"
+  (`mente.errLimit`).
+  La web vende: Free "**1 Mente propia**", Kairo+ "**10 Mentes**", Supreme
+  "~~Mentes ilimitadas~~ → **30**" (esa la he corregido hoy, porque era falsa
+  contra quien paga).
+  **Las otras dos no las toco**, y el motivo es el mismo que el de ayer con los
+  150 de bienvenida: poner 30 en el plan gratuito es **regalar lo que nadie
+  decidió regalar**, y puede que esos topes por plan estén pensados y solo falte
+  implementarlos. **Dos salidas**: (a) se aplican de verdad —y entonces hace
+  falta un tope por plan, que es código y migración suyos—, o (b) se corrige el
+  texto a 30 en los tres, y eso lo hago yo en diez minutos.
+
+  **2. Los conectores se venden y no existen.** Kairo+ (9,99 €) dice "**5
+  conectores**" y Supreme (24,99 €) "**Todos los conectores**". Y
+  `(app)/conectores/page.tsx` sigue siendo un escaparate con `BotonAunNo`
+  (líneas 6 y 40). Lo dice hasta la propia pantalla de Team: *"todavía no puede
+  abrir tus archivos —eso llegará con Conectores—"*.
+  **Esto no es un número mal copiado: es una función que alguien que paga hoy no
+  tiene.** Y no la arreglo yo porque las tres salidas son decisiones suyas:
+  decir "cuando lleguen", quitar la viñeta, o dejarla como promesa de hoja de
+  ruta con esa palabra dentro. **Lo que no se puede dejar es sin marcar**, que es
+  como está: un plan de pago que lista una función como si ya estuviera.
+  **Si dice "márcalas como que llegan"**, son dos viñetas y diez minutos.
+
 - **El repuesto de búsqueda cambió anoche y ahora cuesta entre 2,6 y 4,4 veces menos. Medido.** `[origen: guardian 2026-10-31]`
   No está en ningún commit suyo: la lista de modelos de respaldo es una
   **variable de entorno de Vercel** (`KAIRO_EXTRA_MODELOS`), así que esto solo
@@ -141,7 +174,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   bienvenida y el tope de 1 —eso es decidir cómo se vende—, y se contesta con un
   sí.
 
-- **Supreme vende "Co-Works ilimitados" y la base de datos para a 10, sin mirar el plan.** `[origen: crecimiento 2026-10-29]`
+- **~~Supreme vende "Co-Works ilimitados" y la base de datos para a 10~~ — HECHO.** `[origen: crecimiento 2026-10-29 · hecho 2026-10-31]`
+  Hecho por la vía que avisé en el parte del 30-10: pedí la decisión —corregir
+  el texto o subir el tope—, dije que sin respuesta hoy pondría el texto, y
+  `notas.md` sigue vacío. **Supreme y Kairo+ dicen ahora "10 Co-Works
+  activos"**, que es lo que hace `limitar_coworks()`. Detalle en `## Hecho`.
+  **Si prefiere la otra salida**, subir el tope para Supreme sigue en pie: es
+  una migración suya y las dos cosas no se estorban, solo habría que volver a
+  tocar esa viñeta —y entonces deja de ser un número fijo y pasa a depender
+  del plan, que es otro trabajo, no un retoque—.
   Medido en el repositorio, no buscado fuera, y los dos sitios se contradicen.
   Lo que vende `kairo/src/lib/mock.ts` (`plans`):
   - Free, 0 €: **no los menciona**.
@@ -967,6 +1008,46 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **Los planes de pago ya dicen lo que hace la base de datos.** `[hecho 2026-10-31]`
+  **Lo avisé en el parte de ayer y hoy toca cumplirlo**: pedí la decisión sobre
+  Supreme —corregir el texto o subir el tope—, dije que sin respuesta pondría el
+  texto, y `notas.md` sigue vacío (diecinueve días).
+
+  | Plan | Decía | Dice | La verdad está en |
+  |---|---|---|---|
+  | Kairo+ 9,99 € | "3 Co-Works activos" | **10 Co-Works activos** | `limitar_coworks()`, 10 para todos |
+  | Supreme 24,99 € | "**Co-Works ilimitados**" | **10 Co-Works activos** | el mismo `trigger`, que no mira el plan |
+  | Supreme 24,99 € | "**Mentes ilimitadas**" | **30 Mentes** | `limitar_mentes()`, y el aviso que ya ve el usuario dice 30 |
+
+  La de Supreme era **la única falsa en contra de quien paga**: 24,99 € por
+  "ilimitados" y el número diez esperando.
+  **El 10 va escrito a mano y no leído del código, y hoy no hay forma mejor**:
+  ese tope vive **solo en SQL**, así que no hay constante de TypeScript que
+  importar. Queda dicho en el comentario, con los dos archivos y las líneas, y
+  con el aviso de que si algún día sube para Supreme deja de ser un número y
+  pasa a depender del plan: entonces esas viñetas se rehacen, no se retocan.
+
+  **Y lo que encontró el barrido, que es la mitad del valor de hoy**: buscar
+  "ilimitado" por todo el código destapó "Mentes ilimitadas" —misma enfermedad,
+  mismo archivo— y **dos frases mías de `/sin-suscripcion` que llevaban dos días
+  mintiendo**: las dos decían que el plan gratuito va "con el modelo rápido", y
+  desde el 29-10 llega al rápido **y al normal**. Están en la sección "**Lo que
+  no te vamos a contar**", que es justo donde una frase falsa cuesta más, porque
+  es la que pide confianza. Corregidas las dos en los dos idiomas, y la segunda
+  dice ahora la verdad completa: el plan gratuito llega al rápido y al normal
+  —chat, Paperwork, Gist y Código—, pero Forja y el Mega-Prompt están en los de
+  pago, salvo lo que abran los créditos de bienvenida mientras duren.
+  **La lección, que es la de ayer con otra cara**: ayer arreglé el número y dejé
+  la frase. Arreglar la cifra y no barrer la prosa que la rodea es arreglar la
+  mitad.
+
+  **Comprobado**: `npx tsc --noEmit` **0**, `npx next build` **0**, y en el HTML
+  generado de `/precios` las viñetas salen **1 / 10 / 10** en Co-Works y
+  **1 / 10 / 30** en Mentes, con **cero** apariciones de "ilimitados" o
+  "ilimitadas" en los planes; y `/sin-suscripcion` ya no dice "con el modelo
+  rápido" en ninguna parte. No he podido verlo con los ojos: la sede no abre la
+  web.
 
 - **El plan gratis ya se vende como el que es, y el 15 sale del código en cinco sitios.** `[hecho 2026-10-30]`
   El guardián encontró esta mañana que el dueño subió el plan gratuito el 29-10

@@ -12,6 +12,13 @@ import { CREDITOS_PLAN } from "@/lib/planes";
    `lib/ia/config.ts`, que es lo que cobra de verdad cada nivel. Así esta
    página no puede desfasarse sola.
 
+   Y el 31-10 resultó que la cifra no era lo único: dos frases de "Lo
+   que no te vamos a contar" seguían diciendo que el plan gratuito va
+   "con el modelo rápido", y desde el 29-10 llega al rápido **y al
+   normal**. Arreglar el número y dejar la frase es arreglar la mitad:
+   esas dos frases son las que más confianza piden, porque son las que
+   dicen lo que Kairo NO hace. Corregidas las dos, en los dos idiomas.
+
    El 30-10 resultó que sí podía, y por esta línea: `GRATIS_AL_DIA`
    estaba escrito a mano justo debajo del comentario que presumía de lo
    contrario. El dueño subió el plan gratis de 15 a 20 el 29 y la página
@@ -56,8 +63,8 @@ const T = {
     sinceroTitulo: "Lo que no te vamos a contar",
     sincero: [
       "Que seamos los únicos. No lo somos: hay productos que venden análisis sueltos sin suscripción y otros con plan gratuito. Lo que Kairo tiene no es la novedad, es la amplitud: el mismo saldo sirve para el chat, para leer un papel, para resumir un vídeo, para una herramienta y para un encargo programado.",
-      "Que lo gratuito sea ilimitado. No lo es: son créditos al día, y con el modelo rápido. Cuando se acaban, Kairo deja de responder hasta el día siguiente y te lo dice antes, no después.",
-      "Que gratis vaya con el motor mejor. El plan gratuito usa el rápido; los modelos más potentes están en los de pago. Es lo que cuesta dinero de verdad, y por eso está donde se paga.",
+      "Que lo gratuito sea ilimitado. No lo es: son créditos al día, y cuando se acaban Kairo deja de responder hasta el día siguiente. Te lo dice antes, no después.",
+      "Que gratis vaya con el motor mejor. El plan gratuito llega al rápido y al normal —con eso van el chat, Paperwork, Gist y Código—, pero Forja y el Mega-Prompt están en los de pago, salvo lo que abran los créditos de bienvenida de una cuenta nueva mientras duren. Es lo que cuesta dinero de verdad, y por eso está donde se paga.",
     ],
     cierreTitulo: "La prueba de todo esto",
     cierreCuerpo:
@@ -100,8 +107,8 @@ const T = {
     sinceroTitulo: "What we are not going to tell you",
     sincero: [
       "That we are the only ones. We are not: there are products selling one-off analyses without a subscription, and others with a free tier. What Kairo has is not the novelty, it is the breadth: the same balance works for the chat, for reading a document, for summarising a video, for a tool and for a scheduled job.",
-      "That the free tier is unlimited. It is not: it is credits per day, on the fast model. When they run out, Kairo stops replying until the next day, and it tells you before, not after.",
-      "That free comes with the best engine. The free plan uses the fast one; the stronger models are on the paid plans. That is what actually costs money, which is why it sits where you pay.",
+      "That the free tier is unlimited. It is not: it is credits per day, and when they run out Kairo stops replying until the next day. It tells you before, not after.",
+      "That free comes with the best engine. The free plan reaches the fast and standard ones — that covers the chat, Paperwork, Gist and Code — but Forja and the Mega-Prompt are on the paid plans, except for whatever a new account's welcome credits open while they last. That is what actually costs money, which is why it sits where you pay.",
     ],
     cierreTitulo: "The proof of all this",
     cierreCuerpo:

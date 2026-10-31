@@ -192,7 +192,46 @@ export const plans: Plan[] = [
        Paperwork, Gist y Código, que van en normal y ya funcionan gratis.
        El "1 Co-Work" no es un adorno: es el tope real del plan gratis
        (`api/coworks/route.ts`, `solo_uno_gratis`), y no decirlo es dejar
-       que alguien cree el segundo y se encuentre un error. */
+       que alguien cree el segundo y se encuentre un error.
+
+       Y LOS DE PAGO, EL 31-10. Decían "3 Co-Works activos" (Kairo+) y
+       "Co-Works ilimitados" (Supreme). Las dos eran falsas y en
+       direcciones contrarias: el tope de verdad es **10 para los dos**,
+       y lo pone la base de datos en `limitar_coworks()`
+       (`TODO_DE_UNA_VEZ.sql:1058-1080` y `0009_coworks.sql:339-361`,
+       idénticos), que es un `trigger before insert` y **no consulta el
+       plan** —buscado un `plan` en `api/coworks/` y en `lib/coworks/`:
+       el único que aparece viaja para armar el prompt—.
+       La de Supreme era la única falsa **en contra de quien paga**: 24,99 €
+       por "ilimitados" y el número diez esperando. Lo avisó crecimiento el
+       29-10, el constructor pidió la decisión en el parte del 30-10
+       —corregir el texto o subir el tope— y avisó de que, sin respuesta,
+       hoy pondría el texto. Esto es eso.
+       El 10 va escrito a mano y no leído, y no hay forma mejor hoy: ese
+       tope vive **solo en SQL**, así que no hay constante de TypeScript
+       que importar. Si algún día sube para Supreme, deja de ser un número
+       y pasa a depender del plan, y entonces estas dos viñetas hay que
+       rehacerlas, no retocarlas.
+       Y que Kairo+ y Supreme digan ahora lo mismo aquí es la verdad:
+       Supreme se distingue en otras cinco viñetas —los tres modelos, los
+       25 Mega-Prompts, los conectores, los 100 MB y el soporte—, pero en
+       Co-Works no se distingue en nada.
+
+       LAS MENTES, LO MISMO Y ENCONTRADO DE REBOTE. Buscando si "ilimitado"
+       se prometía en algún otro sitio salió "Mentes ilimitadas", también en
+       Supreme. El tope real es **30 para todo el mundo**, en
+       `limitar_mentes()` (`TODO_DE_UNA_VEZ.sql:82-93`), tampoco consulta el
+       plan, y **no hay ningún otro tope en ninguna parte**: ni en
+       `api/mentes/route.ts` ni en `lib/mentes.ts` ni en las acciones. Lo
+       dice además el propio producto: el aviso que ve el usuario es
+       `mente.errLimit`, "Has llegado al máximo de **30** Mentes".
+       Así que aquí dice 30, que es lo que pasa y lo que el error ya cuenta.
+       Lo que NO toco, porque no es un dato falso contra quien paga sino
+       cómo se vende: el Free dice "1 Mente propia" y Kairo+ dice "10
+       Mentes", y los dos se quedan cortos —los dos tienen 30—. Corregir eso
+       es regalar lo que él no decidió regalar, o puede que esos topes por
+       plan estén pensados y solo falte implementarlos. Preguntado en el
+       parte del 31-10. */
     bullets: {
       es: [
         `${CREDITOS_PLAN.free} créditos al día`,
@@ -222,7 +261,7 @@ export const plans: Plan[] = [
         "1.000 créditos al mes",
         "Modelos rápido y estándar",
         "8 Mega-Prompts al mes",
-        "3 Co-Works activos",
+        "10 Co-Works activos",
         "5 conectores · 10 Mentes",
         "Archivos hasta 25 MB",
       ],
@@ -230,7 +269,7 @@ export const plans: Plan[] = [
         "1,000 credits per month",
         "Fast and standard models",
         "8 Mega-Prompts per month",
-        "3 active Co-Works",
+        "10 active Co-Works",
         "5 connectors · 10 Minds",
         "Files up to 25 MB",
       ],
@@ -245,8 +284,8 @@ export const plans: Plan[] = [
         "3.000 créditos al mes",
         "Los tres modelos, incluido el máximo",
         "25 Mega-Prompts al mes",
-        "Co-Works ilimitados",
-        "Todos los conectores · Mentes ilimitadas",
+        "10 Co-Works activos",
+        "Todos los conectores · 30 Mentes",
         "Archivos hasta 100 MB",
         "Soporte prioritario",
       ],
@@ -254,8 +293,8 @@ export const plans: Plan[] = [
         "3,000 credits per month",
         "All three models, top tier included",
         "25 Mega-Prompts per month",
-        "Unlimited Co-Works",
-        "Every connector · unlimited Minds",
+        "10 active Co-Works",
+        "Every connector · 30 Minds",
         "Files up to 100 MB",
         "Priority support",
       ],
