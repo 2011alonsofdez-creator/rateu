@@ -470,14 +470,23 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       sec.refs,
       SEC,
       `${conMaterial(enc.pregunta, material)}\n\n` +
-        `=== RESPUESTAS DE LOS MIEMBROS (anónimas) ===\n\n${dossier}\n=== FIN ===\n\n---\n\n` +
-        `Redacta el acta. No repitas lo que dicen: destílalo.\n\n` +
-        `## En qué coinciden\nLo que sostienen todos o casi todos.\n\n` +
-        `## En qué discrepan\nLas posturas enfrentadas, con lo que defiende cada una. ` +
-        `Si el desacuerdo es sobre un umbral o una condición, dilo: suele ser lo más útil.\n\n` +
-        `## Afirmaciones que no me creo\nCifras, estudios o fuentes que algún miembro da por ` +
-        `buenas y no se sostienen o no se pueden situar. Di cuál y por qué. Si no hay ninguna, dilo.\n\n` +
-        `## Qué haría yo\nTu recomendación, con lo que la haría cambiar.`,
+        `=== LO QUE HA RESPONDIDO CADA MIEMBRO (anónimo) ===\n\n${dossier}\n=== FIN ===\n\n---\n\n` +
+        `Tu trabajo NO es contar cómo fue el debate: es CONTESTAR LA PREGUNTA con lo ` +
+        `mejor de lo que han dicho entre todos. Quien lee esto quiere su respuesta, no ` +
+        `un acta de la reunión.\n\n` +
+        `## Respuesta del consejo\n` +
+        `La respuesta a la pregunta, completa y directa, construida con lo mejor de las ` +
+        `seis. Escríbela como si la firmaras tú: sin "el Miembro A dice", sin repartir ` +
+        `autorías, sin contar que hubo deliberación. Es la parte principal y la más larga.\n\n` +
+        `## Dónde no se ponen de acuerdo\n` +
+        `Solo lo que cambiaría la respuesta según de qué lado caiga. Di qué defiende cada ` +
+        `postura y qué dato lo resolvería. Si el desacuerdo no afecta a la respuesta, omítelo.\n\n` +
+        `## Lo que no me creo\n` +
+        `Cifras, estudios o fuentes que algún miembro da por buenas y no se sostienen o no ` +
+        `se pueden situar. Di cuál y por qué. Si no hay ninguna, una línea diciéndolo.\n\n` +
+        `## Lo que haría falta saber\n` +
+        `Los datos que faltan y que más cambiarían la respuesta. Si no falta nada, omite ` +
+        `este apartado.`,
       7000,
     );
 
@@ -587,13 +596,20 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
     `${conMaterial(enc.pregunta, material)}\n\n` +
       `=== CRÍTICAS DE LA RONDA 2 ===\n\n${criticas}\n\n` +
       `=== VOTACIÓN ===\n\n${resumenVotos}\n\n=== FIN ===\n\n---\n\n` +
-      `Redacta la propuesta final del consejo. Constrúyela desde los VOTOS, no desde ` +
-      `tu propia postura de la ronda 1: redactar el acta no te da derecho a decidir.\n\n` +
-      `- Recoge como acuerdo lo que tenga respaldo, con la letra pequeña de los matices.\n` +
-      `- Deja el desacuerdo escrito como desacuerdo. No fuerces una unanimidad que no hubo: ` +
-      `un desacuerdo bien explicado vale más que un consenso de mentira.\n` +
-      `- No uses ninguna cifra que no se sostuviera en la verificación.\n` +
-      `- Entre 300 y 600 palabras. Es lo que van a firmar o rechazar.`,
+      `Redacta la POSICIÓN DEL CONSEJO: la respuesta acordada a la pregunta.\n\n` +
+      `Esto es lo que va a leer quien preguntó, y lo que los miembros van a firmar o ` +
+      `rechazar. No es un acta de la sesión: NO cuentes cómo fue el debate, no repartas ` +
+      `autorías ni cites a los miembros por su letra, no expliques el procedimiento. ` +
+      `Contesta la pregunta.\n\n` +
+      `Reglas:\n` +
+      `- Constrúyela desde los VOTOS, no desde tu propia postura de la ronda 1: redactar ` +
+      `no te da derecho a decidir.\n` +
+      `- Lo que tuvo respaldo va afirmado, con la letra pequeña de los matices incorporada ` +
+      `al texto, no como lista de quién votó qué.\n` +
+      `- Donde no hubo acuerdo, dilo dentro de la respuesta: "esto depende de X, y si X ` +
+      `entonces Y". Un desacuerdo bien explicado vale más que un consenso de mentira.\n` +
+      `- Ninguna cifra que no se sostuviera en la verificación.\n` +
+      `- Entre 400 y 800 palabras, en prosa útil para quien tiene que decidir algo.`,
     6000,
   );
 

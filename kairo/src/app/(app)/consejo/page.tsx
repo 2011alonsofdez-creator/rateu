@@ -411,10 +411,8 @@ export default function Consejo() {
 
         <p className="text-[12.5px] leading-relaxed text-muted">
           {modo === "rapido"
-            ? "Rápido: todos responden a la vez y el secretario destila en qué coinciden, en qué no y qué cifras no se sostienen. Menos de un minuto."
-            : `Las 3 rondas: responden a ciegas, se critican en anonimato y votan ${
-                puntos.length || "varios"
-              } puntos, y firman la propuesta. Varios minutos y bastantes llamadas.`}
+            ? "Rápido: todos responden a la vez y el secretario te devuelve una sola respuesta con lo mejor de las seis, señalando en qué no se ponen de acuerdo. Menos de un minuto."
+            : "Las 3 rondas: responden a ciegas, se critican en anonimato, votan punto por punto y firman la respuesta acordada. Varios minutos y bastantes llamadas, para cuando la decisión lo merece."}
         </p>
       </div>
 
@@ -468,17 +466,31 @@ export default function Consejo() {
 
       <div className="mt-6 space-y-4">
         {/* Quién ha ido contestando en la ronda 1 */}
-        {r1.length > 0 && (
-          <Caja titulo="Ronda 1 · respuestas a ciegas">
-            <Asistencia lista={r1} nombre={nombre} />
-          </Caja>
-        )}
-
         {sintesis && (
-          <Caja titulo="Acta del secretario">
+          <Caja titulo="Respuesta del consejo">
             <div className="text-[14.5px] leading-relaxed">
               <Markdown text={sintesis} />
             </div>
+          </Caja>
+        )}
+
+        {propuesta && (
+          <Caja titulo="Respuesta acordada del consejo">
+            <div className="text-[14.5px] leading-relaxed">
+              <Markdown text={propuesta} />
+            </div>
+          </Caja>
+        )}
+
+        {(r1.length > 0 || resultados.length > 0) && (
+          <p className="pt-2 text-[12.5px] font-medium uppercase tracking-wide text-muted">
+            Cómo se llegó a esa respuesta
+          </p>
+        )}
+
+        {r1.length > 0 && (
+          <Caja titulo="Ronda 1 · respuestas a ciegas">
+            <Asistencia lista={r1} nombre={nombre} />
           </Caja>
         )}
 
@@ -547,14 +559,6 @@ export default function Consejo() {
               ++ de acuerdo · ~ matiz · −− en desacuerdo · · abstención · ? sin voto.
               Pasa el ratón por un voto para ver su motivo.
             </p>
-          </Caja>
-        )}
-
-        {propuesta && (
-          <Caja titulo="Propuesta final">
-            <div className="text-[14.5px] leading-relaxed">
-              <Markdown text={propuesta} />
-            </div>
           </Caja>
         )}
 
