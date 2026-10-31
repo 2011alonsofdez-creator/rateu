@@ -27,8 +27,14 @@ export type Miembro = {
   casa: string;
   /** El modelo concreto, para que se pueda comprobar quién contestó. */
   modelo: string;
-  /** Identificador interno de Kairo ("claude:claude-opus-5"). */
-  ref: string;
+  /* Los identificadores de Kairo a probar, en orden.
+   *
+   * Es una lista y no uno solo porque los modelos fallan a diario: se
+   * retiran, se les acaba la cuota o el "preview" deja de servirse. El
+   * resto de Kairo ya trabaja así (ver CADENAS en ia/config.ts), y un
+   * miembro que se cae por no tener suplente deja al consejo cojo por
+   * una razón que no tiene nada que ver con deliberar. */
+  refs: string[];
   /** El secretario coordina, verifica y redacta, pero NO vota. */
   secretario: boolean;
 };
@@ -37,6 +43,8 @@ export type Miembro = {
 export type Intervencion = {
   miembro: string;
   texto: string;
+  /** Con cuál de sus suplentes contestó, si no fue con el primero. */
+  modelo?: string;
   /** Vacío mientras llega; se rellena al terminar. */
   ok: boolean;
   error?: string;

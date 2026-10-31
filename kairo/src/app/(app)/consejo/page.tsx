@@ -55,6 +55,51 @@ const VEREDICTO: Record<Resultado["veredicto"], string> = {
   sin_votos: "Sin votos",
 };
 
+/* Quién contestó y quién no.
+ *
+ * El motivo del fallo se enseña entero, no escondido en un emergente al
+ * pasar el ratón: cuando falta un miembro, lo primero que hace falta
+ * saber es por qué, y en el móvil no hay ratón que pasar. */
+function Asistencia({
+  lista,
+  nombre,
+}: {
+  lista: Intervencion[];
+  nombre: (id: string) => string;
+}) {
+  const caidos = lista.filter((v) => !v.ok);
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {lista.map((v) => (
+          <span
+            key={v.miembro}
+            title={v.modelo}
+            className={`rounded-lg border px-2.5 py-1 text-[12.5px] ${
+              v.ok
+                ? "border-line bg-panel-hi text-muted"
+                : "border-red-500/30 bg-red-500/10 text-red-300"
+            }`}
+          >
+            {nombre(v.miembro)} {v.ok ? "✓" : "✕"}
+          </span>
+        ))}
+      </div>
+
+      {caidos.length > 0 && (
+        <ul className="mt-3 space-y-1.5 text-[12.5px] leading-relaxed text-muted">
+          {caidos.map((v) => (
+            <li key={v.miembro}>
+              <span className="text-red-300">{nombre(v.miembro)}</span> no contestó:{" "}
+              <code className="break-all">{v.error}</code>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
 function Caja({ children, titulo }: { children: React.ReactNode; titulo?: string }) {
   return (
     <section className="rounded-2xl border border-line bg-panel p-5">
@@ -393,21 +438,7 @@ export default function Consejo() {
         {/* Quién ha ido contestando en la ronda 1 */}
         {r1.length > 0 && (
           <Caja titulo="Ronda 1 · respuestas a ciegas">
-            <div className="flex flex-wrap gap-2">
-              {r1.map((v) => (
-                <span
-                  key={v.miembro}
-                  title={v.error}
-                  className={`rounded-lg border px-2.5 py-1 text-[12.5px] ${
-                    v.ok
-                      ? "border-line bg-panel-hi text-muted"
-                      : "border-red-500/30 bg-red-500/10 text-red-300"
-                  }`}
-                >
-                  {nombre(v.miembro)} {v.ok ? "✓" : "no contestó"}
-                </span>
-              ))}
-            </div>
+            <Asistencia lista={r1} nombre={nombre} />
           </Caja>
         )}
 
@@ -429,21 +460,7 @@ export default function Consejo() {
 
         {r2.length > 0 && (
           <Caja titulo="Ronda 2 · debate anónimo">
-            <div className="flex flex-wrap gap-2">
-              {r2.map((v) => (
-                <span
-                  key={v.miembro}
-                  title={v.error}
-                  className={`rounded-lg border px-2.5 py-1 text-[12.5px] ${
-                    v.ok
-                      ? "border-line bg-panel-hi text-muted"
-                      : "border-red-500/30 bg-red-500/10 text-red-300"
-                  }`}
-                >
-                  {nombre(v.miembro)} {v.ok ? "✓" : "no votó"}
-                </span>
-              ))}
-            </div>
+            <Asistencia lista={r2} nombre={nombre} />
           </Caja>
         )}
 

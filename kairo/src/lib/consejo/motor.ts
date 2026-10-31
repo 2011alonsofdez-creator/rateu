@@ -38,7 +38,7 @@ const emisor = new TextEncoder();
  *  lo que se enseña es el avance de la ronda, y una respuesta a medias
  *  no se puede criticar ni votar. Así que se vacía el iterador y se
  *  devuelve el texto completo. */
-async function preguntar(
+async function unaVez(
   ref: string,
   sistema: string,
   usuario: string,
@@ -74,6 +74,34 @@ async function preguntar(
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+/* Prueba la cadena del miembro hasta que uno conteste.
+ *
+ * Un suplente no es un capricho: los modelos se retiran, se quedan sin
+ * cuota y los "preview" dejan de servirse de un día para otro. Sin esto,
+ * un consejo de seis se queda en tres por motivos que no tienen nada que
+ * ver con lo que se está discutiendo.
+ *
+ * Los fallos se escriben en la consola del servidor con el modelo y el
+ * motivo. Sin eso, depurar por qué falta un miembro es adivinar. */
+async function preguntar(
+  refs: string[],
+  sistema: string,
+  usuario: string,
+  maxSalida: number,
+  adjuntos?: Adjunto[],
+): Promise<{ ok: true; texto: string; modelo: string } | { ok: false; error: string }> {
+  const fallos: string[] = [];
+
+  for (const ref of refs) {
+    const r = await unaVez(ref, sistema, usuario, maxSalida, adjuntos);
+    if (r.ok) return { ok: true, texto: r.texto, modelo: ref };
+    fallos.push(`${ref}: ${r.error}`);
+    console.warn(`[consejo] ${ref} falló — ${r.error}`);
+  }
+
+  return { ok: false, error: fallos.join(" | ") };
 }
 
 // ---------------------------------------------------------------
@@ -205,7 +233,7 @@ async function transcribir(
   emitir({ t: "fase", fase: "transcribiendo", detalle: `${adjuntos.length} archivo(s)` });
 
   const r = await preguntar(
-    lector.ref,
+    lector.refs,
     "Transcribes documentos para que otros los lean. No resumes, no " +
       "interpretas y no añades nada tuyo: vuelcas el contenido en texto plano, " +
       "respetando el orden, los títulos y las cifras. Si hay tablas, las pasas " +
@@ -240,9 +268,9 @@ async function ronda(
 
   await Promise.all(
     quienes.map(async (m) => {
-      const r = await preguntar(m.ref, sistema, texto(m), 6000);
+      const r = await preguntar(m.refs, sistema, texto(m), 6000);
       const v: Intervencion = r.ok
-        ? { miembro: m.id, texto: r.texto, ok: true }
+        ? { miembro: m.id, texto: r.texto, ok: true, modelo: r.modelo }
         : { miembro: m.id, texto: "", ok: false, error: r.error };
       if (r.ok) salida.set(m.id, r.texto);
       emitir({ t: "intervencion", ronda, v });
@@ -315,7 +343,7 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       .join("\n");
 
     const r = await preguntar(
-      sec.ref,
+      sec.refs,
       SEC,
       `${conMaterial(enc.pregunta, material)}\n\n` +
         `=== RESPUESTAS DE LOS MIEMBROS (anónimas) ===\n\n${dossier}\n=== FIN ===\n\n---\n\n` +
@@ -346,7 +374,7 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
     .join("\n");
 
   const verif = await preguntar(
-    sec.ref,
+    sec.refs,
     SEC,
     `${conMaterial(enc.pregunta, material)}\n\n` +
       `=== RESPUESTAS DE LA RONDA 1 (anónimas) ===\n\n${dossierSec}\n=== FIN ===\n\n---\n\n` +
@@ -430,7 +458,7 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
     .join("\n");
 
   const prop = await preguntar(
-    sec.ref,
+    sec.refs,
     SEC,
     `${conMaterial(enc.pregunta, material)}\n\n` +
       `=== CRÍTICAS DE LA RONDA 2 ===\n\n${criticas}\n\n` +

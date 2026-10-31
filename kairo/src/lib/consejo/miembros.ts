@@ -51,9 +51,7 @@ function casaDe(modelo: string): string {
 
 /** El nombre corto del modelo, sin la casa delante. */
 function modeloDe(ref: string): string {
-  const { proveedor, modelo } = partir(ref);
-  if (proveedor === "extra") return modelo;
-  return modelo;
+  return partir(ref).modelo;
 }
 
 /* Los nativos van primero, y hay dos razones.
@@ -63,10 +61,27 @@ function modeloDe(ref: string): string {
  *
  * La buena: los nativos son los únicos que aceptan archivos
  * (`aceptaArchivos` descarta "extra"), y eso importa más adelante. */
-function nativos(): { casa: string; ref: string }[] {
-  const lista: { casa: string; ref: string }[] = [];
-  if (proveedorActivo("gemini")) lista.push({ casa: "Google", ref: "gemini-3.1-pro-preview" });
-  if (proveedorActivo("gpt")) lista.push({ casa: "OpenAI", ref: "gpt:gpt-5.1" });
+function nativos(): { casa: string; refs: string[] }[] {
+  const lista: { casa: string; refs: string[] }[] = [];
+  /* Las cadenas salen de CADENAS en ia/config.ts, que son los
+     identificadores comprobados contra cuentas de verdad. Lo mejor
+     primero y, detrás, lo que casi seguro contesta: en un consejo vale
+     más un miembro con un modelo modesto que una silla vacía. */
+  if (proveedorActivo("gemini")) {
+    lista.push({
+      casa: "Google",
+      refs: [
+        "gemini-pro-latest",
+        "gemini-3.1-pro-preview",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
+        "gemini-flash-lite-latest",
+      ],
+    });
+  }
+  if (proveedorActivo("gpt")) {
+    lista.push({ casa: "OpenAI", refs: ["gpt:gpt-5.1", "gpt:gpt-5", "gpt:gpt-5-mini"] });
+  }
   return lista;
 }
 
@@ -82,8 +97,8 @@ function secretario(): Miembro | null {
     return {
       id: "M6",
       casa: "Anthropic",
-      modelo: "claude-opus-5",
-      ref: "claude:claude-opus-5",
+      modelo: "claude-opus-5-5",
+      refs: ["claude:claude-opus-5-5", "claude:claude-opus-5", "claude:claude-sonnet-5-5"],
       secretario: true,
     };
   }
@@ -97,7 +112,7 @@ function secretario(): Miembro | null {
         id: "M6",
         casa: "Anthropic",
         modelo: modeloDe(porOpenRouter),
-        ref: porOpenRouter,
+        refs: [porOpenRouter],
         secretario: true,
       };
     }
@@ -126,7 +141,7 @@ export function formarConsejo(): Composicion {
   const vistas = new Set<string>();
   const votantes: Miembro[] = [];
 
-  const añadir = (casa: string, ref: string) => {
+  const añadir = (casa: string, refs: string[]) => {
     if (votantes.length >= VOTANTES_MAX) return;
     const clave = casa.toLowerCase();
     // Ni la casa del secretario ni ninguna repetida.
@@ -136,13 +151,13 @@ export function formarConsejo(): Composicion {
     votantes.push({
       id: `M${votantes.length + 1}`,
       casa,
-      modelo: modeloDe(ref),
-      ref,
+      modelo: modeloDe(refs[0]),
+      refs,
       secretario: false,
     });
   };
 
-  for (const n of nativos()) añadir(n.casa, n.ref);
+  for (const n of nativos()) añadir(n.casa, n.refs);
 
   /* Y los de OpenRouter rellenan los huecos que queden. Van después a
      propósito: así las casas que ya tienes en nativo no se pagan dos
@@ -150,7 +165,7 @@ export function formarConsejo(): Composicion {
      —Grok, DeepSeek, Qwen—, que es para lo que hace falta. */
   if (proveedorActivo("extra")) {
     for (const ref of modelosExtra()) {
-      añadir(casaDe(partir(ref).modelo), ref);
+      añadir(casaDe(partir(ref).modelo), [ref]);
     }
   }
 
