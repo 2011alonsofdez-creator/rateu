@@ -29,6 +29,19 @@ Comprueba ambas cosas y que los IDs de modelo siguen existiendo:
 python3 council/council.py doctor
 ```
 
+### Dos configuraciones
+
+- `council/miembros.json` — buques insignia de cada fabricante. Unos **0,50 $
+  por deliberación** completa (15 llamadas).
+- `council/miembros-economico.json` — gama baja, mismos cinco fabricantes, para
+  probar el circuito por céntimos.
+
+Para usar la económica, pásala en el `init`:
+
+```bash
+python3 council/council.py init --config council/miembros-economico.json --pregunta "..."
+```
+
 Si algún modelo ya no existe, `doctor` te lista las alternativas disponibles de
 ese mismo fabricante para que las pongas en `council/miembros.json`.
 

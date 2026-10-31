@@ -1,0 +1,11 @@
+{
+  "_comentario": "Variante barata para probar el circuito. Mismos 5 fabricantes, modelos de gama baja. Uso: council.py init --config council/miembros-economico.json --pregunta \"...\"",
+  "miembros": [
+    { "id": "M1", "fabricante": "OpenAI",   "modelo": "openai/gpt-6-luna",            "alternativas": ["openai/gpt-5.6-luna"] },
+    { "id": "M2", "fabricante": "Google",   "modelo": "google/gemini-3.1-flash-lite", "alternativas": ["google/gemini-2.5-flash-lite"] },
+    { "id": "M3", "fabricante": "xAI",      "modelo": "x-ai/grok-4.20",               "alternativas": ["x-ai/grok-build-0.1"] },
+    { "id": "M4", "fabricante": "DeepSeek", "modelo": "deepseek/deepseek-chat-v3.1",  "alternativas": ["deepseek/deepseek-v3.2"] },
+    { "id": "M5", "fabricante": "Qwen",     "modelo": "qwen/qwen3.8-27b",             "alternativas": ["qwen/qwen3.5-35b-a3b"] }
+  ],
+  "parametros": { "temperature": 0.3, "max_tokens": 4000, "timeout_segundos": 300, "reintentos": 3 }
+}

@@ -68,10 +68,11 @@ def muere(msg: str, code: int = 1):
     sys.exit(code)
 
 
-def cargar_config() -> dict:
-    if not os.path.exists(CONFIG):
-        muere(f"no encuentro {CONFIG}")
-    with open(CONFIG, encoding="utf-8") as fh:
+def cargar_config(ruta: str = "") -> dict:
+    ruta = ruta or CONFIG
+    if not os.path.exists(ruta):
+        muere(f"no encuentro {ruta}")
+    with open(ruta, encoding="utf-8") as fh:
         return json.load(fh)
 
 
@@ -413,7 +414,7 @@ def prompt_r3(pregunta: str, propuesta: str) -> str:
 
 def cmd_doctor(args) -> None:
     """Comprueba clave, red y que los IDs de modelo existan en OpenRouter."""
-    cfg = cargar_config()
+    cfg = cargar_config(getattr(args, "config", ""))
     print("\n== Comprobacion del consejo ==\n")
 
     if os.environ.get("OPENROUTER_API_KEY", "").strip():
@@ -455,7 +456,7 @@ def cmd_doctor(args) -> None:
 
 
 def cmd_init(args) -> None:
-    cfg = cargar_config()
+    cfg = cargar_config(getattr(args, "config", ""))
     pregunta = args.pregunta
     if args.fichero:
         pregunta = leer(args.fichero).strip()
@@ -483,6 +484,7 @@ def cmd_init(args) -> None:
         "secretario": SECRETARIO,
         "alias": alias,
         "parametros": cfg["parametros"],
+        "config": os.path.relpath(args.config or CONFIG, os.path.dirname(RAIZ)),
         "rondas_completadas": [],
     }
     guardar_estado(run, estado)
@@ -834,11 +836,14 @@ def main() -> None:
     p = argparse.ArgumentParser(description="LLM Council: 6 IAs deliberan en 3 rondas.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("doctor", help="comprueba clave, red y IDs de modelo").set_defaults(f=cmd_doctor)
+    d = sub.add_parser("doctor", help="comprueba clave, red y IDs de modelo")
+    d.add_argument("--config", default="", help="fichero de miembros alternativo")
+    d.set_defaults(f=cmd_doctor)
 
     i = sub.add_parser("init", help="abre una deliberacion nueva")
     i.add_argument("--pregunta", default="")
     i.add_argument("--fichero", default="", help="fichero con la pregunta")
+    i.add_argument("--config", default="", help="fichero de miembros alternativo")
     i.set_defaults(f=cmd_init)
 
     sub.add_parser("ronda1", help="respuestas independientes").set_defaults(f=cmd_ronda1)
