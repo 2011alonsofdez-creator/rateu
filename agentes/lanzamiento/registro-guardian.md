@@ -26,3 +26,4 @@ Leyenda: 🟢 todo bien · 🟡 cosas por atender · 🔴 algo roto ·
 | 2026-10-28 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | **4 de 72**, peor hueco 6 h 18 | ok, los 3 entregaron | nada nuevo: los dos 🟡 son los de ayer, un día más viejos |
 | 2026-10-29 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | suena, verificado; **ya no lo mido a diario** | ok, los 4 entregaron | **Team contrata de verdad y el prompt no sabe qué es** · y su ficha del Abogado contradice a `/contratos` |
 | 2026-10-30 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | suena, verificado (ejecuciones 166-169 en verde); sin medir | ok, los 4 entregaron | **mejoró el plan gratis anoche y la web vende el de antes** · y el `GRATIS_AL_DIA = 15` a mano era mío |
+| 2026-10-31 | 🟡 | ok, leído: 200 y "TODO CORRECTO" | suena, verificado (171-174 en verde); sin medir | ok, los 3 que tocaban | **el repuesto de búsqueda cuesta 4,4× menos: medido** · y me corrijo en MEGA, que ya tiene tres casas |

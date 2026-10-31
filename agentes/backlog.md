@@ -13,6 +13,79 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **El repuesto de búsqueda cambió anoche y ahora cuesta entre 2,6 y 4,4 veces menos. Medido.** `[origen: guardian 2026-10-31]`
+  No está en ningún commit suyo: la lista de modelos de respaldo es una
+  **variable de entorno de Vercel** (`KAIRO_EXTRA_MODELOS`), así que esto solo
+  se ve en el log de `revisar.yml`. Hoy la cadena tiene **cinco** modelos y
+  **manda uno nuevo**:
+
+  | | Antes (desde el 26-10) | Desde anoche |
+  |---|---|---|
+  | Repuesto 1, el que entra cada tarde | `deepseek/deepseek-v4-flash-0731` | **`openai/gpt-6-luna`** |
+  | Entrada / salida por millón | $0,44 / $1,32 | **$0,10 / $0,50** |
+
+  **Medido hoy con su propio `buscar-modelo.yml`** (ejecución 41175776203), no
+  supuesto: `openai/gpt-6-luna` sale a **$0,1/M de entrada y $0,5/M de salida**,
+  con 1.050K de contexto. O sea **4,4 veces más barato de entrada y 2,6 de
+  salida** que el que estaba. Es la primera vez en esta historia que el coste
+  baja, y bajó sin que nadie lo pidiera por escrito.
+
+  **Lo que sigue abierto, y por eso esto no cierra el P1 del 26-10**:
+  1. **No hay tope de gasto en OpenRouter.** Sexto día pidiéndolo. Que el
+     modelo sea más barato no acota nada: solo mueve la pendiente.
+  2. **La mitad de la factura no depende del modelo.** El plugin web de
+     OpenRouter se cobra **por resultado** —unos 2 céntimos por consulta con 5
+     resultados, `(sin confirmar para 2026)`— y eso es igual con luna que con
+     deepseek.
+  3. **`deepseek-v4-flash-0731` sigue en la lista**, ahora en segundo lugar, así
+     que el de $0,44/$1,32 continúa siendo alcanzable.
+
+  **Y una trampa que conviene no pisar al "optimizar"**: hay cuatro modelos con
+  `gpt-6-luna` en el nombre, y los dos `:batch` son más baratos —$0,05/$0,25—
+  pero el propio workflow los marca **NO SIRVE PARA CHATEAR**. Es la misma
+  trampa que los gemelos `:free` del 21-10: el nombre casi igual y el
+  comportamiento distinto.
+
+- **Me corrijo: "la portada promete tres cerebros y en producción solo hay uno" ya no es verdad en MEGA.** `[origen: guardian 2026-10-31, corrige el P1 del 2026-10-16]`
+  Lo he comprobado leyendo el código de anoche, y cambia un hallazgo que llevo
+  **dieciséis días** repitiendo.
+
+  El dueño publicó *"Count a gateway model's real house when picking the MEGA
+  team"*. Lo que hace es `casaDe()` en `mega.ts:128`: de `extra:openai/gpt-6-luna`
+  saca la casa **openai**, y de `claude:claude-opus-5-5` y
+  `extra:anthropic/claude-haiku-5.5` saca **anthropic** en los dos, "que lo son:
+  si tienes las dos puertas abiertas". Antes contaba por proveedor, así que todo
+  lo que entraba por la pasarela era "la misma casa" y **MEGA fichaba a uno y
+  rellenaba con Geminis** —su propio comentario lo dice—.
+
+  **Qué equipo sale hoy, siguiendo la cadena a mano**: `cadenaDe("mega")` es
+  `CADENAS.mega` + `modelosExtra()` filtrado por claves
+  (`config.ts:144-147`). Sin clave de Claude ni de GPT, de `CADENAS.mega`
+  sobreviven solo los Gemini; detrás van los cinco de la pasarela **en el orden
+  de la variable**, que `modelosExtra()` conserva (`proveedores.ts:131-137`) y
+  que el log imprime. `elegirEquipo()` recorre y coge una casa de cada:
+
+  > **google** (`gemini-pro-latest`) + **openai** (`gpt-6-luna`) + **deepseek**
+
+  **Tres casas de verdad, y dos no son Google.** Así que lo que vengo diciendo
+  desde el 16-10 era cierto hasta anteanoche y hoy ya no lo es del todo: en los
+  niveles normales sigue siendo Gemini con repuestos, pero **un Mega-Prompt ya
+  pregunta a tres casas distintas**.
+
+  **Y de aquí sale lo mejor de hoy, que es una palanca de un minuto**:
+  `anthropic/claude-haiku-5.5` es el **cuarto** de la variable, detrás de
+  deepseek, así que **no entra en el equipo**. Si en `KAIRO_EXTRA_MODELOS` se
+  pone **Claude delante de deepseek**, el equipo de un MEGA pasa a ser
+  **Gemini + GPT + Claude**, que es *literalmente* lo que promete la portada
+  —"Claude · Gemini · GPT, en una sola suscripción"—, **sin comprar ninguna
+  clave nueva y sin tocar una línea de código**. Es reordenar una variable en
+  Vercel.
+  **Lo que seguiría sin ser verdad, y hay que decirlo**: la portada dice que
+  Kairo "usa los tres mejores modelos del mundo y elige el adecuado para cada
+  tarea", y eso describe el enrutador, no el MEGA. Rápido, Normal y Forja
+  seguirían siendo Gemini. La frase honesta sería que **el Mega-Prompt** usa
+  tres casas; el resto, una.
+
 - **Anoche mejoró el plan gratis en el código, y la página seguía vendiendo el de antes** — **lo mío, hecho**; queda lo suyo. `[origen: guardian 2026-10-30 · hecho en parte 2026-10-30]`
   **Hecho hoy por el constructor** (detalle en `## Hecho`): el 15 estaba en
   **cinco** sitios, no en dos —el guardián encontró dos—, y los cinco leen ya
