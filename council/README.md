@@ -58,6 +58,30 @@ python3 council/council.py init --pregunta "¿...?"
 python3 council/council.py ronda1
 ```
 
+### Con documentos
+
+```bash
+python3 council/council.py init --pdf demanda.pdf --pdf carta.pdf --pregunta "¿...?"
+```
+
+El texto se extrae **aquí**, con `pdftotext` o `pypdf`, y se guarda en
+`material.md`. No se le pide a ningún modelo que lo transcriba: un PDF con capa
+de texto ya lo lleva dentro, sacarlo sale gratis, es idéntico para los seis y no
+depende de cuotas ni de que el modelo diga que no ha recibido nada.
+
+Si de un PDF salen cuatro caracteres sueltos, es un escaneo sin texto
+reconocido: el `init` se para y lo dice, en vez de mandar eso al consejo.
+
+Para instalar un extractor, si no tienes ninguno:
+
+```bash
+sudo apt install -y poppler-utils
+```
+
+**Aviso de coste.** El material viaja en **todas** las llamadas de **todas** las
+rondas, así que un documento largo se paga quince veces. El `init` te lo dice
+antes de gastar nada. Con documentos largos, usa la configuración económica.
+
 Luego el secretario:
 - escribe su propia respuesta en `ronda1/M6-anthropic.md`;
 - comprueba las afirmaciones verificables de los demás y anota el resultado en
@@ -128,6 +152,7 @@ con su modelo, sus tokens y su coste.
 ```
 council/runs/<fecha>-<pregunta>/
 ├── pregunta.md
+├── material.md              el texto de los documentos, si los hubo
 ├── estado.json              configuración y mapa de alias (solo el secretario)
 ├── puntos.json              puntos sometidos a votación
 ├── propuesta_final.md       redactada por el secretario
