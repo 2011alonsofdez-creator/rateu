@@ -122,6 +122,12 @@ export default function Consejo() {
   const [fase, setFase] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /* Los avisos se acumulan y no se pisan. Antes vivían en `detalle`, que
+     la fase siguiente machaca: el aviso de que el documento no se pudo
+     leer duraba medio segundo y el consejo seguía adelante sin él,
+     aparentemente sin incidencias. */
+  const [avisos, setAvisos] = useState<string[]>([]);
+  const [material, setMaterial] = useState<{ letras: number; de: string } | null>(null);
 
   const [r1, setR1] = useState<Intervencion[]>([]);
   const [r2, setR2] = useState<Intervencion[]>([]);
@@ -185,6 +191,8 @@ export default function Consejo() {
     setError(null);
     setFase(null);
     setDetalle(null);
+    setAvisos([]);
+    setMaterial(null);
   }
 
   async function deliberar() {
@@ -247,14 +255,15 @@ export default function Consejo() {
         setMiembros(e.miembros);
         break;
       case "fase":
-        if (e.fase === "aviso") setDetalle(e.detalle ?? null);
-        else {
+        if (e.fase === "aviso") {
+          if (e.detalle) setAvisos((x) => (x.includes(e.detalle!) ? x : [...x, e.detalle!]));
+        } else {
           setFase(e.fase);
           setDetalle(e.detalle ?? null);
         }
         break;
       case "transcrito":
-        setDetalle(`${e.letras.toLocaleString("es")} caracteres leídos por ${e.de}`);
+        setMaterial({ letras: e.letras, de: e.de });
         break;
       case "intervencion":
         if (e.ronda === 1) setR1((x) => [...x, e.v]);
@@ -432,6 +441,29 @@ export default function Consejo() {
           <p className="text-[14px] font-medium text-red-400">No se pudo completar</p>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{error}</p>
         </div>
+      )}
+
+      {/* Si había archivos, lo primero que hace falta saber es si se
+          leyeron. Un consejo deliberando sobre un documento que nadie
+          abrió es el peor resultado posible, y hasta ahora no se veía. */}
+      {material && (
+        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-[13px] leading-relaxed text-emerald-200">
+          Documento leído por {material.de}: {material.letras.toLocaleString("es")} caracteres.
+          Es lo que han visto los seis, igual para todos.
+        </div>
+      )}
+
+      {avisos.length > 0 && (
+        <ul className="mt-4 space-y-2">
+          {avisos.map((a, i) => (
+            <li
+              key={i}
+              className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[13px] leading-relaxed text-amber-200"
+            >
+              {a}
+            </li>
+          ))}
+        </ul>
       )}
 
       <div className="mt-6 space-y-4">

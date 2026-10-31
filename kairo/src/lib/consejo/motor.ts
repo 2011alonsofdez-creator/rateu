@@ -280,7 +280,15 @@ async function transcribir(
   adjuntos: Adjunto[],
   emitir: Emitir,
 ): Promise<string> {
-  if (!adjuntos.length) return "";
+  if (!adjuntos.length) {
+    console.log("[consejo] sin archivos adjuntos: se delibera solo con la pregunta");
+    return "";
+  }
+
+  console.log(
+    `[consejo] ${adjuntos.length} archivo(s): ` +
+      adjuntos.map((a) => `${a.nombre} (${a.tipo}, ${Math.round(a.bytes / 1024)} KB)`).join(", "),
+  );
 
   /* Solo valen los identificadores nativos: los de OpenRouter no llevan
      el archivo, y mandárselo es pedirle que describa algo que no ve. */
@@ -289,6 +297,7 @@ async function transcribir(
     .filter(({ ref }) => aceptaArchivos(ref));
 
   if (!lectores.length) {
+    console.warn("[consejo] ningún miembro acepta archivos: nadie puede leer el documento");
     emitir({
       t: "fase",
       fase: "aviso",
@@ -328,6 +337,7 @@ async function transcribir(
      de recibo. Mandarlo al consejo sería hacerles deliberar sobre el
      fallo en vez de sobre el documento, y encima pagando por ello. */
   if (/^\s*SIN_ARCHIVO/i.test(r.texto) || r.texto.trim().length < 40) {
+    console.warn(`[consejo] el lector no vio el archivo. Respondió: ${r.texto.slice(0, 200)}`);
     emitir({
       t: "fase",
       fase: "aviso",
@@ -338,6 +348,7 @@ async function transcribir(
     return "";
   }
 
+  console.log(`[consejo] documento transcrito: ${r.texto.length} caracteres con ${r.modelo}`);
   emitir({ t: "transcrito", letras: r.texto.length, de: lectores[0].m.casa });
   return r.texto;
 }
@@ -400,6 +411,10 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
   const sec = c.sec!;
   const transcrito = await transcribir(c, enc.adjuntos, emitir);
   const material = recortarMaterial([enc.material, transcrito].filter(Boolean).join("\n\n"), MATERIAL_MAX);
+  console.log(
+    `[consejo] material que recibe el consejo: ${material.length} caracteres` +
+      (material.length === 0 ? " — NINGUNO: deliberan solo sobre la pregunta" : ""),
+  );
 
   // --- Ronda 1: todos a ciegas, el secretario incluido ---
   emitir({ t: "fase", fase: "ronda1" });
