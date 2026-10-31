@@ -108,6 +108,21 @@ python3 council/council.py ronda3
 python3 council/council.py recuento
 ```
 
+## Comprobar que los seis están de verdad
+
+```bash
+python3 council/council.py lista
+```
+
+Pasa lista de la deliberación actual: quién es cada miembro, **qué modelo
+respondió realmente** (el que OpenRouter dice que atendió, no el que pediste) y
+en qué rondas participó. Avisa si el modelo servido no coincide con el
+configurado, y cuenta cuántos fabricantes distintos han contestado.
+
+Para una comprobación independiente de este código, contrasta con tu historial
+real de llamadas en <https://openrouter.ai/activity>: ahí aparece cada llamada
+con su modelo, sus tokens y su coste.
+
 ## Lo que queda guardado
 
 ```

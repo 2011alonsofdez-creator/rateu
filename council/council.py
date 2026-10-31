@@ -727,6 +727,66 @@ def cmd_ronda3(args) -> None:
     print("\nSiguiente: council.py recuento\n")
 
 
+def cmd_lista(args) -> None:
+    """Pasa lista: quien es cada miembro y que modelo respondio de verdad.
+
+    No se fia de lo configurado: lee el campo que devolvio OpenRouter en cada
+    llamada, que es quien dice que modelo atendio realmente.
+    """
+    run = run_actual()
+    estado = cargar_estado(run)
+    rondas = ("ronda1", "ronda2", "ronda3")
+
+    metas = {}
+    for r in rondas:
+        ruta = os.path.join(run, r, "_meta.json")
+        if os.path.exists(ruta):
+            try:
+                metas[r] = json.load(open(ruta, encoding="utf-8"))
+            except Exception:
+                metas[r] = {}
+
+    print(f"\n== Consejo de esta deliberacion ==\n\n{estado['pregunta'][:100]}\n")
+    cab = f"  {'':<3} {'Fabricante':<11} {'Modelo que respondio':<34} R1  R2  R3"
+    print(cab)
+    print("  " + "-" * (len(cab) - 2))
+
+    fabricantes = set()
+    for m in estado["miembros"]:
+        servidos, marcas = set(), []
+        for r in rondas:
+            e = (metas.get(r) or {}).get(m["id"])
+            if e is None:
+                marcas.append(" - ")
+            elif e.get("ok"):
+                marcas.append(" OK")
+                if e.get("modelo_servido"):
+                    servidos.add(e["modelo_servido"])
+            else:
+                marcas.append("FAL")
+        # lo que dijo OpenRouter que atendio; si nunca respondio, lo configurado
+        real = " / ".join(sorted(servidos)) if servidos else f"{m['modelo']} (sin respuesta)"
+        if servidos:
+            fabricantes.add(m["fabricante"])
+        aviso = ""
+        if servidos and all(x != m["modelo"] for x in servidos):
+            aviso = "  <-- OJO: no es el modelo configurado"
+        print(f"  {m['id']:<3} {m['fabricante']:<11} {real:<34}" + " ".join(marcas) + aviso)
+
+    s_ = estado["secretario"]
+    hay_sec = os.path.exists(os.path.join(run, "ronda1", f"M6-{s_['fabricante'].lower()}.md"))
+    print(f"  {s_['id']:<3} {s_['fabricante']:<11} {'Claude (secretario, NO vota)':<34}"
+          f"{' OK' if hay_sec else ' - '}  -   - ")
+
+    n = len(fabricantes)
+    print(f"\n  Fabricantes distintos que han respondido: {n} de {len(estado['miembros'])}"
+          f" (+ el secretario) = {n + 1} de 6")
+    if n < len(estado["miembros"]):
+        print("  Los marcados FAL o - no respondieron; el recuento los deja como '?'.")
+    print("\n  Contrastalo con tu historial real de llamadas en:")
+    print("  https://openrouter.ai/activity\n")
+
+
 def cmd_recuento(args) -> None:
     """Cuenta votos y firmas y escribe recuento.md. El resumen en prosa lo firma el secretario."""
     run = run_actual()
@@ -937,6 +997,7 @@ def main() -> None:
     r3.add_argument("--solo", default="", help="reintentar solo estos miembros, p.ej. M5")
     r3.set_defaults(f=cmd_ronda3)
 
+    sub.add_parser("lista", help="pasa lista: quien respondio y con que modelo").set_defaults(f=cmd_lista)
     sub.add_parser("recuento", help="cuenta votos y firmas").set_defaults(f=cmd_recuento)
 
     for sp in (r1, r2, r3):
