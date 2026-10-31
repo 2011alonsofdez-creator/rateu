@@ -2,3 +2,5 @@
 .env.local
 __pycache__/
 *.pyc
+kairo/node_modules/
+kairo/.next/

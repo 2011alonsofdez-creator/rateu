@@ -12,7 +12,7 @@ import { useHistorial } from "@/lib/historial";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
-import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plug, Plus, Settings, Team, Trash } from "./Icons";
+import { Bolt, Brain, Capas, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plug, Plus, Settings, Team, Trash } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/chat", label: "app.chats", icon: Chat },
@@ -21,6 +21,7 @@ const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
   { href: "/paperwork", label: "app.paperwork", icon: Papel },
   { href: "/code", label: "app.code", icon: Code },
   { href: "/team", label: "app.team", icon: Team },
+  { href: "/consejo", label: "app.consejo", icon: Capas },
   { href: "/coworks", label: "app.coworks", icon: Clock },
   { href: "/conectores", label: "app.connectors", icon: Plug },
 ];
