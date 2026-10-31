@@ -182,16 +182,25 @@ export const plans: Plan[] = [
     monthly: 0,
     yearly: 0,
     bullets: {
+      /* Esto decía 15 créditos y "modelo rápido", y las dos cosas
+         llevaban días siendo mentira: el plan gratis pasó a 20 al día y
+         a tener también el estándar. Vender MENOS de lo que das es un
+         error más tonto que el contrario, porque lo paga la página de
+         precios, que es donde se decide si alguien se registra.
+         Y faltaba lo mejor que tiene: los 150 de bienvenida, que dan
+         para un MEGA entero. */
       es: [
-        "15 créditos al día",
-        "Modelo rápido",
+        "20 créditos al día",
+        "150 de regalo al registrarte",
+        "Modelos rápido y estándar",
         "Historial de 30 días",
         "1 Mente propia",
         "Archivos hasta 5 MB",
       ],
       en: [
-        "15 credits per day",
-        "Fast model",
+        "20 credits per day",
+        "150 free credits to start",
+        "Fast and standard models",
         "30-day history",
         "1 Mind of your own",
         "Files up to 5 MB",
