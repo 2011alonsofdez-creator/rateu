@@ -89,6 +89,14 @@ python3 council/council.py ronda2 --solo M5
 
 Funciona igual en la ronda 3. Admite varios: `--solo M3,M5`.
 
+Si el fallo fue por falta de tokens, súbelos sobre la marcha. El `init` congela
+los parámetros en `estado.json` para que la deliberación sea reproducible, así
+que cambiar el fichero de configuración no afecta a una ya abierta:
+
+```bash
+python3 council/council.py ronda2 --solo M5 --max-tokens 12000
+```
+
 ### Ronda 3 — firma
 
 El secretario redacta `propuesta_final.md` a partir del debate. Cada miembro la
@@ -108,7 +116,8 @@ council/runs/<fecha>-<pregunta>/
 ├── estado.json              configuración y mapa de alias (solo el secretario)
 ├── puntos.json              puntos sometidos a votación
 ├── propuesta_final.md       redactada por el secretario
-├── recuento.md              acuerdos, desacuerdos y votaciones
+├── recuento.md              acuerdos, desacuerdos y votaciones (se regenera)
+├── notas_secretario.md      incidencias; el recuento las incorpora al final
 ├── ronda1/  M1..M6.md · verificacion_secretario.md · _meta.json
 ├── ronda2/  M1..M5.md · votos.json · _meta.json
 └── ronda3/  M1..M5.md · firmas.json · _meta.json
@@ -131,4 +140,7 @@ council/runs/<fecha>-<pregunta>/
 - **Modelos que razonan**: si un modelo agota su presupuesto de tokens pensando
   y no llega a escribir, el error lo dice y nombra la solución, en vez del
   inútil «respuesta vacía». Una respuesta truncada también se avisa.
+- **Las notas no se pierden**: `recuento` se regenera entero cada vez, así que
+  las incidencias van en `notas_secretario.md`, que nunca se sobrescribe y se
+  incorpora al final del recuento.
 - Sin dependencias externas: solo biblioteca estándar de Python.

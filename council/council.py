@@ -251,9 +251,19 @@ def run_actual() -> str:
     return ruta
 
 
-def cargar_estado(run: str) -> dict:
+def cargar_estado(run: str, args=None) -> dict:
     with open(os.path.join(run, "estado.json"), encoding="utf-8") as fh:
-        return json.load(fh)
+        estado = json.load(fh)
+    # el estado congela los parametros del init, para que la deliberacion sea
+    # reproducible. --max-tokens permite desatascar un modelo que razona mucho
+    # sin tener que abrir el JSON a mano.
+    nuevo = int(getattr(args, "max_tokens", 0) or 0)
+    if nuevo:
+        viejo = estado["parametros"].get("max_tokens")
+        estado["parametros"]["max_tokens"] = nuevo
+        guardar_estado(run, estado)
+        log(f"  max_tokens {viejo} -> {nuevo} (guardado en estado.json)")
+    return estado
 
 
 def guardar_estado(run: str, estado: dict) -> None:
@@ -535,7 +545,7 @@ def cmd_init(args) -> None:
 
 def cmd_ronda1(args) -> None:
     run = run_actual()
-    estado = cargar_estado(run)
+    estado = cargar_estado(run, args)
     clave = leer_clave()
     log(f"RONDA 1 — {len(estado['miembros'])} miembros responden en paralelo, a ciegas")
 
@@ -563,7 +573,7 @@ def cmd_ronda1(args) -> None:
 
 def cmd_ronda2(args) -> None:
     run = run_actual()
-    estado = cargar_estado(run)
+    estado = cargar_estado(run, args)
     clave = leer_clave()
     d1 = os.path.join(run, "ronda1")
 
@@ -664,7 +674,7 @@ def cmd_ronda2(args) -> None:
 
 def cmd_ronda3(args) -> None:
     run = run_actual()
-    estado = cargar_estado(run)
+    estado = cargar_estado(run, args)
     clave = leer_clave()
     ruta = args.propuesta or os.path.join(run, "propuesta_final.md")
     if not os.path.exists(ruta):
@@ -879,8 +889,24 @@ def cmd_recuento(args) -> None:
     else:
         L.append("## Firma\n\n_Ronda 3 no ejecutada._\n")
 
+    # las notas del secretario viven aparte para que regenerar el recuento no las borre
+    ruta_notas = os.path.join(run, "notas_secretario.md")
+    if os.path.exists(ruta_notas):
+        notas = leer(ruta_notas).strip()
+        if notas:
+            L.append("\n## Notas del secretario\n")
+            L.append(notas)
+            L.append("")
+
     texto = "\n".join(L)
     escribir(os.path.join(run, "recuento.md"), texto)
+    if not os.path.exists(ruta_notas):
+        escribir(
+            ruta_notas,
+            "<!-- Incidencias y salvedades del secretario. Este fichero NO se\n"
+            "     sobrescribe: el recuento lo incorpora al final cada vez que se\n"
+            "     regenera. No escribas notas en recuento.md, se perderian. -->\n",
+        )
     print(texto)
     print(f"\n[guardado en {run}/recuento.md]")
 
@@ -899,7 +925,8 @@ def main() -> None:
     i.add_argument("--config", default="", help="fichero de miembros alternativo")
     i.set_defaults(f=cmd_init)
 
-    sub.add_parser("ronda1", help="respuestas independientes").set_defaults(f=cmd_ronda1)
+    r1 = sub.add_parser("ronda1", help="respuestas independientes")
+    r1.set_defaults(f=cmd_ronda1)
 
     r2 = sub.add_parser("ronda2", help="debate anonimo y votacion")
     r2.add_argument("--solo", default="", help="reintentar solo estos miembros, p.ej. M5")
@@ -911,6 +938,12 @@ def main() -> None:
     r3.set_defaults(f=cmd_ronda3)
 
     sub.add_parser("recuento", help="cuenta votos y firmas").set_defaults(f=cmd_recuento)
+
+    for sp in (r1, r2, r3):
+        sp.add_argument(
+            "--max-tokens", type=int, default=0, dest="max_tokens",
+            help="sube el limite de tokens de esta deliberacion (para modelos que razonan)",
+        )
 
     args = p.parse_args()
     args.f(args)
