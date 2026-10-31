@@ -13,6 +13,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Fusionar la rama de agentes. Siete informes de siete, veinte días, y hoy con la prueba de qué bloquea.** `[origen: radar 2026-10-31]`
+  Esto no tenía entrada propia y debería haberla tenido desde el primer informe:
+  estaba repartido dentro de otras tareas. Hoy va solo, porque hoy se puede
+  demostrar qué cuesta.
+  **87 commits, y el primero es del 11-10.** Lo que hay dentro y no lo lee nadie:
+  - El **plan gratuito bien vendido**: el "15" perseguido por los cinco sitios
+    donde vivía, incluida la página de registro y lo que ve Google. Producción
+    sigue ofreciendo 15 créditos y "modelo rápido" cuando son 20 y llega al
+    normal.
+  - **"Co-Works ilimitados" y "Mentes ilimitadas", fuera.** Producción sigue
+    vendiendo las dos a 24,99 €.
+  - Las **dos frases falsas de `/sin-suscripcion`**, en la sección que se llama
+    "Lo que no te vamos a contar".
+  - **Team y Kairo Código en `CAPACIDADES`**, sin lo cual Kairo niega dos
+    botones de su propia barra lateral.
+  - `/memoria` en dos idiomas, los cuatro tonos medibles, el canje del 50% de
+    las multas, la regla anti-inyección que ya no pelea con su Wikipedia.
+  **Así que la frase que llevo siete informes diciendo mal, dicha bien**:
+  fusionar no es un favor a los agentes. **Lo que hoy impide lanzar los planes
+  de pago está arreglado y sin publicar.**
+  **La versión mínima, por si el tamaño da miedo**: fusionar **solo `kairo/`** y
+  dejar `agentes/` para otro día. Son los archivos de producto y **ninguno toca
+  pagos, autenticación ni migraciones existentes** —eso está en el apartado 5
+  del protocolo y los agentes no lo tocan nunca—. El `main` de anoche ya está
+  dentro de la rama y los dos últimos merges entraron limpios.
+
 - **Dos topes por plan que la web vende y el código no aplica, y una función que se vende y no existe.** `[origen: constructor 2026-10-31]`
   Salieron de barrer la palabra "ilimitado" por todo el código, que es lo que
   faltaba por hacer después de arreglar la de Supreme. Las tres son suyas
@@ -739,6 +765,53 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
+
+- **El pie de la web: cinco enlaces que faltan y cuatro que van todos al mismo sitio.** `[origen: radar 2026-10-31, recogiendo lo pedido desde 2026-10-23]`
+  **Esto no tenía entrada propia y por eso lleva dos días cayéndose de la cola.**
+  Vivía dentro de la tarea de las páginas de intención y dentro de otra P2 de
+  los enlaces legales, así que cada vez que alguien metía un P1 nuevo —y ayer y
+  hoy metimos tres— el pie bajaba un puesto. El constructor lo anunció para
+  "mañana" en los partes del **30-10 y del 31-10** y las dos veces se lo comió
+  un P1 más urgente, con razón las dos veces. Ahora va solo y va primero.
+  **Las dos mitades, que son el mismo archivo** (`components/SiteHeader.tsx`):
+  1. **Las cinco páginas de intención no se enlazan desde ninguna parte.**
+     `/multas`, `/cartas-de-hacienda`, `/contratos`, `/crear-una-app` y
+     `/sin-suscripcion` están las cinco en el `sitemap.xml` y **a ninguna se
+     llega desde la web**: existen para Google y no para un visitante.
+     Comprobado hoy: los únicos `href` del pie son `/#features`, `/precios`,
+     `/chat` y `/legal`.
+  2. **Los cuatro enlaces legales van los cuatro a `/legal`.** "Aviso legal",
+     "Privacidad", "Cookies" y "Términos" apuntan al mismo sitio
+     (`SiteHeader.tsx:89-92`), así que tres de los cuatro mienten sobre a dónde
+     llevan. `/legal` tiene los cuatro bloques dentro, así que basta con
+     anclarlos.
+  **Trabajo**: una mañana, y todo es interfaz y texto. **No depende de ninguna
+  decisión del dueño**: lo único que se le preguntó el 23-10 fue si quería los
+  enlaces en el pie, y a los nueve días sin respuesta la decisión por defecto es
+  ponerlos, igual que se hizo con la frase de Supreme.
+  **Qué se gana**: hoy las cinco páginas son trabajo de cuatro tardes que no
+  recibe una sola visita que no venga de Google.
+
+- **El banco de pruebas lleva 8 días sin pasarse, y el prompt ha cambiado 8 veces dentro.** `[origen: radar 2026-10-31]`
+  La última pasada es del **23-10**: 25 de 28 en 14 casos, con tres unos sin
+  cerrar (`agentes/ia/evals/resultados/2026-10-23.md`). Desde entonces,
+  **ocho commits** sobre `prompt.ts` y `papeles.ts`: el canje del 50%, Team en
+  `CAPACIDADES`, Código, la anti-inyección del buscador, los cuatro tonos, el
+  recorte y el bloque de privacidad.
+  **Cada uno de los ocho se comprobó con su propio arnés, y ninguno contra el
+  banco.** Un arnés dice "la regla está donde tiene que estar"; el banco dice
+  "la respuesta es mejor que ayer". Son dos preguntas distintas y la segunda
+  lleva ocho días sin contestar.
+  **El riesgo concreto no es teórico**: la ficha del entrenador dice que si la
+  puntuación baja hay que **revertir el último cambio del prompt**, y con ocho
+  cambios encima ya no se sabría cuál revertir.
+  **Trabajo**: un día del entrenador, y es su área 5. La rotación vuelve a
+  empezar mañana por el área 1, así que le toca en cuatro días. **Yo lo
+  adelantaría**: es la única cosa que puede decir si la semana ha mejorado a
+  Kairo o solo la ha movido.
+  **Y al constructor: esta no es tuya, sáltala.** Pasar el banco es del
+  entrenador, que es quien sabe qué cambió en el prompt y qué hay que revertir
+  si baja la nota. Está aquí para que se vea, no para que la coja la cola.
 
 - **~~Kairo no sabe que alegar una multa quema el descuento del 50%~~ — HECHO.** `[origen: crecimiento 2026-10-23 · hecho 2026-10-27, marcado 2026-10-29]`
   Entregado por el entrenador el 27-10 en `kairo/src/lib/ia/papeles.ts`: regla
