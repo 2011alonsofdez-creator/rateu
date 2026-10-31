@@ -207,11 +207,21 @@ export function formarConsejo(): Composicion {
        quieres sentar. */
     if (router) for (const m of propia) añadir(casaDe(m), porRouter([m]));
   } else {
-    // La plantilla de serie: cada casa por su mejor puerta disponible.
+    /* La plantilla de serie. Cada casa entra por su mejor puerta y, si
+       esa se cierra, por la otra: la cadena de una casa con clave propia
+       termina en sus modelos de OpenRouter.
+
+       No es redundancia. La capa gratuita de Gemini se agota por día y
+       devuelve 429 en TODOS sus modelos a la vez ("retry in 16h"), así
+       que una cadena de cinco Gemini nativos se cae entera de golpe y
+       Google desaparece del consejo hasta mañana. Cruzando de proveedor,
+       la casa sigue sentada: es el mismo fabricante por otra puerta, que
+       es lo único que al consejo le importa. */
     for (const c of PLANTILLA) {
       const puerta = NATIVO[c.casa];
-      if (c.nativo && puerta && proveedorActivo(puerta)) añadir(c.casa, c.nativo);
-      else if (router) añadir(c.casa, porRouter(c.porRouter));
+      const nativa = c.nativo && puerta && proveedorActivo(puerta) ? c.nativo : [];
+      const suplente = router ? porRouter(c.porRouter) : [];
+      añadir(c.casa, [...nativa, ...suplente]);
     }
 
     /* Y si aún sobran sillas, las rellenan los modelos de repuesto del

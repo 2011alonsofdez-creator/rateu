@@ -1,4 +1,4 @@
-import { arrancar, type Peticion } from "@/lib/ia/proveedores";
+import { aceptaArchivos, arrancar, type Peticion } from "@/lib/ia/proveedores";
 import { TEMPERATURA } from "@/lib/ia/config";
 import type { Adjunto } from "@/lib/tipos";
 import { formarConsejo, hayConsejo, type Composicion } from "./miembros";
@@ -76,6 +76,41 @@ async function unaVez(
   }
 }
 
+/* Dejar el error en algo que se pueda leer.
+ *
+ * Un 429 de Google son cuatro mil caracteres de JSON con el mismo aviso
+ * repetido por cuota de día, de minuto, de tokens y de peticiones. En la
+ * página eso es una pared que tapa el resto del consejo, y lo único que
+ * hacía falta saber cabe en una línea. Se queda el código, el mensaje y,
+ * si lo dice, cuánto hay que esperar. */
+function resumirError(bruto: string): string {
+  let texto = bruto;
+
+  // Los proveedores devuelven el error anidado como texto dentro de otro JSON.
+  for (let vuelta = 0; vuelta < 3; vuelta++) {
+    const abre = texto.indexOf("{");
+    if (abre === -1) break;
+    try {
+      const d = JSON.parse(texto.slice(abre)) as Record<string, unknown>;
+      const e = (d.error ?? d) as Record<string, unknown>;
+      const msg = e.message;
+      if (typeof msg === "string" && msg.trim()) {
+        texto = msg.trim();
+        continue;
+      }
+      break;
+    } catch {
+      break;
+    }
+  }
+
+  // Una sola línea: lo repetido por cuota de día, de minuto y demás sobra.
+  const primera = texto.split("\n").map((l) => l.trim()).find(Boolean) ?? texto;
+  const espera = /retry in ([^".\n]+)/i.exec(bruto);
+  const corto = primera.length > 220 ? `${primera.slice(0, 220)}…` : primera;
+  return espera ? `${corto} (reintentar en ${espera[1].trim()})` : corto;
+}
+
 /* Prueba la cadena del miembro hasta que uno conteste.
  *
  * Un suplente no es un capricho: los modelos se retiran, se quedan sin
@@ -97,11 +132,21 @@ async function preguntar(
   for (const ref of refs) {
     const r = await unaVez(ref, sistema, usuario, maxSalida, adjuntos);
     if (r.ok) return { ok: true, texto: r.texto, modelo: ref };
-    fallos.push(`${ref}: ${r.error}`);
+    fallos.push(`${ref}: ${resumirError(r.error)}`);
+    // En la consola, el error entero: ahí sí hace falta para depurar.
     console.warn(`[consejo] ${ref} falló — ${r.error}`);
   }
 
-  return { ok: false, error: fallos.join(" | ") };
+  /* Si toda la cadena se cae por lo mismo —y con un 429 de cuota pasa
+     siempre— no hace falta repetirlo una vez por suplente. */
+  const unicos = [...new Set(fallos.map((f) => f.slice(f.indexOf(": ") + 2)))];
+  return {
+    ok: false,
+    error:
+      unicos.length === 1
+        ? `${unicos[0]} (${fallos.length} modelo${fallos.length > 1 ? "s" : ""} probado${fallos.length > 1 ? "s" : ""})`
+        : fallos.join(" | "),
+  };
 }
 
 // ---------------------------------------------------------------
@@ -220,24 +265,51 @@ type Emitir = (e: Evento) => void;
  *
  * Por eso se transcribe UNA vez, con un nativo, y a partir de ahí todos
  * trabajan sobre el mismo texto. Cuesta una llamada de más y vale la
- * pena: la deliberación vuelve a ser entre iguales. */
+ * pena: la deliberación vuelve a ser entre iguales.
+ *
+ * Y el que transcribe tiene que poder MIRAR el archivo. Parece obvio y
+ * no lo fue: con el secretario entrando por OpenRouter, se le mandaba un
+ * PDF que su proveedor descarta por el camino, él contestaba con toda
+ * la razón que no había recibido nada, y ese "no he recibido nada" se
+ * convertía en el material sobre el que deliberaban los seis. Una hora
+ * de consejo sobre un acuse de recibo. De ahí que aquí se busque un
+ * lector que acepte archivos y, si no lo hay, se diga en vez de
+ * deliberar sobre humo. */
 async function transcribir(
   c: Composicion,
   adjuntos: Adjunto[],
   emitir: Emitir,
 ): Promise<string> {
   if (!adjuntos.length) return "";
-  const lector = c.sec ?? c.votantes[0];
-  if (!lector) return "";
+
+  /* Solo valen los identificadores nativos: los de OpenRouter no llevan
+     el archivo, y mandárselo es pedirle que describa algo que no ve. */
+  const lectores = c.miembros
+    .flatMap((m) => m.refs.map((ref) => ({ m, ref })))
+    .filter(({ ref }) => aceptaArchivos(ref));
+
+  if (!lectores.length) {
+    emitir({
+      t: "fase",
+      fase: "aviso",
+      detalle:
+        "Ningún miembro puede abrir archivos: todos entran por OpenRouter, que no " +
+        "los admite. El consejo delibera solo con lo que escribas. Para que lea el " +
+        "documento, pon la clave de Gemini, de OpenAI o de Anthropic, o pega el texto " +
+        "en la pregunta.",
+    });
+    return "";
+  }
 
   emitir({ t: "fase", fase: "transcribiendo", detalle: `${adjuntos.length} archivo(s)` });
 
   const r = await preguntar(
-    lector.refs,
+    lectores.map(({ ref }) => ref),
     "Transcribes documentos para que otros los lean. No resumes, no " +
       "interpretas y no añades nada tuyo: vuelcas el contenido en texto plano, " +
       "respetando el orden, los títulos y las cifras. Si hay tablas, las pasas " +
-      "a texto legible. Si una parte es ilegible, lo escribes entre corchetes.",
+      "a texto legible. Si una parte es ilegible, lo escribes entre corchetes. " +
+      "Si no ves ningún archivo, responde exactamente SIN_ARCHIVO y nada más.",
     "Transcribe íntegramente el contenido de los archivos adjuntos.",
     16000,
     adjuntos,
@@ -252,7 +324,21 @@ async function transcribir(
     return "";
   }
 
-  emitir({ t: "transcrito", letras: r.texto.length, de: lector.casa });
+  /* Si el lector dice que no vio nada, eso NO es material: es un acuse
+     de recibo. Mandarlo al consejo sería hacerles deliberar sobre el
+     fallo en vez de sobre el documento, y encima pagando por ello. */
+  if (/^\s*SIN_ARCHIVO/i.test(r.texto) || r.texto.trim().length < 40) {
+    emitir({
+      t: "fase",
+      fase: "aviso",
+      detalle:
+        "El archivo llegó vacío o no se pudo leer, así que no se manda al consejo. " +
+        "Si es un PDF escaneado sin texto, prueba con uno que tenga el texto reconocido.",
+    });
+    return "";
+  }
+
+  emitir({ t: "transcrito", letras: r.texto.length, de: lectores[0].m.casa });
   return r.texto;
 }
 
