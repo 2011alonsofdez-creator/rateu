@@ -70,16 +70,40 @@ function nativos(): { casa: string; ref: string }[] {
   return lista;
 }
 
-/** El secretario. Siempre Claude, y siempre sin voto. */
+/* El secretario. Siempre un Claude, y siempre sin voto.
+ *
+ * Lo normal es que vaya por la clave nativa de Anthropic. Pero si no la
+ * hay y en cambio tienes un Claude configurado en OpenRouter, ese hace
+ * de secretario igual: sería absurdo dejar el consejo sin acta teniendo
+ * al modelo disponible por otra puerta, solo porque entra por la de
+ * atrás. Es el mismo modelo; cambia quién cobra la llamada. */
 function secretario(): Miembro | null {
-  if (!proveedorActivo("claude")) return null;
-  return {
-    id: "M6",
-    casa: "Anthropic",
-    modelo: "claude-opus-5",
-    ref: "claude:claude-opus-5",
-    secretario: true,
-  };
+  if (proveedorActivo("claude")) {
+    return {
+      id: "M6",
+      casa: "Anthropic",
+      modelo: "claude-opus-5",
+      ref: "claude:claude-opus-5",
+      secretario: true,
+    };
+  }
+
+  if (proveedorActivo("extra")) {
+    const porOpenRouter = modelosExtra().find(
+      (ref) => casaDe(partir(ref).modelo) === "Anthropic",
+    );
+    if (porOpenRouter) {
+      return {
+        id: "M6",
+        casa: "Anthropic",
+        modelo: modeloDe(porOpenRouter),
+        ref: porOpenRouter,
+        secretario: true,
+      };
+    }
+  }
+
+  return null;
 }
 
 export type Composicion = {
@@ -135,8 +159,9 @@ export function formarConsejo(): Composicion {
   let aviso: string | null = null;
   if (!sec) {
     aviso =
-      "Sin clave de Anthropic no hay secretario: nadie verifica los datos ni " +
-      "redacta la propuesta. El consejo delibera, pero sin acta.";
+      "No hay secretario: hace falta un modelo de Anthropic, por su clave propia " +
+      "(ANTHROPIC_API_KEY) o añadiendo uno en KAIRO_EXTRA_MODELOS. Sin él nadie " +
+      "verifica los datos ni redacta la propuesta.";
   } else if (votantes.length < 2) {
     aviso =
       "Hacen falta al menos dos votantes de casas distintas para que haya debate. " +
