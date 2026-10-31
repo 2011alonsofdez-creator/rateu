@@ -227,6 +227,20 @@ def en_paralelo(tareas: list[tuple], clave: str, par: dict) -> dict:
 # gestion del run (carpeta por deliberacion)
 # --------------------------------------------------------------------------
 
+def filtrar(miembros: list, solo: str) -> list:
+    """--solo M5,M3 limita la ronda a esos miembros (reintento sin repagar el resto)."""
+    if not solo:
+        return miembros
+    ids = {x.strip().upper() for x in solo.split(",") if x.strip()}
+    elegidos = [m for m in miembros if m["id"].upper() in ids]
+    if not elegidos:
+        muere(f"--solo {solo} no coincide con ningun miembro ({', '.join(m['id'] for m in miembros)})")
+    sobran = ids - {m["id"].upper() for m in elegidos}
+    if sobran:
+        log(f"  aviso: ignoro {', '.join(sorted(sobran))}, no estan en el consejo")
+    return elegidos
+
+
 def run_actual() -> str:
     if not os.path.exists(PUNTERO):
         muere("no hay deliberacion abierta. Lanza primero: council.py init --pregunta \"...\"")
@@ -284,7 +298,15 @@ def volcar_ronda(carpeta: str, resultados: dict, estado: dict, sufijo: str = "")
             "uso": r.get("uso", {}),
             "intentos": r.get("intentos"),
         }
-    with open(os.path.join(carpeta, "_meta.json"), "w", encoding="utf-8") as fh:
+    ruta_meta = os.path.join(carpeta, "_meta.json")
+    if os.path.exists(ruta_meta):  # reintento parcial: conservar lo ya guardado
+        try:
+            previo = json.load(open(ruta_meta, encoding="utf-8"))
+            previo.update(meta)
+            meta = previo
+        except Exception:
+            pass
+    with open(ruta_meta, "w", encoding="utf-8") as fh:
         json.dump(meta, fh, ensure_ascii=False, indent=2)
 
 
@@ -576,8 +598,12 @@ def cmd_ronda2(args) -> None:
 
     log(f"RONDA 2 — debate anonimo sobre {len(puntos)} puntos, {len(textos)} respuestas en el dossier")
 
+    convocados = filtrar(estado["miembros"], getattr(args, "solo", ""))
+    if len(convocados) < len(estado["miembros"]):
+        log(f"  reintento parcial: solo {', '.join(m['id'] for m in convocados)}")
+
     tareas = []
-    for m in estado["miembros"]:
+    for m in convocados:
         trozos = []
         for otro_id, cuerpo in sorted(textos.items(), key=lambda kv: estado["alias"][kv[0]]):
             if otro_id == m["id"]:
@@ -592,6 +618,12 @@ def cmd_ronda2(args) -> None:
 
     # extraer votos
     votos = {}
+    ruta_votos = os.path.join(carpeta, "votos.json")
+    if os.path.exists(ruta_votos):  # conservar los votos ya emitidos
+        try:
+            votos = json.load(open(ruta_votos, encoding="utf-8")).get("por_miembro", {})
+        except Exception:
+            votos = {}
     for mid, r in res.items():
         if not r.get("ok"):
             votos[mid] = {"error": r.get("error")}
@@ -642,12 +674,21 @@ def cmd_ronda3(args) -> None:
         muere("la propuesta final parece vacia o truncada")
 
     log(f"RONDA 3 — firma de la propuesta final ({len(propuesta)} caracteres)")
-    tareas = [(m, SIS_R3, prompt_r3(estado["pregunta"], propuesta)) for m in estado["miembros"]]
+    convocados = filtrar(estado["miembros"], getattr(args, "solo", ""))
+    if len(convocados) < len(estado["miembros"]):
+        log(f"  reintento parcial: solo {', '.join(m['id'] for m in convocados)}")
+    tareas = [(m, SIS_R3, prompt_r3(estado["pregunta"], propuesta)) for m in convocados]
     res = en_paralelo(tareas, clave, estado["parametros"])
     carpeta = os.path.join(run, "ronda3")
     volcar_ronda(carpeta, res, estado)
 
     firmas = {}
+    ruta_firmas = os.path.join(carpeta, "firmas.json")
+    if os.path.exists(ruta_firmas):
+        try:
+            firmas = json.load(open(ruta_firmas, encoding="utf-8"))
+        except Exception:
+            firmas = {}
     for mid, r in res.items():
         if not r.get("ok"):
             firmas[mid] = {"firma": "SIN_RESPUESTA", "error": r.get("error")}
@@ -859,10 +900,14 @@ def main() -> None:
     i.set_defaults(f=cmd_init)
 
     sub.add_parser("ronda1", help="respuestas independientes").set_defaults(f=cmd_ronda1)
-    sub.add_parser("ronda2", help="debate anonimo y votacion").set_defaults(f=cmd_ronda2)
+
+    r2 = sub.add_parser("ronda2", help="debate anonimo y votacion")
+    r2.add_argument("--solo", default="", help="reintentar solo estos miembros, p.ej. M5")
+    r2.set_defaults(f=cmd_ronda2)
 
     r3 = sub.add_parser("ronda3", help="firma de la propuesta final")
     r3.add_argument("--propuesta", default="")
+    r3.add_argument("--solo", default="", help="reintentar solo estos miembros, p.ej. M5")
     r3.set_defaults(f=cmd_ronda3)
 
     sub.add_parser("recuento", help="cuenta votos y firmas").set_defaults(f=cmd_recuento)

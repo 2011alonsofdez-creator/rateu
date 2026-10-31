@@ -80,6 +80,15 @@ También declara su **línea roja**: el punto que, si cae, le impide firmar.
 python3 council/council.py ronda2
 ```
 
+**Si un miembro falla**, reintenta solo a ese en lugar de repetir (y repagar)
+la ronda entera. Sus votos se fusionan con los ya emitidos:
+
+```bash
+python3 council/council.py ronda2 --solo M5
+```
+
+Funciona igual en la ronda 3. Admite varios: `--solo M3,M5`.
+
 ### Ronda 3 — firma
 
 El secretario redacta `propuesta_final.md` a partir del debate. Cada miembro la
@@ -116,4 +125,10 @@ council/runs/<fecha>-<pregunta>/
   «Incidencias». Nunca se inventa un voto.
 - **Recuento honesto**: si no votan los 5, el resultado no se llama «unánime»
   sino «acuerdo de los que votaron», con el número de ausencias.
+- **Reintentos quirúrgicos**: `--solo M5` vuelve a llamar únicamente al miembro
+  caído y fusiona su voto con los que ya estaban, sin repetir el gasto de los
+  demás.
+- **Modelos que razonan**: si un modelo agota su presupuesto de tokens pensando
+  y no llega a escribir, el error lo dice y nombra la solución, en vez del
+  inútil «respuesta vacía». Una respuesta truncada también se avisa.
 - Sin dependencias externas: solo biblioteca estándar de Python.
