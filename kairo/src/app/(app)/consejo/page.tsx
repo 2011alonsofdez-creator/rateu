@@ -55,6 +55,73 @@ const VEREDICTO: Record<Resultado["veredicto"], string> = {
   sin_votos: "Sin votos",
 };
 
+/* Un miembro de la mesa, con su estado a la vista.
+ *
+ * El punto que late mientras piensa no es decoración: una deliberación
+ * tarda minutos, y sin señal de vida cualquiera cree que se ha colgado
+ * y recarga la página a mitad. */
+function Puesto({
+  miembro,
+  pensando,
+  hecho,
+}: {
+  miembro: Miembro;
+  pensando: boolean;
+  hecho?: Intervencion;
+}) {
+  const gratis = miembro.refs?.[0]?.startsWith("cli:");
+  const caido = hecho && !hecho.ok;
+
+  const borde = pensando
+    ? "border-acento/50 bg-acento/5"
+    : caido
+      ? "border-red-500/30 bg-red-500/5"
+      : hecho
+        ? "border-emerald-500/30 bg-emerald-500/5"
+        : "border-line bg-panel";
+
+  return (
+    <div
+      title={miembro.refs?.[0] ?? miembro.modelo}
+      className={`flex items-center gap-2.5 rounded-xl border p-3 transition-colors ${borde}`}
+    >
+      <span className="relative flex h-2 w-2 shrink-0">
+        {pensando && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acento opacity-75" />
+        )}
+        <span
+          className={`relative inline-flex h-2 w-2 rounded-full ${
+            pensando
+              ? "bg-acento"
+              : caido
+                ? "bg-red-400"
+                : hecho
+                  ? "bg-emerald-400"
+                  : "bg-line-hi"
+          }`}
+        />
+      </span>
+
+      <div className="min-w-0">
+        <p className="truncate text-[13px] font-medium">{miembro.casa}</p>
+        <p className="truncate text-[11.5px] text-muted">
+          {pensando
+            ? "pensando…"
+            : caido
+              ? "no contestó"
+              : hecho
+                ? "ha respondido"
+                : miembro.secretario
+                  ? "secretario · no vota"
+                  : gratis
+                    ? "gratis"
+                    : "en espera"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /* Quién contestó y quién no.
  *
  * El motivo del fallo se enseña entero, no escondido en un emergente al
@@ -131,11 +198,22 @@ export default function Consejo() {
 
   const [r1, setR1] = useState<Intervencion[]>([]);
   const [r2, setR2] = useState<Intervencion[]>([]);
+  /* Quién está pensando ahora mismo. Sin esto, la pantalla se quedaba
+     quieta uno o dos minutos y luego aparecían todos de golpe: no se
+     veía que el consejo estaba trabajando ni quién iba quedando. */
+  const [pensando, setPensando] = useState<Set<string>>(new Set());
   const [verificacion, setVerificacion] = useState("");
   const [puntos, setPuntos] = useState<Punto[]>([]);
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [propuesta, setPropuesta] = useState("");
   const [veredictos, setVeredictos] = useState<Veredicto[]>([]);
+  /* Las firmas llegan de una vez al final de la ronda 3; para la mesa se
+     convierten en intervenciones, que es lo que la tarjeta entiende. */
+  const r3: Intervencion[] = veredictos.map((v) => ({
+    miembro: v.miembro,
+    texto: "",
+    ok: v.firma !== "sin_respuesta",
+  }));
   const [sintesis, setSintesis] = useState("");
   const [segundos, setSegundos] = useState<number | null>(null);
 
@@ -193,6 +271,7 @@ export default function Consejo() {
     setDetalle(null);
     setAvisos([]);
     setMaterial(null);
+    setPensando(new Set());
   }
 
   async function deliberar() {
@@ -260,12 +339,21 @@ export default function Consejo() {
         } else {
           setFase(e.fase);
           setDetalle(e.detalle ?? null);
+          if (e.fase === "ronda1") setPensando(new Set(miembros.map((m) => m.id)));
+          else if (e.fase === "ronda2" || e.fase === "ronda3") {
+            setPensando(new Set(miembros.filter((m) => !m.secretario).map((m) => m.id)));
+          } else setPensando(new Set());
         }
         break;
       case "transcrito":
         setMaterial({ letras: e.letras, de: e.de });
         break;
       case "intervencion":
+        setPensando((x) => {
+          const y = new Set(x);
+          y.delete(e.v.miembro);
+          return y;
+        });
         if (e.ronda === 1) setR1((x) => [...x, e.v]);
         else if (e.ronda === 2) setR2((x) => [...x, e.v]);
         break;
@@ -313,19 +401,19 @@ export default function Consejo() {
         Sirve para lo que un solo modelo no puede hacer: contradecirse a sí mismo.
       </p>
 
-      {/* Quién está en la mesa, antes de preguntar nada. */}
+      {/* La mesa. Cada miembro es una tarjeta que cambia de estado según
+          va la deliberación: esperando, pensando, ha contestado, se cayó.
+          Es lo que convierte dos minutos de pantalla quieta en algo que
+          se puede mirar. */}
       {miembros.length > 0 && (
-        <section className="mt-6 flex flex-wrap gap-2">
+        <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {miembros.map((m) => (
-            <span
+            <Puesto
               key={m.id}
-              title={m.refs?.[0] ?? m.modelo}
-              className="rounded-lg border border-line bg-panel px-2.5 py-1 text-[12.5px] text-muted"
-            >
-              {m.casa}
-              {m.refs?.[0]?.startsWith("cli:") ? " · gratis" : ""}
-              {m.secretario ? " · secretario, no vota" : ""}
-            </span>
+              miembro={m}
+              pensando={pensando.has(m.id)}
+              hecho={[...r3, ...r2, ...r1].find((v) => v.miembro === m.id)}
+            />
           ))}
         </section>
       )}
