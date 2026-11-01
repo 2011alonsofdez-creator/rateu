@@ -275,12 +275,78 @@ def preguntar(modelo: str, sistema: str, usuario: str, clave: str, par: dict) ->
     return {"ok": False, "texto": "", "error": ultimo, "intentos": intentos}
 
 
+def preguntar_cli(miembro: dict, sistema: str, usuario: str, par: dict) -> dict:
+    """Llama a un miembro ejecutando SU programa, no su API.
+
+    Es lo que hace la diferencia entre pagar por token y no pagar: codex
+    entra con la suscripcion de ChatGPT, gemini con la cuota gratuita de
+    la cuenta de Google, qwen con la suya. El consejo no se entera: pide
+    una respuesta y recibe texto, igual que por HTTP.
+
+    El prompt va por la entrada estandar y no como argumento. Un prompt
+    con un PDF dentro pasa de los 100.000 caracteres, y el sistema corta
+    la linea de comandos mucho antes: pasarlo por argumento falla con un
+    'Argument list too long' que no se parece en nada al problema real.
+    """
+    import subprocess
+
+    comando = list(miembro.get("comando") or [])
+    if not comando:
+        return {"ok": False, "texto": "", "error": "este miembro no tiene 'comando' en la configuracion"}
+
+    # El '-' final es la convencion de "lee de la entrada estandar".
+    entrada = f"{sistema}\n\n---\n\n{usuario}"
+    intentos = int(par.get("reintentos", 2))
+    timeout = int(par.get("timeout_segundos", 600))
+    ultimo = ""
+
+    for intento in range(1, intentos + 1):
+        try:
+            r = subprocess.run(
+                comando, input=entrada.encode(), capture_output=True,
+                timeout=timeout, check=False,
+            )
+            salida = r.stdout.decode("utf-8", "replace").strip()
+            if r.returncode != 0 and not salida:
+                err = r.stderr.decode("utf-8", "replace").strip()[:300]
+                ultimo = f"salio con codigo {r.returncode}: {err or 'sin mensaje'}"
+                raise RuntimeError(ultimo)
+            if not salida:
+                ultimo = "el programa no escribio nada"
+                raise RuntimeError(ultimo)
+            return {"ok": True, "texto": salida, "modelo_servido": comando[0], "intentos": intento}
+        except FileNotFoundError:
+            # Sin reintentos: un programa que no esta no va a aparecer solo.
+            return {
+                "ok": False, "texto": "",
+                "error": f"no encuentro el programa '{comando[0]}'. "
+                         f"Instalalo: {miembro.get('instalar', 'ver la configuracion')}",
+            }
+        except subprocess.TimeoutExpired:
+            ultimo = f"no contesto en {timeout}s"
+        except Exception as e:
+            ultimo = f"{type(e).__name__}: {e}"
+
+        if intento < intentos:
+            espera = 2 ** intento
+            log(f"    reintento {intento+1}/{intentos} de {comando[0]} en {espera}s ({ultimo[:80]})")
+            time.sleep(espera)
+
+    return {"ok": False, "texto": "", "error": ultimo, "intentos": intentos}
+
+
 def en_paralelo(tareas: list[tuple], clave: str, par: dict) -> dict:
     """tareas = [(miembro_dict, sistema, usuario), ...] -> {id: resultado}"""
     salida: dict[str, dict] = {}
+    por_cli = par.get("transporte") == "cli"
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(tareas) or 1) as pool:
         futuros = {
-            pool.submit(preguntar, m["modelo"], s, u, clave, par): m for m, s, u in tareas
+            (
+                pool.submit(preguntar_cli, m, s, u, par)
+                if por_cli
+                else pool.submit(preguntar, m["modelo"], s, u, clave, par)
+            ): m
+            for m, s, u in tareas
         }
         for fut in concurrent.futures.as_completed(futuros):
             m = futuros[fut]
@@ -322,6 +388,11 @@ def run_actual() -> str:
     if not os.path.isdir(ruta):
         muere(f"la carpeta del run no existe: {ruta}")
     return ruta
+
+
+def clave_si_hace_falta(estado: dict) -> str:
+    """Un consejo por programas no necesita clave de OpenRouter."""
+    return "" if estado["parametros"].get("transporte") == "cli" else leer_clave()
 
 
 def leer_material(run: str) -> str:
@@ -556,9 +627,65 @@ def prompt_r3(pregunta: str, propuesta: str, material: str = "") -> str:
 # comandos
 # --------------------------------------------------------------------------
 
+def doctor_cli(cfg: dict) -> None:
+    """Comprueba que los programas de cada miembro existen y contestan.
+
+    No basta con que el ejecutable este: cada CLI tiene su forma de
+    recibir el prompt y sus propios flags, y los de aqui son una
+    suposicion razonable. Por eso se les hace una pregunta de verdad, muy
+    corta, y se ensena lo que contestan. Si uno falla, el comando de la
+    configuracion es lo primero que hay que corregir."""
+    import shutil
+    import subprocess
+
+    print("\n== Consejo por programas instalados (sin API) ==\n")
+    listos = 0
+
+    for m in cfg["miembros"]:
+        comando = list(m.get("comando") or [])
+        nombre = comando[0] if comando else "?"
+        etiqueta = f"{m['id']} {m['fabricante']:<10}"
+
+        if not comando or not shutil.which(nombre):
+            print(f"  FALTA  {etiqueta} '{nombre}' no esta instalado")
+            print(f"         {m.get('instalar', '')}")
+            continue
+
+        try:
+            r = subprocess.run(
+                comando, input=b"Responde solo con la palabra: LISTO",
+                capture_output=True, timeout=120, check=False,
+            )
+            salida = r.stdout.decode("utf-8", "replace").strip()
+            if salida:
+                listos += 1
+                print(f"  OK     {etiqueta} {nombre} -> {salida.splitlines()[0][:60]}")
+            else:
+                err = r.stderr.decode("utf-8", "replace").strip().splitlines()
+                print(f"  FALLA  {etiqueta} {nombre} no escribio nada")
+                print(f"         codigo {r.returncode}: {(err[0] if err else '')[:90]}")
+                print(f"         revisa 'comando' en la configuracion")
+        except subprocess.TimeoutExpired:
+            print(f"  FALLA  {etiqueta} {nombre} no contesto en 120s")
+            print(f"         puede estar esperando a que inicies sesion: ejecutalo tu primero")
+        except Exception as e:
+            print(f"  FALLA  {etiqueta} {nombre}: {type(e).__name__}: {e}")
+
+    print(f"\n  {listos} de {len(cfg['miembros'])} miembros listos.")
+    print("  Con el secretario (Claude Code, que eres tu) hacen "
+          f"{listos + 1}.\n")
+    if listos < 2:
+        print("  Hacen falta al menos 2 votantes de casas distintas para que haya debate.\n")
+
+
 def cmd_doctor(args) -> None:
     """Comprueba clave, red y que los IDs de modelo existan en OpenRouter."""
     cfg = cargar_config(getattr(args, "config", ""))
+
+    # Un consejo por programas no toca OpenRouter: se comprueba otra cosa.
+    if cfg.get("transporte") == "cli":
+        return doctor_cli(cfg)
+
     print("\n== Comprobacion del consejo ==\n")
 
     if os.environ.get("OPENROUTER_API_KEY", "").strip():
@@ -631,7 +758,7 @@ def cmd_init(args) -> None:
         "miembros": cfg["miembros"],
         "secretario": SECRETARIO,
         "alias": alias,
-        "parametros": cfg["parametros"],
+        "parametros": {**cfg["parametros"], "transporte": cfg.get("transporte", "api")},
         "config": os.path.relpath(args.config or CONFIG, os.path.dirname(RAIZ)),
         "rondas_completadas": [],
     }
@@ -672,7 +799,7 @@ def cmd_init(args) -> None:
 def cmd_ronda1(args) -> None:
     run = run_actual()
     estado = cargar_estado(run, args)
-    clave = leer_clave()
+    clave = clave_si_hace_falta(estado)
     log(f"RONDA 1 — {len(estado['miembros'])} miembros responden en paralelo, a ciegas")
 
     material = leer_material(run)
@@ -701,7 +828,7 @@ def cmd_ronda1(args) -> None:
 def cmd_ronda2(args) -> None:
     run = run_actual()
     estado = cargar_estado(run, args)
-    clave = leer_clave()
+    clave = clave_si_hace_falta(estado)
     d1 = os.path.join(run, "ronda1")
 
     ruta_puntos = os.path.join(run, "puntos.json")
@@ -815,7 +942,7 @@ def cmd_ronda2(args) -> None:
 def cmd_ronda3(args) -> None:
     run = run_actual()
     estado = cargar_estado(run, args)
-    clave = leer_clave()
+    clave = clave_si_hace_falta(estado)
     ruta = args.propuesta or os.path.join(run, "propuesta_final.md")
     if not os.path.exists(ruta):
         muere(f"falta la propuesta final del secretario en {ruta}")

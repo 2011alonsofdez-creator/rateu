@@ -1,0 +1,42 @@
+{
+  "_comentario": "Consejo por PROGRAMAS instalados, no por API. Cada miembro entra con su propia suscripcion o cuota gratuita, asi que no se paga por token. Comprueba cuales tienes con: python3 council/council.py doctor --config council/miembros-cli.json",
+  "transporte": "cli",
+  "miembros": [
+    {
+      "id": "M1",
+      "fabricante": "OpenAI",
+      "modelo": "codex",
+      "comando": ["codex", "exec", "--skip-git-repo-check", "-"],
+      "instalar": "npm install -g @openai/codex   (luego: codex login, con tu cuenta de ChatGPT)"
+    },
+    {
+      "id": "M2",
+      "fabricante": "Google",
+      "modelo": "gemini-cli",
+      "comando": ["gemini", "-p", "-"],
+      "instalar": "npm install -g @google/gemini-cli   (luego: gemini, y entras con tu cuenta de Google)"
+    },
+    {
+      "id": "M3",
+      "fabricante": "Qwen",
+      "modelo": "qwen-code",
+      "comando": ["qwen", "-p", "-"],
+      "instalar": "npm install -g @qwen-code/qwen-code   (tiene cuota gratuita diaria)"
+    },
+    {
+      "id": "M4",
+      "fabricante": "xAI",
+      "modelo": "grok-cli",
+      "comando": ["grok", "-p", "-"],
+      "instalar": "no hay CLI oficial de xAI; si usas uno de terceros, pon aqui su comando"
+    },
+    {
+      "id": "M5",
+      "fabricante": "DeepSeek",
+      "modelo": "deepseek-cli",
+      "comando": ["deepseek", "-p", "-"],
+      "instalar": "no hay CLI oficial; usa la configuracion de OpenRouter para este miembro"
+    }
+  ],
+  "parametros": { "timeout_segundos": 600, "reintentos": 2 }
+}

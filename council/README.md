@@ -29,12 +29,15 @@ Comprueba ambas cosas y que los IDs de modelo siguen existiendo:
 python3 council/council.py doctor
 ```
 
-### Dos configuraciones
+### Tres configuraciones
 
 - `council/miembros.json` — buques insignia de cada fabricante. Unos **0,50 $
   por deliberación** completa (15 llamadas).
 - `council/miembros-economico.json` — gama baja, mismos cinco fabricantes, para
   probar el circuito por céntimos.
+- `council/miembros-cli.json` — **sin API y sin pagar por token**: cada miembro
+  entra ejecutando su propio programa instalado, con su suscripción o su cuota
+  gratuita. Ver abajo.
 
 Para usar la económica, pásala en el `init`:
 
@@ -44,6 +47,34 @@ python3 council/council.py init --config council/miembros-economico.json --pregu
 
 Si algún modelo ya no existe, `doctor` te lista las alternativas disponibles de
 ese mismo fabricante para que las pongas en `council/miembros.json`.
+
+## Consejo sin pagar por token
+
+En vez de llamar a una API que cobra por uso, cada miembro puede entrar
+ejecutando **su propio programa** en tu ordenador. Codex va con tu suscripción
+de ChatGPT, Gemini con la cuota gratuita de tu cuenta de Google, Qwen con la
+suya. El consejo no se entera: pide una respuesta y recibe texto.
+
+Mira cuáles tienes instalados:
+
+```bash
+python3 council/council.py doctor --config council/miembros-cli.json
+```
+
+Te dice, miembro a miembro, si el programa está, si contesta y cómo instalarlo
+si falta. Luego:
+
+```bash
+python3 council/council.py init --config council/miembros-cli.json --pdf demanda.pdf --pregunta "¿...?"
+```
+
+El resto igual: `ronda1`, `ronda2`, `ronda3`, `recuento`.
+
+Los comandos de `miembros-cli.json` son una suposición razonable, porque cada
+CLI tiene sus propios flags y cambian. Si uno falla, corrige su campo `comando`:
+ahí está lo primero que hay que tocar. El prompt viaja por la **entrada
+estándar**, no como argumento, porque un prompt con un PDF dentro pasa de los
+100.000 caracteres y el sistema corta la línea de comandos mucho antes.
 
 ## El proceso
 
