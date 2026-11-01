@@ -96,13 +96,24 @@ export type Evento =
   | { t: "verificacion"; texto: string }
   | { t: "resultados"; resultados: Resultado[] }
   | { t: "propuesta"; texto: string }
-  | { t: "veredictos"; veredictos: Veredicto[] }
+  | { t: "veredictos"; veredictos: Veredicto[]; vuelta: number }
+  | { t: "renegociando"; vuelta: number; motivos: string[] }
   | { t: "sintesis"; texto: string }
   | { t: "fin"; segundos: number }
   | { t: "error"; mensaje: string };
 
 /** Cuántos miembros votantes como mucho. Seis en total con el secretario. */
 export const VOTANTES_MAX = 5;
+
+/* Cuántas veces se rehace la propuesta buscando que firmen todos.
+ *
+ * El encargo es deliberar HASTA LLEGAR A UN ACUERDO, así que una
+ * propuesta que alguien rechaza no es el final: es una objeción que hay
+ * que atender. Pero tampoco es infinito —cada vuelta cuesta otra ronda
+ * de firmas— y hay desacuerdos que no se cierran por mucho que se
+ * reescriba. Dos reintentos cubren lo que se arregla negociando; lo que
+ * no, se registra como voto particular y se dice. */
+export const RENEGOCIACIONES_MAX = 2;
 
 /** Lo que se le deja ocupar al material de partida dentro de cada prompt.
  *

@@ -195,6 +195,16 @@ python3 council/council.py ronda3
 python3 council/council.py recuento
 ```
 
+**Si alguien no firma, no se acabó.** Cada miembro que rechaza dice qué cambio
+mínimo le haría firmar. El secretario rehace `propuesta_final.md` atendiendo
+esas objeciones —sin vaciarla de contenido para contentar a todos— y vuelve a
+lanzar `ronda3`. Las firmas anteriores se reemplazan por las nuevas.
+
+Dos vueltas suelen bastar. Lo que no se cierra negociando es desacuerdo de
+fondo, y entonces se deja como voto particular en el recuento: una respuesta
+firmada por mayoría con una objeción escrita vale más que una limada hasta que
+no dice nada.
+
 ## Comprobar que los seis están de verdad
 
 ```bash

@@ -13,6 +13,7 @@ import {
 } from "./recuento";
 import {
   MATERIAL_MAX,
+  RENEGOCIACIONES_MAX,
   type Evento,
   type Firma,
   type Intervencion,
@@ -357,9 +358,12 @@ async function leerAdjuntos(
 
   // Lo que no se ha podido extraer, que lo mire quien sepa ver archivos.
   if (paraElModelo.length) {
+    /* Un programa local no recibe archivos, y `aceptaArchivos` no lo sabe:
+       no conoce el prefijo "cli:" y lo confunde con Gemini, así que daría
+       por bueno un lector que luego no puede ver nada. Se descartan aquí. */
     const lectores = c.miembros
       .flatMap((m) => m.refs.map((ref) => ({ m, ref })))
-      .filter(({ ref }) => aceptaArchivos(ref));
+      .filter(({ ref }) => !esRefCli(ref) && aceptaArchivos(ref));
 
     if (!lectores.length) {
       console.warn("[consejo] ningún miembro acepta archivos y quedan sin leer");
@@ -660,46 +664,131 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
     emitir({ t: "error", mensaje: `El secretario no pudo redactar la propuesta: ${prop.error}` });
     return;
   }
-  if (pareceCortado(prop.texto)) {
-    console.warn("[consejo] la propuesta parece cortada por el límite de escritura");
-    emitir({
-      t: "fase",
-      fase: "aviso",
-      detalle:
-        "La respuesta acordada parece haberse quedado a medias por el límite de " +
-        "escritura. Los miembros la han firmado tal como está.",
+  /* --- Rondas 3 y siguientes: firmar, y renegociar si alguien no firma ---
+   *
+   * El encargo es deliberar hasta llegar a un acuerdo, así que una
+   * propuesta rechazada no es el final de la sesión: es una objeción
+   * que atender. Cada miembro que no firma dice qué cambio mínimo le
+   * haría firmar, y con eso el secretario la rehace y se vuelve a
+   * votar.
+   *
+   * No es infinito. Hay desacuerdos de fondo que no se cierran por
+   * reescribir, y seguir intentándolo sería gastar rondas para acabar
+   * limando la propuesta hasta que no diga nada. Tras el tope, lo que
+   * quede en contra se registra como voto particular y se dice. */
+  let propuesta = prop.texto;
+  let veredictos: Veredicto[] = [];
+
+  for (let vuelta = 0; vuelta <= RENEGOCIACIONES_MAX; vuelta++) {
+    if (pareceCortado(propuesta)) {
+      console.warn("[consejo] la propuesta parece cortada por el límite de escritura");
+      emitir({
+        t: "fase",
+        fase: "aviso",
+        detalle:
+          "La respuesta acordada parece haberse quedado a medias por el límite de " +
+          "escritura. Los miembros la han firmado tal como está.",
+      });
+    }
+    emitir({ t: "propuesta", texto: propuesta });
+
+    emitir({ t: "fase", fase: vuelta === 0 ? "ronda3" : "refirma" });
+    const textosF = await ronda(
+      c.votantes,
+      3,
+      R3,
+      () => pedirR3(enc.pregunta, propuesta),
+      emitir,
+    );
+
+    veredictos = c.votantes.map((m) => {
+      const texto = textosF.get(m.id);
+      if (!texto) {
+        return { miembro: m.id, firma: "sin_respuesta" as const, motivo: "", reservas: [] };
+      }
+      const d = sacarJson(texto) ?? {};
+      const firma = leerFirma(d.firma);
+      const brutas = d.reservas;
+      const reservas = (Array.isArray(brutas) ? brutas : brutas ? [brutas] : [])
+        .map((x) => String(x).trim())
+        .filter((x) => x && x.toLowerCase() !== "ninguna");
+      return {
+        miembro: m.id,
+        firma: firma ?? ("sin_respuesta" as const),
+        motivo: String(d.motivo ?? "").trim(),
+        reservas,
+        cambioMinimo: String(d.cambio_minimo_para_firmar ?? "").trim(),
+      } as Veredicto & { cambioMinimo?: string };
     });
+
+    emitir({ t: "veredictos", veredictos, vuelta });
+
+    const enContra = veredictos.filter((v) => v.firma === "no_firmo");
+    const hayAcuerdo = enContra.length === 0;
+    console.log(
+      `[consejo] vuelta ${vuelta + 1}: ${veredictos.filter((v) => v.firma !== "no_firmo" && v.firma !== "sin_respuesta").length} a favor, ${enContra.length} en contra`,
+    );
+
+    if (hayAcuerdo || vuelta === RENEGOCIACIONES_MAX) {
+      if (!hayAcuerdo) {
+        emitir({
+          t: "fase",
+          fase: "aviso",
+          detalle:
+            `Después de ${vuelta + 1} intentos sigue sin firmar ${enContra.length} ` +
+            "miembro(s). El desacuerdo es de fondo y queda registrado como voto " +
+            "particular, en vez de limar la respuesta hasta que no diga nada.",
+        });
+      }
+      break;
+    }
+
+    /* A renegociar: se le pasan al secretario las objeciones y el cambio
+       mínimo que cada uno pide, no un «no firmaron» a secas. */
+    const objeciones = enContra
+      .map((v) => {
+        const casa = c.votantes.find((m) => m.id === v.miembro)?.casa ?? v.miembro;
+        const minimo = (v as Veredicto & { cambioMinimo?: string }).cambioMinimo;
+        return `- ${casa} no firma: ${v.motivo}${minimo ? `\n  Cambio mínimo que pide: ${minimo}` : ""}`;
+      })
+      .join("\n");
+
+    emitir({
+      t: "renegociando",
+      vuelta: vuelta + 1,
+      motivos: enContra.map((v) => {
+        const casa = c.votantes.find((m) => m.id === v.miembro)?.casa ?? v.miembro;
+        return `${casa}: ${v.motivo || "sin motivo declarado"}`;
+      }),
+    });
+
+    const rehecha = await preguntar(
+      sec.refs,
+      SEC,
+      `${conMaterial(enc.pregunta, material)}\n\n` +
+        `=== LA RESPUESTA QUE PROPUSISTE ===\n\n${propuesta}\n\n` +
+        `=== QUIÉN NO LA FIRMA Y POR QUÉ ===\n\n${objeciones}\n\n=== FIN ===\n\n---\n\n` +
+        `Rehaz la respuesta para que puedan firmarla, sin traicionar lo que ya se votó.\n\n` +
+        `- Atiende cada objeción: o la incorporas, o explicas dentro del texto por qué ` +
+        `la posición contraria no se sostiene. Lo que no vale es ignorarla.\n` +
+        `- No la vacíes de contenido para contentar a todos. Una respuesta que ya no ` +
+        `dice nada es peor que una firmada por mayoría con un voto particular.\n` +
+        `- Sigue siendo la RESPUESTA a la pregunta, no un acta: nada de "el Miembro A ` +
+        `objetó". Devuelve el texto completo, listo para votar otra vez.`,
+      10000,
+    );
+
+    if (!rehecha.ok) {
+      emitir({
+        t: "fase",
+        fase: "aviso",
+        detalle: `No se pudo rehacer la respuesta (${rehecha.error}). Se queda la anterior.`,
+      });
+      break;
+    }
+    propuesta = rehecha.texto;
   }
-  emitir({ t: "propuesta", texto: prop.texto });
 
-  // --- Ronda 3: firma ---
-  emitir({ t: "fase", fase: "ronda3" });
-  const textos3 = await ronda(
-    c.votantes,
-    3,
-    R3,
-    () => pedirR3(enc.pregunta, prop.texto),
-    emitir,
-  );
-
-  const veredictos: Veredicto[] = c.votantes.map((m) => {
-    const texto = textos3.get(m.id);
-    if (!texto) return { miembro: m.id, firma: "sin_respuesta", motivo: "", reservas: [] };
-    const d = sacarJson(texto);
-    const firma = leerFirma(d?.firma);
-    const brutas = d?.reservas;
-    const reservas = (Array.isArray(brutas) ? brutas : brutas ? [brutas] : [])
-      .map((x) => String(x).trim())
-      .filter((x) => x && x.toLowerCase() !== "ninguna");
-    return {
-      miembro: m.id,
-      firma: firma ?? "sin_respuesta",
-      motivo: String(d?.motivo ?? "").trim(),
-      reservas,
-    };
-  });
-
-  emitir({ t: "veredictos", veredictos });
   emitir({ t: "fin", segundos: Math.round((Date.now() - arranque) / 1000) });
 }
 

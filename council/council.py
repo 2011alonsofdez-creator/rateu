@@ -785,7 +785,7 @@ def cmd_init(args) -> None:
         "miembros": cfg["miembros"],
         "secretario": SECRETARIO,
         "alias": alias,
-        "parametros": {**cfg["parametros"], "transporte": cfg.get("transporte", "api")},
+        "parametros": cfg["parametros"],
         "config": os.path.relpath(args.config or CONFIG, os.path.dirname(RAIZ)),
         "rondas_completadas": [],
     }
@@ -803,18 +803,25 @@ def cmd_init(args) -> None:
         El material viaja en TODAS las llamadas de TODAS las rondas, asi
         que un documento largo multiplica la factura por quince sin que se
         note en ningun sitio hasta que llega el recibo."""
-        n = len(cfg["miembros"])
-        # Regla gruesa: ~4 caracteres por token, y la ronda 2 lleva ademas
-        # el dossier con las respuestas de los otros.
-        tokens_doc = len(material) // 4
+        # Solo cuentan los que se pagan: los que entran por su programa
+        # instalado van con su cuota y no suman a la factura.
+        de_pago = [m for m in cfg["miembros"] if not m.get("comando")]
+        gratis = len(cfg["miembros"]) - len(de_pago)
+        tokens_doc = len(material) // 4  # regla gruesa: ~4 caracteres por token
         print(
             f"\nAVISO DE COSTE: el material son {len(material)} caracteres "
-            f"(~{tokens_doc} tokens) y viaja en cada llamada.\n"
-            f"  Las 3 rondas = {n * 3} llamadas, asi que el documento se paga "
-            f"{n * 3} veces.\n"
-            f"  Con documentos largos sale mucho mas barato usar la "
-            f"configuracion economica, o acortar el material."
+            f"(~{tokens_doc} tokens) y viaja en cada llamada."
         )
+        if de_pago:
+            print(
+                f"  Las 3 rondas son {len(de_pago) * 3} llamadas de pago"
+                + (f" (y {gratis * 3} gratis, por programa)" if gratis else "")
+                + f", asi que el documento se paga {len(de_pago) * 3} veces."
+            )
+            print("  Con documentos largos, acorta el material o usa la "
+                  "configuracion economica.")
+        else:
+            print("  Todos los miembros entran por su programa: no cuesta nada.")
 
     print(f"\nDeliberacion abierta: {run}")
     print("Alias anonimos asignados (solo los ve el secretario):")

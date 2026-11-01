@@ -31,6 +31,7 @@ import {
  */
 
 const FASES: Record<string, string> = {
+  refirma: "Vuelven a votar la respuesta rehecha",
   transcribiendo: "Leyendo los archivos",
   ronda1: "Ronda 1 · responden a ciegas",
   sintesis: "El secretario redacta el acta",
@@ -371,6 +372,17 @@ export default function Consejo() {
         break;
       case "veredictos":
         setVeredictos(e.veredictos);
+        break;
+      case "renegociando":
+        /* Una propuesta rechazada no es el final: el secretario la rehace
+           atendiendo las objeciones y se vuelve a votar. Se cuenta en
+           pantalla porque es la parte que más se parece a negociar. */
+        setVeredictos([]);
+        setAvisos((x) => [
+          ...x,
+          `Vuelta ${e.vuelta}: no firmaron todos, así que el secretario rehace la ` +
+            `respuesta atendiendo a ${e.motivos.join(" · ")}`,
+        ]);
         break;
       case "sintesis":
         setSintesis(e.texto);
