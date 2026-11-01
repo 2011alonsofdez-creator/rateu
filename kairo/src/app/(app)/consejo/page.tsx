@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/Markdown";
 import { Clip, Close, Team } from "@/components/Icons";
-import { ADJUNTOS, ADJUNTOS_ACEPTADOS, type Adjunto } from "@/lib/tipos";
+import { ADJUNTOS_ACEPTADOS, type Adjunto } from "@/lib/tipos";
+import { DOCUMENTOS } from "@/lib/consejo/documentos";
 import {
   ETIQUETA_FIRMA,
   ETIQUETA_VOTO,
@@ -271,8 +272,8 @@ export default function Consejo() {
   async function añadir(lista: FileList | null) {
     if (!lista?.length) return;
     const nuevos: Adjunto[] = [];
-    for (const f of Array.from(lista).slice(0, ADJUNTOS.max - archivos.length)) {
-      if (f.size > ADJUNTOS.bytesPorArchivo) {
+    for (const f of Array.from(lista).slice(0, DOCUMENTOS.max - archivos.length)) {
+      if (f.size > DOCUMENTOS.bytesPorArchivo) {
         setError(`"${f.name}" pasa del tamaño máximo por archivo.`);
         continue;
       }
@@ -283,7 +284,7 @@ export default function Consejo() {
       });
       nuevos.push({ nombre: f.name, tipo: f.type, datos, bytes: f.size });
     }
-    setArchivos((a) => [...a, ...nuevos].slice(0, ADJUNTOS.max));
+    setArchivos((a) => [...a, ...nuevos].slice(0, DOCUMENTOS.max));
   }
 
   function limpiar() {

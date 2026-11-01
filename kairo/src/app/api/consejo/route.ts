@@ -1,4 +1,4 @@
-import { revisarAdjuntos } from "@/lib/ia/adjuntos";
+import { revisarDocumentos } from "@/lib/consejo/documentos";
 import { formarConsejo, hayConsejo } from "@/lib/consejo/miembros";
 import { flujo, type Encargo } from "@/lib/consejo/motor";
 import type { Modo } from "@/lib/consejo/tipos";
@@ -50,11 +50,17 @@ export async function POST(peticion: Request) {
 
   const modo: Modo = cuerpo.modo === "completo" ? "completo" : "rapido";
 
-  /* Los archivos pasan por la misma revisión que en el chat. No es por
-     ahorrar código: es que esa función es la que decide de verdad qué
-     entra, y el navegador no decide nada porque la petición se puede
-     escribir a mano. */
-  const archivos = revisarAdjuntos(cuerpo.adjuntos);
+  /* El consejo tiene sus propios límites, más holgados que los del chat:
+     un expediente son varios papeles y vienen de uno en uno. Puede
+     permitírselo porque el PDF no viaja entero a ningún modelo: se le
+     saca el texto aquí y lo que se manda son caracteres.
+
+     Se comprueba todo en el servidor aunque el navegador ya lo haya
+     hecho, porque la petición se puede escribir a mano. */
+  const archivos = revisarDocumentos(cuerpo.adjuntos);
+  if (archivos.rechazados.length) {
+    console.warn(`[consejo] archivos rechazados: ${archivos.rechazados.join(" | ")}`);
+  }
 
   const c = formarConsejo();
   if (!hayConsejo(c)) {
@@ -67,8 +73,9 @@ export async function POST(peticion: Request) {
   const encargo: Encargo = {
     pregunta,
     material: archivos.texto,
-    adjuntos: archivos.adjuntos,
+    adjuntos: archivos.documentos,
     modo,
+    rechazados: archivos.rechazados,
   };
 
   return new Response(flujo(encargo), {

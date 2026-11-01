@@ -285,6 +285,8 @@ export type Encargo = {
   /** PDFs e imágenes, para transcribir antes de empezar. */
   adjuntos: Adjunto[];
   modo: Modo;
+  /** Los que no pasaron la revisión, con su motivo. */
+  rechazados?: string[];
 };
 
 type Emitir = (e: Evento) => void;
@@ -465,6 +467,13 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
   }
 
   emitir({ t: "consejo", miembros: c.miembros, modo: enc.modo });
+
+  /* Un archivo que no entra tiene que decirse. Desaparecer en silencio
+     es lo que hace que alguien discuta un expediente al que le falta un
+     papel sin enterarse. */
+  for (const r of enc.rechazados ?? []) {
+    emitir({ t: "fase", fase: "aviso", detalle: `Archivo no admitido — ${r}` });
+  }
   if (c.aviso) emitir({ t: "fase", fase: "aviso", detalle: c.aviso });
 
   const sec = c.sec!;
