@@ -19,8 +19,11 @@ import { spawn } from "node:child_process";
 /** Los programas que sabemos invocar, y cómo. */
 const PROGRAMAS: Record<string, { casa: string; comando: string[] }> = {
   codex: { casa: "OpenAI", comando: ["codex", "exec", "--skip-git-repo-check", "-"] },
-  gemini: { casa: "Google", comando: ["gemini", "-p", "-"] },
-  qwen: { casa: "Qwen", comando: ["qwen", "-p", "-"] },
+  /* gemini y qwen leen la entrada estándar cuando se les canaliza algo,
+     y no llevan argumento. Poner "-p -" les pasaba un guion COMO
+     pregunta, que es lo que hacía que salieran con código 1. */
+  gemini: { casa: "Google", comando: ["gemini"] },
+  qwen: { casa: "Qwen", comando: ["qwen"] },
   claude: { casa: "Anthropic", comando: ["claude", "-p"] },
 };
 

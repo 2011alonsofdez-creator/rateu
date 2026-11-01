@@ -661,9 +661,16 @@ def doctor_cli(cfg: dict) -> None:
                 listos += 1
                 print(f"  OK     {etiqueta} {nombre} -> {salida.splitlines()[0][:60]}")
             else:
-                err = r.stderr.decode("utf-8", "replace").strip().splitlines()
+                # Las primeras lineas suelen ser avisos de color; el error de
+                # verdad viene detras, asi que se ensenan varias y mas largas.
+                err = [
+                    l for l in r.stderr.decode("utf-8", "replace").strip().splitlines()
+                    if l.strip() and "true color" not in l.lower()
+                ]
                 print(f"  FALLA  {etiqueta} {nombre} no escribio nada")
-                print(f"         codigo {r.returncode}: {(err[0] if err else '')[:90]}")
+                print(f"         codigo {r.returncode}: {(err[0] if err else 'sin mensaje')[:200]}")
+                for extra in err[1:3]:
+                    print(f"         {extra[:200]}")
                 print(f"         revisa 'comando' en la configuracion")
         except subprocess.TimeoutExpired:
             print(f"  FALLA  {etiqueta} {nombre} no contesto en 120s")
