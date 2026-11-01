@@ -1140,6 +1140,25 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   radar estrena hoy y el de crecimiento el 14— y se arregla en las Rutinas de
   claude.ai, que son del dueño.
 
+  **Se ha cumplido, el 2026-11-01, el primer día que podía cumplirse**
+  `[radar 2026-11-01]`. Esta entrada decía "hoy no ha hecho daño": hoy sí, y de
+  las dos formas que anunciaba. **El radar corrió el 31-10 y otra vez el 01-11**,
+  un día después en vez de tres, y por eso el informe de hoy es un apéndice y no
+  una revisión: una tabla entera con veinticuatro horas de diferencia habría
+  sido la de ayer con otra fecha. **Y crecimiento corrió el 29-10 y su siguiente
+  vez es el 02-11**, cuatro días, confirmado en su propio `next_run_at`. En un
+  mes de 31 días el radar hace once pasadas en vez de diez y crecimiento se deja
+  un hueco de cuatro; el de crecimiento pasa **todos** los meses.
+  **Lo que añado hoy, que no estaba**: esto **no se arregla cambiando el
+  número**. "Cada 3 días" no se puede escribir en el campo de día del mes,
+  porque ese campo no sabe contar desde la última vez. Las dos salidas reales
+  son ponerlo **diario y que el agente decida si le toca** —mirando la fecha de
+  su último informe, que ya sabe hacer— o aceptar el hueco y dejar de llamarlo
+  "cada 3 días". **La primera arregla además otra cosa**: hoy, si un agente
+  pierde un turno, la serie entera se desplaza.
+  Sigue siendo suyo: son tareas programadas, no están en el repositorio, y
+  cambiarlas no es de un agente. Es una línea en su panel.
+
 - **Los cuatro enlaces del pie van todos a `/legal`.** `[origen: guardian 2026-10-12]`
   `SiteHeader.tsx:89-92` enseña "legal", "privacidad", "cookies" y "términos",
   y los cuatro abren la misma página. Es mejor que no tener nada, y por eso no

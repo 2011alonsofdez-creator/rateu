@@ -4,7 +4,17 @@
 > está en `informes/`.
 
 **Última revisión**: 2026-10-31 ([informe](informes/2026-10-31-estado.md))
-**Semáforo general**: 🔴 **los planes de pago venden lo que Kairo no tiene, y el arreglo está en la rama**
+· apéndice del [01-11](informes/2026-11-01-estado.md), de un día, porque el cron
+del radar se adelantó
+**Semáforo general**: 🔴 **los planes de pago venden lo que Kairo no tiene y los cuatro textos legales no existen; los dos arreglos esperan una respuesta suya**
+
+> **Lo añadido el 01-11, sin rehacer la tabla**: los **cuatro documentos
+> legales no existen** —`/legal` lo dice de sí misma— y el checklist los lleva
+> en ✅ desde el 12-10 porque esa fila mide el **enlace**, no el **documento**.
+> Es P1 y espera cuatro datos del dueño. Y la buena del día: el **primer
+> conflicto de fusión** del proyecto se resolvió sin perder trabajo, porque el
+> guardián lo detectó por la mañana y dejó la resolución escrita para el que
+> fusionara después. **92 commits sin fusionar.**
 
 ## Métricas
 
