@@ -32,10 +32,21 @@ export function cliActivo(): boolean {
   return process.env.KAIRO_CONSEJO_CLI === "1";
 }
 
-/** Los nombres que puedes usar, ya filtrados por lo que hayas encendido. */
+/* Los nombres que puedes usar, ya filtrados por lo que hayas encendido.
+ *
+ * De serie va solo codex. Los otros dos están en la tabla porque sus
+ * programas existen, pero hoy no sirven para esto: Google cerró el
+ * acceso gratuito de su CLI para particulares ("IneligibleTierError:
+ * no longer supported for Gemini Code Assist for individuals") y Qwen
+ * solo ofrece plan de pago o clave de API. Ponerlos por delante
+ * gastaba una llamada fallida por miembro y por ronda, y además la
+ * pantalla los anunciaba como gratis cuando no lo eran.
+ *
+ * Si alguno vuelve a abrir, o usas otro, se añaden con
+ * KAIRO_CONSEJO_CLI_PROGRAMAS="codex,gemini". */
 export function programasCli(): string[] {
   if (!cliActivo()) return [];
-  const elegidos = (process.env.KAIRO_CONSEJO_CLI_PROGRAMAS ?? "codex,gemini,qwen")
+  const elegidos = (process.env.KAIRO_CONSEJO_CLI_PROGRAMAS ?? "codex")
     .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
