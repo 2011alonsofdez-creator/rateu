@@ -1,37 +1,53 @@
 {
-  "_comentario": "El consejo de seis, pagando lo menos posible. Los que tienen programa instalado entran por el (gratis, con tu suscripcion o tu cuota); los que no tienen programa oficial van por OpenRouter. El transporte lo decide cada miembro: los que llevan 'comando' se ejecutan, los que llevan 'modelo' se llaman por la API. Comprueba con: python3 council/council.py doctor --config council/miembros-mixto.json",
+  "_comentario": "El consejo de seis, pagando lo menos posible. Codex entra por su programa (gratis, con tu suscripcion de ChatGPT). El resto por OpenRouter: Google cerro el acceso gratuito de su CLI para particulares, y xAI, DeepSeek y Qwen no tienen programa oficial. El transporte lo decide cada miembro: los que llevan 'comando' se ejecutan, los que llevan 'modelo' se llaman por la API. Comprueba con: python3 council/council.py doctor --config council/miembros-mixto.json",
   "miembros": [
     {
       "id": "M1",
       "fabricante": "OpenAI",
       "modelo": "codex (gratis)",
-      "comando": ["codex", "exec", "--skip-git-repo-check", "-"],
+      "comando": [
+        "codex",
+        "exec",
+        "--skip-git-repo-check",
+        "-"
+      ],
       "instalar": "npm install -g @openai/codex  +  codex login"
     },
     {
       "id": "M2",
       "fabricante": "Google",
-      "modelo": "gemini (gratis)",
-      "comando": ["gemini"],
-      "instalar": "npm install -g @google/gemini-cli  +  ejecuta 'gemini' y entra con tu cuenta"
+      "modelo": "google/gemini-4-argon",
+      "alternativas": [
+        "google/gemini-3.1-pro-preview",
+        "google/gemini-2.5-pro"
+      ]
     },
     {
       "id": "M3",
       "fabricante": "xAI",
       "modelo": "x-ai/grok-4.7",
-      "alternativas": ["x-ai/grok-4.6", "x-ai/grok-4.3"]
+      "alternativas": [
+        "x-ai/grok-4.6",
+        "x-ai/grok-4.3"
+      ]
     },
     {
       "id": "M4",
       "fabricante": "DeepSeek",
       "modelo": "deepseek/deepseek-v4-pro",
-      "alternativas": ["deepseek/deepseek-v3.2", "deepseek/deepseek-chat-v3.1"]
+      "alternativas": [
+        "deepseek/deepseek-v3.2",
+        "deepseek/deepseek-chat-v3.1"
+      ]
     },
     {
       "id": "M5",
       "fabricante": "Qwen",
       "modelo": "qwen/qwen3.8-max-prime",
-      "alternativas": ["qwen/qwen3.7-max", "qwen/qwen3.5-397b-a17b"]
+      "alternativas": [
+        "qwen/qwen3.7-max",
+        "qwen/qwen3.5-397b-a17b"
+      ]
     }
   ],
   "parametros": {
