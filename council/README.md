@@ -29,7 +29,7 @@ Comprueba ambas cosas y que los IDs de modelo siguen existiendo:
 python3 council/council.py doctor
 ```
 
-### Tres configuraciones
+### Cuatro configuraciones
 
 - `council/miembros.json` — buques insignia de cada fabricante. Unos **0,50 $
   por deliberación** completa (15 llamadas).
@@ -38,6 +38,9 @@ python3 council/council.py doctor
 - `council/miembros-cli.json` — **sin API y sin pagar por token**: cada miembro
   entra ejecutando su propio programa instalado, con su suscripción o su cuota
   gratuita. Ver abajo.
+- `council/miembros-mixto.json` — **la recomendada**: los seis, pagando lo menos
+  posible. Codex y Gemini por su programa (gratis); xAI, DeepSeek y Qwen por
+  OpenRouter, que no tienen programa oficial.
 
 Para usar la económica, pásala en el `init`:
 
@@ -69,6 +72,13 @@ python3 council/council.py init --config council/miembros-cli.json --pdf demanda
 ```
 
 El resto igual: `ronda1`, `ronda2`, `ronda3`, `recuento`.
+
+**El transporte lo decide cada miembro, no el consejo entero.** Un miembro con
+`comando` se ejecuta; uno con `modelo` se llama por la API. Mezclarlos es lo
+normal: Codex y Gemini tienen programa con cuota propia, y xAI o DeepSeek no
+tienen ninguno, así que obligar a elegir una sola puerta dejaba fuera a media
+mesa por un detalle de fontanería. La clave de OpenRouter solo se pide si algún
+miembro la necesita.
 
 Los comandos de `miembros-cli.json` son una suposición razonable, porque cada
 CLI tiene sus propios flags y cambian. Si uno falla, corrige su campo `comando`:

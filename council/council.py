@@ -338,12 +338,17 @@ def preguntar_cli(miembro: dict, sistema: str, usuario: str, par: dict) -> dict:
 def en_paralelo(tareas: list[tuple], clave: str, par: dict) -> dict:
     """tareas = [(miembro_dict, sistema, usuario), ...] -> {id: resultado}"""
     salida: dict[str, dict] = {}
-    por_cli = par.get("transporte") == "cli"
+    # El transporte lo decide CADA miembro, no el consejo entero.
+    # Un miembro con "comando" entra por su programa instalado; el resto,
+    # por la API. Mezclarlos es lo normal y no lo excepcional: Codex y
+    # Gemini tienen programa con cuota propia, y xAI o DeepSeek no tienen
+    # ninguno, asi que obligar a elegir una sola puerta dejaba fuera a
+    # media mesa por un detalle de fontaneria. 
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(tareas) or 1) as pool:
         futuros = {
             (
                 pool.submit(preguntar_cli, m, s, u, par)
-                if por_cli
+                if m.get("comando")
                 else pool.submit(preguntar, m["modelo"], s, u, clave, par)
             ): m
             for m, s, u in tareas
@@ -391,8 +396,13 @@ def run_actual() -> str:
 
 
 def clave_si_hace_falta(estado: dict) -> str:
-    """Un consejo por programas no necesita clave de OpenRouter."""
-    return "" if estado["parametros"].get("transporte") == "cli" else leer_clave()
+    """La clave solo hace falta si algun miembro entra por la API.
+
+    Con el consejo entero por programas instalados no se pide, para no
+    exigir una clave de OpenRouter a quien no la va a usar."""
+    if any(not m.get("comando") for m in estado["miembros"]):
+        return leer_clave()
+    return ""
 
 
 def leer_material(run: str) -> str:
@@ -627,7 +637,7 @@ def prompt_r3(pregunta: str, propuesta: str, material: str = "") -> str:
 # comandos
 # --------------------------------------------------------------------------
 
-def doctor_cli(cfg: dict) -> None:
+def doctor_cli(cfg: dict, hay_mas: bool = False) -> None:
     """Comprueba que los programas de cada miembro existen y contestan.
 
     No basta con que el ejecutable este: cada CLI tiene su forma de
@@ -678,7 +688,12 @@ def doctor_cli(cfg: dict) -> None:
         except Exception as e:
             print(f"  FALLA  {etiqueta} {nombre}: {type(e).__name__}: {e}")
 
-    print(f"\n  {listos} de {len(cfg['miembros'])} miembros listos.")
+    print(f"\n  {listos} de {len(cfg['miembros'])} por programa listos.")
+    if hay_mas:
+        # Con miembros por API ademas, contar aqui el consejo entero seria
+        # mentir: los de la otra puerta se comprueban justo despues.
+        print()
+        return
     print("  Con el secretario (Claude Code, que eres tu) hacen "
           f"{listos + 1}.\n")
     if listos < 2:
@@ -689,9 +704,14 @@ def cmd_doctor(args) -> None:
     """Comprueba clave, red y que los IDs de modelo existan en OpenRouter."""
     cfg = cargar_config(getattr(args, "config", ""))
 
-    # Un consejo por programas no toca OpenRouter: se comprueba otra cosa.
-    if cfg.get("transporte") == "cli":
-        return doctor_cli(cfg)
+    # Si hay miembros por programa, se comprueban aparte: no tocan OpenRouter.
+    porCli = [m for m in cfg["miembros"] if m.get("comando")]
+    if porCli:
+        doctor_cli({**cfg, "miembros": porCli}, hay_mas=any(not m.get("comando") for m in cfg["miembros"]))
+    porApi = [m for m in cfg["miembros"] if not m.get("comando")]
+    if not porApi:
+        return
+    cfg = {**cfg, "miembros": porApi}
 
     print("\n== Comprobacion del consejo ==\n")
 
