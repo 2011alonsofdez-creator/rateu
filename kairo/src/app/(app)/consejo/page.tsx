@@ -446,8 +446,9 @@ export default function Consejo() {
           abrió es el peor resultado posible, y hasta ahora no se veía. */}
       {material && (
         <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-[13px] leading-relaxed text-emerald-200">
-          Documento leído por {material.de}: {material.letras.toLocaleString("es")} caracteres.
-          Es lo que han visto los seis, igual para todos.
+          {Number(material.de) === 1 ? "Documento leído" : `${material.de} documentos leídos`}:{" "}
+          {material.letras.toLocaleString("es")} caracteres. Es lo que han visto los seis,
+          igual para todos.
         </div>
       )}
 

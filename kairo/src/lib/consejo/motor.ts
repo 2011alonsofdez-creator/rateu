@@ -390,7 +390,7 @@ async function leerAdjuntos(
   }
 
   const todo = trozos.join("\n\n").trim();
-  if (todo) emitir({ t: "transcrito", letras: todo.length, de: "el documento" });
+  if (todo) emitir({ t: "transcrito", letras: todo.length, de: String(adjuntos.length) });
   return todo;
 }
 
