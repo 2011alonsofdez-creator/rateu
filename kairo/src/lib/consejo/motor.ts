@@ -507,25 +507,30 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       SEC,
       `${conMaterial(enc.pregunta, material)}\n\n` +
         `=== LO QUE HA RESPONDIDO CADA MIEMBRO (anónimo) ===\n\n${dossier}\n=== FIN ===\n\n---\n\n` +
-        `Tu trabajo NO es contar cómo fue el debate: es CONTESTAR LA PREGUNTA con lo ` +
-        `mejor de lo que han dicho entre todos. Quien lee esto quiere su respuesta, no ` +
-        `un acta de la reunión.\n\n` +
-        `## Respuesta del consejo\n` +
-        `La respuesta a la pregunta, completa y directa, construida con lo mejor de las ` +
-        `seis. Escríbela como si la firmaras tú: sin "el Miembro A dice", sin repartir ` +
-        `autorías, sin contar que hubo deliberación. Es la parte principal y la más larga.\n\n` +
-        `## Dónde no se ponen de acuerdo\n` +
-        `Solo lo que cambiaría la respuesta según de qué lado caiga. Di qué defiende cada ` +
-        `postura y qué dato lo resolvería. Si el desacuerdo no afecta a la respuesta, omítelo.\n\n` +
+        `CONTESTA LA PREGUNTA. Nada más.\n\n` +
+        `La estructura la manda la pregunta, no una plantilla. Si preguntan por lo más ` +
+        `fuerte y lo más débil, tu respuesta empieza por lo más fuerte y sigue con lo más ` +
+        `débil, con esos títulos. Si preguntan qué hacer, empiezas por qué hacer. Si ` +
+        `preguntan un porcentaje, lo das en la primera línea.\n\n` +
+        `Prohibido:\n` +
+        `- Empezar con preámbulos. Nada de "antes de entrar en el fondo", "conviene ` +
+        `precisar que" ni avisos previos. La primera frase ya responde.\n` +
+        `- Contar que hubo una deliberación, citar miembros, repartir autorías o hablar ` +
+        `del consejo. Quien lee quiere su respuesta, no el acta de la reunión.\n` +
+        `- Dejar sin contestar una parte de lo que se pregunta. Si preguntan dos cosas, ` +
+        `contestas las dos, aunque tengas que ser más breve en cada una.\n\n` +
+        `Escribe con lo mejor de lo que han dicho entre todos, como si lo firmaras tú.\n\n` +
+        `Cuando el desacuerdo entre ellos cambie la respuesta, dilo dentro del texto ` +
+        `("esto depende de X: si X, entonces Y"), no en un apartado aparte.\n\n` +
+        `Al final, y solo si hace falta, puedes añadir estos dos apartados, cortos:\n` +
         `## Lo que no me creo\n` +
-        `Cifras, estudios o fuentes que algún miembro da por buenas y no se sostienen o no ` +
-        `se pueden situar. Di cuál y por qué. Si no hay ninguna, una línea diciéndolo.\n\n` +
-        `## Lo que haría falta saber\n` +
-        `Los datos que faltan y que más cambiarían la respuesta. Si no falta nada, omite ` +
-        `este apartado.\n\n` +
-        `EXTENSIÓN: 600 palabras como mucho en total. Es un tope, no un objetivo: si la ` +
-        `respuesta cabe en 200, mejor. Lo que no vale es empezar largo y quedarse a ` +
-        `medias, porque lo que se pierde al final son las conclusiones.`,
+        `Cifras, estudios o fuentes que algún miembro dio por buenas y no se sostienen. ` +
+        `Omite el apartado si no hay ninguna.\n` +
+        `## Algo que no preguntaste pero te conviene saber\n` +
+        `Como mucho tres líneas, y solo si es importante de verdad. Omítelo si no.\n\n` +
+        `EXTENSIÓN: 600 palabras como mucho, repartidas de modo que TODO lo que se ` +
+        `pregunta quede contestado. Más vale corta y completa que larga y cortada: lo ` +
+        `que se pierde al cortarse es siempre el final, que suele ser lo que faltaba.`,
       16000,
     );
 
@@ -647,20 +652,23 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       `=== CRÍTICAS DE LA RONDA 2 ===\n\n${criticas}\n\n` +
       `=== VOTACIÓN ===\n\n${resumenVotos}\n\n=== FIN ===\n\n---\n\n` +
       `Redacta la POSICIÓN DEL CONSEJO: la respuesta acordada a la pregunta.\n\n` +
-      `Esto es lo que va a leer quien preguntó, y lo que los miembros van a firmar o ` +
-      `rechazar. No es un acta de la sesión: NO cuentes cómo fue el debate, no repartas ` +
-      `autorías ni cites a los miembros por su letra, no expliques el procedimiento. ` +
-      `Contesta la pregunta.\n\n` +
+      `CONTESTA LA PREGUNTA, con la estructura que pide la pregunta. Si preguntan por ` +
+      `lo más fuerte y lo más débil, empiezas por lo más fuerte y sigues con lo más ` +
+      `débil, con esos títulos. Nada de preámbulos: la primera frase ya responde. Si ` +
+      `preguntan dos cosas, contestas las dos.\n\n` +
+      `Esto es lo que va a leer quien preguntó y lo que los miembros van a firmar. NO es ` +
+      `un acta: no cuentes cómo fue el debate, no cites a los miembros por su letra, no ` +
+      `expliques el procedimiento.\n\n` +
       `Reglas:\n` +
       `- Constrúyela desde los VOTOS, no desde tu propia postura de la ronda 1: redactar ` +
       `no te da derecho a decidir.\n` +
-      `- Lo que tuvo respaldo va afirmado, con la letra pequeña de los matices incorporada ` +
-      `al texto, no como lista de quién votó qué.\n` +
+      `- Lo que tuvo respaldo va afirmado, con la letra pequeña de los matices dentro del ` +
+      `texto, no como lista de quién votó qué.\n` +
       `- Donde no hubo acuerdo, dilo dentro de la respuesta: "esto depende de X, y si X ` +
       `entonces Y". Un desacuerdo bien explicado vale más que un consenso de mentira.\n` +
       `- Ninguna cifra que no se sostuviera en la verificación.\n` +
-      `- Entre 400 y 700 palabras, en prosa útil para quien tiene que decidir algo. Es un ` +
-      `tope: más vale corta y entera que larga y cortada a media frase.`,
+      `- 700 palabras como mucho, repartidas de modo que todo lo preguntado quede ` +
+      `contestado. Es un tope: más vale corta y entera que larga y cortada.`,
     16000,
   );
 
