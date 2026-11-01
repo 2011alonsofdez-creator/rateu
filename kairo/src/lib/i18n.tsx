@@ -93,6 +93,22 @@ const dict = {
     "footer.cookies": "Cookies",
     "footer.terms": "Términos",
     "footer.rights": "Todos los derechos reservados.",
+
+    /* El pie, con dos columnas desde el 01-11. La de la izquierda es el
+       único camino que hay desde la web a las cinco páginas de
+       intención: estaban las cinco en el `sitemap.xml` y no se llegaba a
+       ninguna desde ninguna parte, o sea que existían para Google y no
+       para un visitante. Veintiún días así.
+       Los nombres son cortos a propósito: en el pie no cabe un titular,
+       y lo que tiene que reconocerse es el problema —"Multas"—, no la
+       promesa. */
+    "footer.solves": "Lo que resuelve",
+    "footer.legalTitle": "Legal",
+    "footer.multas": "Multas",
+    "footer.cartas": "Cartas de Hacienda",
+    "footer.contratos": "Contratos",
+    "footer.app": "Crear una app",
+    "footer.sinSuscripcion": "Sin suscripción",
     "footer.tagline": "La IA que trabaja cuando tú no.",
 
     "app.newChat": "Nuevo chat",
@@ -650,6 +666,14 @@ const dict = {
     "footer.cookies": "Cookies",
     "footer.terms": "Terms",
     "footer.rights": "All rights reserved.",
+
+    "footer.solves": "What it solves",
+    "footer.legalTitle": "Legal",
+    "footer.multas": "Fines",
+    "footer.cartas": "Tax letters",
+    "footer.contratos": "Contracts",
+    "footer.app": "Build an app",
+    "footer.sinSuscripcion": "No subscription",
     "footer.tagline": "The AI that works when you don't.",
 
     "app.newChat": "New chat",

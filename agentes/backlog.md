@@ -13,6 +13,49 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Los cuatro textos legales no existen, y el checklist los lleva en verde veinte días.** `[origen: constructor 2026-11-01]`
+  Esto ha salido de anclar los cuatro enlaces del pie: al abrir `/legal` para
+  ponerle los `id`, resulta que la página **dice de sí misma que está sin
+  escribir**, en los dos idiomas: *"Pendiente de redactar antes del
+  lanzamiento. Estos son los cuatro documentos necesarios."* Lo que hay son
+  cuatro tarjetas con **una línea de descripción cada una** —"Titular del
+  servicio, datos de contacto y condiciones de uso"— y nada más. Buscado en
+  todo el repositorio: los cuatro textos **no están en ninguna parte**; lo que
+  aparece en `docs/kairo/ESPECIFICACION.md` es la lista de los que hacen falta.
+
+  **Y el problema de medición, que es la mitad del hallazgo**: el checklist de
+  lanzamiento tiene la fila *"Enlace visible a los textos legales"* en **✅
+  desde el 2026-10-12**, porque lo que comprobó —y lo dice su propia
+  casilla— es que el **enlace** existe. **Veinte días en verde midiendo el
+  enlace en vez del documento.** No es culpa del guardián: la fila está escrita
+  así desde el primer día, y es exactamente lo que el radar lleva siete
+  informes diciendo —que el checklist mide salud y no lanzamiento—. Pero
+  conviene que quede claro: **hoy el checklist no tiene ninguna fila que
+  pregunte si Kairo puede lanzarse legalmente.**
+
+  **Por qué esto es P1 y no una mejora**: un servicio con cuentas, cobros,
+  datos de menores y lectura de documentos con DNI dentro **no se puede lanzar
+  en España sin aviso legal, política de privacidad, política de cookies y
+  términos**. No es una casilla de calidad: es la condición para abrir.
+  **Y hay dos cosas que lo hacen más urgente de lo que parecía**: la propia
+  página promete un *"apartado específico para perfiles de menores"* —y el modo
+  de edad existe de verdad en el código—, y el bloque `PRIVACIDAD` del prompt
+  manda a Kairo decir, cuando alguien pregunta qué se hace con sus datos, que
+  *"está en los textos legales y en la página de precios"*. **Hoy Kairo manda a
+  leer unos documentos que no existen.**
+
+  **Qué puedo hacer yo y qué no.** Puedo escribir los cuatro borradores: el
+  constructor tiene permiso explícito sobre "los cuatro documentos legales"
+  (ficha, apartado *Qué puedes tocar*), y la mayor parte sale del código
+  —qué se guarda y qué no está medido en `agentes/ia/conocimiento/datos-y-privacidad.md`
+  y en el bloque `PRIVACIDAD`—. **Lo que no puedo poner, y sin eso no valen**:
+  el **titular del servicio** (nombre o razón social, NIF, domicilio y correo
+  de contacto), el **encargado del tratamiento** y la **ley aplicable y el
+  fuero**. Eso son datos suyos, no decisiones de redacción.
+  **Es un día de trabajo en cuanto me dé esos cuatro datos**, y hasta entonces
+  cualquier cosa que escriba lleva un hueco que es justo el que los hace
+  legalmente válidos. **Lo pregunto en el parte de hoy.**
+
 - **El proveedor ha retirado `poolside/laguna-s-2.1:free`, y es la primera vez que esa comprobación salta.** `[origen: guardian 2026-11-01]`
   El log de hoy dice, literal: **"OJO, estos no existen en el proveedor:
   poolside/laguna-s-2.1:free"**. Es exactamente para lo que se escribieron esas
@@ -837,7 +880,9 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **El pie de la web: cinco enlaces que faltan y cuatro que van todos al mismo sitio.** `[origen: radar 2026-10-31, recogiendo lo pedido desde 2026-10-23]`
+- **~~El pie de la web: cinco enlaces que faltan y cuatro que van todos al mismo sitio~~ — HECHO.** `[origen: radar 2026-10-31 · hecho 2026-11-01]`
+  Hecho a la tercera, y el radar tenía razón en por qué se caía: no tenía
+  entrada propia. Detalle en `## Hecho`.
   **Esto no tenía entrada propia y por eso lleva dos días cayéndose de la cola.**
   Vivía dentro de la tarea de las páginas de intención y dentro de otra P2 de
   los enlaces legales, así que cada vez que alguien metía un P1 nuevo —y ayer y
@@ -1152,6 +1197,45 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **El pie de la web ya lleva a algún sitio: cinco enlaces nuevos y cuatro que dejan de mentir.** `[hecho 2026-11-01]`
+  **A la tercera.** Lo anuncié para "mañana" los días 30 y 31 y las dos veces se
+  lo comió un P1 más urgente, con razón las dos veces. Hoy era lo primero sin
+  dueño: todos los P1 estaban hechos o esperándole a él.
+
+  **Las cinco páginas de intención tienen por fin un camino de entrada.**
+  `/multas`, `/cartas-de-hacienda`, `/contratos`, `/crear-una-app` y
+  `/sin-suscripcion` llevaban **veintiún días** en el `sitemap.xml` sin un solo
+  enlace desde la web: se llegaba a ellas desde Google y desde ningún otro
+  sitio. Cuatro tardes de trabajo que no recibían una visita propia.
+  Ahora el pie tiene **dos columnas**: "Lo que resuelve" con las cinco, y
+  "Legal" con las cuatro de siempre.
+
+  **Y los cuatro enlaces legales dejan de apuntar al mismo sitio.** Iban los
+  cuatro a `/legal` a secas, así que **tres de los cuatro mentían** sobre a
+  dónde llevaban. Ahora cada uno cae en su tarjeta: `/legal#aviso`,
+  `#privacidad`, `#cookies` y `#terminos`, con los `id` puestos en esa página y
+  un `scroll-mt-24` para que el titular no quede debajo de la cabecera.
+  **Los `id` son los mismos en los dos idiomas a propósito**: un enlace que
+  alguien comparta no se rompe porque quien lo abra tenga la web en inglés.
+
+  **Entregado**: 7 claves nuevas en `i18n.tsx` en los dos idiomas
+  (`footer.solves`, `footer.legalTitle` y las cinco páginas), el pie reescrito
+  en `components/SiteHeader.tsx` y los `id` en `app/legal/page.tsx`.
+  Los nombres del pie son cortos a propósito: ahí no cabe un titular, y lo que
+  tiene que reconocerse es el problema —"Multas"—, no la promesa.
+
+  **Comprobado**: `tsc` **0** y `next build` **0**; en el HTML generado, los
+  cinco enlaces salen **una vez cada uno en las ocho páginas públicas**
+  —portada, precios, legal y las cinco de intención—, los cuatro legales salen
+  con su anclaje (`href="/legal#aviso"` y compañía) y los cuatro `id`
+  correspondientes están en `/legal`; y las etiquetas inglesas viajan al bundle.
+  Con los ojos no lo he visto: la sede no abre la web.
+
+  **Y lo que ha salido de abrir `/legal` para ponerle los `id`**: esa página
+  dice de sí misma que está sin escribir, y los cuatro textos legales no
+  existen en ningún sitio del repositorio. Va como P1 del 01-11, porque es la
+  condición para abrir y no una casilla de calidad.
 
 - **Los planes de pago ya dicen lo que hace la base de datos.** `[hecho 2026-10-31]`
   **Lo avisé en el parte de ayer y hoy toca cumplirlo**: pedí la decisión sobre

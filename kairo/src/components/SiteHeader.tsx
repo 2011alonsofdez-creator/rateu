@@ -80,17 +80,39 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-line bg-bg-soft">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Logo />
           <p className="mt-2 text-[13px] text-faint">{t("footer.tagline")}</p>
         </div>
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-muted">
-          <Link href="/legal" className="transition hover:text-fg">{t("footer.legal")}</Link>
-          <Link href="/legal" className="transition hover:text-fg">{t("footer.privacy")}</Link>
-          <Link href="/legal" className="transition hover:text-fg">{t("footer.cookies")}</Link>
-          <Link href="/legal" className="transition hover:text-fg">{t("footer.terms")}</Link>
-        </nav>
+        {/* DOS COLUMNAS DESDE EL 01-11, Y LA PRIMERA NO EXISTÍA.
+
+            Las cinco páginas de intención llevaban veintiún días en el
+            `sitemap.xml` sin un solo enlace desde la web: se llegaba a
+            ellas desde Google y desde ningún otro sitio. Cuatro tardes de
+            trabajo que no recibían una visita propia.
+
+            Y los cuatro enlaces legales iban los cuatro a `/legal` a
+            secas, así que tres de los cuatro mentían sobre a dónde
+            llevan. Ahora cada uno cae en su tarjeta, con el `id` que se
+            le ha puesto en esa página. */}
+        <div className="flex flex-wrap gap-x-10 gap-y-6">
+          <nav className="flex flex-col gap-2 text-[13px] text-muted">
+            <p className="text-[12px] font-medium text-faint">{t("footer.solves")}</p>
+            <Link href="/multas" className="transition hover:text-fg">{t("footer.multas")}</Link>
+            <Link href="/cartas-de-hacienda" className="transition hover:text-fg">{t("footer.cartas")}</Link>
+            <Link href="/contratos" className="transition hover:text-fg">{t("footer.contratos")}</Link>
+            <Link href="/crear-una-app" className="transition hover:text-fg">{t("footer.app")}</Link>
+            <Link href="/sin-suscripcion" className="transition hover:text-fg">{t("footer.sinSuscripcion")}</Link>
+          </nav>
+          <nav className="flex flex-col gap-2 text-[13px] text-muted">
+            <p className="text-[12px] font-medium text-faint">{t("footer.legalTitle")}</p>
+            <Link href="/legal#aviso" className="transition hover:text-fg">{t("footer.legal")}</Link>
+            <Link href="/legal#privacidad" className="transition hover:text-fg">{t("footer.privacy")}</Link>
+            <Link href="/legal#cookies" className="transition hover:text-fg">{t("footer.cookies")}</Link>
+            <Link href="/legal#terminos" className="transition hover:text-fg">{t("footer.terms")}</Link>
+          </nav>
+        </div>
       </div>
       <div className="border-t border-line py-4 text-center text-[12px] text-faint">
         © {year} Kairo. {t("footer.rights")}
