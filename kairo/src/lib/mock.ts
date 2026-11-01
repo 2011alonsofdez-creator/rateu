@@ -182,7 +182,18 @@ export const plans: Plan[] = [
     id: "free",
     monthly: 0,
     yearly: 0,
-    /* LOS CRÉDITOS SALEN DE `CREDITOS_PLAN`, NO ESCRITOS A MANO.
+    /* EL PRIMER CONFLICTO DEL PROYECTO SE RESOLVIÓ AQUÍ, EL 01-11.
+       El dueño arregló esta misma tarjeta en `main` (`493c45c`) la misma
+       noche en que el constructor la arreglaba en la rama, y las dos
+       versiones chocaron. Se quedó de cada lado lo que el otro no tenía:
+       suya la viñeta de los **150 de regalo** —que además contesta la
+       pregunta que se le hizo el 30-10— y el sitio donde la puso;
+       nuestras la cifra **leída del código** y la viñeta del **1
+       Co-Work**, que es el tope real del plan gratis y que su versión no
+       traía. Su versión volvía a escribir el 20 a mano, que es justo lo
+       que tuvo mal el 15 durante cinco días en cinco sitios.
+
+       LOS CRÉDITOS SALEN DE `CREDITOS_PLAN`, NO ESCRITOS A MANO.
        Decían 15 y el código daba 20 desde el 29-10: el plan gratis
        mejoró y esta tarjeta siguió vendiendo el de antes durante un día,
        que es lo que pasa siempre con una cifra copiada. Ahora no puede
@@ -233,8 +244,16 @@ export const plans: Plan[] = [
        plan estén pensados y solo falte implementarlos. Preguntado en el
        parte del 31-10. */
     bullets: {
+      /* Esto decía 15 créditos y "modelo rápido", y las dos cosas
+         llevaban días siendo mentira: el plan gratis pasó a 20 al día y
+         a tener también el estándar. Vender MENOS de lo que das es un
+         error más tonto que el contrario, porque lo paga la página de
+         precios, que es donde se decide si alguien se registra.
+         Y faltaba lo mejor que tiene: los 150 de bienvenida, que dan
+         para un MEGA entero. */
       es: [
         `${CREDITOS_PLAN.free} créditos al día`,
+        "150 de regalo al registrarte",
         "Modelos rápido y normal: chat, Paperwork, Gist y Código",
         "1 Co-Work, que trabaja solo a su hora",
         "Historial de 30 días",
@@ -243,6 +262,7 @@ export const plans: Plan[] = [
       ],
       en: [
         `${CREDITOS_PLAN.free} credits per day`,
+        "150 free credits to start",
         "Fast and standard models: chat, Paperwork, Gist and Code",
         "1 Co-Work, working on its own at its hour",
         "30-day history",
