@@ -198,9 +198,20 @@ function estimar(
   return { llamadas, euros };
 }
 
-function Caja({ children, titulo }: { children: React.ReactNode; titulo?: string }) {
+function Caja({
+  children,
+  titulo,
+  soloPantalla,
+}: {
+  children: React.ReactNode;
+  titulo?: string;
+  /** Lo que sirve para seguir la deliberación en vivo, pero no para el papel. */
+  soloPantalla?: boolean;
+}) {
   return (
-    <section className="rounded-2xl border border-line bg-panel p-5">
+    <section
+      className={`rounded-2xl border border-line bg-panel p-5${soloPantalla ? " no-imprimir" : ""}`}
+    >
       {titulo ? <h2 className="text-[15px] font-semibold">{titulo}</h2> : null}
       <div className={titulo ? "mt-3" : ""}>{children}</div>
     </section>
@@ -428,8 +439,31 @@ export default function Consejo() {
 
   const votantes = miembros.filter((m) => !m.secretario);
 
+  const hayRespuesta = Boolean(sintesis || propuesta);
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
+      {/* Al imprimir se queda la deliberación y se va la aplicación.
+          Chrome imprime a PDF de serie, así que no hace falta ninguna
+          librería: el PDF sale con el texto seleccionable y buscable,
+          que es justo lo que quiere quien se lo lleva a un despacho. */}
+      <style>{`
+        @media print {
+          /* Fuera todo lo que no es el documento: barra lateral, botones,
+             y los recuadros de colores, que en papel solo gastan tinta. */
+          aside, nav, .no-imprimir { display: none !important; }
+          main { max-width: none !important; padding: 0 !important; }
+          :root, body, main { background: #fff !important; color: #000 !important; }
+          * { color: #000 !important; border-color: #bbb !important; background: transparent !important; }
+          a { text-decoration: underline; }
+          /* Que no parta una tabla ni una firma por la mitad de una página. */
+          section, table, li { break-inside: avoid; }
+          h1 { font-size: 20pt; }
+          h2 { font-size: 13pt; margin-top: 14pt; }
+          .solo-impreso { display: block !important; }
+        }
+        .solo-impreso { display: none; }
+      `}</style>
       <div className="flex flex-wrap items-center gap-3">
         <div className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-acento">
           <Team className="h-5 w-5" />
@@ -437,7 +471,28 @@ export default function Consejo() {
         <h1 className="text-[24px] font-semibold tracking-tight">Consejo</h1>
       </div>
 
-      <p className="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-muted">
+      {/* En pantalla sobra, en papel hace falta: sin la pregunta y la
+          fecha, el documento impreso no se sostiene solo. */}
+      <div className="solo-impreso mt-4 border-b pb-3 text-[11pt]">
+        <p>
+          <strong>Pregunta:</strong> {pregunta || "—"}
+        </p>
+        <p className="mt-1">
+          <strong>Consejo:</strong> {miembros.map((m) => m.casa).join(", ")}
+        </p>
+        <p className="mt-1">
+          <strong>Fecha:</strong>{" "}
+          {new Date().toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" })}
+          {segundos !== null ? ` · deliberación de ${segundos} s` : ""}
+        </p>
+        {archivos.length > 0 && (
+          <p className="mt-1">
+            <strong>Documentos:</strong> {archivos.map((a) => a.nombre).join(", ")}
+          </p>
+        )}
+      </div>
+
+      <p className="no-imprimir mt-3 max-w-2xl text-[14.5px] leading-relaxed text-muted">
         Varias IAs de fabricantes distintos responden por separado, se critican sin
         saber quién es quién y votan. Un secretario comprueba los datos y redacta.
         Sirve para lo que un solo modelo no puede hacer: contradecirse a sí mismo.
@@ -448,7 +503,7 @@ export default function Consejo() {
           Es lo que convierte dos minutos de pantalla quieta en algo que
           se puede mirar. */}
       {miembros.length > 0 && (
-        <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <section className="no-imprimir mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {miembros.map((m) => (
             <Puesto
               key={m.id}
@@ -467,7 +522,7 @@ export default function Consejo() {
       )}
 
       {/* La pregunta */}
-      <div className="mt-6 space-y-3">
+      <div className="no-imprimir mt-6 space-y-3">
         <textarea
           value={pregunta}
           onChange={(ev) => setPregunta(ev.target.value)}
@@ -638,13 +693,13 @@ export default function Consejo() {
         )}
 
         {(r1.length > 0 || resultados.length > 0) && (
-          <p className="pt-2 text-[12.5px] font-medium uppercase tracking-wide text-muted">
+          <p className="no-imprimir pt-2 text-[12.5px] font-medium uppercase tracking-wide text-muted">
             Cómo se llegó a esa respuesta
           </p>
         )}
 
         {r1.length > 0 && (
-          <Caja titulo="Ronda 1 · respuestas a ciegas">
+          <Caja titulo="Ronda 1 · respuestas a ciegas" soloPantalla>
             <Asistencia lista={r1} nombre={nombre} />
           </Caja>
         )}
@@ -658,7 +713,7 @@ export default function Consejo() {
         )}
 
         {r2.length > 0 && (
-          <Caja titulo="Ronda 2 · debate anónimo">
+          <Caja titulo="Ronda 2 · debate anónimo" soloPantalla>
             <Asistencia lista={r2} nombre={nombre} />
           </Caja>
         )}
