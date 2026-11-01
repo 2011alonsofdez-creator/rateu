@@ -319,10 +319,11 @@ export default function Consejo() {
           {miembros.map((m) => (
             <span
               key={m.id}
-              title={m.modelo}
+              title={m.refs?.[0] ?? m.modelo}
               className="rounded-lg border border-line bg-panel px-2.5 py-1 text-[12.5px] text-muted"
             >
               {m.casa}
+              {m.refs?.[0]?.startsWith("cli:") ? " · gratis" : ""}
               {m.secretario ? " · secretario, no vota" : ""}
             </span>
           ))}

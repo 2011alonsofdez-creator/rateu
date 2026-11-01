@@ -1,4 +1,5 @@
 import { aceptaArchivos, arrancar, type Peticion } from "@/lib/ia/proveedores";
+import { esRefCli, preguntarCli } from "./cli";
 import { TEMPERATURA } from "@/lib/ia/config";
 import type { Adjunto } from "@/lib/tipos";
 import { formarConsejo, hayConsejo, type Composicion } from "./miembros";
@@ -45,6 +46,19 @@ async function unaVez(
   maxSalida: number,
   adjuntos?: Adjunto[],
 ): Promise<{ ok: true; texto: string } | { ok: false; error: string }> {
+  /* Un miembro que entra por su programa local no pasa por ningún SDK:
+     se le escribe el prompt por la entrada estándar y se lee lo que
+     conteste. El resto del consejo no nota la diferencia. */
+  if (esRefCli(ref)) {
+    if (adjuntos?.length) {
+      // Los adjuntos ya vienen convertidos a texto antes de esta llamada;
+      // si alguno llega hasta aquí es que no se pudo, y mandarlo por la
+      // entrada estándar como base64 no serviría de nada.
+      return { ok: false, error: "los programas locales no reciben archivos" };
+    }
+    return preguntarCli(ref, `${sistema}\n\n---\n\n${usuario}`, 10 * 60 * 1000);
+  }
+
   const pet: Peticion = {
     id: ref,
     sistema,

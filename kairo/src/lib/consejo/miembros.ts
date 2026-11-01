@@ -1,4 +1,5 @@
 import { EXTRA_URL, claveExtra, modelosExtra, partir, proveedorActivo } from "@/lib/ia/proveedores";
+import { casaDelPrograma, programasCli, refCli } from "./cli";
 import { VOTANTES_MAX, type Miembro } from "./tipos";
 
 /* Quién se sienta en la mesa.
@@ -201,6 +202,17 @@ export function formarConsejo(): Composicion {
     });
   };
 
+  /* Los programas locales van DELANTE de todo lo demás.
+     No es preferencia técnica: es que no cuestan dinero. Si codex
+     contesta, no hay motivo para pagar por el mismo modelo en otra
+     puerta. Y si no contesta, la cadena sigue hacia OpenRouter sin que
+     el consejo se quede cojo. */
+  const porPrograma = new Map<string, string>();
+  for (const nombre of programasCli()) {
+    const casa = casaDelPrograma(nombre);
+    if (casa && casa !== "Anthropic") porPrograma.set(casa, refCli(nombre));
+  }
+
   if (propia.length) {
     /* Plantilla propia: se respeta tal cual, sin añadir nada por detrás.
        Si te has molestado en escribir la lista, es que sabes a quién
@@ -219,9 +231,10 @@ export function formarConsejo(): Composicion {
        es lo único que al consejo le importa. */
     for (const c of PLANTILLA) {
       const puerta = NATIVO[c.casa];
+      const gratis = porPrograma.get(c.casa);
       const nativa = c.nativo && puerta && proveedorActivo(puerta) ? c.nativo : [];
       const suplente = router ? porRouter(c.porRouter) : [];
-      añadir(c.casa, [...nativa, ...suplente]);
+      añadir(c.casa, [...(gratis ? [gratis] : []), ...nativa, ...suplente]);
     }
 
     /* Y si aún sobran sillas, las rellenan los modelos de repuesto del
