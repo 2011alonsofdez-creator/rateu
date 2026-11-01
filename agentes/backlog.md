@@ -13,6 +13,77 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **El proveedor ha retirado `poolside/laguna-s-2.1:free`, y es la primera vez que esa comprobación salta.** `[origen: guardian 2026-11-01]`
+  El log de hoy dice, literal: **"OJO, estos no existen en el proveedor:
+  poolside/laguna-s-2.1:free"**. Es exactamente para lo que se escribieron esas
+  líneas de `jq` el 22-10 —*"un nombre retirado o mal escrito no da error,
+  simplemente nunca contesta"*— y en diez días es la primera vez que encuentran
+  algo.
+  **Medido, no supuesto**: lancé `buscar-modelo.yml` con "laguna"
+  (ejecución 41280045642) y devuelve **cero modelos** con esa palabra en el
+  nombre. Así que **no es la trampa del gemelo de pago** del 21-10: no es que
+  haya desaparecido el `:free` y quede el de pago al lado esperando a que
+  alguien borre el sufijo. **La familia entera se ha ido del catálogo.**
+  **Qué hacer**: quitarlo de `KAIRO_EXTRA_MODELOS` en Vercel. Es variable de
+  entorno, así que es suyo.
+  **Qué importa y qué no**: es el **quinto de cinco**, o sea que solo entra
+  cuando los cuatro de encima han fallado. No se cae nada hoy. Lo que se gana
+  arreglándolo es que la cadena acabe donde dice acabar: hoy su último eslabón
+  no existe, así que el día que de verdad se llegue hasta el final, el fallo
+  será otro del que nadie se acuerda.
+  **Y un detalle que anoto porque afecta a cómo se eligen los sustitutos**: a la
+  misma hora, `/api/estado` dice que el proveedor ofrece **416** modelos y
+  `buscar-modelo.yml` dice **452**. La diferencia es que el primero pregunta
+  **con la clave** y el segundo al catálogo público. No sé a qué se debe el hueco
+  de 36 —desde aquí no se ve— pero sí sé lo que significa en la práctica: **un
+  modelo puede estar en el catálogo público y no existir para la cuenta de
+  Kairo**, así que el veredicto que vale es el de `/api/estado`, que es el que
+  compara contra lo que Kairo alcanza de verdad. Para lo de hoy da igual: cero
+  en el público es cero en los dos.
+
+- **Arregló el plan gratis él mismo en `main`, y eso ha creado el primer conflicto de fusión del proyecto. Con la resolución escrita.** `[origen: guardian 2026-11-01]`
+  Anoche publicó **`493c45c Stop the pricing page selling less free plan than
+  there is`**, y con él contesta dos cosas que llevaban días preguntadas:
+  - **Sí a los 150 de bienvenida.** El constructor preguntó el 30-10 si se
+    anunciaban; él ha añadido la viñeta "**150 de regalo al registrarte**". La
+    pregunta queda contestada, en commit y no en `notas.md`.
+  - Y corrige lo que el guardián encontró el 30-10: 20 créditos y los dos
+    modelos, con un comentario que dice *"vender MENOS de lo que das es un error
+    más tonto que el contrario, porque lo paga la página de precios"*.
+
+  **Pero lo hizo sobre las mismas líneas que el constructor ya había arreglado
+  el 30-10**, así que ahora las dos versiones chocan. **Comprobado, no
+  predicho**: `git merge --no-commit --no-ff origin/main` da
+  `CONFLICT (content): kairo/src/lib/mock.ts`, y lo aborté sin tocar nada.
+  Es el **primer conflicto en veintiún días**, y es la factura del patrón que el
+  radar describió ayer: *actúa sobre los hallazgos pero no coge los arreglos*.
+
+  **La resolución, escrita para que no se decida con prisa**, porque cada lado
+  tiene algo que el otro no:
+  - **Suyo**: la viñeta de los **150 de regalo** (es su decisión, y es la
+    correcta) y el orden en que las puso.
+  - **Nuestro**: que la cifra **salga del código** —`` `${CREDITOS_PLAN.free}
+    créditos al día` `` en vez de `"20 créditos al día"`—. Su versión vuelve a
+    escribir el número a mano, que es **exactamente lo que causó el fallo**: el
+    15 estuvo mal cinco días en cinco sitios por eso.
+  - **Nuestro también**: la viñeta "**1 Co-Work**", que es el tope real del plan
+    gratis (`api/coworks/route.ts`, `solo_uno_gratis`) y que él no puso.
+
+  Así que las seis líneas que deberían quedar son:
+  ```ts
+  es: [
+    `${CREDITOS_PLAN.free} créditos al día`,
+    "150 de regalo al registrarte",
+    "Modelos rápido y normal: chat, Paperwork, Gist y Código",
+    "1 Co-Work, que trabaja solo a su hora",
+    …
+  ```
+  y su gemela inglesa igual, con `credits per day`, "150 free credits to start",
+  "Fast and standard models: chat, Paperwork, Gist and Code" y "1 Co-Work,
+  working on its own at its hour".
+  **Para el primero que fusione hoy** —el entrenador a las 07:05 o el
+  constructor a las 07:48—: es esto, y no hay que pensarlo.
+
 - **Fusionar la rama de agentes. Siete informes de siete, veinte días, y hoy con la prueba de qué bloquea.** `[origen: radar 2026-10-31]`
   Esto no tenía entrada propia y debería haberla tenido desde el primer informe:
   estaba repartido dentro de otras tareas. Hoy va solo, porque hoy se puede
