@@ -522,8 +522,11 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
         `se pueden situar. Di cuál y por qué. Si no hay ninguna, una línea diciéndolo.\n\n` +
         `## Lo que haría falta saber\n` +
         `Los datos que faltan y que más cambiarían la respuesta. Si no falta nada, omite ` +
-        `este apartado.`,
-      12000,
+        `este apartado.\n\n` +
+        `EXTENSIÓN: 600 palabras como mucho en total. Es un tope, no un objetivo: si la ` +
+        `respuesta cabe en 200, mejor. Lo que no vale es empezar largo y quedarse a ` +
+        `medias, porque lo que se pierde al final son las conclusiones.`,
+      16000,
     );
 
     if (r.ok && pareceCortado(r.texto)) {
@@ -656,8 +659,9 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
       `- Donde no hubo acuerdo, dilo dentro de la respuesta: "esto depende de X, y si X ` +
       `entonces Y". Un desacuerdo bien explicado vale más que un consenso de mentira.\n` +
       `- Ninguna cifra que no se sostuviera en la verificación.\n` +
-      `- Entre 400 y 800 palabras, en prosa útil para quien tiene que decidir algo.`,
-    10000,
+      `- Entre 400 y 700 palabras, en prosa útil para quien tiene que decidir algo. Es un ` +
+      `tope: más vale corta y entera que larga y cortada a media frase.`,
+    16000,
   );
 
   if (!prop.ok) {

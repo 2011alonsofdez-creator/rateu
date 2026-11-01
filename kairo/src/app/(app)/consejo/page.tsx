@@ -168,6 +168,35 @@ function Asistencia({
   );
 }
 
+/* Cuánto va a costar esto, antes de pulsar.
+ *
+ * No es un presupuesto cerrado: los precios varían por modelo y el
+ * consejo no sabe cuánto va a escribir cada uno. Es un orden de
+ * magnitud, que es justo lo que hace falta para decidir entre Rápido y
+ * las 3 rondas sin llevarse un susto al final del mes. */
+function estimar(
+  caracteres: number,
+  modo: Modo,
+  votantesDePago: number,
+): { llamadas: number; euros: string } {
+  // ~4 caracteres por token, y la ronda 2 lleva además el dossier con las
+  // respuestas de los otros cinco, que multiplica lo que entra.
+  const tokensEntrada = Math.ceil(caracteres / 4);
+  const miembros = votantesDePago + 1; // el secretario también cuenta
+
+  const llamadas = modo === "rapido" ? miembros + 1 : miembros * 3 + 2;
+
+  // Entrada: cada llamada lleva el material. La ronda 2 lleva, además, las
+  // respuestas de los demás: se cuenta por lo alto, multiplicando por tres.
+  const entrada = modo === "rapido" ? tokensEntrada * llamadas : tokensEntrada * llamadas * 3;
+  const salida = llamadas * 1200; // lo que suele escribir cada uno
+
+  // Precios medios de los modelos de la plantilla, por millón de tokens.
+  const eur = (entrada * 2.2 + salida * 9) / 1_000_000;
+  const euros = eur < 0.01 ? "menos de un céntimo" : `unos ${eur.toFixed(2)} $`;
+  return { llamadas, euros };
+}
+
 function Caja({ children, titulo }: { children: React.ReactNode; titulo?: string }) {
   return (
     <section className="rounded-2xl border border-line bg-panel p-5">
@@ -509,6 +538,29 @@ export default function Consejo() {
             {corriendo ? "Deliberando…" : "Reunir al consejo"}
           </button>
         </div>
+
+        {(() => {
+          const votantesDePago = miembros.filter(
+            (m) => !m.secretario && !m.refs?.[0]?.startsWith("cli:"),
+          ).length;
+          const caracteres =
+            pregunta.length + archivos.reduce((n, a) => n + a.bytes * 0.5, 0);
+          const { llamadas, euros } = estimar(caracteres, modo, votantesDePago);
+          if (!votantesDePago) return null;
+          return (
+            <p className="text-[12.5px] leading-relaxed text-muted">
+              Coste aproximado: <span className="text-current">{euros}</span> · {llamadas}{" "}
+              llamadas de pago
+              {archivos.length > 0 && modo === "completo" ? (
+                <span className="text-amber-300">
+                  {" "}
+                  · con documentos, las 3 rondas salen mucho más caras: el texto viaja en
+                  cada llamada
+                </span>
+              ) : null}
+            </p>
+          );
+        })()}
 
         <p className="text-[12.5px] leading-relaxed text-muted">
           {modo === "rapido"
