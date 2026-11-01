@@ -1,0 +1,62 @@
+#!/bin/bash
+# Reunir al consejo en un solo comando.
+#
+#   ./council/consejo "¿Mi pregunta?"
+#   ./council/consejo "¿Mi pregunta?" ~/Descargas/demanda.pdf carta.pdf
+#
+# Hace el init con la configuracion recomendada, mete los documentos que le
+# pases y abre el secretario ya con el encargo escrito. Lo que antes eran
+# cinco comandos y un texto largo que copiar.
+set -euo pipefail
+
+AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG="${CONSEJO_CONFIG:-council/miembros-mixto.json}"
+
+if [ $# -lt 1 ]; then
+  cat <<'AYUDA'
+Uso:
+  ./council/consejo "tu pregunta"
+  ./council/consejo "tu pregunta" documento.pdf [otro.pdf ...]
+
+Arrastra el PDF desde el explorador hasta la terminal para que escriba la ruta.
+
+Antes de la primera vez, comprueba que el consejo puede reunirse:
+  python3 council/council.py doctor --config council/miembros-mixto.json
+
+Para usar otra configuracion:
+  CONSEJO_CONFIG=council/miembros-economico.json ./council/consejo "..."
+AYUDA
+  exit 1
+fi
+
+PREGUNTA="$1"; shift
+
+# Los documentos se pasan como --pdf uno detras de otro, y se comprueba que
+# existan ANTES de abrir nada: mejor fallar aqui que a medio camino.
+ADJUNTOS=()
+for f in "$@"; do
+  if [ ! -f "$f" ]; then
+    echo "No encuentro el archivo: $f" >&2
+    exit 1
+  fi
+  ADJUNTOS+=(--pdf "$f")
+done
+
+cd "$AQUI"
+python3 council/council.py init --config "$CONFIG" "${ADJUNTOS[@]}" --pregunta "$PREGUNTA"
+
+echo
+echo "Abriendo al secretario. Si prefieres hacerlo tu a mano, los pasos son:"
+echo "  python3 council/council.py ronda1 ... ronda2 ... ronda3 ... recuento"
+echo
+
+# Y se le entrega el encargo ya escrito, para no tener que pegarlo cada vez.
+ENCARGO='Eres el secretario de un consejo de IAs de fabricantes distintos. Lee council/README.md para el proceso. La deliberacion ya esta abierta (council/runs/ACTUAL dice cual). Ejecuta el proceso completo: ronda1, tu parte de secretario (tu propia respuesta, la verificacion de datos y puntos.json), ronda2, la propuesta final —que es la RESPUESTA a la pregunta, no un acta de la sesion—, ronda3 y recuento. Avisame de lo que vas haciendo y de lo que vaya a costar antes de cada ronda.'
+
+if command -v claude >/dev/null 2>&1; then
+  exec claude "$ENCARGO"
+else
+  echo "No encuentro 'claude'. Abrelo tu y pegale esto:"
+  echo
+  echo "$ENCARGO"
+fi

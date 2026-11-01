@@ -86,6 +86,28 @@ ahí está lo primero que hay que tocar. El prompt viaja por la **entrada
 estándar**, no como argumento, porque un prompt con un PDF dentro pasa de los
 100.000 caracteres y el sistema corta la línea de comandos mucho antes.
 
+## Un solo comando
+
+```bash
+./council/consejo "tu pregunta"
+./council/consejo "tu pregunta" ~/Descargas/demanda.pdf
+```
+
+Hace el `init` con la configuración recomendada, mete los documentos y abre al
+secretario con el encargo ya escrito. Admite varios PDFs seguidos.
+
+Arrastra el archivo desde el explorador hasta la terminal y la ruta se escribe
+sola, con las comillas donde hagan falta.
+
+Para usar otra configuración:
+
+```bash
+CONSEJO_CONFIG=council/miembros-economico.json ./council/consejo "..."
+```
+
+Los pasos sueltos siguen estando, para cuando quieras parar entre rondas o
+repetir solo una. Son los que se describen a continuación.
+
 ## El proceso
 
 ### Ronda 1 — respuestas a ciegas
