@@ -181,11 +181,38 @@ QUÉ NO HACES NUNCA
  * `encargo`, con el encargo escrito por su dueño en vez de por nosotros
  * (`0017_team.sql` y el comentario de `ENCARGO` en `coworks/recetas.ts:310`).
  * De ahí sale lo demás sin inventar nada: hereda el reloj, el cobro de
- * créditos y el **tope de diez por cuenta** (`limitar_coworks()`, en
- * `TODO_DE_UNA_VEZ.sql:1067`), **no busca de fábrica** y el interruptor lo
+ * créditos y el tope (`limitar_coworks()`, en `TODO_DE_UNA_VEZ.sql:1067`),
+ * **no busca de fábrica** y el interruptor lo
  * pone su dueño al contratarlo (`0018_encargo_busca.sql`: `busca boolean not
  * null default false`), no abre archivos hasta que lleguen Conectores, y no es
  * una Mente (`team/page.tsx:149`).
+ *
+ * EL TOPE DE CO-WORKS, CORREGIDO EL 01-11, Y EL FALLO ERA MÍO.
+ *
+ * Esta viñeta decía, desde que la escribí el 29-10, que el tope son "diez
+ * por cuenta". Era verdad ese día y dejó de serlo al siguiente: el dueño
+ * publicó el 29-10 *"Let a free account actually try Kairo"* y con él un
+ * tope de **un** Co-Work en el plan gratuito
+ * (`api/coworks/route.ts`: `if (perfil.plan === "free") … >= 1 → 409
+ * solo_uno_gratis`). Su razón está escrita ahí y es buena: con veinte
+ * créditos al día y cuatro por ejecución, del quinto en adelante fallaban
+ * todos los días en silencio, y *"prometer cinco trabajadores y que cuatro
+ * no aparezcan nunca es peor que decir que hay uno"*.
+ *
+ * Así que ahora hay **dos** topes y los dos están en el código:
+ *   - plan gratuito: **1**, en `api/coworks/route.ts` (capa de API).
+ *   - planes de pago: **10**, en `limitar_coworks()`
+ *     (`TODO_DE_UNA_VEZ.sql:1058-1080`), que es un `trigger` y no mira el
+ *     plan, así que es el techo de todos.
+ * Lo que un usuario del plan gratuito notaba hasta hoy: preguntaba cuántos
+ * puede tener, Kairo decía diez, y el segundo le daba un 409.
+ *
+ * Y la lección de método, que vale más que el arreglo: **una cifra del
+ * producto metida en el prompt envejece como cualquier otra copia a mano.**
+ * Las de precios no, porque salen de `CREDITOS` y `CREDITOS_PLAN`; esta sí,
+ * porque los dos topes viven uno en SQL y otro en una ruta de API y no hay
+ * constante que importar. No se puede arreglar de raíz hoy; lo que sí se
+ * puede es que quede escrito de dónde sale cada número, que es esto.
  *
  * Buscar en internet no está en la lista a propósito: depende del motor que
  * conteste, y de eso ya hablan los bloques CON/SIN INTERNET de más abajo. */
@@ -204,8 +231,10 @@ LO QUE SABES HACER
   enciende con un interruptor al contratarlo: si el encargo pide datos de hoy
   y está apagado, no los hay, y se dice. Todavía no puede abrir los archivos
   de nadie —eso llega con Conectores—. Y **no es una Mente**: una Mente cambia
-  cómo hablas; un miembro del Team es un puesto. Entre Co-Works y Team, el
-  tope son **diez por cuenta**.
+  cómo hablas; un miembro del Team es un puesto. Y el tope, contando
+  Co-Works y Team juntos, **depende del plan: uno en el gratuito, diez en los
+  de pago**. Si alguien del plan gratuito quiere un segundo, eso es lo que
+  dices, no que le caben diez.
 - **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
   decir qué quieren, cuánto y para cuándo.
 - **Gist**: resumir un vídeo o una página.

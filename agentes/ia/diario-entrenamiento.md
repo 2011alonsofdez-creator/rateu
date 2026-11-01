@@ -17,6 +17,14 @@ todo y nada se queda sin atender.
 
 Si `notas.md` pide centrarse en algo, eso manda sobre la rotación.
 
+**Y una regla sobre estas notas, escrita el 01-11 después de tropezar dos veces
+en cuatro días**: antes de dejar un "mañana toca X", se **comprueba con un
+`grep`** que X sigue pendiente de verdad. Las dos veces el fallo fue el mismo
+—escribir el plan de memoria al final del turno— y las dos costaron la primera
+media hora del día siguiente: el 30-10 los dos tics de `QUÉ NO HACES NUNCA`
+estaban puestos desde el 17-10, y el 01-11 lo del interruptor de búsqueda de un
+encargo estaba en la viñeta de Team desde el 29-10.
+
 ---
 
 ## El mapa del prompt maestro
@@ -73,6 +81,80 @@ cambiaría las respuestas:
 ---
 
 ## Entradas
+
+### 2026-11-01 — Prompt maestro (área 1): el tope de Co-Works ya no miente al plan gratuito
+
+**Empieza otra vuelta de la rotación**, y antes de lo de hoy hay dos cosas que
+digo primero porque son mías.
+
+**1. Mi nota de ayer señalaba algo que ya estaba hecho.** Escribí que
+`CAPACIDADES` "no dice nada de que un encargo pueda buscar o no". Lo dice desde
+el **29-10**, en la propia viñeta de Team que escribí yo: *"De fábrica no busca
+en internet, y eso se enciende con un interruptor al contratarlo"*. **Es la
+segunda vez en cuatro días** que una nota mía da por pendiente algo hecho —la
+primera fue el mapa, que llevaba trece días dando por abiertos los dos tics de
+`QUÉ NO HACES NUNCA`— y las dos veces por el mismo motivo: escribí "mañana
+toca X" de memoria, al final del turno, sin comprobarlo.
+**Así que la regla, escrita donde se lee y no como intención**: *antes de dejar
+un "mañana toca", se comprueba con un `grep` que lo que se da por pendiente
+sigue pendiente de verdad.* Queda añadida arriba, en la rotación.
+
+**2. El primer conflicto de fusión del proyecto, resuelto.** Me tocaba a mí
+traer `main` y me lo encontré: el dueño arregló la tarjeta del plan gratis en
+`main` la misma noche en que el constructor la arreglaba en la rama. El guardián
+había dejado la resolución escrita línea por línea esta mañana, así que no hubo
+nada que decidir con prisa: se queda su viñeta de los **150 de regalo** —que
+además contesta la pregunta que se le hizo el 30-10— y nuestras la cifra
+**leída de `CREDITOS_PLAN`** y la del **1 Co-Work**. Va en su propio commit
+(`3e31aa4`) para que se pueda revertir solo.
+
+**Qué cambié hoy**, y el fallo era mío: en `CAPACIDADES`, la viñeta de Team
+decía *"Entre Co-Works y Team, el tope son **diez por cuenta**"*. Era verdad el
+29-10, cuando la escribí, y **dejó de serlo al día siguiente**: el dueño publicó
+*"Let a free account actually try Kairo"* con un tope de **un** Co-Work en el
+plan gratuito (`api/coworks/route.ts`, `solo_uno_gratis`). Su razón está escrita
+ahí y es buena: con 20 créditos al día y 4 por ejecución, del quinto en adelante
+fallaban todos los días en silencio, y *"prometer cinco trabajadores y que
+cuatro no aparezcan nunca es peor que decir que hay uno"*.
+
+Ahora la viñeta dice que el tope **depende del plan: uno en el gratuito, diez en
+los de pago**, y añade qué hacer cuando lo pregunta alguien del gratuito: *"eso
+es lo que dices, no que le caben diez"*.
+
+**Lo que notaba un usuario hasta hoy**: preguntaba cuántos Co-Works puede tener,
+Kairo le decía diez, y el segundo le daba un 409. Es el fallo más barato de
+cometer que tiene este bloque —una cifra que era cierta— y el más difícil de
+ver, porque no hay nada roto que avise.
+
+**Y la lección de método, que vale más que el arreglo**: **una cifra del producto
+metida en el prompt envejece como cualquier otra copia a mano.** Las de precios
+no envejecen, porque el bloque de precios las lee de `CREDITOS` y
+`CREDITOS_PLAN` —y por eso el 29-10 Kairo ya decía "20 créditos" sin que nadie
+la tocara—. Esta sí, porque los dos topes viven **uno en SQL y otro en una ruta
+de API**, y no hay constante que importar. No se puede arreglar de raíz hoy; lo
+que sí se puede es dejar escrito de dónde sale cada número, y está en el
+comentario.
+
+**Cómo lo comprobé**: arnés sobre el `prompt.ts` real —copia con los seis
+`import` redirigidos y el cuerpo verificado idéntico línea por línea—, **12
+comprobaciones y 12 correctas**: que "diez por cuenta" ya no aparece en ninguna
+parte, que están los dos topes con su plan delante, que la frase va **dentro de
+`CAPACIDADES`** y no suelta por el prompt, que las otras cuatro cosas de la
+viñeta de Team siguen intactas, y que ni el comentario ni el nombre interno del
+error (`solo_uno_gratis`) viajan al prompt. Más `npx tsc --noEmit` **0** y
+`npx next build` **0**, con la fusión de `main` dentro.
+
+**Tamaño**: 203 líneas para un adulto con buscador (201 ayer; la frase nueva
+ocupa dos más y las dos dicen algo).
+
+**Qué necesito del dueño**: nada para esto. Lo suyo sigue igual, y hoy con una
+más del guardián: quitar `poolside/laguna-s-2.1:free` de
+`KAIRO_EXTRA_MODELOS`, que el proveedor ha retirado.
+
+**Mañana toca**: el **área 2, ejemplos** — y esta vez lo he comprobado antes de
+escribirlo: `agentes/ia/ejemplos/` tiene **solo su README**, ni un caso, desde
+que se creó el 12-10. Es la carpeta más vacía del sistema y lleva veinte días
+así.
 
 ### 2026-10-31 — Recorte (área 7): dos viñetas menos y una que me he dejado a propósito
 
