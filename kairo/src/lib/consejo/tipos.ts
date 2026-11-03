@@ -119,8 +119,16 @@ export const RENEGOCIACIONES_MAX = 2;
  *
  *  No es un capricho: ese texto viaja en TODAS las llamadas de TODAS las
  *  rondas. Un PDF de veinte páginas sin recortar multiplica la factura
- *  por quince y empuja fuera lo que de verdad se está debatiendo. */
-export const MATERIAL_MAX = 24000;
+ *  por quince y empuja fuera lo que de verdad se está debatiendo.
+ *
+ *  60.000 caracteres son unos 15.000 tokens, y a quince llamadas salen
+ *  225.000 tokens de entrada: entre cuatro céntimos con modelos baratos
+ *  y setenta con buques insignia. Estaba en 24.000, y con eso un
+ *  expediente de tres papeles —demanda, carta y sentencia— ya no cabía:
+ *  la sentencia entraba cortada por el fallo, que es justo lo que
+ *  importa. Un tope que obliga a elegir qué documento se lee no es
+ *  ahorro, es una deliberación sobre medio expediente. */
+export const MATERIAL_MAX = 60000;
 
 export const ETIQUETA_VOTO: Record<Voto, string> = {
   de_acuerdo: "De acuerdo",

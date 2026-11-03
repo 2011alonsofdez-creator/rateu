@@ -159,6 +159,7 @@ def texto_de_pdf(ruta: str) -> str:
 def leer_adjuntos(rutas: list[str]) -> str:
     """Junta el texto de todos los documentos, cada uno con su nombre."""
     trozos = []
+    saltados: list[str] = []
     for ruta in rutas:
         if not os.path.exists(ruta):
             muere(f"no encuentro {ruta}")
@@ -169,14 +170,29 @@ def leer_adjuntos(rutas: list[str]) -> str:
         if len(texto) < 80:
             # Un escaneo sin capa de texto da cuatro caracteres sueltos. Mandar
             # eso al consejo es hacerles deliberar sobre un fallo de lectura.
-            muere(
-                f"de {nombre} solo salen {len(texto)} caracteres.\n"
-                "  Si es un escaneo sin texto reconocido, no hay nada que extraer:\n"
-                "  pasalo antes por un OCR, o pega el texto en un .txt y usa ese."
+            # Pero tampoco se tira el expediente entero por un papel: en una
+            # impugnacion de sancion la carta suele ser una foto y la demanda
+            # y la sentencia traen su texto. Se avisa y se sigue con el resto.
+            log(
+                f"  {nombre}: solo {len(texto)} caracteres. Parece un escaneo sin texto\n"
+                "    reconocido y se queda FUERA del material. Para meterlo, pasalo por\n"
+                "    un OCR (ocrmypdf, o 'Reconocer texto' en cualquier lector) o pega\n"
+                "    el texto en un .txt y adjunta ese."
             )
+            saltados.append(nombre)
+            continue
 
         log(f"  {nombre}: {len(texto)} caracteres")
         trozos.append(f"--- {nombre} ---\n{texto}")
+
+    if not trozos:
+        muere(
+            "de ningun documento sale texto: son todos escaneos sin texto reconocido.\n"
+            "  Pasalos por un OCR, o pega el contenido en un .txt y usa ese.\n"
+            "  Sin material, el consejo deliberaria sobre la pregunta a secas."
+        )
+    if saltados:
+        log(f"  OJO: el consejo NO vera {', '.join(saltados)}")
     return "\n\n".join(trozos)
 
 

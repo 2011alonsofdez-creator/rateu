@@ -110,6 +110,10 @@ export const ADJUNTOS_ACEPTADOS = [
   ...ADJUNTOS.documentos,
   ...ADJUNTOS.texto,
   // Windows no siempre sabe el tipo de un .md o un .csv; por extensión sí.
+  // Y el .pdf va también por extensión porque hay archivos que llegan sin
+  // tipo —extensión en mayúsculas, nombres con dos puntos seguidos— y el
+  // selector no los dejaba ni elegir.
+  ".pdf",
   ".md",
   ".markdown",
   ".csv",

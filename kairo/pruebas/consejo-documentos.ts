@@ -39,5 +39,16 @@ const muchos = revisarDocumentos(Array.from({ length: DOCUMENTOS.max + 3 }, (_, 
 ok(muchos.documentos.length === DOCUMENTOS.max, `entran ${DOCUMENTOS.max}, que es el tope`);
 ok(muchos.rechazados.length === 3, "y los 3 que sobran se reportan");
 
+console.log("\n-- el tipo lo dicen los bytes, no el navegador --");
+const sinTipo = revisarDocumentos([
+  { ...pdf("Sentencia..PDF"), tipo: "" },
+  { ...pdf("demanda.pdf"), tipo: "application/octet-stream" },
+]);
+ok(sinTipo.documentos.length === 2, "un PDF sin tipo declarado entra igual");
+ok(
+  sinTipo.documentos.every((d) => d.tipo === "application/pdf"),
+  "y queda marcado como application/pdf, que es lo que mira el motor",
+);
+
 console.log(fallos ? `\n${fallos} FALLOS\n` : "\nTodo correcto\n");
 process.exit(fallos ? 1 : 0);

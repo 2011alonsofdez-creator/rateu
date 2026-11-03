@@ -133,7 +133,18 @@ de texto ya lo lleva dentro, sacarlo sale gratis, es idéntico para los seis y n
 depende de cuotas ni de que el modelo diga que no ha recibido nada.
 
 Si de un PDF salen cuatro caracteres sueltos, es un escaneo sin texto
-reconocido: el `init` se para y lo dice, en vez de mandar eso al consejo.
+reconocido. Ese papel se queda fuera y se dice por su nombre, pero los demás
+siguen: en una impugnación de sanción la carta suele ser una foto y la demanda
+y la sentencia traen su texto dentro, y tirar el expediente entero por un papel
+es peor que deliberar sobre los otros dos sabiendo cuál falta. Si no sale texto
+de ninguno, el `init` se para.
+
+Para meter un escaneo, pásalo antes por un OCR:
+
+```bash
+sudo apt install -y ocrmypdf
+ocrmypdf -l spa carta_escaneada.pdf carta_con_texto.pdf
+```
 
 Para instalar un extractor, si no tienes ninguno:
 

@@ -5,11 +5,12 @@ import type { Adjunto } from "@/lib/tipos";
 import { formarConsejo, hayConsejo, type Composicion } from "./miembros";
 import {
   barajar,
+  componerMaterial,
   contar,
   leerFirma,
   leerVotacion,
-  recortarMaterial,
   sacarJson,
+  type Pieza,
 } from "./recuento";
 import {
   MATERIAL_MAX,
@@ -314,10 +315,10 @@ async function leerAdjuntos(
   c: Composicion,
   adjuntos: Adjunto[],
   emitir: Emitir,
-): Promise<string> {
+): Promise<Pieza[]> {
   if (!adjuntos.length) {
     console.log("[consejo] sin archivos: se delibera solo con la pregunta");
-    return "";
+    return [];
   }
 
   console.log(
@@ -326,7 +327,7 @@ async function leerAdjuntos(
   );
   emitir({ t: "fase", fase: "transcribiendo", detalle: `${adjuntos.length} archivo(s)` });
 
-  const trozos: string[] = [];
+  const trozos: Pieza[] = [];
   const paraElModelo: Adjunto[] = [];
 
   for (const a of adjuntos) {
@@ -351,7 +352,7 @@ async function leerAdjuntos(
       }
 
       console.log(`[consejo] ${a.nombre}: ${limpio.length} caracteres de ${totalPages} páginas`);
-      trozos.push(`--- ${a.nombre} (${totalPages} páginas) ---\n${limpio}`);
+      trozos.push({ nombre: `${a.nombre} (${totalPages} páginas)`, texto: limpio });
     } catch (e) {
       console.warn(`[consejo] ${a.nombre}: no se pudo abrir (${e}); va al modelo`);
       paraElModelo.push(a);
@@ -404,14 +405,17 @@ async function leerAdjuntos(
         });
       } else {
         console.log(`[consejo] transcrito por ${r.modelo}: ${r.texto.length} caracteres`);
-        trozos.push(r.texto);
+        trozos.push({
+          nombre:
+            `${paraElModelo.map((a) => a.nombre).join(", ")} ` +
+            `(sin capa de texto, transcrito por ${r.modelo})`,
+          texto: r.texto,
+        });
       }
     }
   }
 
-  const todo = trozos.join("\n\n").trim();
-  if (todo) emitir({ t: "transcrito", letras: todo.length, de: String(adjuntos.length) });
-  return todo;
+  return trozos;
 }
 
 /** Lanza una ronda a todos a la vez y va emitiendo según llegan. */
@@ -477,12 +481,44 @@ export async function deliberar(enc: Encargo, emitir: Emitir): Promise<void> {
   if (c.aviso) emitir({ t: "fase", fase: "aviso", detalle: c.aviso });
 
   const sec = c.sec!;
-  const transcrito = await leerAdjuntos(c, enc.adjuntos, emitir);
-  const material = recortarMaterial([enc.material, transcrito].filter(Boolean).join("\n\n"), MATERIAL_MAX);
+  const leidos = await leerAdjuntos(c, enc.adjuntos, emitir);
+
+  /* El material se monta documento a documento, no pegando todo y
+     cortando al final: con tres papeles, el corte único se comía el
+     tercero entero y nadie se enteraba. */
+  const piezas: Pieza[] = [
+    ...(enc.material ? [{ nombre: "texto pegado", texto: enc.material }] : []),
+    ...leidos,
+  ];
+  const m = componerMaterial(piezas, MATERIAL_MAX);
+  const material = m.texto;
+
   console.log(
     `[consejo] material que recibe el consejo: ${material.length} caracteres` +
       (material.length === 0 ? " — NINGUNO: deliberan solo sobre la pregunta" : ""),
   );
+
+  if (material) {
+    emitir({ t: "transcrito", letras: material.length, de: String(piezas.length) });
+  }
+
+  /* Si algo no cupo, se dice cuál y cuánto. Que el consejo delibere
+     sobre media sentencia es un resultado legítimo; que nadie sepa que
+     era media, no. */
+  if (m.recortados.length) {
+    const cuales = m.recortados
+      .map((r) => `${r.nombre}: entran ${r.a.toLocaleString("es")} de ${r.de.toLocaleString("es")} caracteres`)
+      .join(" · ");
+    console.warn(`[consejo] recortado por el tope de ${MATERIAL_MAX}: ${cuales}`);
+    emitir({
+      t: "fase",
+      fase: "aviso",
+      detalle:
+        `El material pasa del tope de ${MATERIAL_MAX.toLocaleString("es")} caracteres, ` +
+        `que es lo que viaja en cada una de las llamadas. Recortado por documento, ` +
+        `repartiendo a partes iguales — ${cuales}. Los documentos cortos entran enteros.`,
+    });
+  }
 
   // --- Ronda 1: todos a ciegas, el secretario incluido ---
   emitir({ t: "fase", fase: "ronda1" });

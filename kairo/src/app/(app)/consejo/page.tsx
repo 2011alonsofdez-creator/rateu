@@ -8,6 +8,7 @@ import { DOCUMENTOS } from "@/lib/consejo/documentos";
 import {
   ETIQUETA_FIRMA,
   ETIQUETA_VOTO,
+  MATERIAL_MAX,
   type Evento,
   type Intervencion,
   type Miembro,
@@ -282,10 +283,32 @@ export default function Consejo() {
 
   async function añadir(lista: FileList | null) {
     if (!lista?.length) return;
+
+    const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
+    const hueco = DOCUMENTOS.max - archivos.length;
+    if (hueco <= 0) {
+      setError(`Ya hay ${DOCUMENTOS.max} archivos, que es el máximo por deliberación.`);
+      return;
+    }
+
     const nuevos: Adjunto[] = [];
-    for (const f of Array.from(lista).slice(0, DOCUMENTOS.max - archivos.length)) {
+    /* El tope de todos juntos se comprueba también aquí, no solo en el
+       servidor: enterarse de que no cabe después de subir ocho megas por
+       una línea de casa es peor que enterarse al elegirlo. */
+    let total = archivos.reduce((n, a) => n + a.bytes, 0);
+
+    for (const f of Array.from(lista).slice(0, hueco)) {
       if (f.size > DOCUMENTOS.bytesPorArchivo) {
-        setError(`"${f.name}" pasa del tamaño máximo por archivo.`);
+        setError(
+          `"${f.name}" pesa ${mb(f.size)} y el máximo por archivo es ` +
+            `${mb(DOCUMENTOS.bytesPorArchivo)}.`,
+        );
+        continue;
+      }
+      if (total + f.size > DOCUMENTOS.bytesTotal) {
+        setError(
+          `"${f.name}" no cabe: entre todos pasarían de ${mb(DOCUMENTOS.bytesTotal)}.`,
+        );
         continue;
       }
       const datos = await new Promise<string>((ok) => {
@@ -293,9 +316,10 @@ export default function Consejo() {
         lector.onload = () => ok(String(lector.result).split(",")[1] ?? "");
         lector.readAsDataURL(f);
       });
+      total += f.size;
       nuevos.push({ nombre: f.name, tipo: f.type, datos, bytes: f.size });
     }
-    setArchivos((a) => [...a, ...nuevos].slice(0, DOCUMENTOS.max));
+    if (nuevos.length) setArchivos((a) => [...a, ...nuevos].slice(0, DOCUMENTOS.max));
   }
 
   function limpiar() {
@@ -540,6 +564,7 @@ export default function Consejo() {
                 className="flex items-center gap-2 rounded-lg border border-line bg-panel-hi px-2.5 py-1 text-[12.5px]"
               >
                 {a.nombre}
+                <span className="text-muted">{(a.bytes / 1024 / 1024).toFixed(1)} MB</span>
                 <button
                   onClick={() => setArchivos((x) => x.filter((_, j) => j !== i))}
                   className="text-muted transition hover:text-red-400"
@@ -599,8 +624,16 @@ export default function Consejo() {
           const votantesDePago = miembros.filter(
             (m) => !m.secretario && !m.refs?.[0]?.startsWith("cli:"),
           ).length;
-          const caracteres =
-            pregunta.length + archivos.reduce((n, a) => n + a.bytes * 0.5, 0);
+          /* Lo que pesa un PDF no dice casi nada de lo que ocupa su
+             texto: un escaneo de dos páginas puede pesar seis megas y
+             traer cuatro párrafos. Y de todas formas el material está
+             topado, así que el cálculo se topa igual: por encima de
+             MATERIAL_MAX no se paga más, se recorta. */
+          const delDocumento = Math.min(
+            archivos.reduce((n, a) => n + a.bytes * 0.5, 0),
+            MATERIAL_MAX,
+          );
+          const caracteres = pregunta.length + delDocumento;
           const { llamadas, euros } = estimar(caracteres, modo, votantesDePago);
           if (!votantesDePago) return null;
           return (
@@ -617,6 +650,19 @@ export default function Consejo() {
             </p>
           );
         })()}
+
+        {/* Los expedientes escaneados pesan, y publicado en Vercel la
+            petición se corta a 4,5 MB. En local no hay tope, que es donde
+            se usa esto con papeles de verdad: mejor decirlo antes que
+            dejar un error de servidor sin explicación. */}
+        {archivos.reduce((n, a) => n + a.bytes, 0) > 4 * 1024 * 1024 && (
+          <p className="text-[12.5px] leading-relaxed text-amber-300">
+            Son{" "}
+            {(archivos.reduce((n, a) => n + a.bytes, 0) / 1024 / 1024).toFixed(1)} MB de
+            documentos: funciona en local, pero la versión publicada en Vercel corta las
+            peticiones de más de 4,5 MB.
+          </p>
+        )}
 
         <p className="text-[12.5px] leading-relaxed text-muted">
           {modo === "rapido"

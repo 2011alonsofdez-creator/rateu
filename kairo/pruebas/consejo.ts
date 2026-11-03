@@ -10,7 +10,14 @@
  *   npx tsx pruebas/consejo-composicion.ts
  */
 
-import { contar, leerVotacion, sacarJson, barajar, leerFirma } from "@/lib/consejo/recuento";
+import {
+  barajar,
+  componerMaterial,
+  contar,
+  leerFirma,
+  leerVotacion,
+  sacarJson,
+} from "@/lib/consejo/recuento";
 import type { Punto } from "@/lib/consejo/tipos";
 
 let fallos = 0;
@@ -57,6 +64,39 @@ const base = ["A","B","C","D","E","F"];
 const distintos = new Set(Array.from({length:40}, () => barajar(base).join("")));
 ok(distintos.size > 5, `40 barajadas dan ${distintos.size} ordenes distintos`);
 ok(barajar(base).slice().sort().join("") === base.join(""), "barajar no pierde ni duplica elementos");
+
+console.log("\n-- el material se reparte entre los documentos, no por orden de llegada --");
+const corto = { nombre: "carta", texto: "C".repeat(500) };
+const largo = { nombre: "sentencia", texto: "S".repeat(40000) };
+const medio = { nombre: "demanda", texto: "D".repeat(7000) };
+
+const holgado = componerMaterial([corto, medio], 60000);
+ok(holgado.recortados.length === 0, "si cabe todo, no se recorta nada");
+ok(holgado.texto.includes("--- carta ---"), "cada documento entra con su nombre");
+ok(holgado.texto.includes("D".repeat(7000)), "y con su texto entero");
+
+const apretado = componerMaterial([corto, medio, largo], 20000);
+ok(
+  apretado.texto.includes("C".repeat(500)),
+  "el documento corto entra ENTERO aunque el total no quepa",
+);
+ok(
+  apretado.recortados.length === 1 && apretado.recortados[0].nombre === "sentencia",
+  `solo se recorta el que se pasa: ${apretado.recortados.map((r) => r.nombre).join(", ") || "ninguno"}`,
+);
+ok(apretado.texto.includes("--- demanda ---"), "ninguno desaparece del material");
+ok(apretado.letras <= 20000, `y el total respeta el tope: ${apretado.letras} caracteres`);
+
+const tresGordos = componerMaterial([largo, largo, largo], 9000);
+ok(tresGordos.recortados.length === 3, "si todos se pasan, se recortan los tres");
+ok(
+  new Set(tresGordos.recortados.map((r) => r.a)).size === 1,
+  "a partes iguales: el mismo cupo para cada uno",
+);
+ok(tresGordos.letras <= 9000, `tope respetado con tres gordos: ${tresGordos.letras}`);
+
+const vacio = componerMaterial([{ nombre: "nada", texto: "   " }], 60000);
+ok(vacio.texto === "" && vacio.letras === 0, "un documento sin texto no monta cabecera vacia");
 
 console.log(fallos ? `\n${fallos} FALLOS\n` : "\nTodo correcto\n");
 process.exit(fallos ? 1 : 0);

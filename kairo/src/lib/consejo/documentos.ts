@@ -28,6 +28,30 @@ export const DOCUMENTOS = {
 
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 
+/* Qué es esto de verdad, mirando los primeros bytes.
+ *
+ * El tipo lo declara el navegador a partir de la extensión, y a veces no
+ * lo sabe: llega vacío y el archivo se caía con un «no se acepta el tipo
+ * desconocido» que no decía nada. Pasa con extensiones en mayúsculas o
+ * raras —`Sentencia..PDF`— y con archivos arrastrados desde sitios que
+ * no registran el tipo. Los bytes de cabecera no se equivocan y son
+ * cuatro comparaciones, así que manda la firma y el navegador es solo
+ * una pista.
+ */
+function tipoReal(datos: string, declarado: string): string {
+  // 16 bytes bastan para cualquiera de estas firmas; 24 caracteres de base64.
+  const cabeza = Buffer.from(datos.slice(0, 24), "base64");
+  const ascii = cabeza.toString("latin1");
+
+  if (ascii.startsWith("%PDF-")) return "application/pdf";
+  if (ascii.startsWith("\x89PNG\r\n\x1a\n")) return "image/png";
+  if (ascii.startsWith("\xff\xd8\xff")) return "image/jpeg";
+  if (ascii.startsWith("GIF87a") || ascii.startsWith("GIF89a")) return "image/gif";
+  if (ascii.startsWith("RIFF") && ascii.slice(8, 12) === "WEBP") return "image/webp";
+
+  return declarado;
+}
+
 /** Un nombre que se pueda enseñar sin que rompa nada al pintarlo. */
 function nombreLimpio(valor: unknown): string {
   const limpio = String(valor ?? "")
@@ -73,13 +97,14 @@ export function revisarDocumentos(crudo: unknown): Revisados {
       continue;
     }
 
-    const tipo = String(a?.tipo ?? "");
     const datos = String(a?.datos ?? "");
 
     if (!datos || !BASE64.test(datos)) {
       rechazados.push(`${nombre}: el contenido no llegó bien`);
       continue;
     }
+
+    const tipo = tipoReal(datos, String(a?.tipo ?? ""));
 
     // El tamaño real, no el que diga quien envía.
     const bytes = Math.floor((datos.length * 3) / 4);

@@ -121,9 +121,90 @@ export function contar(
   };
 }
 
-/** Recorta diciéndolo. Un corte silencioso es un error que aparece tres
- *  pantallas más abajo, cuando alguien discute algo que no estaba. */
-export function recortarMaterial(t: string, max: number): string {
-  if (t.length <= max) return t;
-  return `${t.slice(0, max)}\n\n[...recortado: el material ocupaba ${t.length} caracteres y el consejo trabaja con los primeros ${max}]`;
+/** Un documento ya leído, listo para montar el material. */
+export type Pieza = { nombre: string; texto: string };
+
+export type Material = {
+  /** Lo que de verdad viaja en cada prompt. */
+  texto: string;
+  /** Lo que no cupo, documento a documento, para poder decirlo. */
+  recortados: { nombre: string; de: number; a: number }[];
+  letras: number;
+};
+
+/* Lo que cuesta un documento aparte de su texto: la cabecera con el
+   nombre, la línea en blanco que lo separa del siguiente y sitio para
+   el aviso de recorte. Se descuenta del presupuesto para que `max` sea
+   el tope real de lo que viaja, no una aproximación por abajo. */
+const MARCO = 72;
+
+/* Reparto por raciones iguales, cediendo lo que sobra.
+ *
+ * Quien pide menos que su ración se lleva lo que pide y devuelve el
+ * resto al bote, que se vuelve a repartir entre los que siguen pidiendo
+ * más. Así una carta de una página entra entera y lo que se recorta es
+ * la sentencia de cuarenta, en vez de que la sentencia se lo coma todo
+ * por llegar primero.
+ */
+function repartir(pesos: number[], total: number): number[] {
+  const dado = pesos.map(() => 0);
+  if (pesos.reduce((a, b) => a + b, 0) <= total) return pesos.slice();
+
+  let queda = total;
+  let pendientes = pesos.map((_, i) => i);
+
+  while (pendientes.length) {
+    const racion = Math.floor(queda / pendientes.length);
+    if (racion <= 0) break;
+
+    const caben = pendientes.filter((i) => pesos[i] <= racion);
+    if (!caben.length) {
+      // Todos piden más que su ración: a ración igual y se acabó.
+      for (const i of pendientes) dado[i] = racion;
+      break;
+    }
+    for (const i of caben) {
+      dado[i] = pesos[i];
+      queda -= pesos[i];
+    }
+    pendientes = pendientes.filter((i) => pesos[i] > racion);
+  }
+
+  return dado;
+}
+
+/* Montar el material que verán los seis, diciendo qué se recortó.
+ *
+ * Antes esto era un corte único al final del montón: con tres
+ * documentos, el tercero desaparecía entero y nadie se enteraba. Un
+ * corte silencioso es un error que aparece tres pantallas más abajo,
+ * cuando uno discute algo que no estaba, así que cada documento entra
+ * con su nombre, cada recorte se anota y lo que sobra se dice.
+ */
+export function componerMaterial(piezas: Pieza[], max: number): Material {
+  const utiles = piezas
+    .map((p) => ({ nombre: p.nombre.trim() || "documento", texto: p.texto.trim() }))
+    .filter((p) => p.texto);
+  if (!utiles.length) return { texto: "", recortados: [], letras: 0 };
+
+  const marco = utiles.reduce((s, p) => s + p.nombre.length + MARCO, 0);
+  const presupuesto = Math.max(max - marco, utiles.length * 400);
+  const cupos = repartir(
+    utiles.map((p) => p.texto.length),
+    presupuesto,
+  );
+
+  const recortados: Material["recortados"] = [];
+  const partes = utiles.map((p, i) => {
+    const cupo = cupos[i];
+    if (p.texto.length <= cupo) return `--- ${p.nombre} ---\n${p.texto}`;
+    recortados.push({ nombre: p.nombre, de: p.texto.length, a: cupo });
+    return (
+      `--- ${p.nombre} ---\n${p.texto.slice(0, cupo)}\n` +
+      `[...recortado: este documento tenía ${p.texto.length} caracteres]`
+    );
+  });
+
+  const texto = partes.join("\n\n");
+  return { texto, recortados, letras: texto.length };
 }
