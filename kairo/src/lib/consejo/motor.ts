@@ -117,7 +117,7 @@ function pareceCortado(texto: string): boolean {
  * página eso es una pared que tapa el resto del consejo, y lo único que
  * hacía falta saber cabe en una línea. Se queda el código, el mensaje y,
  * si lo dice, cuánto hay que esperar. */
-function resumirError(bruto: string): string {
+export function resumirError(bruto: string): string {
   let texto = bruto;
 
   // Los proveedores devuelven el error anidado como texto dentro de otro JSON.
@@ -140,9 +140,67 @@ function resumirError(bruto: string): string {
 
   // Una sola línea: lo repetido por cuota de día, de minuto y demás sobra.
   const primera = texto.split("\n").map((l) => l.trim()).find(Boolean) ?? texto;
-  const espera = /retry in ([^".\n]+)/i.exec(bruto);
-  const corto = primera.length > 220 ? `${primera.slice(0, 220)}…` : primera;
-  return espera ? `${corto} (reintentar en ${espera[1].trim()})` : corto;
+
+  /* Y fuera la propaganda: «For more information on this error, head to
+     https://...» y «To monitor your current usage, head to https://...»
+     son ciento sesenta caracteres que no dicen nada y se comían el aviso
+     entero hasta recortarlo a mitad de una URL. */
+  const util = primera
+    .replace(/\s*(For more information|To monitor|Please (see|refer)|Learn more)\b[\s\S]*$/i, "")
+    .replace(/\s*https?:\/\/\S*$/i, "")
+    .trim();
+
+  /* Cuánto hay que esperar llega de dos formas y solo de dos: el
+     `retryDelay` de Google, en segundos, y la frase «retry in ...» que
+     ponen otros. Buscar un patrón que cubra las dos a la vez acababa
+     pescando el «in» de «For more information». */
+  const cuanto = (
+    /"?retryDelay"?\s*:\s*"?([0-9]+s)"?/i.exec(bruto)?.[1] ??
+    /\bretry in ([^".,\n}]+)/i.exec(bruto)?.[1] ??
+    ""
+  ).trim();
+
+  const base = util || primera;
+  const corto = base.length > 180 ? `${base.slice(0, 180)}…` : base;
+  return cuanto ? `${corto} (reintentar en ${enHoras(cuanto)})` : corto;
+}
+
+/** «47880s» no dice nada; «13 h 18 min» sí. Google manda la espera en
+ *  segundos y eso acababa en pantalla tal cual. */
+function enHoras(crudo: string): string {
+  const seg = /^(\d+)s$/.exec(crudo);
+  if (!seg) return crudo;
+  const n = Number(seg[1]);
+  if (n < 60) return `${n} s`;
+  if (n < 3600) return `${Math.round(n / 60)} min`;
+  const h = Math.floor(n / 3600);
+  const min = Math.round((n % 3600) / 60);
+  return min ? `${h} h ${min} min` : `${h} h`;
+}
+
+/** Agrupa los fallos de una cadena por su causa, no por el modelo.
+ *
+ *  El nombre del modelo no le dice nada a quien lee, y la misma cuota
+ *  agotada contada cinco veces —una por suplente— tapaba el resto del
+ *  consejo. Dos variantes del mismo 429 (una con la espera y otra sin
+ *  ella) bastaban para que no se agrupara ninguna.
+ */
+export function agruparFallos(fallos: string[]): string {
+  const causas = new Map<string, string>();
+  for (const f of fallos) {
+    const cual = f.includes(": ") ? f.slice(f.indexOf(": ") + 2) : f;
+    const clave = cual
+      .replace(/\s*\(reintentar en [^)]*\)/i, "")
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    if (!causas.has(clave)) causas.set(clave, cual);
+  }
+  const unicos = [...causas.values()];
+  const cuantos = fallos.length;
+  const probados = `${cuantos} modelo${cuantos > 1 ? "s" : ""} probado${cuantos > 1 ? "s" : ""}`;
+  return cuantos > 1 ? `${unicos.join(" · ")} (${probados})` : unicos.join(" · ");
 }
 
 /* Prueba la cadena del miembro hasta que uno conteste.
@@ -173,14 +231,7 @@ async function preguntar(
 
   /* Si toda la cadena se cae por lo mismo —y con un 429 de cuota pasa
      siempre— no hace falta repetirlo una vez por suplente. */
-  const unicos = [...new Set(fallos.map((f) => f.slice(f.indexOf(": ") + 2)))];
-  return {
-    ok: false,
-    error:
-      unicos.length === 1
-        ? `${unicos[0]} (${fallos.length} modelo${fallos.length > 1 ? "s" : ""} probado${fallos.length > 1 ? "s" : ""})`
-        : fallos.join(" | "),
-  };
+  return { ok: false, error: agruparFallos(fallos) };
 }
 
 // ---------------------------------------------------------------
@@ -394,14 +445,21 @@ async function leerAdjuntos(
       /* Un "no he recibido nada" NO es material: mandarlo al consejo es
          hacerles deliberar sobre el fallo en vez de sobre el documento. */
       if (!r.ok || /^\s*SIN_ARCHIVO/i.test(r.texto) || r.texto.trim().length < 40) {
-        const motivo = r.ok ? `el lector no vio el archivo` : r.error;
+        const motivo = r.ok ? "el lector no vio el archivo" : r.error;
         console.warn(`[consejo] transcripción fallida: ${motivo}`);
+        /* El qué hacer importa más que el motivo. Un escaneo se arregla
+           con un OCR en el ordenador: es gratis, no gasta cuota de nadie
+           y además deja el texto idéntico para los seis, que es mejor que
+           fiarse de lo que transcriba un modelo. */
         emitir({
           t: "fase",
           fase: "aviso",
           detalle:
-            `No se pudo leer ${paraElModelo.map((a) => a.nombre).join(", ")}: ${motivo}. ` +
-            "El consejo delibera sin ese material.",
+            `${paraElModelo.map((a) => a.nombre).join(", ")}: sin capa de texto y ningún ` +
+            `miembro ha podido mirarlo. El consejo delibera sin ese material. ` +
+            `Para meterlo, pásalo por un OCR en tu ordenador —"ocrmypdf -l spa entrada.pdf ` +
+            `salida.pdf"— y adjunta el resultado: sale gratis y el texto queda igual para ` +
+            `los seis. Motivo del fallo: ${motivo}`,
         });
       } else {
         console.log(`[consejo] transcrito por ${r.modelo}: ${r.texto.length} caracteres`);
