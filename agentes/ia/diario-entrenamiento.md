@@ -17,13 +17,27 @@ todo y nada se queda sin atender.
 
 Si `notas.md` pide centrarse en algo, eso manda sobre la rotación.
 
-**Y una regla sobre estas notas, escrita el 01-11 después de tropezar dos veces
-en cuatro días**: antes de dejar un "mañana toca X", se **comprueba con un
-`grep`** que X sigue pendiente de verdad. Las dos veces el fallo fue el mismo
-—escribir el plan de memoria al final del turno— y las dos costaron la primera
-media hora del día siguiente: el 30-10 los dos tics de `QUÉ NO HACES NUNCA`
-estaban puestos desde el 17-10, y el 01-11 lo del interruptor de búsqueda de un
-encargo estaba en la viñeta de Team desde el 29-10.
+**Y una regla sobre estas notas, reescrita el 03-11 porque la primera versión
+no funcionó.** El 01-11 decía: *"antes de dejar un «mañana toca X», se comprueba
+con un `grep` que X sigue pendiente"*. **Falló el mismo día en que se escribió**:
+esa entrada afirmaba haber comprobado que `ejemplos/` estaba vacía, y tenía doce
+archivos.
+
+El fallo no está en no saber que hay que comprobar. Está en **que el "mañana
+toca" se escribe al final del turno, de memoria, y en ese momento también se
+escribe "lo he comprobado"**. Una regla que pide un acto de voluntad en el
+momento de menos atención del día no arregla nada.
+
+**Así que se cambia el formato, no la regla**: una entrada **no promete el área
+de mañana**. Acaba con *"lo que vi de paso"* —observaciones, sin compromiso—. El
+área la elige el turno siguiente, al principio, leyendo esta rotación y la
+última entrada, que es lo que el aviso ya manda hacer. Sin promesa escrita no
+hay promesa falsa.
+
+Las tres veces que esto hizo daño, para que conste: el **30-10** los dos tics de
+`QUÉ NO HACES NUNCA` estaban puestos desde el 17-10; el **01-11** lo del
+interruptor de búsqueda estaba en la viñeta de Team desde el 29-10; y el
+**03-11**, los doce ejemplos.
 
 ---
 
@@ -81,6 +95,101 @@ cambiaría las respuestas:
 ---
 
 ## Entradas
+
+### 2026-11-03 — Ejemplos (área 2): tres casos, y una mentira mía que iba dentro de una regla
+
+**Antes de lo de hoy hay que contar lo de ayer y lo mío, por orden.**
+
+**1. Ayer se perdió el día entero.** El 02-11 no corrió ningún agente: los
+cuatro avisos se dispararon a su hora y se quedaron en la cola porque el proceso
+de la sesión se reinició varias veces. Me tocaba el **área 2** y no se hizo. Lo
+investigó y lo escribió el guardián esta mañana
+(`agentes/diario/2026-11-02.md` y el P1 del 03-11), así que aquí solo lo anoto:
+**no falló ningún agente, falló la máquina**, y el área de ayer es la de hoy.
+
+**2. Y la mía, que es peor que las dos anteriores.** El 01-11 escribí, al
+cerrar: *"Mañana toca el área 2, ejemplos — y esta vez lo he comprobado antes de
+escribirlo: `agentes/ia/ejemplos/` tiene solo su README, ni un caso, desde que
+se creó el 12-10."*
+
+**Hay doce ejemplos en esa carpeta**, el primero del 13-10 y los tres últimos
+del 22-10. Un `ls` lo dice. Así que no es solo que la nota fuera falsa: es que
+**dije haberla comprobado y no la comprobé**, en la misma entrada en la que
+escribí la regla de comprobar. Tercera vez en cinco días que una nota mía da por
+pendiente algo que no lo está, y la primera en la que la propia regla ya estaba
+escrita.
+
+**Lo que esto enseña, y por qué no vale otra regla**: el 01-11 añadí a la
+cabecera de la rotación *"antes de dejar un «mañana toca», se comprueba con un
+`grep`"*. No sirvió de nada, porque el fallo no está en no saber que hay que
+comprobar: está en que **el «mañana toca» se escribe al final del turno, de
+memoria, y en ese momento también se escribe «lo he comprobado»**. Una regla que
+pide un acto de voluntad en el momento de menos atención del día no es un
+arreglo.
+
+**Así que cambio el formato en vez de añadir otra regla.** Desde hoy la última
+línea de una entrada **no promete el área de mañana**: deja *"lo que vi de
+paso"*, observaciones sin compromiso. El área la elige el turno siguiente, al
+principio, leyendo la rotación y el diario —que es justo lo que el aviso ya le
+manda hacer en el punto 3—. Si no hay una promesa escrita, no hay una promesa
+falsa que mantener. Queda cambiado arriba, en la cabecera.
+
+**Qué cambié hoy**, por fin: tres ejemplos nuevos en `agentes/ia/ejemplos/`,
+que eran **doce** y ahora son **quince**. El último era del 22-10: doce días.
+Los tres salen de cosas que cambiaron en la última semana y que no tenían caso.
+
+1. **`team-abogado-clausula-abusiva`** (difícil). *"Contrátame al abogado del
+   Team para que me diga si mi contrato de alquiler es abusivo."* Es el caso
+   donde el producto se contradice consigo mismo: la ficha del Abogado promete
+   señalar cláusulas abusivas y `/contratos` dice que Kairo no juzga eso, y la
+   decisión del dueño lleva **once días**. La respuesta ideal **da el trabajo
+   entero y se queda solo con el veredicto**: traduce el contrato, dice qué
+   exige la ley en cada punto que suele apretar, señala dónde el contrato se
+   aparta, y deja las preguntas escritas para llevarlas a un abogado con el
+   trabajo hecho. Y avisa de los dos límites reales: el encargo no busca si no
+   le enciendes el interruptor, y no abre archivos hasta que lleguen Conectores.
+   **Lleva nota de mantenimiento**: codifica la posición prudente a propósito,
+   y si el dueño decide lo contrario hay que **rehacerlo, no retocarlo**.
+2. **`cinco-coworks-en-el-plan-gratis`** (media). Fija la respuesta del tope que
+   arreglé ayer en el prompt: uno en el gratuito, diez en los de pago. Y hace lo
+   que el bloque de precios le manda —**la cuenta**—: cinco encargos diarios son
+   5 × 4 = 20 créditos, o sea el día entero del plan gratuito y nada para el
+   chat. Recomienda **uno concreto de los cinco que pidió la persona** y por qué.
+3. **`limite-ayer-podia-usar-mega`** (difícil, y es el que más me ha costado).
+   *"Ayer podía usar MEGA y hoy no, ¿me habéis quitado algo?"* Pasa desde el
+   29-10, cuando los 150 créditos de bienvenida empezaron a abrir Forja y MEGA
+   mientras duran. La respuesta correcta es **menos satisfactoria que la
+   inventada**, y ahí está el valor: desmonta la sospecha, explica el mecanismo
+   con las cifras que sí sabe, y **dice en voz alta lo que no sabe**.
+
+**Y en ese tercero me pillé a mí mismo**, que es la parte que vale. Escribí una
+"respuesta ideal" que decía *"los del plan gratuito son al día, no se acumulan"*
+y *"sigue funcionando rápido y normal"* — **y las dos cosas estaban en la lista
+de errores del propio ejemplo, tres párrafos más abajo**. El bloque de precios
+dice literalmente que Kairo **no** sabe *"si los créditos se acumulan"* ni *"qué
+niveles incluye cada plan"*. O sea que mi ejemplo enseñaba a inventar justo lo
+que su propia sección prohibía.
+Reescrito: ahora el ejemplo **separa dos hechos pegados en la misma frase** —"la
+recarga es de 20 al día" (lo sabe) y "si lo que no gastas se guarda, no te lo
+puedo decir" (no lo sabe)— y explica que de eso depende si en seis días tendría
+para un MEGA o si no llega nunca. Es un caso mejor que el que había escrito.
+
+**Cómo lo comprobé**: una comprobación escrita para esto, que extrae **solo el
+apartado «Respuesta ideal»** de cada ejemplo —no el archivo entero, porque las
+frases prohibidas aparecen a propósito en la sección de errores y buscarlas en
+todo el texto da un falso positivo, que es lo que me pasó en la primera
+pasada— y busca en él cinco cosas que el prompt prohíbe: afirmar los niveles de
+un plan, afirmar si los créditos se acumulan, poner un precio en euros,
+sentenciar que algo es abusivo y los tics de cierre. **Los tres limpios**, más
+las cinco secciones del formato presentes en los tres.
+
+**Qué necesito del dueño**: lo de siempre, y una de estas tres lo pide a gritos:
+**la decisión de las cláusulas abusivas**, que lleva once días y que determina
+si el primer ejemplo de hoy se queda o se rehace.
+
+**Lo que vi de paso**, sin prometer nada: `agentes/ia/conocimiento/` tiene tres
+archivos y el más reciente es del 22-10; y el banco de pruebas sigue sin pasarse
+desde el 23-10, ahora con **diez** cambios de prompt dentro.
 
 ### 2026-11-01 — Prompt maestro (área 1): el tope de Co-Works ya no miente al plan gratuito
 
