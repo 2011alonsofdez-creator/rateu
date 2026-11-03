@@ -199,6 +199,22 @@ function estimar(
   return { llamadas, euros };
 }
 
+/** Lo que devuelve /api/consejo/revisar: qué se puede leer, sin gastar. */
+type Revision = {
+  archivos: {
+    nombre: string;
+    estado: "texto" | "escaneo" | "imagen" | "roto";
+    paginas: number;
+    caracteres: number;
+    motivo?: string;
+  }[];
+  caracteres: number;
+  puedenMirar: boolean;
+  sinLeer: string[];
+  rotos: string[];
+  rechazados: string[];
+};
+
 function Caja({
   children,
   titulo,
@@ -271,6 +287,15 @@ export default function Consejo() {
      las firmas, para cuando hay que poder defender de dónde sale. */
   const [modoPdf, setModoPdf] = useState<"no" | "respuesta" | "todo">("no");
 
+  /* Lo que se va a poder leer de los documentos, sabido ANTES de gastar.
+     No cuesta nada: se abren los PDFs en el servidor y se mira si traen
+     capa de texto. Existe porque enterarse después de pagar quince
+     llamadas de que nadie pudo abrir el documento es dinero tirado por
+     algo que se comprueba gratis en medio segundo. */
+  const [revision, setRevision] = useState<Revision | null>(null);
+  const [revisando, setRevisando] = useState(false);
+  const [aunAsi, setAunAsi] = useState(false);
+
   const corte = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -312,6 +337,52 @@ export default function Consejo() {
       document.title = antes;
     };
   }, [modoPdf, pregunta]);
+
+  /* Revisar los documentos en cuanto se adjuntan, no al lanzar.
+   *
+   * Es gratis —no interviene ningún modelo— y es lo único que impide
+   * pagar una deliberación completa sobre un documento que nadie puede
+   * abrir. Se vuelve a pedir cada vez que cambia la lista. */
+  useEffect(() => {
+    if (!archivos.length) {
+      setRevision(null);
+      setAunAsi(false);
+      return;
+    }
+
+    let vigente = true;
+    setRevisando(true);
+    setAunAsi(false);
+
+    fetch("/api/consejo/revisar", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        adjuntos: archivos.map((a) => ({
+          nombre: a.nombre,
+          tipo: a.tipo,
+          datos: a.datos,
+          bytes: a.bytes,
+        })),
+      }),
+    })
+      .then((r) => r.json())
+      .then((d: Revision) => {
+        if (vigente) setRevision(d);
+      })
+      .catch(() => {
+        /* Si la revisión falla, no se bloquea nada: sería peor impedir
+           deliberar por un fallo del comprobador que no comprobar. */
+        if (vigente) setRevision(null);
+      })
+      .finally(() => {
+        if (vigente) setRevisando(false);
+      });
+
+    return () => {
+      vigente = false;
+    };
+  }, [archivos]);
 
   const nombre = useCallback(
     (id: string) => {
@@ -638,6 +709,86 @@ export default function Consejo() {
           </div>
         )}
 
+        {/* Qué se va a poder leer, antes de gastar un céntimo.
+            Esta comprobación no llama a ningún modelo: abre los PDFs en
+            el servidor y mira si traen capa de texto. Está aquí porque
+            tres deliberaciones enteras se pagaron sobre un expediente
+            cuya carta de sanción nadie podía abrir, y el aviso llegaba
+            al final, con el dinero ya gastado. */}
+        {revisando && (
+          <p className="text-[12.5px] text-muted">Mirando qué traen los documentos…</p>
+        )}
+
+        {revision && !revisando && (
+          <div className="space-y-2">
+            <ul className="space-y-1 text-[12.5px] leading-relaxed">
+              {revision.archivos.map((a) => (
+                <li key={a.nombre} className="flex flex-wrap items-baseline gap-x-2">
+                  <span
+                    className={
+                      a.estado === "texto"
+                        ? "text-emerald-300"
+                        : a.estado === "roto"
+                          ? "text-red-300"
+                          : "text-amber-300"
+                    }
+                  >
+                    {a.estado === "texto" ? "✓" : a.estado === "roto" ? "✕" : "!"}
+                  </span>
+                  <span>{a.nombre}</span>
+                  <span className="text-muted">
+                    {a.estado === "texto"
+                      ? `${a.caracteres.toLocaleString("es")} caracteres de ${a.paginas} páginas, listos sin gastar nada`
+                      : a.estado === "escaneo"
+                        ? `escaneado: ${a.paginas} páginas sin texto dentro`
+                        : a.estado === "imagen"
+                          ? "imagen: hay que mirarla"
+                          : `no se pudo abrir${a.motivo ? ` — ${a.motivo}` : ""}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {revision.sinLeer.length > 0 && (
+              <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-[13px] leading-relaxed text-red-200">
+                <p className="font-medium">
+                  Si lanzas ahora, pagas la deliberación y{" "}
+                  {revision.sinLeer.length === 1 ? "este documento" : "estos documentos"} no{" "}
+                  {revision.sinLeer.length === 1 ? "entra" : "entran"}:{" "}
+                  {revision.sinLeer.join(", ")}.
+                </p>
+                <p className="mt-1.5">
+                  No tienen texto dentro y en la mesa no hay nadie que pueda mirar un
+                  archivo. Pásalos por un OCR en tu ordenador, que es gratis y no gasta
+                  cuota de nadie:
+                </p>
+                <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/30 p-2 text-[12px]">
+                  ocrmypdf -l spa entrada.pdf ~/salida.pdf
+                </pre>
+                <p className="mt-1.5">
+                  Y adjunta <strong>el resultado</strong>, no el original. Cuando lo hagas,
+                  aquí pondrá «caracteres listos sin gastar nada».
+                </p>
+                <label className="mt-2 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={aunAsi}
+                    onChange={(ev) => setAunAsi(ev.target.checked)}
+                  />
+                  <span>Lo sé, lanzar igualmente sin ese documento</span>
+                </label>
+              </div>
+            )}
+
+            {revision.rotos.length > 0 && revision.sinLeer.length === 0 && (
+              <p className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-[13px] leading-relaxed text-red-200">
+                No se pudo abrir: {revision.rotos.join(", ")}. Quítalo o vuelve a
+                exportarlo, porque no va a llegar al consejo.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium transition hover:bg-panel-hi">
             <Clip className="h-4 w-4" />
@@ -672,12 +823,27 @@ export default function Consejo() {
             ))}
           </div>
 
+          {/* El botón se apaga mientras haya un documento que no se vaya a
+              poder leer. No es paternalismo: es la diferencia entre
+              gastar cincuenta céntimos en una respuesta completa y
+              gastarlos en una a la que le falta la prueba principal. Se
+              desbloquea marcando la casilla de arriba. */}
           <button
             onClick={() => void deliberar()}
-            disabled={corriendo || !pregunta.trim() || !listo}
+            disabled={
+              corriendo ||
+              !pregunta.trim() ||
+              !listo ||
+              revisando ||
+              (Boolean(revision?.sinLeer.length) && !aunAsi)
+            }
             className="ml-auto rounded-lg border border-line-hi bg-panel-hi px-4 py-1.5 text-[13.5px] font-medium transition hover:border-acento disabled:opacity-40"
           >
-            {corriendo ? "Deliberando…" : "Reunir al consejo"}
+            {corriendo
+              ? "Deliberando…"
+              : revisando
+                ? "Revisando documentos…"
+                : "Reunir al consejo"}
           </button>
         </div>
 

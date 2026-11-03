@@ -1,5 +1,6 @@
 import { aceptaArchivos, arrancar, type Peticion } from "@/lib/ia/proveedores";
 import { esRefCli, preguntarCli } from "./cli";
+import { leerPdf, pareceEscaneo } from "./leer";
 import { TEMPERATURA } from "@/lib/ia/config";
 import type { Adjunto } from "@/lib/tipos";
 import { formarConsejo, hayConsejo, type Composicion } from "./miembros";
@@ -387,23 +388,21 @@ async function leerAdjuntos(
       continue;
     }
     try {
-      const { extractText, getDocumentProxy } = await import("unpdf");
-      const pdf = await getDocumentProxy(new Uint8Array(Buffer.from(a.datos, "base64")));
-      const { totalPages, text } = await extractText(pdf, { mergePages: true });
-      const limpio = String(text ?? "").trim();
+      /* El mismo lector y el mismo umbral que usa el aviso previo de la
+         página. Si aquí se decidiera otra cosa, el aviso que se da antes
+         de gastar sería mentira y peor que no darlo. */
+      const { paginas, texto: limpio } = await leerPdf(a.datos);
 
-      /* Poco texto en varias páginas = escaneo sin capa de texto. Ahí no
-         hay nada que extraer y lo que toca es que lo mire un modelo. */
-      if (limpio.length < Math.max(80, totalPages * 40)) {
+      if (pareceEscaneo(limpio.length, paginas)) {
         console.warn(
-          `[consejo] ${a.nombre}: solo ${limpio.length} caracteres en ${totalPages} páginas; parece escaneado, va al modelo`,
+          `[consejo] ${a.nombre}: solo ${limpio.length} caracteres en ${paginas} páginas; parece escaneado, va al modelo`,
         );
         paraElModelo.push(a);
         continue;
       }
 
-      console.log(`[consejo] ${a.nombre}: ${limpio.length} caracteres de ${totalPages} páginas`);
-      trozos.push({ nombre: `${a.nombre} (${totalPages} páginas)`, texto: limpio });
+      console.log(`[consejo] ${a.nombre}: ${limpio.length} caracteres de ${paginas} páginas`);
+      trozos.push({ nombre: `${a.nombre} (${paginas} páginas)`, texto: limpio });
     } catch (e) {
       console.warn(`[consejo] ${a.nombre}: no se pudo abrir (${e}); va al modelo`);
       paraElModelo.push(a);
