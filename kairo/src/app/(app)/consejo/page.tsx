@@ -203,15 +203,20 @@ function Caja({
   children,
   titulo,
   soloPantalla,
+  soloPdfLargo,
 }: {
   children: React.ReactNode;
   titulo?: string;
   /** Lo que sirve para seguir la deliberación en vivo, pero no para el papel. */
   soloPantalla?: boolean;
+  /** El cómo se llegó ahí: va en el PDF con todo, no en el de la respuesta. */
+  soloPdfLargo?: boolean;
 }) {
   return (
     <section
-      className={`rounded-2xl border border-line bg-panel p-5${soloPantalla ? " no-imprimir" : ""}`}
+      className={`rounded-2xl border border-line bg-panel p-5${soloPantalla ? " no-imprimir" : ""}${
+        soloPdfLargo ? " solo-pdf-largo" : ""
+      }`}
     >
       {titulo ? <h2 className="text-[15px] font-semibold">{titulo}</h2> : null}
       <div className={titulo ? "mt-3" : ""}>{children}</div>
@@ -260,6 +265,12 @@ export default function Consejo() {
   const [sintesis, setSintesis] = useState("");
   const [segundos, setSegundos] = useState<number | null>(null);
 
+  /* Qué se va a llevar el PDF. "no" es lo normal: no se está imprimiendo.
+     "respuesta" saca solo lo que el consejo contestó, que es lo que uno
+     se lleva a un despacho; "todo" añade la verificación, la votación y
+     las firmas, para cuando hay que poder defender de dónde sale. */
+  const [modoPdf, setModoPdf] = useState<"no" | "respuesta" | "todo">("no");
+
   const corte = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -272,6 +283,35 @@ export default function Consejo() {
       })
       .catch(() => setAviso("No se pudo consultar quién está en el consejo."));
   }, []);
+
+  /* Abrir el diálogo de imprimir cuando ya está pintado lo que toca.
+   *
+   * Llamar a print() en el mismo tick que se cambia el estado imprime la
+   * página como estaba: el navegador hace la captura antes de que React
+   * haya pintado. Un cuadro de margen basta y no se nota.
+   *
+   * De paso se cambia el título del documento, porque es de ahí de donde
+   * el navegador saca el nombre del archivo: sin esto, el PDF se guardaba
+   * como «Consejo — Kairo» y a la tercera vez ya no sabes cuál es cuál. */
+  useEffect(() => {
+    if (modoPdf === "no") return;
+
+    const antes = document.title;
+    const hoy = new Date().toISOString().slice(0, 10);
+    const asunto = pregunta.replace(/\s+/g, " ").trim().slice(0, 60) || "deliberación";
+    document.title = `Consejo ${hoy} — ${asunto}`;
+
+    const t = window.setTimeout(() => {
+      window.print();
+      document.title = antes;
+      setModoPdf("no");
+    }, 80);
+
+    return () => {
+      window.clearTimeout(t);
+      document.title = antes;
+    };
+  }, [modoPdf, pregunta]);
 
   const nombre = useCallback(
     (id: string) => {
@@ -466,7 +506,11 @@ export default function Consejo() {
   const hayRespuesta = Boolean(sintesis || propuesta);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
+    <main
+      className={`mx-auto max-w-3xl px-4 py-8 sm:py-10${
+        modoPdf === "respuesta" ? " pdf-corto" : ""
+      }`}
+    >
       {/* Al imprimir se queda la deliberación y se va la aplicación.
           Chrome imprime a PDF de serie, así que no hace falta ninguna
           librería: el PDF sale con el texto seleccionable y buscable,
@@ -485,8 +529,12 @@ export default function Consejo() {
           h1 { font-size: 20pt; }
           h2 { font-size: 13pt; margin-top: 14pt; }
           .solo-impreso { display: block !important; }
+          /* El PDF corto: solo lo que el consejo contestó. Lo demás —cómo
+             se llegó ahí, los votos, las firmas— es para el PDF largo. */
+          .pdf-corto .solo-pdf-largo { display: none !important; }
         }
         .solo-impreso { display: none; }
+        @page { margin: 18mm 16mm; }
       `}</style>
       <div className="flex flex-wrap items-center gap-3">
         <div className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-panel text-acento">
@@ -720,6 +768,31 @@ export default function Consejo() {
         </ul>
       )}
 
+      {/* Llevárselo en PDF.
+          El navegador imprime a PDF de serie, así que no hace falta
+          ninguna librería y el texto sale seleccionable y buscable, que es
+          lo que quiere quien se lo lleva a un despacho. Dos botones y no
+          un selector: lo que decide cuál quieres es a quién se lo das. */}
+      {hayRespuesta && !corriendo && (
+        <div className="no-imprimir mt-6 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setModoPdf("respuesta")}
+            className="rounded-lg border border-line-hi bg-panel-hi px-3.5 py-1.5 text-[13.5px] font-medium transition hover:border-acento"
+          >
+            PDF de la respuesta
+          </button>
+          <button
+            onClick={() => setModoPdf("todo")}
+            className="rounded-lg border border-line px-3.5 py-1.5 text-[13.5px] font-medium transition hover:bg-panel-hi"
+          >
+            PDF con todo
+          </button>
+          <span className="text-[12.5px] leading-relaxed text-muted">
+            En el diálogo que se abre, elige «Guardar como PDF».
+          </span>
+        </div>
+      )}
+
       <div className="mt-6 space-y-4">
         {/* Quién ha ido contestando en la ronda 1 */}
         {sintesis && (
@@ -739,7 +812,7 @@ export default function Consejo() {
         )}
 
         {(r1.length > 0 || resultados.length > 0) && (
-          <p className="no-imprimir pt-2 text-[12.5px] font-medium uppercase tracking-wide text-muted">
+          <p className="no-imprimir solo-pdf-largo pt-2 text-[12.5px] font-medium uppercase tracking-wide text-muted">
             Cómo se llegó a esa respuesta
           </p>
         )}
@@ -751,7 +824,7 @@ export default function Consejo() {
         )}
 
         {verificacion && (
-          <Caja titulo="Verificación de los datos">
+          <Caja titulo="Verificación de los datos" soloPdfLargo>
             <div className="text-[14px] leading-relaxed">
               <Markdown text={verificacion} />
             </div>
@@ -766,7 +839,7 @@ export default function Consejo() {
 
         {/* La votación */}
         {resultados.length > 0 && (
-          <Caja titulo="Votación">
+          <Caja titulo="Votación" soloPdfLargo>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[13px]">
                 <thead className="text-muted">
@@ -820,7 +893,7 @@ export default function Consejo() {
 
         {/* Las firmas */}
         {veredictos.length > 0 && (
-          <Caja titulo="Firmas">
+          <Caja titulo="Firmas" soloPdfLargo>
             <ul className="space-y-3">
               {veredictos.map((v) => (
                 <li key={v.miembro} className="border-t border-line pt-3 first:border-0 first:pt-0">
