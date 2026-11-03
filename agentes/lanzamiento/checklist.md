@@ -3,7 +3,27 @@
 Lo marca el guardián **solo con lo que ha verificado de verdad ese día**.
 Nada marcado de memoria ni por lo que diga un README.
 
-Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar aún
+Leyenda: ✅ verificado · 🟡 con pegas · ⚪ no comprobable desde la sede ·
+⬜ sin verificar aún
+
+> **Este archivo tiene dos mitades, y el 03-11 se le añadió la segunda porque
+> faltaba.** Las tres primeras secciones —viva, sana y agentes— dicen si Kairo
+> **funciona**, y las marca el guardián cada mañana. La cuarta, **Para poder
+> lanzar**, dice si Kairo **se puede abrir al público**, y son las puertas de la
+> sección 8 de `docs/kairo/ESPECIFICACION.md`.
+>
+> **Por qué hacía falta**: el radar lo pidió **siete veces en veintiún días**
+> con el mismo argumento —"esto mide salud, no lanzamiento"— y el 01-11 salió la
+> prueba. La fila *"Enlace visible a los textos legales"* llevaba en ✅ desde el
+> **12-10** porque comprobaba que el **enlace** existe; los cuatro documentos no
+> existen. Veinte días en verde sobre un requisito que no se cumple, sin que
+> nadie mintiera: la fila preguntaba lo que preguntaba.
+>
+> **Así que la regla nueva es de redacción**: una fila de lanzamiento pregunta
+> por **la cosa**, no por su envoltorio. No "hay enlace a los legales" sino
+> "están escritos"; no "hay página de precios" sino "se puede pagar y el plan
+> sube". Si una fila se puede marcar sin que la cosa exista, la fila está mal
+> escrita.
 
 ## Está viva
 
@@ -39,3 +59,72 @@ Leyenda: ✅ verificado · ⚪ no comprobable desde la sede · ⬜ sin verificar
 |---|---|---|---|
 | 🟡 | Los agentes se ejecutan | 2026-11-03 | **Ayer no se ejecutó ninguno, y la racha de veintidós días se rompió.** `git log` del 02-11 sobre la rama: **cero** commits. Los cuatro avisos se dispararon a su hora y los cuatro se quedaron en la cola porque **el proceso de la sesión se reinició varias veces**; se leyeron hoy, entre veinte y veintitrés horas tarde. **No falló ningún agente ni ninguna rutina: falló la máquina.** Queda constancia en `agentes/diario/2026-11-02.md`, que dice que no hay parte en vez de inventarlo. El daño que se arrastra: **crecimiento se queda del 29-10 al 05-11 sin mirar el mercado, siete días.** Lo pongo en 🟡 y no en ✅ porque esta fila pregunta si los agentes se ejecutan, y ayer la respuesta fue no |
 | ✅ | Parte diario del constructor | 2026-10-13 | El del 12-10 está en `agentes/diario/2026-10-12.md`, con la sección del entrenador conservada |
+
+## Para poder lanzar
+
+**Añadida el 2026-11-03.** Son las veinte puertas de la sección 8 de la
+especificación, con dos cambios que explico donde toca: una fila partida en dos
+y otra actualizada porque el producto ha cambiado desde que se escribió.
+**Ninguna se marca por estar escrita aquí.**
+
+### Antes de enseñárselo a nadie
+
+| | Qué | Estado | Lo que se sabe hoy |
+|---|---|---|---|
+| ⬜ | Registrarse con una cuenta nueva y llegar a la primera respuesta sin errores | sin verificar | Nadie lo ha hecho de principio a fin. Desde la sede no se puede: no se abre la web. **Es la primera de todas y es de quince minutos suyos.** |
+| ⬜ | Probar **los cuatro** niveles y comprobar que descuentan bien | sin verificar | La especificación dice tres porque se escribió antes de Forja. Hoy son `fast` 1, `normal` 4, `forja` 20, `mega` 120 (`lib/ia/config.ts`). Que el descuento sea correcto **no lo ha comprobado nadie en producción** |
+| ⬜ | Gastar todos los créditos a propósito y ver que el bloqueo funciona | sin verificar | El bloqueo existe en el código y nadie lo ha visto actuar. Y desde el 29-10 hay dos saldos —la recarga diaria y los 150 de bienvenida—, así que son **dos** finales distintos que probar |
+| ⬜ | Crear un perfil hijo y probar el modo niños con preguntas límite | sin verificar | Es el P2 del entrenador del 16-10: **el modo de edad no se ha probado nunca**. Hay tres ejemplos escritos de casos límite de menores, y ninguno ejecutado contra Kairo |
+| ⬜ | Comprar con la tarjeta de pruebas y verificar que el plan sube | sin verificar | **Y hoy ni se puede intentar**: los botones de compra dependen de `NEXT_PUBLIC_TIENDA` (`lib/pagos/publico.ts:7`) y no consta encendida. Es suyo |
+| ⬜ | Cancelar la suscripción y verificar que vuelve a Free al acabar el periodo | sin verificar | Depende de la anterior. Suyo |
+| ⚪ | Abrirlo en un móvil de verdad | no comprobable | Ningún agente ha visto Kairo en una pantalla, ni de móvil ni de escritorio. **Es la misma ⚪ que arrastra el radar siete informes** |
+| 🟡 | Que la clave de API no aparezca en el código del navegador | parcial | Lo que sí está comprobado, y a diario: **cero** claves en el repositorio (`git grep` sobre los dos árboles) y nada secreto detrás de un `NEXT_PUBLIC_` —los aciertos son nombres de variables públicas por diseño—. Lo que falta es lo que pide la especificación: **abrir F12 en la web publicada**, y eso no se puede desde aquí |
+
+### Legal y protección
+
+| | Qué | Estado | Lo que se sabe hoy |
+|---|---|---|---|
+| ⬜ | **Los cuatro textos legales, escritos** | sin verificar, **y hoy se sabe que no existen** | Esta es la fila partida, y es el motivo de toda esta sección. `/legal` dice de sí misma: *"Pendiente de redactar antes del lanzamiento. Estos son los cuatro documentos necesarios."* Lo que hay son cuatro tarjetas con una línea de descripción. Buscados en todo el repositorio: no están. **P1 desde el 01-11, esperando cuatro datos suyos** (titular, correo de contacto, encargados del tratamiento, ley y fuero) |
+| ✅ | Los cuatro textos legales, **enlazados en el pie** | 2026-11-01 | Esta es la mitad que sí estaba hecha, y la que tenía el ✅ desde el 12-10 confundiendo las dos cosas. Hoy además **cada uno lleva a su propia tarjeta** (`/legal#aviso`, `#privacidad`, `#cookies`, `#terminos`), comprobado en el HTML generado |
+| ⬜ | Apartado específico de menores en la política de privacidad | sin verificar | No puede existir antes que la política. Pero el dato está medido y listo para escribirlo: el modo de edad es real en el código y `modoEdad === null` se trata como `"nino"` en los tres sitios que deciden —ante la duda, el modo más protegido— |
+| ⬜ | Topes de gasto mensual en los proveedores | sin verificar | La especificación dice Anthropic, Google y OpenAI; **hoy el que gasta de verdad es OpenRouter**, que entra cada tarde cuando se agota la cuota de Gemini. **Pedido ocho veces desde el 19-10.** Es suyo y son dos minutos |
+| ⬜ | Copia de seguridad automática de la base de datos | sin verificar | Nunca comprobado por nadie. Se ve en el panel de Supabase, que es suyo |
+| ⬜ | Dominio propio con SSL | sin verificar | Hoy Kairo vive en un subdominio de `vercel.app`. Suyo |
+
+### Primeros usuarios
+
+| | Qué | Estado | Lo que se sabe hoy |
+|---|---|---|---|
+| ⬜ | Diez personas usándola una semana entera y contando qué falla | sin verificar | **Y cuidado con confundirlo con lo que ya hay**: el 24-10 cuatro personas avisaron de que Kairo daba datos viejos (commit `688ecb2`). Eso es oro y no es esto: fueron cuatro, no diez, y un aviso suelto, no una semana |
+| ⬜ | Analítica instalada | sin verificar | **Cero** cifras de registros, primer mensaje o pagos. **Pedido ocho veces desde el 19-10**, y es lo que deja en blanco tres métricas de cada informe del radar |
+| ⬜ | Un canal para recibir fallos | sin verificar | **Pedido ocho veces desde el 13-10.** Los cuatro avisos del 24-10 llegaron por donde pudieron, y lo único que queda de ellos es una frase en un mensaje de commit |
+| ⬜ | Publicar en Product Hunt, Reddit y foros | sin verificar, **y no lo hace ningún agente** | Está en el apartado 5 del protocolo: publicar en cualquier sitio lo decide y lo hace él. Lo que los agentes sí tienen listo es el material: los canales con sus normas están en `agentes/mercado/2026-10-17-mercado.md` y `2026-10-23-mercado.md`, con el aviso de que varias comunidades expulsan por autopromoción |
+
+### Los tres números de cada semana
+
+No son puertas: son lo que hay que mirar **después** de abrir. Van aquí para que
+no se olviden, y los tres dicen hoy lo mismo.
+
+| | Qué | Estado |
+|---|---|---|
+| ⬜ | Coste de API por usuario activo | **sin datos**, y no se puede calcular sin analítica ni facturas a mano |
+| ⬜ | Conversión de Free a pago | **sin datos**: la tienda no consta encendida, así que el denominador no existe todavía |
+| ⬜ | Cuántos vuelven al día siguiente | **sin datos**, por lo mismo: no hay analítica |
+
+### El recuento honesto
+
+**18 puertas de lanzamiento: 1 ✅ · 1 🟡 · 1 ⚪ · 15 ⬜.** Más los tres números de cada
+semana, que no son puertas y hoy están los tres sin datos.
+
+La especificación lista diecisiete; aquí son 18 porque la de los textos
+legales va partida en dos —escritos y enlazados—, que es justo la confusión que
+tuvo esto veinte días en verde.
+
+Y leído junto a la primera mitad, que da 12 ✅ · 6 🟡 · 1 ⚪ · 1 ⬜, es exactamente lo que el radar
+llevaba siete informes diciendo: **Kairo está sana y no está lista para abrir.**
+Las dos cosas son verdad a la vez, y hasta hoy este archivo solo contaba la
+primera.
+
+**Y el número que resume el trabajo de hoy**: de las 18 puertas, **15
+no las ha mirado nadie nunca**. No es que estén mal: es que no se habían
+escrito, así que no se podían contar.

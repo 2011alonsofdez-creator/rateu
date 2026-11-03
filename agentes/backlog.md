@@ -124,7 +124,15 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   compara contra lo que Kairo alcanza de verdad. Para lo de hoy da igual: cero
   en el público es cero en los dos.
 
-- **Arregló el plan gratis él mismo en `main`, y eso ha creado el primer conflicto de fusión del proyecto. Con la resolución escrita.** `[origen: guardian 2026-11-01]`
+- **~~Arregló el plan gratis él mismo en `main`, y eso creó el primer conflicto de fusión~~ — HECHO.** `[origen: guardian 2026-11-01 · hecho 2026-11-01, marcado 2026-11-03]`
+  Lo resolvió el entrenador el mismo 01-11 al traer `main` (`3e31aa4`),
+  aplicando la resolución que el guardián había dejado escrita esa mañana: de
+  cada lado lo que el otro no tenía —suya la viñeta de los **150 de regalo**,
+  nuestras la cifra leída de `CREDITOS_PLAN` y la del **1 Co-Work**—.
+  **Lo marco hoy porque llevaba dos días hecho y sin marcar**, que es justo lo
+  que el 29-10 mandó al constructor a repetir trabajo. Y la nota que importa:
+  **el conflicto se resolvió sin que nadie decidiera con prisa**, porque un
+  agente dejó escrito por la mañana lo que otro iba a necesitar por la tarde.
   Anoche publicó **`493c45c Stop the pricing page selling less free plan than
   there is`**, y con él contesta dos cosas que llevaban días preguntadas:
   - **Sí a los 150 de bienvenida.** El constructor preguntó el 30-10 si se
@@ -1132,7 +1140,11 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   una sola cifra de uso no se puede dirigir: no sabemos si son cuatro de diez o
   cuatro de mil, ni si han vuelto.
 
-- **El checklist de lanzamiento mide salud, no lanzamiento.** `[origen: radar 2026-10-13]`
+- **~~El checklist de lanzamiento mide salud, no lanzamiento~~ — HECHO.** `[origen: radar 2026-10-13 · hecho 2026-11-03]`
+  **Veintiún días y siete informes pidiéndolo.** Detalle en `## Hecho`. Lo que
+  lo ha desatascado hoy no es que subiera de prioridad: es que **todos los P1
+  esperan una respuesta del dueño**, así que por primera vez el primer P2 mío
+  de la cola era este.
   `agentes/lanzamiento/checklist.md` tiene 15 filas y todas van de si la web
   responde, si hay claves expuestas o si los agentes corren. Eso está muy bien
   para el guardián, pero no es la lista de lanzar. Faltan los puntos de la
@@ -1256,6 +1268,51 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **El checklist ya pregunta si Kairo se puede lanzar, no solo si está viva.** `[hecho 2026-11-03]`
+  El radar lo pidió **siete veces en veintiún días** con el mismo argumento, y
+  el 01-11 salió la prueba que lo cerraba: la fila *"Enlace visible a los textos
+  legales"* llevaba en ✅ **desde el 12-10** porque comprobaba que el **enlace**
+  existe, y los cuatro documentos no existen. Veinte días en verde sobre un
+  requisito que no se cumple **sin que nadie mintiera**: la fila preguntaba lo
+  que preguntaba.
+
+  **Entregado**: `agentes/lanzamiento/checklist.md` tiene ahora dos mitades. Las
+  tres secciones de siempre —viva, sana, agentes— se quedan **intactas**, con
+  cada fecha y cada prueba que escribió el guardián; eso es su registro y no se
+  toca. Y debajo, **18 puertas de lanzamiento** sacadas de la sección 8 de
+  `docs/kairo/ESPECIFICACION.md`, agrupadas como ella las agrupa: antes de
+  enseñárselo a nadie, legal y protección, primeros usuarios, y los tres números
+  de cada semana aparte, porque esos no son puertas.
+
+  **La regla de redacción que sale de esto, y es lo que de verdad arregla el
+  problema**: *una fila de lanzamiento pregunta por **la cosa**, no por su
+  envoltorio.* No "hay enlace a los legales" sino "están escritos"; no "hay
+  página de precios" sino "se puede pagar y el plan sube". **Si una fila se puede
+  marcar sin que la cosa exista, la fila está mal escrita.** Queda en la cabecera
+  del archivo.
+
+  **Dos cambios respecto a la especificación, los dos dichos donde están**:
+  1. La fila de los legales va **partida en dos** —escritos (⬜, y hoy se sabe
+     que no existen) y enlazados (✅ 01-11)—. Por eso son 18 y no 17.
+  2. La de "probar los tres niveles" dice **cuatro**: la especificación se
+     escribió antes de Forja.
+  Y tres filas llevan el matiz que las hace útiles en vez de decorativas: la
+  de la clave en el navegador va **🟡 y no ⬜**, porque lo del repositorio sí
+  está comprobado a diario y lo que falta es abrir F12 en la web; la de los
+  topes de gasto dice que **hoy el que gasta es OpenRouter** y no los tres de la
+  especificación; y la de los diez usuarios avisa de **no confundirla con los
+  cuatro avisos del 24-10**, que son oro y no son esto.
+
+  **El recuento, calculado y no contado a ojo** —y lo digo porque la primera
+  versión que escribí decía "veinte puertas" cuando son 18, y lo pillé al
+  verificar—: **18 puertas, 1 ✅ · 1 🟡 · 1 ⚪ · 15 ⬜**. Leído junto a la primera
+  mitad (12 ✅ · 6 🟡 · 1 ⚪ · 1 ⬜), dice exactamente lo que el radar llevaba
+  siete informes diciendo: **Kairo está sana y no está lista para abrir.** Las
+  dos cosas son verdad a la vez y hasta hoy el archivo solo contaba la primera.
+
+  **De las 18, quince no las ha mirado nadie nunca.** No es que estén mal: es
+  que no estaban escritas, así que no se podían contar.
 
 - **El pie de la web ya lleva a algún sitio: cinco enlaces nuevos y cuatro que dejan de mentir.** `[hecho 2026-11-01]`
   **A la tercera.** Lo anuncié para "mañana" los días 30 y 31 y las dos veces se
