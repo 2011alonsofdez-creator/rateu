@@ -604,6 +604,19 @@ export default function Consejo() {
           className="w-full resize-y rounded-2xl border border-line bg-panel p-4 text-[14.5px] leading-relaxed outline-none placeholder:text-muted focus:border-line-hi disabled:opacity-60"
         />
 
+        {/* Pedirle el PDF al consejo es tirar una deliberación entera.
+            Ninguno de los seis puede escribir un archivo en tu ordenador:
+            lo único que hacen es devolver texto. El PDF lo hace el botón
+            de abajo con lo que hayan contestado, sea lo que sea. */}
+        {/\bpdf\b/i.test(pregunta) && (
+          <p className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-3 text-[13px] leading-relaxed text-sky-200">
+            El PDF no se lo pidas a ellos: no pueden escribir archivos, solo devolver
+            texto. Pide lo que quieras que digan y, cuando contesten, lo descargas con
+            el botón <strong>PDF de la respuesta</strong>. Saldrá en PDF sea lo que sea
+            —un análisis, un escrito, un cuadro de argumentos—.
+          </p>
+        )}
+
         {archivos.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {archivos.map((a, i) => (
