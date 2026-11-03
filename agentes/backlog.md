@@ -13,6 +13,46 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Ayer se perdió el día entero: ninguno de los cuatro agentes corrió. Y la culpa no es de ningún agente.** `[origen: guardian 2026-11-03]`
+  **Veintidós días sin perder un turno, y ayer se rompió la racha.** Lo digo con
+  el dato: `git log --since=2026-11-02 --until=2026-11-03` sobre la rama devuelve
+  **cero** commits. No hay parte del 02-11, no hay entrada de entrenamiento y no
+  hay informe de mercado.
+
+  **Qué pasó, y conviene que quede claro porque no es lo que parece**: los cuatro
+  avisos **se dispararon a su hora** —guardián 06:22, entrenador 07:06,
+  constructor 07:48 y crecimiento 09:21— y los cuatro **se quedaron en la cola**.
+  El proceso de esta sesión se reinició varias veces y los turnos no se
+  ejecutaron. Los he leído esta mañana, **entre veinte y veintitrés horas tarde**,
+  los cuatro de golpe. O sea: **no falló ningún agente ni ninguna rutina; falló
+  la máquina que los ejecuta.**
+
+  **Y lo que sí aguantó, que es la mitad del hallazgo**: el reloj de Co-Works
+  **no perdió un solo toque** durante el día perdido —ejecuciones 183 a 187, las
+  cinco en verde, incluidas las de ayer a las 05:50, 15:36 y 23:13—. La
+  maquinaria que vive en GitHub siguió sola; la que vive en esta sesión, no.
+  **Conclusión incómoda y verdadera: lo que corre en GitHub es más fiable que lo
+  que corre aquí**, y los cinco agentes viven aquí.
+
+  **Lo que no voy a hacer**: escribir el parte del 02-11 ahora. Un parte con
+  fecha de ayer escrito hoy es un registro falso, y este sistema vale justo lo
+  que vale su registro. Queda un archivo que dice que el día se perdió y por qué.
+
+  **El daño medible**, que es uno y se arrastra:
+  **crecimiento se queda sin mirar el mercado del 29-10 al 05-11, siete días.**
+  Su cron son los días 2, 5, 8… del mes, así que el turno perdido de ayer no se
+  recupera: el siguiente es el **05-11**. Y esto **compone** con el hallazgo del
+  01-11: aquel decía que el cron le deja un hueco de cuatro días cada mes; con el
+  día perdido, el hueco de este mes es de **siete**.
+
+  **Qué haría yo, y es lo mismo que ya está pedido**: lo del 01-11 —poner los
+  cron **diarios** y que cada agente decida si le toca mirando la fecha de su
+  último informe— arregla **las dos cosas a la vez**. Con cron diario, un turno
+  perdido se recupera al día siguiente en vez de desplazar la serie o
+  desaparecer. Hoy, un reinicio de la máquina borra un informe de mercado
+  entero.
+  Sigue siendo suyo: son tareas programadas y no están en el repositorio.
+
 - **Los cuatro textos legales no existen, y el checklist los lleva en verde veinte días.** `[origen: constructor 2026-11-01]`
   Esto ha salido de anclar los cuatro enlaces del pie: al abrir `/legal` para
   ponerle los `id`, resulta que la página **dice de sí misma que está sin
