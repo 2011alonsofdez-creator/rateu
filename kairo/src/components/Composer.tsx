@@ -311,27 +311,6 @@ export function Composer({
 
   const current = LEVEL_META.find((l) => l.id === level);
 
-  /* MEGA, A UN TOQUE.
-   *
-   * Preguntar a tres IAs de tres casas distintas y quedarse con una sola
-   * respuesta es lo que no hace nadie más, y vivía escondido en el
-   * último sitio de un desplegable. Aquí es un botón, y se apaga
-   * volviendo a pulsarlo. */
-  const megaPuesto = level === "mega";
-  const megaCerrado = !permitidos.includes("mega");
-  const megaPista = t("app.threeAisTip").replace("{n}", String(LEVELS.mega.credits));
-  const megaClases = `inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold text-acento transition ${
-    megaPuesto ? "border-acento bg-acento/20" : "border-acento/35 bg-acento/[0.07] hover:bg-acento/15"
-  } ${megaCerrado ? "opacity-60" : ""}`;
-  const megaDentro = (
-    <>
-      <IconoNivel nivel="mega" className="h-[15px] w-[15px]" />
-      {/* En el móvil solo el dibujo: con la etiqueta, la fila de botones
-          no cabe y el de enviar se sale. */}
-      <span className="hidden sm:inline">{t("app.threeAis")}</span>
-    </>
-  );
-
   return (
     <div
       className={
@@ -669,24 +648,12 @@ export function Composer({
               )}
             </div>
 
-            {megaCerrado ? (
-              /* Si el plan no lo incluye, el botón no finge: lleva a los
-                 precios en vez de dar un error al enviar. */
-              <Link href="/precios" title={megaPista} aria-label={t("app.threeAis")} className={megaClases}>
-                {megaDentro}
-              </Link>
-            ) : (
-              <button
-                onClick={() => setLevel(megaPuesto ? "auto" : "mega")}
-                aria-pressed={megaPuesto}
-                title={megaPista}
-                aria-label={t("app.threeAis")}
-                className={megaClases}
-              >
-                {megaDentro}
-              </button>
-            )}
-
+            {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
+ 
+                Pegado al de enviar, un atajo de 120 créditos —seis veces
+                Forja— se pulsa sin querer, y el menú de niveles ya
+                explica lo que es. Si alguna vez hace falta sacarlo de
+                ahí, el sitio es el menú, no la fila de enviar. */}
             <button
               onClick={submit}
               disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}

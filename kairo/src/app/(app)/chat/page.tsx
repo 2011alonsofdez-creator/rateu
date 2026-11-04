@@ -145,7 +145,7 @@ function Chat() {
   const params = useSearchParams();
   const perfil = usePerfil();
   const historial = useHistorial();
-  const { credits, total, spend, sincronizar } = useCredits();
+  const { credits, spend, sincronizar } = useCredits();
 
   const [messages, setMessages] = useState<Message[]>([]);
   /* "auto" = que lo elija Kairo. Es lo que viene puesto de fábrica:
@@ -944,24 +944,13 @@ function Chat() {
               {saludo}
             </h1>
 
-            {/* LO QUE TE QUEDA, EN PORCENTAJE.
+            {/* EL SALUDO VA SOLO.
  
-                Aquí ponía "elige por dónde empezar", que es una
-                instrucción para algo que ya se ve. Lo que de verdad hace
-                falta saber antes de preguntar es cuánto te queda.
- 
-                Un porcentaje y no el número: "840" no dice nada si no te
-                acuerdas de con cuántos empezabas, y puesto en el saludo
-                hace de taxímetro. El número exacto sigue en la barra de
-                la izquierda, al lado de la barrita, para cuando lo que
-                quieres saber es si te llega para un MEGA. */}
-            <p className="mt-1 text-[13px] text-faint">
-              {t(perfil.plan === "free" ? "app.greetingPctDay" : "app.greetingPct").replace(
-                "{n}",
-                String(total > 0 ? Math.max(0, Math.min(100, Math.round((credits / total) * 100))) : 0),
-              )}
-            </p>
-
+                Aquí estuvo "elige por dónde empezar" (una instrucción
+                para algo que ya se ve) y después el saldo. El saldo se
+                fue a la barra de la izquierda, que es donde ya estaban
+                el número y la barrita: tenerlo en dos sitios no informa
+                el doble, hace dudar de si son dos cosas distintas. */}
             {mente && (
               <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-acento/40 bg-acento/10 px-3 py-1.5 text-[13px]">
                 <span className="text-[15px] leading-none">{mente.emoji}</span>
