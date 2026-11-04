@@ -240,12 +240,28 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           onClick={onClose}
           className="block rounded-xl border border-line bg-panel p-3 transition hover:border-line-hi"
         >
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <Credito className="h-3.5 w-3.5 text-gold" />
+          <div className="flex items-center justify-between gap-2 text-[13px]">
+            <span className="inline-flex min-w-0 items-center gap-1.5 font-medium">
+              <Credito className="h-3.5 w-3.5 shrink-0 text-gold" />
               {credits.toLocaleString(lang)}
+              <span className="truncate text-[11.5px] font-normal text-faint">
+                {t("app.credits")}
+              </span>
             </span>
-            <span className="text-faint">{t("app.credits")}</span>
+            {/* EL PORCENTAJE, DONDE ESTÁ LA BARRA.
+ 
+                La barra ya lo dibuja, pero una barra a ojo no distingue
+                un 30% de un 20%, y la diferencia es si te llega para un
+                MEGA o no. Va del mismo color que ella: si la barra se
+                pone roja, el número también, y los dos avisan de lo
+                mismo a la vez. */}
+            <span
+              className={`shrink-0 text-[12px] font-semibold tabular-nums ${
+                pct <= 10 ? "text-red" : pct <= 25 ? "text-gold" : "text-faint"
+              }`}
+            >
+              {pct}%
+            </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel-hi">
             <div
