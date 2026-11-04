@@ -952,6 +952,52 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **`/precios` y `/legal` salen en Google con el título de la portada.** `[origen: radar 2026-11-04]`
+  Lleva en 🟡 en el checklist desde el **29-10** (6 días) y no estaba en esta
+  cola, así que entra ahora. Las dos páginas empiezan por `"use client"`, y Next
+  no deja exportar `metadata` de un componente de cliente: comprobado hoy, las
+  dos tienen **cero** `export const metadata`. Resultado: en el buscador salen
+  con el título y la descripción de `layout.tsx` —*"Kairo — La IA que trabaja
+  cuando tú no"*—, y una de las dos es **la página de precios**, que además está
+  en el `sitemap.xml` con prioridad 0,8.
+
+  **El arreglo ya está en la casa y se usó hoy delante**: el patrón de las cinco
+  páginas de intención, `page.tsx` de servidor con los metadatos y
+  `contenido.tsx` con el `"use client"`. `/legal/cookies` nació así esta mañana.
+  Es mecánico, son dos páginas, y **no espera nada del dueño**.
+
+- **Ningún agente ha visto nunca la portada, y GitHub sí puede verla.** `[origen: radar 2026-11-04]`
+  Octavo informe con *"¿se entiende qué es Kairo en la primera pantalla?"* en ⚪.
+  El motivo es conocido: esta máquina no tiene permiso de red (403 del proxy al
+  hacer CONNECT, comprobado otra vez hoy). Lo que no se había dicho es que
+  **ese agujero se puede cerrar sin abrir la red de aquí**: los workflows de
+  GitHub sí tienen salida, y es lo que ya usa `revisar.yml` para saber que Kairo
+  está viva.
+
+  **La forma concreta**: un workflow que lance Playwright contra la portada,
+  haga una captura a 1280×800 y otra de móvil, y las suba como **artefacto** de
+  la ejecución. Con eso, cualquier agente puede leer el veredicto de la propia
+  ejecución y el dueño puede abrir la imagen. Playwright y Chromium ya vienen
+  instalados en el contenedor, así que el `.yml` es corto.
+
+  **Qué puedo hacer yo y qué no**: el archivo va en `.github/workflows/`, y eso
+  no lo instala ningún agente (apartado 5 del protocolo: los workflows son
+  suyos). Lo que sí puedo es **dejarlo escrito entero** para que lo pegue, y eso
+  es un día del constructor. Si lo pega, se cae el ⚪ más viejo del panel.
+
+- **La cola no distingue "bloqueado del todo" de "bloqueado en parte".** `[origen: radar 2026-11-04]`
+  Hoy ha salido con prueba: el P1 de los textos legales llevaba tres días parado
+  **entero** porque le faltaban cuatro datos del dueño, y resulta que eso era
+  verdad de tres de los cuatro documentos. El cuarto —la política de cookies— no
+  necesitaba nada de nadie y se ha escrito hoy en una mañana.
+
+  **Qué cambia, y es de método, no de producto**: de ahora en adelante, cada P1
+  que espere al dueño lleva una línea **«el trozo que no te espera»** con lo que
+  se puede hacer sin él, o dice explícitamente que no hay ninguno. Hoy lo he
+  repasado a mano con los 17 abiertos; lo que falta es que sea el formato y no
+  un repaso de un día. Lo escribe quien abre el hallazgo, que es quien mejor
+  sabe dónde está la costura.
+
 - **Las tipografías vienen de Google, así que Google ve la IP de cada visitante.** `[origen: constructor 2026-11-04]`
   Salió al escribir la política de cookies, que obliga a mirar una por una las
   peticiones que hace la web al abrirse. `layout.tsx:73-77` carga Inter y
@@ -1002,7 +1048,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Qué se gana**: hoy las cinco páginas son trabajo de cuatro tardes que no
   recibe una sola visita que no venga de Google.
 
-- **El banco de pruebas lleva 8 días sin pasarse, y el prompt ha cambiado 8 veces dentro.** `[origen: radar 2026-10-31]`
+- **El banco de pruebas lleva 12 días sin pasarse, y el prompt ha cambiado 9 veces dentro.** `[origen: radar 2026-10-31 · 8 → 12 días el 2026-11-04]`
+  **Al día 04-11**: la última pasada sigue siendo la del 23-10 y los commits
+  sobre `prompt.ts` y `papeles.ts` desde entonces son **nueve** (el noveno es
+  el tope de Co-Works del 01-11). Tercer informe pidiéndolo, y es de los pocos
+  P2 que **no espera nada del dueño**: es un día del entrenador. Lo de abajo
+  se escribió el 31-10 y sigue valiendo igual.
   La última pasada es del **23-10**: 25 de 28 en 14 casos, con tres unos sin
   cerrar (`agentes/ia/evals/resultados/2026-10-23.md`). Desde entonces,
   **ocho commits** sobre `prompt.ts` y `papeles.ts`: el canje del 50%, Team en
