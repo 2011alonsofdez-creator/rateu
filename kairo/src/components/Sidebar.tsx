@@ -55,19 +55,22 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const perfil = usePerfil();
   const pct = Math.round((credits / total) * 100);
 
-  /* LA BARRA TIENE QUE AVISAR, NO SOLO MEDIR.
+  /* UN SEMÁFORO, NO UNA BARRA DE ADORNO.
  
      Era siempre del naranja de la marca, al 95% y al 3%. Una barra que
      se ve igual cuando vas sobrado que cuando estás a punto de quedarte
-     sin nada no avisa de nada: solo decora. Avisar es lo único que
-     hace que valga la pena ponerla.
+     sin nada no avisa de nada: solo decora.
  
-     Y el número se queda al lado, porque la barra contesta "¿cuánto me
-     queda?" y no contesta la que de verdad importa antes de pulsar:
-     "¿me llega para un Mega?". Eso son 120, y eso solo lo dice el
-     número. */
-  const comoVa =
-    pct <= 10 ? "bg-red" : pct <= 25 ? "bg-gold" : "brand-grad";
+     Así que verde, amarillo y rojo, que es lo único que no hay que
+     explicar. Y el número de al lado va del mismo color: dos formas de
+     decir lo mismo a la vez, no dos cosas distintas.
+ 
+     Las clases van escritas enteras y no montadas con `bg-${...}`,
+     porque Tailwind busca los nombres leyendo el código: lo que se
+     arma en marcha no lo encuentra, y el día que lo hagas te quedas
+     sin barra y sin saber por qué. */
+  const comoVa = pct > 50 ? "bg-green" : pct > 20 ? "bg-gold" : "bg-red";
+  const tinta = pct > 50 ? "text-green" : pct > 20 ? "text-gold" : "text-red";
 
   const [editando, setEditando] = useState<string>();
   const [borrando, setBorrando] = useState<string>();
@@ -238,28 +241,22 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <Link
           href="/precios"
           onClick={onClose}
+          title={`${credits.toLocaleString(lang)} / ${total.toLocaleString(lang)} ${t("app.credits")}`}
           className="block rounded-xl border border-line bg-panel p-3 transition hover:border-line-hi"
         >
-          <div className="flex items-center justify-between gap-2 text-[13px]">
-            <span className="inline-flex min-w-0 items-center gap-1.5 font-medium">
-              <Credito className="h-3.5 w-3.5 shrink-0 text-gold" />
-              {credits.toLocaleString(lang)}
-              <span className="truncate text-[11.5px] font-normal text-faint">
-                {t("app.credits")}
-              </span>
-            </span>
-            {/* EL PORCENTAJE, DONDE ESTÁ LA BARRA.
+          {/* EL PORCENTAJE, Y NO EL NÚMERO.
  
-                La barra ya lo dibuja, pero una barra a ojo no distingue
-                un 30% de un 20%, y la diferencia es si te llega para un
-                MEGA o no. Va del mismo color que ella: si la barra se
-                pone roja, el número también, y los dos avisan de lo
-                mismo a la vez. */}
-            <span
-              className={`shrink-0 text-[12px] font-semibold tabular-nums ${
-                pct <= 10 ? "text-red" : pct <= 25 ? "text-gold" : "text-faint"
-              }`}
-            >
+              "840" no dice nada si no te acuerdas de con cuántos
+              empezabas; "84%" se entiende sin acordarse de nada. El
+              número exacto sigue a un palmo: sale al poner el ratón
+              encima, para cuando la pregunta es "¿me llega para un
+              MEGA?". */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[12px] text-faint">
+              <Credito className={`h-3.5 w-3.5 shrink-0 ${tinta}`} />
+              <span className="truncate">{t("app.credits")}</span>
+            </span>
+            <span className={`shrink-0 text-[13.5px] font-semibold tabular-nums ${tinta}`}>
               {pct}%
             </span>
           </div>
