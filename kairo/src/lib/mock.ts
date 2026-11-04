@@ -176,6 +176,17 @@ export type Plan = {
   bullets: { es: string[]; en: string[] };
 };
 
+/* LO DE LOS MEGABYTES POR PLAN NUNCA FUE VERDAD.
+ *
+ * Decía 5, 25 y 100 MB según el plan, y el tope real era uno solo para
+ * todo el mundo: 3 MB por archivo, porque los archivos viajan dentro de
+ * la petición y Vercel corta a 4,5. O sea que el plan de 25 € prometía
+ * cien megas y rechazaba un PDF de cuatro.
+ *
+ * Ahora los PDF se leen en el navegador y viaja su texto, así que el
+ * tamaño del PDF da igual de verdad. Lo que sigue teniendo tope son las
+ * fotos y los PDF escaneados, que son imágenes. Eso es lo que se dice.
+ */
 export const plans: Plan[] = [
   {
     id: "free",
@@ -195,7 +206,7 @@ export const plans: Plan[] = [
         "Modelos rápido y estándar",
         "Historial de 30 días",
         "1 Mente propia",
-        "Archivos hasta 5 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "20 credits per day",
@@ -203,7 +214,7 @@ export const plans: Plan[] = [
         "Fast and standard models",
         "30-day history",
         "1 Mind of your own",
-        "Files up to 5 MB",
+        "PDFs of any size · photos up to 3 MB",
       ],
     },
   },
@@ -219,7 +230,7 @@ export const plans: Plan[] = [
         "8 Mega-Prompts al mes",
         "3 Co-Works activos",
         "5 conectores · 10 Mentes",
-        "Archivos hasta 25 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "1,000 credits per month",
@@ -227,7 +238,7 @@ export const plans: Plan[] = [
         "8 Mega-Prompts per month",
         "3 active Co-Works",
         "5 connectors · 10 Minds",
-        "Files up to 25 MB",
+        "PDFs of any size · photos up to 3 MB",
       ],
     },
   },
@@ -242,7 +253,7 @@ export const plans: Plan[] = [
         "25 Mega-Prompts al mes",
         "Co-Works ilimitados",
         "Todos los conectores · Mentes ilimitadas",
-        "Archivos hasta 100 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
         "Soporte prioritario",
       ],
       en: [
@@ -251,7 +262,7 @@ export const plans: Plan[] = [
         "25 Mega-Prompts per month",
         "Unlimited Co-Works",
         "Every connector · unlimited Minds",
-        "Files up to 100 MB",
+        "PDFs of any size · photos up to 3 MB",
         "Priority support",
       ],
     },
