@@ -65,6 +65,22 @@ const CARDS: {
 
 /* La página lee la dirección (?c= y ?mente=), y eso obliga a envolverla:
    sin el Suspense, Next no puede adelantar nada del HTML. */
+/* "hace 20 min", "hace 2 h", "ayer".
+ *
+ * Una fecha completa no dice nada al lado de un título: lo que se quiere
+ * saber de un vistazo es si eso es de hace un rato o de la semana
+ * pasada, para decidir si seguir ahí o empezar de cero. */
+function cuandoFue(iso: string, t: (k: TKey) => string): string {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutos < 1) return t("time.now");
+  if (minutos < 60) return t("time.min").replace("{n}", String(minutos));
+  const horas = Math.round(minutos / 60);
+  if (horas < 24) return t("time.hour").replace("{n}", String(horas));
+  const dias = Math.round(horas / 24);
+  if (dias === 1) return t("time.yesterday");
+  return t("time.day").replace("{n}", String(dias));
+}
+
 export default function ChatPage() {
   return (
     <Suspense fallback={null}>
@@ -883,9 +899,15 @@ function Chat() {
             <Marca className="h-10 w-10 opacity-60" animada />
           </div>
         ) : empty ? (
+          /* SIN EL LOGO EN MEDIO.
+ 
+             Estaba a 48px justo encima del saludo, y el mismo logo ya
+             sale arriba a la izquierda en la barra. Repetirlo no es
+             marca, es relleno: ocupaba el sitio por el que empieza la
+             mirada y empujaba hacia abajo lo único que se usa de verdad
+             en esta pantalla, que es la caja de escribir. */
           <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-12">
-            <Marca className="h-12 w-12" />
-            <h1 className="mt-5 text-balance text-center text-[26px] font-semibold tracking-tight sm:text-[30px]">
+            <h1 className="text-balance text-center text-[26px] font-semibold tracking-tight sm:text-[30px]">
               {saludo}
             </h1>
             <p className="mt-2 text-[14.5px] text-muted">{t("app.greetingSub")}</p>
@@ -907,7 +929,39 @@ function Chat() {
                 descolgada. Así se centran siempre, salgan las que
                 salgan, y además no hay que tocar nada al añadir o
                 quitar una. */}
-            <div className="mt-9 flex w-full flex-wrap justify-center gap-3">
+            {/* SEGUIR CON LO DE ANTES.
+ 
+                Al entrar, lo que más se hace no es empezar algo nuevo:
+                es volver a lo de hace un rato. Hasta ahora eso estaba
+                solo en la barra lateral, en letra pequeña y mezclado con
+                todo lo demás.
+ 
+                Solo sale si hay historial. En una cuenta recién creada
+                no hay nada que seguir, y una fila vacía con un rótulo
+                encima es peor que no poner nada: parece que algo falla. */}
+            {historial.length > 0 && (
+              <div className="mt-8 w-full">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-faint">
+                  {t("app.continue")}
+                </p>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {historial.slice(0, 2).map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/chat?c=${c.id}`}
+                      className="rounded-xl border border-line p-3 text-left transition hover:border-line-hi hover:bg-panel"
+                    >
+                      <span className="block truncate text-[13px] font-medium">{c.titulo}</span>
+                      <span className="mt-0.5 block text-[11px] text-faint">
+                        {cuandoFue(c.actualizadaEl, t)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex w-full flex-wrap justify-center gap-3">
               {CARDS.map((c) => {
                 const Icon = c.icon;
                 const inner = (
