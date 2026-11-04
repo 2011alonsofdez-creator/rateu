@@ -96,6 +96,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   cualquier cosa que escriba lleva un hueco que es justo el que los hace
   legalmente válidos. **Lo pregunto en el parte de hoy.**
 
+  **Partida el 2026-11-04, y el primer trozo está hecho.** Resulta que los
+  cuatro no están igual de bloqueados: **la política de cookies se podía
+  escribir entera hoy**, porque lo que Kairo pone en el navegador de quien la
+  abre está en el código y se cuenta con los dedos —dos cookies de sesión de
+  Supabase y cinco preferencias—. Escrita y publicada en `/legal/cookies`, en
+  los dos idiomas (ver `## Hecho`, 04-11).
+
+  Lo que queda, y es lo que sigue esperándote:
+
+  - **Aviso legal** — es el que más datos tuyos necesita: casi todo él es la
+    identificación del titular.
+  - **Política de privacidad** — se puede escribir el 80% desde el código (qué
+    se guarda, dónde, cuánto, cómo se borra, el apartado de menores), pero sin
+    los **encargados del tratamiento** y sin el titular no vale.
+  - **Términos del servicio** — planes, créditos y cancelaciones están medidos;
+    falta la **ley aplicable y el fuero**, y una decisión tuya sobre qué pasa
+    con los créditos comprados si cierras la cuenta.
+
+  **Y el hueco se ha dejado de forma que rellenarlo sea un minuto**: los cinco
+  datos viven ahora en un solo archivo, `kairo/src/app/legal/datos.ts`, vacíos.
+  Se escriben ahí una vez y los cuatro documentos los usan. Mientras estén
+  vacíos, cada documento **dice en su último apartado que faltan** en lugar de
+  inventarse un titular; el de cookies ya lo hace, y dice exactamente cuáles.
+
 - **El proveedor ha retirado `poolside/laguna-s-2.1:free`, y es la primera vez que esa comprobación salta.** `[origen: guardian 2026-11-01]`
   El log de hoy dice, literal: **"OJO, estos no existen en el proveedor:
   poolside/laguna-s-2.1:free"**. Es exactamente para lo que se escribieron esas
@@ -928,6 +952,28 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Las tipografías vienen de Google, así que Google ve la IP de cada visitante.** `[origen: constructor 2026-11-04]`
+  Salió al escribir la política de cookies, que obliga a mirar una por una las
+  peticiones que hace la web al abrirse. `layout.tsx:73-77` carga Inter y
+  JetBrains Mono desde `fonts.googleapis.com` con un `preconnect` delante. No
+  pone cookies —Google Fonts no las pone—, pero **la petición lleva la IP y el
+  navegador de quien abre cualquier página de Kairo, incluida la portada y sin
+  haber entrado en ninguna cuenta**.
+
+  **Por qué es P2 y no P1**: no está roto y ya no está oculto —la política de
+  cookies lo dice con todas las letras desde hoy—. Pero es una transferencia a
+  un tercero que se puede quitar entera, y mientras esté, cualquier documento de
+  privacidad tiene que mencionarla.
+
+  **El arreglo**: `next/font/google`, que descarga las tipografías en el
+  despliegue y las sirve desde el propio dominio. Cero peticiones a Google, y
+  además la web carga antes porque se ahorra la conexión a otro servidor. Es
+  tocar `layout.tsx` —la plantilla de toda la web— y comprobar que las dos
+  familias siguen pintando igual en los dos temas, así que es un día de trabajo
+  propio y no un añadido de paso. **Mío, no suyo**: no hace falta ningún dato ni
+  ningún permiso, solo que no haya nada más urgente delante.
+
+
 - **~~El pie de la web: cinco enlaces que faltan y cuatro que van todos al mismo sitio~~ — HECHO.** `[origen: radar 2026-10-31 · hecho 2026-11-01]`
   Hecho a la tercera, y el radar tenía razón en por qué se caía: no tenía
   entrada propia. Detalle en `## Hecho`.
@@ -1268,6 +1314,65 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **La política de cookies, escrita de verdad: el primero de los cuatro documentos legales.** `[hecho 2026-11-04]`
+  El P1 de los legales lleva desde el 01-11 esperando cuatro datos suyos, y la
+  conclusión de entonces fue que sin ellos no se puede escribir nada que valga.
+  **Eso era verdad de tres de los cuatro, no de los cuatro.** La política de
+  cookies no pregunta quién eres: pregunta qué pone esta web en el navegador de
+  quien la abre, y eso está en el código.
+
+  **Entregado**: `kairo/src/app/legal/cookies/` —`page.tsx` con sus propios
+  metadatos y `contenido.tsx` con el documento en español e inglés—, más
+  `kairo/src/app/legal/datos.ts` (los datos del titular, en un solo sitio, para
+  los cuatro documentos). `/legal` deja de decir que los cuatro están pendientes
+  y enlaza el que existe; el pie lleva «Cookies» a la página en vez de al ancla;
+  `/legal/cookies` entra en el `sitemap.xml`.
+
+  **Lo que dice, y de dónde sale cada cosa** (todo comprobado, nada supuesto):
+
+  - **Dos cookies, las dos de sesión y las dos de Kairo**:
+    `sb-<referencia>-auth-token` (con sus trozos `.0`, `.1`… cuando no cabe en
+    una) y el `code-verifier` del inicio de sesión. Las pone `@supabase/ssr`
+    desde `proxy.ts` y `lib/supabase/server.ts`, que solo pasan lo que la
+    librería les da. **400 días**, `path=/`, `SameSite=Lax`, de
+    `DEFAULT_COOKIE_OPTIONS` de la librería, que la aplicación no cambia.
+  - **No hay analítica, ni publicidad, ni cookies de terceros.** `package.json`
+    no trae ninguna librería de medición y en todo `src/` no aparece `gtag`,
+    `analytics`, `plausible`, `posthog` ni `@vercel/analytics`.
+  - **Por eso no hace falta ventana de cookies**, y el documento lo explica con
+    la norma en la mano (artículo 22.2 de la Ley 34/2002): las imprescindibles
+    para un servicio que pide el usuario están exceptuadas. **Con una cláusula
+    de mantenimiento**: el día que se añada analítica, la ventana pasa a ser
+    obligatoria y el documento se cambia **antes** de encenderla. Queda escrito
+    para que nadie la encienda sin acordarse.
+  - **Las cinco cosas que Kairo guarda en el navegador y no son cookies**:
+    `kairo.theme`, `kairo.lang`, `kairo.buscar`, `kairo.sonido` y
+    `kairo.borrador`. Son las cinco que existen en el código, contadas una por
+    una. Ninguna sale del navegador, y se cuentan porque la ley trata igual a
+    las cookies y al almacenamiento equivalente.
+  - **Y un hallazgo que no esperaba y que es de verdad**: las dos tipografías se
+    cargan desde `fonts.googleapis.com` (`layout.tsx:73-77`), así que **al abrir
+    cualquier página Google recibe la IP del visitante**. No pone cookies, pero
+    recibe eso, y estaba sin decir en ninguna parte. Ahora está dicho. Se puede
+    quitar sirviéndolas desde Kairo con `next/font`, y eso va al backlog como P2
+    aparte, porque es tocar la plantilla de toda la web.
+
+  **Comprobado**: `npx tsc --noEmit` salida 0 y `npx next build` salida 0, con
+  `/legal/cookies` prerenderizada. Y una verificación de **30 comprobaciones**
+  sobre el HTML generado y el bundle del cliente: que el documento sale entero
+  en español, que la versión inglesa viaja en el bundle, que están los nombres
+  de las cookies, los 400 días, el artículo de la LSSI, las cinco claves, los
+  tres terceros y el apartado del titular pendiente; que no queda ningún
+  `[RELLENAR]`; que `/legal` ya no dice que los cuatro están pendientes y marca
+  los otros tres como pendientes (exactamente tres); y que la canónica y el
+  `robots: index` salen como deben. **30 de 30.** Un fallo de la primera pasada
+  era de la propia comprobación, no de la página: buscaba la canónica relativa
+  y Next la escribe absoluta.
+
+  **Lo que NO hace**: inventarse el titular. El apartado 7 dice que falta y
+  **qué** falta, campo por campo, leyéndolo de `datos.ts`. En cuanto se rellene
+  ese archivo, el apartado se pinta solo con los datos y sin tocar el texto.
 
 - **El checklist ya pregunta si Kairo se puede lanzar, no solo si está viva.** `[hecho 2026-11-03]`
   El radar lo pidió **siete veces en veintiún días** con el mismo argumento, y

@@ -84,7 +84,7 @@ y otra actualizada porque el producto ha cambiado desde que se escribió.
 
 | | Qué | Estado | Lo que se sabe hoy |
 |---|---|---|---|
-| ⬜ | **Los cuatro textos legales, escritos** | sin verificar, **y hoy se sabe que no existen** | Esta es la fila partida, y es el motivo de toda esta sección. `/legal` dice de sí misma: *"Pendiente de redactar antes del lanzamiento. Estos son los cuatro documentos necesarios."* Lo que hay son cuatro tarjetas con una línea de descripción. Buscados en todo el repositorio: no están. **P1 desde el 01-11, esperando cuatro datos suyos** (titular, correo de contacto, encargados del tratamiento, ley y fuero) |
+| 🟡 | **Los cuatro textos legales, escritos** | 2026-11-04 | **Uno de cuatro.** La **política de cookies** está escrita y publicada en `/legal/cookies`, en los dos idiomas y comprobada en el HTML generado: dos cookies de sesión con su nombre y sus 400 días, por qué no hace falta ventana de consentimiento (art. 22.2 de la Ley 34/2002), las cinco preferencias que Kairo guarda en el navegador, los tres terceros que ven algo —y que **Google recibe la IP** por las tipografías— y cómo borrarlo todo. Se pudo escribir entera porque **no pregunta quién eres, pregunta qué pone esta web en tu navegador**, y eso está en el código. Faltan **aviso legal, privacidad y términos**, y los tres siguen esperando cuatro datos suyos (titular, correo de contacto, encargados del tratamiento, ley y fuero); están ahora en un solo archivo vacío, `kairo/src/app/legal/datos.ts`, para que rellenarlos sea un minuto y no haya que tocar ningún documento. Lo de antes: *"sin verificar, y hoy se sabe que no existen"* — `/legal` decía de sí misma que estaba pendiente de redactar |
 | ✅ | Los cuatro textos legales, **enlazados en el pie** | 2026-11-01 | Esta es la mitad que sí estaba hecha, y la que tenía el ✅ desde el 12-10 confundiendo las dos cosas. Hoy además **cada uno lleva a su propia tarjeta** (`/legal#aviso`, `#privacidad`, `#cookies`, `#terminos`), comprobado en el HTML generado |
 | ⬜ | Apartado específico de menores en la política de privacidad | sin verificar | No puede existir antes que la política. Pero el dato está medido y listo para escribirlo: el modo de edad es real en el código y `modoEdad === null` se trata como `"nino"` en los tres sitios que deciden —ante la duda, el modo más protegido— |
 | ⬜ | Topes de gasto mensual en los proveedores | sin verificar | La especificación dice Anthropic, Google y OpenAI; **hoy el que gasta de verdad es OpenRouter**, que entra cada tarde cuando se agota la cuota de Gemini. **Pedido ocho veces desde el 19-10.** Es suyo y son dos minutos |
@@ -113,7 +113,7 @@ no se olviden, y los tres dicen hoy lo mismo.
 
 ### El recuento honesto
 
-**18 puertas de lanzamiento: 1 ✅ · 1 🟡 · 1 ⚪ · 15 ⬜.** Más los tres números de cada
+**18 puertas de lanzamiento: 1 ✅ · 2 🟡 · 1 ⚪ · 14 ⬜.** Más los tres números de cada
 semana, que no son puertas y hoy están los tres sin datos.
 
 La especificación lista diecisiete; aquí son 18 porque la de los textos
@@ -123,9 +123,14 @@ tuvo esto veinte días en verde.
 Y leído junto a la primera mitad —que el **04-11** pasa a **13 ✅ · 5 🟡 · 1 ⚪ ·
 1 ⬜**, porque el pie se arregló y los agentes volvieron a correr—, es
 exactamente lo que el radar llevaba siete informes diciendo: **Kairo está sana y no está lista para abrir.**
-Las dos cosas son verdad a la vez, y hasta hoy este archivo solo contaba la
-primera.
+Las dos cosas son verdad a la vez, y hasta el 03-11 este archivo solo contaba
+la primera.
 
-**Y el número que resume el trabajo de hoy**: de las 18 puertas, **15
-no las ha mirado nadie nunca**. No es que estén mal: es que no se habían
-escrito, así que no se podían contar.
+**Y el número que resume en qué punto está esto**: de las 18 puertas,
+**14 no las ha mirado nadie nunca**. No es que estén mal: es que hasta el 03-11
+no se habían escrito, así que no se podían contar.
+
+**El 04-11 bajó de 15 a 14**: la política de cookies es la primera puerta de
+lanzamiento que se abre con trabajo hecho, no con una comprobación. Y lo que
+movió la fila no fue encontrar tiempo, fue **partir la tarea**: de los cuatro
+documentos legales, tres esperan datos del dueño y uno no esperaba nada.

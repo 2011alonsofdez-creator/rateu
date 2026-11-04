@@ -21,5 +21,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${sitio}/crear-una-app`, lastModified: hoy, changeFrequency: "monthly", priority: 0.9 },
     { url: `${sitio}/sin-suscripcion`, lastModified: hoy, changeFrequency: "monthly", priority: 0.9 },
     { url: `${sitio}/legal`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
+    /* Los documentos legales, uno por página, a medida que se escriben.
+       El primero es el de cookies (04-11): es el único de los cuatro que
+       se puede redactar entero leyendo el código. */
+    { url: `${sitio}/legal/cookies`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
   ];
 }
