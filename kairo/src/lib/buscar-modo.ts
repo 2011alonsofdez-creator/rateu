@@ -59,11 +59,22 @@ export function guardarModo(modo: ModoBusqueda): void {
  *  que lo hayas pedido a mano, porque pedirlo a mano es más claro que
  *  cualquier suposición. */
 export function hayQueBuscar(
-  modo: ModoBusqueda,
+  _modo: ModoBusqueda,
   pinta: boolean,
   conArchivos: boolean,
 ): boolean {
-  if (modo === "nunca") return false;
-  if (modo === "siempre") return true;
+  /* EL INTERRUPTOR YA NO MANDA, Y ES A PROPÓSITO.
+   *
+   * Existía para rematar al detector cuando se equivocaba, y la idea no
+   * era mala. Lo que falló es lo que hace cualquier interruptor de tres
+   * estados: se queda tocado sin querer. Pasó de verdad —se quedó en
+   * «no» durante días— y el síntoma no era «el botón está en no», era
+   * «Kairo ya no busca». Nadie mira un botón para explicarse eso.
+   *
+   * Un ajuste que se rompe en silencio y que al romperse parece una
+   * avería del producto no es un ajuste: es una trampa. Así que fuera.
+   * Kairo decide solo, que es lo que hacía bien el 88% de las veces, y
+   * cuando se equivoca se arregla la lista de pistas, que beneficia a
+   * todo el mundo en vez de a quien supo encontrar el botón. */
   return pinta && !conArchivos;
 }

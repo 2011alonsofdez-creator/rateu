@@ -13,7 +13,6 @@ import { borrarDesde } from "@/app/(app)/actions";
 import { esImagen, type Adjunto, type Fuente, type Mente, type MensajeGuardado } from "@/lib/tipos";
 import { tamano } from "@/lib/archivos";
 import { idDeYoutube, primerEnlaceDeYoutube } from "@/lib/fichas";
-import { guardarModo, modoGuardado, type ModoBusqueda } from "@/lib/buscar-modo";
 import { Composer } from "@/components/Composer";
 import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
@@ -172,13 +171,7 @@ function Chat() {
      Arranca en "auto" y lo guardado se lee DESPUÉS de pintar: el
      servidor no tiene localStorage, así que leerlo al pintar daría dos
      HTML distintos para la misma página y React se quejaría con razón. */
-  const [buscar, ponerBuscar] = useState<ModoBusqueda>("auto");
-  useEffect(() => ponerBuscar(modoGuardado()), []);
 
-  const cambiarBuscar = (m: ModoBusqueda) => {
-    ponerBuscar(m);
-    guardarModo(m);
-  };
   /* UN ENLACE DE VÍDEO ESPERANDO RESPUESTA.
    *
    * Pegar un enlace de YouTube no significa "resúmemelo": la mitad de
@@ -584,8 +577,10 @@ function Chat() {
         body: JSON.stringify({
           nivel: level,
           reintento: esReintento,
-          // Automático, siempre o nunca. Lo elige quien pregunta.
-          buscar,
+          /* Lo decide Kairo mirando la pregunta. El interruptor de tres
+             estados se quitó: se quedaba en "no" sin querer y entonces
+             parecía que el buscador estaba roto. */
+          buscar: "auto",
           /* Tu huso horario. Sin esto, Kairo no sabe qué día es hoy para
              ti y acaba contestando "mi conocimiento llega hasta 2024". */
           zona: zonaDelNavegador(),
@@ -1119,8 +1114,6 @@ function Chat() {
         mente={mente}
         setMente={setMente}
         onSend={send}
-        buscar={buscar}
-        setBuscar={cambiarBuscar}
         /* También mientras se ve un vídeo. Ver uno tarda casi un minuto
            con `busy` apagado, y en ese rato se podía mandar otra
            pregunta: la respuesta se ponía a escribirse y el resumen
