@@ -8,6 +8,7 @@ import { LEVELS, pick, type Level, type Message, type Nivel } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useHistorial } from "@/lib/historial";
+import { saludarA } from "@/lib/saludos";
 import { callar, hayVozParaLeer, leerEnVozAlta, prepararVoces } from "@/lib/voz";
 import { borrarDesde } from "@/app/(app)/actions";
 import { esImagen, type Adjunto, type Fuente, type Mente, type MensajeGuardado } from "@/lib/tipos";
@@ -889,14 +890,24 @@ function Chat() {
      después. `inicio` es la portada de verdad. */
   const inicio = empty && !cargando;
 
-  /* El saludo lleva tu nombre, y cambia según quién seas: a quien ya
-     tiene chats se le pregunta por dónde sigue; a quien llega hoy, en
-     qué trabaja. Solo el nombre de pila: el apellido suena a carta del
-     banco. */
+  /* EL SALUDO.
+ 
+     Solo el nombre de pila: el apellido suena a carta del banco.
+ 
+     Y cambia cada vez que abres la portada, según la hora y al azar
+     (ver `saludos.ts`). Se sortea en el navegador y no al pintar la
+     página, porque al pintarla manda el servidor y allí no son las
+     mismas horas que aquí: saldría "buenas tardes" a quien está
+     desayunando. Hasta que el navegador despierta se enseña la frase
+     de siempre, que es exactamente lo que había hasta hoy. */
   const pila = (perfil.nombre || "").trim().split(/\s+/)[0];
-  const saludo = pila
+  const deSiempre = pila
     ? t(historial.length ? "app.greetingBack" : "app.greetingName").replace("{n}", pila)
     : t("app.greeting");
+  const [saludo, ponSaludo] = useState(deSiempre);
+  useEffect(() => {
+    ponSaludo(saludarA(pila, historial.length > 0, lang));
+  }, [pila, historial.length, lang]);
 
   return (
     /* DOS FORMAS DE COLOCAR LO MISMO.
