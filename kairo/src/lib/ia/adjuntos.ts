@@ -15,8 +15,15 @@ import { ADJUNTOS, esImagen, esTexto, esDocumento, type Adjunto } from "@/lib/ti
 
 /** Lo que se le deja meter a un archivo de texto dentro de la pregunta.
  *  Un .csv de veinte mil líneas no cabe en ningún modelo, y truncarlo
- *  diciéndolo es mejor que reventar la petición. */
-const LETRAS_POR_ARCHIVO = 20000;
+ *  diciéndolo es mejor que reventar la petición.
+ *
+ *  Estaba en 20.000, que se quedó corto en cuanto los PDF empezaron a
+ *  entrar por aquí: unos apuntes de once páginas son 55.000 letras, así
+ *  que se cortaban por la cuarta página y nadie lo decía más que con una
+ *  nota al final. 80.000 son unas 20.000 fichas por archivo y 80.000 con
+ *  los cuatro, que cabe de sobra en cualquiera de los modelos de la
+ *  cadena —el más pequeño va por el millón—. */
+const LETRAS_POR_ARCHIVO = 80000;
 
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 

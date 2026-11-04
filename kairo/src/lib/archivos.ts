@@ -1,5 +1,6 @@
 import {
   ADJUNTOS,
+  esDocumento,
   esImagen,
   esTexto,
   type Adjunto,
@@ -107,6 +108,68 @@ async function encoger(archivo: File, ladoMax = 1600, calidad = 0.85) {
   }
 }
 
+
+/* EL TEXTO DE UN PDF, SACADO AQUÍ EN EL NAVEGADOR.
+ *
+ * El motivo no es la elegancia, es un muro: los archivos viajan dentro
+ * de la propia petición, en base64 —que abulta un tercio más—, y Vercel
+ * corta cualquier petición por encima de 4,5 MB. De ahí salía el tope
+ * de 3 MB por archivo, que no es un capricho pero tampoco es defendible:
+ * tres apuntes de clase en PDF se pasan de ahí sin esfuerzo, y lo que
+ * veía quien los arrastraba era "pesa demasiado" en una app que presume
+ * de leer documentos.
+ *
+ * Un PDF de texto de diez megas son trescientas mil letras. Mandar las
+ * letras en vez del archivo quita el problema de raíz: pasa de diez
+ * megas a trescientos kilobytes, cabe de sobra, y el modelo lo entiende
+ * igual de bien —mejor, de hecho, porque no gasta fichas en mirar el
+ * dibujo de cada página—.
+ *
+ * Lo que SÍ se pierde son las imágenes, los esquemas y los PDFs
+ * escaneados, que no llevan letras dentro sino fotos de letras. Por eso
+ * esto no sustituye al envío normal: lo intenta primero, y si el PDF no
+ * suelta texto de verdad se manda como siempre.
+ *
+ * La librería se carga solo cuando hace falta (son casi dos megas), así
+ * que quien nunca adjunta un PDF no la descarga jamás. */
+const LETRAS_MINIMAS = 200;
+
+async function textoDelPdf(archivo: File): Promise<string | null> {
+  try {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.min.mjs",
+      import.meta.url,
+    ).toString();
+
+    const doc = await pdfjs.getDocument({
+      data: new Uint8Array(await archivo.arrayBuffer()),
+    }).promise;
+
+    const paginas: string[] = [];
+    for (let n = 1; n <= doc.numPages; n++) {
+      const pagina = await doc.getPage(n);
+      const contenido = await pagina.getTextContent();
+      const linea = contenido.items
+        .map((i) => ("str" in i ? i.str : ""))
+        .join(" ")
+        .replace(/[ \t]+/g, " ")
+        .trim();
+      if (linea) paginas.push(linea);
+    }
+    doc.cleanup();
+
+    const texto = paginas.join("\n\n").trim();
+    /* Un escaneado devuelve cuatro letras sueltas de los metadatos. Si
+       no hay texto de verdad, esto no vale y se manda el archivo. */
+    return texto.length >= LETRAS_MINIMAS ? texto : null;
+  } catch {
+    /* Un PDF roto, protegido o una librería que no carga: no es motivo
+       para no dejar adjuntar. Se sigue por el camino de siempre. */
+    return null;
+  }
+}
+
 /** Deja el archivo listo para viajar, o dice por qué no puede. */
 export async function prepararArchivo(archivo: File): Promise<Preparado> {
   const tipo = tipoDe(archivo);
@@ -125,6 +188,19 @@ export async function prepararArchivo(archivo: File): Promise<Preparado> {
         return { ok: false, motivo: "grande", nombre };
       }
       return { ok: true, adjunto: { nombre, tipo, datos, bytes: archivo.size } };
+    }
+
+    /* Un PDF: primero se intenta por las letras. Si las suelta, viaja
+       como texto y el tope de tamaño deja de pintar nada. */
+    if (esDocumento(tipo)) {
+      const texto = await textoDelPdf(archivo);
+      if (texto) {
+        const datos = base64De(new TextEncoder().encode(texto).buffer as ArrayBuffer);
+        return {
+          ok: true,
+          adjunto: { nombre, tipo: "text/plain", datos, bytes: archivo.size },
+        };
+      }
     }
 
     const encogida = esImagen(tipo) ? await encoger(archivo) : null;
