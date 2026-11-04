@@ -1,7 +1,11 @@
 # Créditos y planes de Kairo
 
-**Última revisión**: 2026-10-14 · Revisar cuando cambien `kairo/src/lib/ia/config.ts`
+**Última revisión**: 2026-11-04 · Revisar cuando cambien `kairo/src/lib/ia/config.ts`
 o `kairo/src/lib/planes.ts`, y antes de encender la tienda de pagos.
+
+**Este archivo no llega a Kairo.** Es la referencia de los agentes. Lo que Kairo
+sabe es lo que está escrito en `kairo/src/lib/ia/prompt.ts`; corregir un número
+aquí no cambia ni una respuesta. Se descubrió el 23-10 y cuesta repetirlo.
 
 Frases cortas y verificables, pensadas para que las lea la IA. **El código manda
 sobre la especificación**: lo que cobra Kairo es lo que está en el código, no lo
@@ -31,15 +35,55 @@ Confirmado en `kairo/src/lib/planes.ts` (`CREDITOS_PLAN` y `NOMBRE_PLAN`).
 
 | Plan | Se llama | Créditos |
 |---|---|---|
-| `free` | Free | 15 al día |
+| `free` | Free | 20 al día |
 | `plus` | Kairo+ | 1.000 al mes |
 | `supreme` | Supreme | 3.000 al mes |
 
 Lo que da de sí 1.000 créditos: 1.000 mensajes rápidos, o 250 normales, o 50
 Forja, o 8 Mega-Prompts. Son los mismos créditos: se gastan en lo que se use.
 
-Con 15 créditos al día, el plan Free da para 15 mensajes rápidos, o 3 normales.
-No llega para un Mega-Prompt, que cuesta 120.
+Con 20 al día, el plan Free da para 20 mensajes rápidos, o 5 normales —o sea
+cinco apps con Código, o un papel y unas preguntas—. Un Mega-Prompt cuesta 120,
+así que con la recarga de un día no sale.
+
+**Eran 15 hasta el 29-10.** El 20 está en `planes.ts:10` y en
+`0019_plan_gratis.sql` (el `default` de la columna y la función de recarga). Que
+la migración se haya ejecutado en Supabase **no es comprobable desde aquí**
+(hace falta la cuenta), así que en producción podría seguir siendo 15: eso es ⚪,
+no verde. El prompt no se enteró del cambio porque no hacía falta —interpola
+`CREDITOS_PLAN`, así que dice lo que diga el código—; este archivo sí, porque
+estaba escrito a mano, y ha vivido seis días diciendo 15.
+
+### El regalo de bienvenida, que es lo que de verdad tiene una cuenta nueva
+
+Quien se registra entra además con **150 créditos de regalo**, una sola vez.
+Cuatro hechos del código, cada uno con su sitio:
+
+- Van a `creditos_extra` (`0019_plan_gratis.sql:74`, un `default` de la columna:
+  solo cuentas nuevas, a quien ya estaba no se le toca el saldo).
+- **La recarga diaria no los pisa**: `recargar_creditos_free()` solo escribe
+  `creditos`, nunca `creditos_extra`.
+- **Se gastan los últimos**: `gastar_creditos()` tira primero del saldo del plan
+  y solo después del extra (`0001_esquema.sql:186-187`). Por eso el regalo dura
+  hasta que se acaba, en vez de evaporarse el primer día.
+- **Mientras quede algo, el plan gratuito tiene los cuatro niveles**, MEGA
+  incluido: `nivelesDe(plan, creditosExtra)` devuelve los cuatro si
+  `plan === "free"` y `creditosExtra > 0` (`planes.ts:65-73`). Cuando llega a
+  cero, vuelve a `NIVELES_POR_PLAN.free`, que es rápido y normal
+  (`planes.ts:45`).
+
+La cuenta del primer día, hecha con el orden de gasto real: 20 + 150 = 170. Un
+MEGA se come los 20 del día y 100 del regalo, y quedan 50. No dan para un
+segundo MEGA, sí para dos Forja. El comentario del código dice "que sobren
+treinta" porque cuenta solo el regalo; con los 20 del día son cincuenta.
+
+Y el límite de este archivo, otra vez, porque aquí es donde pica: **de este
+apartado Kairo no puede decir nada**. Los créditos por plan sí los sabe —el
+prompt interpola `CREDITOS_PLAN`—, pero ni los 150 del regalo ni qué niveles
+trae cada plan: el bloque de precios los lista entre lo que NO sabe
+(`prompt.ts:302-304`). El caso de
+`ejemplos/2026-11-03-limite-ayer-podia-usar-mega.md` es exactamente esa
+frontera, y sigue siendo la respuesta correcta.
 
 ## Precios
 
@@ -88,7 +132,7 @@ calla sobre ellas** y el agente no toca nada.
 
 | Qué | La especificación dice | El código hace |
 |---|---|---|
-| Niveles de Kairo+ | Rápido + Estándar; Máximo y Mega-Prompt solo en Supreme | `plus` y `supreme` tienen los cuatro, MEGA incluido (`planes.ts:41-45`) |
+| Niveles de Kairo+ | Rápido + Estándar; Máximo y Mega-Prompt solo en Supreme | `plus` y `supreme` tienen los cuatro, MEGA incluido (`planes.ts:46-47`) |
 | Un Co-Work ejecutado | 40 créditos | 4, y con un comentario que lo justifica: "lo mismo que un mensaje normal: es uno" |
 | Analizar un documento | 15 créditos | 4, el precio de un mensaje normal (`api/paperwork/route.ts:73`) |
 

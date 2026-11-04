@@ -96,6 +96,87 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-04 — Conocimiento (área 3): la referencia de los agentes decía 15
+
+**Qué cambié**: `agentes/ia/conocimiento/creditos-y-planes.md`, el apartado del
+plan gratuito, y tres líneas en el `README.md` de la carpeta.
+
+El archivo decía **"Free: 15 al día"** y hacía la cuenta con quince ("da para 15
+mensajes rápidos, o 3 normales"). Son **20** desde el 29-10 (`planes.ts:10` y
+`0019_plan_gratis.sql`). Corregido el número, corregida la cuenta —20 rápidos o
+5 normales, o sea cinco apps con Código— y añadido lo que faltaba entero: **el
+regalo de bienvenida**, con sus cuatro hechos y cada uno con su sitio en el
+código. Van a `creditos_extra`; la recarga diaria no los pisa (la función solo
+escribe `creditos`); **se gastan los últimos** (`gastar_creditos()` tira primero
+del saldo del plan, `0001_esquema.sql:186-187`), que es lo que hace que el
+regalo dure; y mientras quede algo, el plan gratuito tiene los cuatro niveles,
+MEGA incluido (`nivelesDe()`, `planes.ts:65-73`).
+
+Y la cuenta del primer día hecha con el orden de gasto real, que no es la del
+comentario del código: 20 + 150 = 170, un MEGA se lleva los 20 del día y 100 del
+regalo, **quedan 50**. El comentario dice "que sobren treinta" porque cuenta
+solo el regalo. Ninguno miente; cuentan cosas distintas, y la que le pasa al
+usuario es la de los cincuenta.
+
+**Por qué este cambio y no otro**: porque era el único dato **falso** de la
+carpeta, y era de dinero. Lo demás que le falta —los topes por plan de Mentes y
+conectores— está marcado como no confirmado, que es incompleto pero honesto. Un
+15 donde hay un 20 no es incompleto: es un agente leyendo mal el plan gratuito
+cada vez que abre el archivo para comprobar algo.
+
+**Y la parte que de verdad importa, que son tres líneas del README**: esa
+carpeta **no llega al prompt**. Lo descubrió el banco el 23-10 —cuatro hechos de
+privacidad escritos aquí pasaron tres días sin cambiar una sola respuesta— y el
+encabezado del README seguía diciendo *"lo que Kairo tiene que saber"*, que se
+lee como si escribir aquí le enseñara algo. Ahora lo dice: es la referencia de
+los agentes y el sitio donde se comprueba un dato **antes** de escribirlo en
+`prompt.ts`, que es lo único que Kairo lee. Lo cuento como un cambio y no como
+dos porque sin esa línea mi propia corrección de hoy se lee como lo que no es:
+hoy Kairo no ha aprendido nada.
+
+Por lo mismo el apartado nuevo acaba diciendo qué **no** puede decir Kairo:
+los créditos por plan sí los sabe —el prompt interpola `CREDITOS_PLAN`, así que
+el 20 lo dice solo—, pero ni los 150 del regalo ni qué niveles trae cada plan,
+que el bloque de precios lista entre lo que no sabe. Es exactamente la frontera
+del ejemplo de ayer, y la cito desde el archivo para que no se separen.
+
+**El detalle que explica el fallo**, y vale más que el fallo: **el prompt no se
+enteró del cambio porque no hacía falta**. Interpola `CREDITOS_PLAN`, así que el
+día que el 15 pasó a 20 el prompt ya decía 20. Este archivo estaba escrito a
+mano, y por eso ha vivido seis días diciendo quince. Cada número copiado a mano
+es una fecha de caducidad que nadie apunta.
+
+**Cómo lo comprobé**: una verificación que abre el código y comprueba **las
+dieciséis afirmaciones** del texto nuevo, cita por cita —cada número de línea,
+que la función de recarga no menciona `creditos_extra`, que el bloque del prompt
+dice lo que digo que dice, y las tres cuentas (20/4, 170−120, 50 entre 20)—.
+Primera pasada **15 de 16**: el fallo era mío y era una cita, `0001_esquema.sql`
+líneas 185-186 cuando son 186-187. Una línea en blanco que conté como código.
+Corregida y **16 de 16**. No hay nada que compilar: no toco la aplicación.
+
+**Lo que no he hecho**: meter nada de esto en el prompt. Sería un cambio de
+producto —qué se le cuenta al usuario del plan gratuito— con la venta del plan
+sin decidir, y además obligaría a **rehacer** el ejemplo de ayer, que está
+construido justo sobre ese hueco. Si el dueño quiere que Kairo sepa el reparto
+de niveles, es una línea suya y entonces se hace el par: bloque y ejemplo.
+
+**Qué necesito del dueño**: una mirada de un segundo, no una decisión. ¿Está
+**ejecutada en Supabase** la migración `0019_plan_gratis.sql`? Desde aquí no se
+puede ver —hace falta la cuenta—, así que el 20 al día y los 150 de regalo
+quedan ⚪ en producción. Si no está, el plan gratuito real sigue siendo de
+quince y lo que dice la web es falso; si está, son dos filas que pasan a verde.
+
+**Lo que vi de paso**, sin promesas:
+
+- `agentes/ia/conocimiento/` tiene **tres archivos** contando el README, y el
+  más reciente es del **24-10**, no del 22-10 como anoté ayer.
+- `datos-y-privacidad.md` (24-10) no lo he abierto hoy. No sé si ha envejecido.
+- El apartado *"qué NO debe decir Kairo nunca"* sigue diciendo que no hay
+  confirmación de los topes de **Mentes** ni de **conectores**. El de Mentes sí
+  está: **30 para todos**, en `0003_mentes.sql:56`. El de Co-Works también, y en
+  dos capas: **1 en el gratuito** por la API (`api/coworks/route.ts:116`) y 10
+  en SQL. Son dos datos que podrían dejar de estar en el limbo.
+
 ### 2026-11-03 — Ejemplos (área 2): tres casos, y una mentira mía que iba dentro de una regla
 
 **Antes de lo de hoy hay que contar lo de ayer y lo mío, por orden.**
