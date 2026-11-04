@@ -541,7 +541,21 @@ export function Composer({
                   style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
                 />
                 {current ? t(current.label) : t("app.auto")}
-                {current && <span className="text-faint">{t(current.esfuerzo)}</span>}
+                {/* LO QUE CUESTA, ANTES DE PULSAR.
+ 
+                    Aquí ponía el esfuerzo —"medio", "alto"—, que no le
+                    dice nada a nadie: no se sabe si "alto" es mejor o
+                    más caro. Lo que sí importa cuando pagas por crédito
+                    es cuánto te va a costar ESTA pregunta, y hasta ahora
+                    había que abrir el menú y acordarse.
+ 
+                    El coste va aquí y el esfuerzo se queda dentro del
+                    menú, que es donde se compara un nivel con otro. */}
+                {current && (
+                  <span className="text-faint">
+                    {t("app.costChip").replace("{n}", String(LEVELS[current.id].credits))}
+                  </span>
+                )}
                 <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
               </button>
 
@@ -588,8 +602,11 @@ export function Composer({
                             {bloqueado ? t("app.upgrade") : t(l.desc)}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[12px] text-muted">
-                          {t(l.esfuerzo)}
+                        <span className="shrink-0 text-right text-[12px] text-muted">
+                          <span className="block">{t(l.esfuerzo)}</span>
+                          <span className="block text-[11px] text-faint">
+                            {t("app.costChip").replace("{n}", String(LEVELS[l.id].credits))}
+                          </span>
                         </span>
                       </>
                     );
