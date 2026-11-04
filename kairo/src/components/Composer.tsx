@@ -14,10 +14,11 @@ import { IconoNivel } from "./IconoNivel";
 import { type ModoBusqueda } from "@/lib/buscar-modo";
 import Link from "next/link";
 
-/* Lo que se enseña de cada nivel es el esfuerzo, no el precio.
-   El número de créditos convertía cada mensaje en un taxímetro: la
-   gente elegía por lo que costaba y no por lo que necesitaba. El saldo
-   sigue a la vista encima del cuadro de escribir, que es donde importa. */
+/* De cada nivel se enseñan las dos cosas, pero no en el mismo sitio:
+   fuera, en la pastilla, va el esfuerzo —cuánto se lo va a pensar—; el
+   precio va dentro del menú, al lado de cada nivel, que es donde se
+   comparan y donde de verdad se decide. Fuera, un número de créditos
+   convierte cada mensaje en un taxímetro. */
 const LEVEL_META: { id: Level; label: TKey; desc: TKey; esfuerzo: TKey }[] = [
   { id: "fast", label: "app.fast", desc: "app.fastDesc", esfuerzo: "effort.low" },
   { id: "normal", label: "app.normal", desc: "app.normalDesc", esfuerzo: "effort.mid" },
@@ -32,6 +33,7 @@ export function Composer({
   setMente,
   onSend,
   busy,
+  arranque,
 }: {
   level: Nivel;
   setLevel: (l: Nivel) => void;
@@ -39,7 +41,9 @@ export function Composer({
   setMente: (m: Mente | null) => void;
   onSend: (text: string, adjuntos: Adjunto[]) => void;
   busy: boolean;
-  /** Si Kairo busca en internet: automático, siempre o nunca. */
+  /** En la portada la caja no es la barra de abajo: va suelta, debajo
+      del saludo, sin raya encima y con el ancho de la columna. */
+  arranque?: boolean;
 }) {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -307,9 +311,36 @@ export function Composer({
 
   const current = LEVEL_META.find((l) => l.id === level);
 
+  /* MEGA, A UN TOQUE.
+   *
+   * Preguntar a tres IAs de tres casas distintas y quedarse con una sola
+   * respuesta es lo que no hace nadie más, y vivía escondido en el
+   * último sitio de un desplegable. Aquí es un botón, y se apaga
+   * volviendo a pulsarlo. */
+  const megaPuesto = level === "mega";
+  const megaCerrado = !permitidos.includes("mega");
+  const megaPista = t("app.threeAisTip").replace("{n}", String(LEVELS.mega.credits));
+  const megaClases = `inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold text-acento transition ${
+    megaPuesto ? "border-acento bg-acento/20" : "border-acento/35 bg-acento/[0.07] hover:bg-acento/15"
+  } ${megaCerrado ? "opacity-60" : ""}`;
+  const megaDentro = (
+    <>
+      <IconoNivel nivel="mega" className="h-[15px] w-[15px]" />
+      {/* En el móvil solo el dibujo: con la etiqueta, la fila de botones
+          no cabe y el de enviar se sale. */}
+      <span className="hidden sm:inline">{t("app.threeAis")}</span>
+    </>
+  );
+
   return (
-    <div className="border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4">
-      <div className="mx-auto max-w-3xl">
+    <div
+      className={
+        arranque
+          ? "w-full shrink-0 px-4 pt-4 sm:px-8"
+          : "shrink-0 border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4"
+      }
+    >
+      <div className={arranque ? "mx-auto w-full max-w-[580px]" : "mx-auto max-w-3xl"}>
         <div
           onDragOver={(e) => {
             if (!e.dataTransfer.types.includes("Files")) return;
@@ -541,20 +572,15 @@ export function Composer({
                   style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
                 />
                 {current ? t(current.label) : t("app.auto")}
-                {/* LO QUE CUESTA, ANTES DE PULSAR.
+                {/* CUÁNTO SE LO VA A PENSAR.
  
-                    Aquí ponía el esfuerzo —"medio", "alto"—, que no le
-                    dice nada a nadie: no se sabe si "alto" es mejor o
-                    más caro. Lo que sí importa cuando pagas por crédito
-                    es cuánto te va a costar ESTA pregunta, y hasta ahora
-                    había que abrir el menú y acordarse.
+                    En Automático no se pone nada: el nivel lo decide
+                    Kairo al leer la pregunta, así que antes de enviar no
+                    hay esfuerzo que prometer.
  
-                    El coste va aquí y el esfuerzo se queda dentro del
-                    menú, que es donde se compara un nivel con otro. */}
+                    Se esconde en el móvil, donde no cabe. */}
                 {current && (
-                  <span className="text-faint">
-                    {t("app.costChip").replace("{n}", String(LEVELS[current.id].credits))}
-                  </span>
+                  <span className="hidden text-faint sm:inline">· {t(current.esfuerzo)}</span>
                 )}
                 <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
               </button>
@@ -605,7 +631,10 @@ export function Composer({
                         <span className="shrink-0 text-right text-[12px] text-muted">
                           <span className="block">{t(l.esfuerzo)}</span>
                           <span className="block text-[11px] text-faint">
-                            {t("app.costChip").replace("{n}", String(LEVELS[l.id].credits))}
+                            {/* "1 créditos" no lo dice nadie. */}
+                            {t(
+                              LEVELS[l.id].credits === 1 ? "app.costChipOne" : "app.costChip",
+                            ).replace("{n}", String(LEVELS[l.id].credits))}
                           </span>
                         </span>
                       </>
@@ -639,6 +668,24 @@ export function Composer({
                 </div>
               )}
             </div>
+
+            {megaCerrado ? (
+              /* Si el plan no lo incluye, el botón no finge: lleva a los
+                 precios en vez de dar un error al enviar. */
+              <Link href="/precios" title={megaPista} aria-label={t("app.threeAis")} className={megaClases}>
+                {megaDentro}
+              </Link>
+            ) : (
+              <button
+                onClick={() => setLevel(megaPuesto ? "auto" : "mega")}
+                aria-pressed={megaPuesto}
+                title={megaPista}
+                aria-label={t("app.threeAis")}
+                className={megaClases}
+              >
+                {megaDentro}
+              </button>
+            )}
 
             <button
               onClick={submit}

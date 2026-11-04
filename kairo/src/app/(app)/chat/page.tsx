@@ -18,7 +18,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
 import { Marca } from "@/components/Logo";
-import { Altavoz, Bolt, Brain, Chat as ChatIcon, Check, Chevron, Clock, Copy, Credito, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
+import { Altavoz, Bolt, Brain, Check, Chevron, Clock, Code as Codigo, Copy, Credito, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
 
 /* Respuestas de ejemplo. Solo se usan en modo demo, cuando no hay
    Supabase ni clave de Gemini configurados. */
@@ -41,22 +41,20 @@ const DEMO: Record<Level, Record<Lang, string>> = {
   },
 };
 
+/* LAS CINCO SECCIONES.
+ 
+   Antes la primera era "Chat · pregunta lo que sea", que con la caja de
+   escribir justo encima sobra. En su sitio va Code, que es de lo mejor
+   que hace y no se veía desde la portada. Los textos son cortos a
+   propósito: son atajos, no publicidad. */
 const CARDS: {
-  icon: typeof ChatIcon;
+  icon: typeof Codigo;
   title: TKey;
   desc: TKey;
   href?: string;
   prompt?: { es: string; en: string };
 }[] = [
-  {
-    icon: ChatIcon,
-    title: "card.chat",
-    desc: "card.chatDesc",
-    prompt: {
-      es: "Explícame en 3 frases qué sabes hacer",
-      en: "Tell me in 3 sentences what you can do",
-    },
-  },
+  { icon: Codigo, title: "card.code", desc: "card.codeDesc", href: "/code" },
   { icon: Papel, title: "card.paperwork", desc: "card.paperworkDesc", href: "/paperwork" },
   { icon: Fichas, title: "card.gist", desc: "card.gistDesc", href: "/gist" },
   { icon: Brain, title: "card.mentes", desc: "card.mentesDesc", href: "/mentes" },
@@ -147,7 +145,7 @@ function Chat() {
   const params = useSearchParams();
   const perfil = usePerfil();
   const historial = useHistorial();
-  const { credits, spend, sincronizar } = useCredits();
+  const { credits, total, spend, sincronizar } = useCredits();
 
   const [messages, setMessages] = useState<Message[]>([]);
   /* "auto" = que lo elija Kairo. Es lo que viene puesto de fábrica:
@@ -882,6 +880,15 @@ function Chat() {
 
   const empty = messages.length === 0;
 
+
+  /* "VACÍO" NO ES LO MISMO QUE "LA PORTADA".
+ 
+     Mientras se carga una conversación tampoco hay mensajes, y ahí la
+     caja de escribir tiene que seguir siendo la barra de abajo: si no,
+     saltaría al medio de la pantalla y volvería abajo medio segundo
+     después. `inicio` es la portada de verdad. */
+  const inicio = empty && !cargando;
+
   /* El saludo lleva tu nombre, y cambia según quién seas: a quien ya
      tiene chats se le pregunta por dónde sigue; a quien llega hoy, en
      qué trabaja. Solo el nombre de pila: el apellido suena a carta del
@@ -892,8 +899,34 @@ function Chat() {
     : t("app.greeting");
 
   return (
-    <div className="flex h-full flex-col">
-      <div ref={caja} onScroll={mirarPosicion} className="relative min-h-0 flex-1 overflow-y-auto">
+    /* DOS FORMAS DE COLOCAR LO MISMO.
+ 
+       En una conversación esto es una barra: el texto arriba
+       desplazándose y la caja de escribir clavada abajo. Al arrancar no:
+       entonces el saludo, la caja y los atajos son UN bloque centrado,
+       con la caja en medio, porque es lo que vienes a usar.
+ 
+       Y se consigue sin cambiar la caja de sitio en el árbol: las cuatro
+       ranuras se escriben siempre, aunque dos no pinten nada según el
+       caso. Si la caja cambiara de padre, React la haría de nuevo al
+       mandar el primer mensaje y perderías el foco justo cuando ibas a
+       seguir escribiendo.
+ 
+       El centrado va con márgenes automáticos arriba y abajo, no con
+       `justify-center`: con `justify-center`, el día que no quepa todo,
+       la parte de arriba se sale por encima y no hay manera de subir
+       hasta ella. Un margen automático se queda en cero cuando no sobra
+       sitio, y entonces la barra de desplazamiento funciona. */
+    <div className={`flex h-full flex-col ${inicio ? "overflow-y-auto" : ""}`}>
+      <div
+        ref={caja}
+        onScroll={mirarPosicion}
+        className={
+          inicio
+            ? "mt-auto w-full shrink-0 px-4 pt-8 sm:px-8"
+            : "relative min-h-0 flex-1 overflow-y-auto"
+        }
+      >
         {cargando ? (
           <div className="grid h-full place-items-center">
             <Marca className="h-10 w-10 opacity-60" animada />
@@ -906,91 +939,36 @@ function Chat() {
              marca, es relleno: ocupaba el sitio por el que empieza la
              mirada y empujaba hacia abajo lo único que se usa de verdad
              en esta pantalla, que es la caja de escribir. */
-          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-12">
-            <h1 className="text-balance text-center text-[26px] font-semibold tracking-tight sm:text-[30px]">
+          <div className="mx-auto w-full max-w-[580px]">
+            <h1 className="text-balance text-[25px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[28px]">
               {saludo}
             </h1>
-            <p className="mt-2 text-[14.5px] text-muted">{t("app.greetingSub")}</p>
+
+            {/* LO QUE TE QUEDA, EN PORCENTAJE.
+ 
+                Aquí ponía "elige por dónde empezar", que es una
+                instrucción para algo que ya se ve. Lo que de verdad hace
+                falta saber antes de preguntar es cuánto te queda.
+ 
+                Un porcentaje y no el número: "840" no dice nada si no te
+                acuerdas de con cuántos empezabas, y puesto en el saludo
+                hace de taxímetro. El número exacto sigue en la barra de
+                la izquierda, al lado de la barrita, para cuando lo que
+                quieres saber es si te llega para un MEGA. */}
+            <p className="mt-1 text-[13px] text-faint">
+              {t(perfil.plan === "free" ? "app.greetingPctDay" : "app.greetingPct").replace(
+                "{n}",
+                String(total > 0 ? Math.max(0, Math.min(100, Math.round((credits / total) * 100))) : 0),
+              )}
+            </p>
 
             {mente && (
-              <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-acento/40 bg-acento/10 px-3 py-1.5 text-[13px]">
+              <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-acento/40 bg-acento/10 px-3 py-1.5 text-[13px]">
                 <span className="text-[15px] leading-none">{mente.emoji}</span>
                 <span className="text-faint">{t("mente.talkingTo")}</span>
                 <span className="font-medium">{mente.nombre}</span>
               </span>
             )}
-
-            {/* En fila y centradas, no en rejilla.
- 
-                Con una rejilla de columnas fijas, el día que las
-                tarjetas no son múltiplo del número de columnas la
-                última se queda sola pegada a un lado: con cinco en dos
-                columnas, la quinta cuelga a la izquierda y se ve
-                descolgada. Así se centran siempre, salgan las que
-                salgan, y además no hay que tocar nada al añadir o
-                quitar una. */}
-            {/* SEGUIR CON LO DE ANTES.
- 
-                Al entrar, lo que más se hace no es empezar algo nuevo:
-                es volver a lo de hace un rato. Hasta ahora eso estaba
-                solo en la barra lateral, en letra pequeña y mezclado con
-                todo lo demás.
- 
-                Solo sale si hay historial. En una cuenta recién creada
-                no hay nada que seguir, y una fila vacía con un rótulo
-                encima es peor que no poner nada: parece que algo falla. */}
-            {historial.length > 0 && (
-              <div className="mt-8 w-full">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-faint">
-                  {t("app.continue")}
-                </p>
-                <div className="grid gap-2.5 sm:grid-cols-2">
-                  {historial.slice(0, 2).map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/chat?c=${c.id}`}
-                      className="rounded-xl border border-line p-3 text-left transition hover:border-line-hi hover:bg-panel"
-                    >
-                      <span className="block truncate text-[13px] font-medium">{c.titulo}</span>
-                      <span className="mt-0.5 block text-[11px] text-faint">
-                        {cuandoFue(c.actualizadaEl, t)}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 flex w-full flex-wrap justify-center gap-3">
-              {CARDS.map((c) => {
-                const Icon = c.icon;
-                const inner = (
-                  <>
-                    <Icon className="h-5 w-5 text-acento" />
-                    <span className="mt-2.5 block text-[13.5px] font-medium">{t(c.title)}</span>
-                    <span className="mt-0.5 block text-[11.5px] leading-snug text-faint">
-                      {t(c.desc)}
-                    </span>
-                  </>
-                );
-                /* `grow` con un ancho base y un tope: en ordenador
-                   caben las cinco en una línea y se reparten el sitio;
-                   en el móvil entran dos por fila y la que sobra no se
-                   estira de lado a lado. */
-                const cls =
-                  "grow basis-[130px] max-w-[170px] rounded-xl border border-line bg-panel p-3.5 text-left transition hover:border-line-hi hover:bg-panel-hi";
-
-                return c.prompt ? (
-                  <button key={c.title} className={cls} onClick={() => send(c.prompt![lang])}>
-                    {inner}
-                  </button>
-                ) : (
-                  <Link key={c.title} href={c.href ?? "/chat"} className={cls}>
-                    {inner}
-                  </Link>
-                );
-              })}
-            </div>
           </div>
         ) : (
           <div className="mx-auto max-w-3xl space-y-7 px-4 py-8">
@@ -1142,25 +1120,32 @@ function Chat() {
         )}
       </div>
 
-      <div className="pointer-events-none relative flex justify-center">
-        {/* Solo aparece si te has ido hacia arriba: te devuelve al final
-            sin tener que arrastrar media conversación. */}
-        {!abajo && messages.length > 0 && (
-          <button
-            onClick={bajarDelTodo}
-            title={t("chat.toBottom")}
-            aria-label={t("chat.toBottom")}
-            className="pointer-events-auto absolute bottom-0 right-4 grid h-9 w-9 place-items-center rounded-full border border-line bg-panel text-muted shadow-[var(--shadow)] transition hover:border-line-hi hover:text-fg"
-          >
-            <Chevron className="h-4 w-4" />
-          </button>
-        )}
+      {/* EL SALDO FLOTANTE, SOLO EN CONVERSACIÓN.
+ 
+          Al arrancar ya está dicho debajo del saludo, y el mismo número
+          dos veces en la misma pantalla no informa: hace dudar de si son
+          dos cosas distintas. */}
+      {!inicio && (
+        <div className="pointer-events-none relative flex justify-center">
+          {/* Solo aparece si te has ido hacia arriba: te devuelve al final
+              sin tener que arrastrar media conversación. */}
+          {!abajo && messages.length > 0 && (
+            <button
+              onClick={bajarDelTodo}
+              title={t("chat.toBottom")}
+              aria-label={t("chat.toBottom")}
+              className="pointer-events-auto absolute bottom-0 right-4 grid h-9 w-9 place-items-center rounded-full border border-line bg-panel text-muted shadow-[var(--shadow)] transition hover:border-line-hi hover:text-fg"
+            >
+              <Chevron className="h-4 w-4" />
+            </button>
+          )}
 
-        <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
-          <Credito className="h-3 w-3 text-gold" />
-          {credits.toLocaleString(lang)} {t("app.credits")}
-        </span>
-      </div>
+          <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
+            <Credito className="h-3 w-3 text-gold" />
+            {credits.toLocaleString(lang)} {t("app.credits")}
+          </span>
+        </div>
+      )}
 
       <Composer
         level={level}
@@ -1174,7 +1159,88 @@ function Chat() {
            caía después, detrás de una conversación que no tenía nada que
            ver y pisando el mensaje que se estaba escribiendo. */
         busy={busy || resumiendo}
+        arranque={inicio}
       />
+      {/* LO DE DEBAJO DE LA CAJA, SOLO AL ARRANCAR.
+ 
+          Primero por dónde ibas y después las secciones, en ese orden:
+          al entrar, lo que más se hace no es empezar algo nuevo, es
+          volver a lo de hace un rato. */}
+      {inicio && (
+        <div className="mb-auto w-full shrink-0 px-4 pb-8 sm:px-8">
+          <div className="mx-auto w-full max-w-[580px]">
+            {/* SEGUIR CON LO DE ANTES.
+ 
+                Hasta ahora esto estaba solo en la barra lateral, en
+                letra pequeña y mezclado con todo lo demás.
+ 
+                Solo sale si hay historial. En una cuenta recién creada
+                no hay nada que seguir, y una fila vacía con un rótulo
+                encima es peor que no poner nada: parece que algo
+                falla. */}
+            {historial.length > 0 && (
+              <>
+                <p className="pb-1 pt-3.5 text-[10px] font-bold uppercase tracking-[0.09em] text-faint">
+                  {t("app.continue")}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {historial.slice(0, 2).map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/chat?c=${c.id}`}
+                      className="min-w-0 rounded-[10px] border border-line px-2.5 py-2 text-left transition hover:border-line-hi hover:bg-panel"
+                    >
+                      <span className="block truncate text-[11.5px] font-semibold">{c.titulo}</span>
+                      <span className="mt-px block text-[10px] text-faint">
+                        {cuandoFue(c.actualizadaEl, t)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* LAS SECCIONES, ABAJO Y CALLADAS.
+ 
+                Eran cinco tarjetas grandes en el centro de la pantalla,
+                y eran lo primero que veías: parecía que Kairo fuese un
+                menú de aplicaciones y no algo a lo que preguntar. Siguen
+                estando —son la mitad de lo que hace la aplicación— pero
+                pequeñas, en una fila, y por debajo de la caja.
+ 
+                Cinco columnas en el ordenador y tres en el móvil: con
+                dos, la quinta se queda sola colgando a un lado. */}
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+              {CARDS.map((c) => {
+                const Icon = c.icon;
+                const inner = (
+                  <>
+                    <span className="flex items-center gap-1.5 text-[11.5px] font-semibold">
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-acento" />
+                      <span className="truncate">{t(c.title)}</span>
+                    </span>
+                    <span className="mt-0.5 block text-[10px] leading-[1.3] text-faint">
+                      {t(c.desc)}
+                    </span>
+                  </>
+                );
+                const cls =
+                  "min-w-0 rounded-[10px] border border-line px-2 py-2 text-left transition hover:border-line-hi hover:bg-panel";
+
+                return c.prompt ? (
+                  <button key={c.title} className={cls} onClick={() => send(c.prompt![lang])}>
+                    {inner}
+                  </button>
+                ) : (
+                  <Link key={c.title} href={c.href ?? "/chat"} className={cls}>
+                    {inner}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {noCredits && <NoCreditsModal onClose={() => setNoCredits(false)} />}
     </div>
