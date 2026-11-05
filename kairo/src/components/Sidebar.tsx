@@ -66,12 +66,16 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
      explicar. Y el número de al lado va del mismo color: dos formas de
      decir lo mismo a la vez, no dos cosas distintas.
  
+     Los escalones son 70 y 40. El amarillo entra pronto a propósito:
+     un MEGA cuesta 240 de los 2.000 de Kairo+, o sea un 12%, y con el
+     aviso en el 20% te enterabas cuando ya no te llegaba ni para uno.
+ 
      Las clases van escritas enteras y no montadas con `bg-${...}`,
      porque Tailwind busca los nombres leyendo el código: lo que se
      arma en marcha no lo encuentra, y el día que lo hagas te quedas
      sin barra y sin saber por qué. */
-  const comoVa = pct > 50 ? "bg-green" : pct > 20 ? "bg-gold" : "bg-red";
-  const tinta = pct > 50 ? "text-green" : pct > 20 ? "text-gold" : "text-red";
+  const comoVa = pct >= 70 ? "bg-green" : pct >= 40 ? "bg-gold" : "bg-red";
+  const tinta = pct >= 70 ? "text-green" : pct >= 40 ? "text-gold" : "text-red";
 
   const [editando, setEditando] = useState<string>();
   const [borrando, setBorrando] = useState<string>();
