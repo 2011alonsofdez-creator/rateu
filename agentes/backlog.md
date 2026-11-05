@@ -970,7 +970,8 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **`/precios` y `/legal` salen en Google con el título de la portada.** `[origen: radar 2026-11-04]`
+- **~~`/precios` y `/legal` salen en Google con el título de la portada~~ — HECHO.** `[origen: radar 2026-11-04 · hecho 2026-11-05]`
+  **Hecho el 05-11**, al día siguiente de entrar en la cola. Ver `## Hecho`.
   Lleva en 🟡 en el checklist desde el **29-10** (6 días) y no estaba en esta
   cola, así que entra ahora. Las dos páginas empiezan por `"use client"`, y Next
   no deja exportar `metadata` de un componente de cliente: comprobado hoy, las
@@ -1383,6 +1384,47 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **`/precios` y `/legal` ya no salen en Google con el título de la portada.** `[hecho 2026-11-05]`
+  Siete días en 🟡 en el checklist (desde el 29-10) y un día en la cola. Las dos
+  empezaban por `"use client"`, y Next no deja exportar `metadata` de un
+  componente de cliente: salían con el título y la descripción de la portada,
+  *"Kairo — La IA que trabaja cuando tú no"*. Una de las dos es **la página
+  donde se decide pagar**, y está en el `sitemap.xml` con prioridad 0,8.
+
+  **Entregado**: `precios/page.tsx` y `legal/page.tsx` pasan a ser de servidor y
+  solo llevan los metadatos; el cuerpo de cada una se muda a su `contenido.tsx`
+  con el `"use client"`. Es el patrón de las cinco páginas de intención, el
+  mismo con el que nació `/legal/cookies` ayer.
+
+  **Y las cifras de los metadatos de `/precios` no van escritas a mano**, que es
+  la regla de la casa desde el 30-10: los precios salen de `plans`
+  (`lib/mock.ts`) y los créditos del plan gratuito de `CREDITOS_PLAN`. En el
+  HTML generado se lee *"20 créditos gratis cada día sin tarjeta. Kairo+ por
+  9,99 €/mes y Supreme por 24,99 €/mes"*, con las tres cifras leídas del
+  código. Aquí eso importa más que en cualquier otra página: **un precio viejo
+  en el resultado de búsqueda es una promesa que la página de al lado
+  desmiente**, y es exactamente lo que pasó el 30-10 con los 15 créditos de
+  `/sin-suscripcion`.
+
+  La descripción de `/legal` dice la verdad de hoy —uno de los cuatro documentos
+  escrito— en vez de prometer los cuatro, y eso habrá que cambiarlo cuando se
+  escriban los otros tres. Es a propósito: una descripción que no se puede
+  quedar vieja sin que alguien lo note es mejor que una genérica que nunca hay
+  que tocar.
+
+  **Comprobado**: `tsc --noEmit` salida 0, `next build` salida 0, y **17
+  comprobaciones** sobre el HTML generado y el bundle del cliente: los títulos,
+  las canónicas, los `og:`, que ninguna de las dos hereda ya el de la portada, y
+  —lo que más importaba— **que el cuerpo no ha cambiado**: el título visible de
+  `/precios`, sus tres tarjetas, sus cinco preguntas de la FAQ (contadas), la
+  respuesta delicada sobre qué se guarda, las cuatro tarjetas de `/legal` con sus
+  tres pendientes, y la versión inglesa de todo eso viajando en el bundle. Más un
+  `diff` del cuerpo movido contra el original, que solo encuentra el nombre de la
+  función. **17 de 17.**
+
+  Con esto, **las ocho páginas públicas tienen sus propios metadatos** y la fila
+  del checklist pasa de 🟡 a ✅.
 
 - **La política de cookies, escrita de verdad: el primero de los cuatro documentos legales.** `[hecho 2026-11-04]`
   El P1 de los legales lleva desde el 01-11 esperando cuatro datos suyos, y la
