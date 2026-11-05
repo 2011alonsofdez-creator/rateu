@@ -970,6 +970,52 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Falta `/avisos-de-plazos`, que es la única página de intención que no compite contra nadie.** `[origen: crecimiento 2026-11-05]`
+  De las seis intenciones de la tabla del 17-10, cuatro tienen página y faltan
+  dos: `/resumir-video` y esta, que aquella tabla ya llamaba *"el argumento
+  propio de Kairo"*.
+
+  **Lo que la búsqueda de hoy añade, y es el motivo de que entre ahora**: en las
+  dos intenciones que he mirado —"recurrir una multa" y "requerimiento de
+  Hacienda"— **los diez primeros resultados explican el plazo y ninguno lo
+  vigila**. La primera es la propia sede de la DGT; detrás, Legalitas y Zurich;
+  y en la de Hacienda, **siete de los diez son blogs de programas de facturación
+  para autónomos** (declarando, billin, billeo, Holded, Quipu, Xolo, Sage), o
+  sea equipos de contenidos financiados. Contra eso no se gana escribiendo más
+  páginas. Se gana ofreciendo lo que ellos no hacen, y lo que no hace ninguno es
+  **avisar**.
+
+  **Trabajo**: un día. El patrón está engrasado —`page.tsx` de servidor con
+  metadatos y `contenido.tsx` bilingüe— y desde el 05-11 las ocho páginas
+  públicas lo cumplen. Hay que añadirla al `sitemap.ts` y al pie.
+  **Y una condición de honradez**: la página vende los avisos de plazos, que
+  hoy salen por Telegram y dependen del reloj de GitHub. Lo que diga tiene que
+  ser lo que el código hace, no lo que la especificación promete.
+
+- **Una multa tiene tres caminos y Kairo solo conoce dos.** `[origen: crecimiento 2026-11-05]`
+  `papeles.ts` avisa desde el 27-10 de que pagar con la reducción del 50% y
+  alegar son incompatibles, y el caso límite del 05-11 trabaja esas dos ramas.
+  **Falta la tercera, que es la que más gente toma sin querer: no hacer nada.**
+  Según las fuentes de hoy, si no pagas ni alegas en los 20 días naturales, el
+  procedimiento ordinario abre **45 días más para pagar, ya al 100%, y durante
+  ese tiempo no se puede alegar**; y recurrir una resolución ya dictada es otro
+  plazo, **un mes**.
+
+  **Antes de escribir una línea, verificarlo en fuente oficial**: hoy los 45
+  días salen de resultados de búsqueda (Legalitas y guías), no de la sede de la
+  DGT abierta, porque desde aquí no se abre ninguna web.
+
+  **Y en el mismo paquete, otro plazo que puede estar mal**: en los
+  requerimientos de Hacienda son 10 días hábiles, pero varias guías avisan de
+  que **el reloj arranca cuando descargas la notificación de la DEHú**, no
+  cuando se pone a disposición. Si es así, el plazo que Paperwork pone en grande
+  puede estar equivocado por días, y es el dato por el que alguien sube su
+  carta. Verificar en la AEAT.
+
+  **Trabajo**: una tarde, y la mayor parte es leer las dos fuentes oficiales.
+  **Ganancia**: el número más importante que da Paperwork deja de depender de
+  una guía comercial.
+
 - **~~`/precios` y `/legal` salen en Google con el título de la portada~~ — HECHO.** `[origen: radar 2026-11-04 · hecho 2026-11-05]`
   **Hecho el 05-11**, al día siguiente de entrar en la cola. Ver `## Hecho`.
   Lleva en 🟡 en el checklist desde el **29-10** (6 días) y no estaba en esta

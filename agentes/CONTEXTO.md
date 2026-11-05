@@ -253,6 +253,32 @@ cláusulas ausentes e incoherencias pero **no juzgan si un trato es bueno**
 ([kissmyskills](https://kissmyskills.com/es/blogs/news/ai-contract-review-tools-compared)).
 La prudencia de `/contratos` no es timidez: es la posición del sector.
 
+## Lo que cuesta la máquina, y la fecha que lo cambia (2026-11-05)
+
+Kairo va sobre Gemini, así que el precio y los límites de esa API **son su cuenta
+de resultados**. Dos cosas, las dos de la tabla oficial de precios
+([ai.google.dev](https://ai.google.dev/gemini-api/docs/pricing)), leídas de
+resultados de búsqueda porque desde la sede no se abre ninguna web:
+
+- **La capa gratuita usa los datos para mejorar los productos de Google.** La
+  tabla trae una fila *"Used to improve our products"*: **Yes** en gratuita,
+  **No** en pago. Y la capa de Kairo ya se sabía desde el 25-10 (ahí arriba): es
+  la **gratuita**. Conclusión, sin más vueltas: **la frase de `/precios` que
+  promete que no se entrena con tus conversaciones es falsa mientras la cuenta
+  siga así.** No falta ningún dato; falta una decisión del dueño: pagar la capa
+  o quitar la frase.
+- **Hay una subida con fecha: el 1 de enero de 2027.** En esa misma tabla el
+  tramo **Flex** pasa de **0,375 $ a 0,75 $**. Y varios sitios de terceros
+  informan de que **Gemini 3.8 Flash** —uno de los diez modelos que la cadena de
+  Kairo usa hoy— está en **0,75 $ / 3,75 $** por millón de tokens y **dobla ese
+  mismo día** `(sin verificar: lo dicen ellos, no una página de Google)`. La
+  dirección y la fecha coinciden con la tabla oficial.
+
+**Para qué sirve saberlo**: los precios de los planes y el valor del crédito
+están escritos para el coste de hoy, y el coste tiene fecha de caducidad. Y
+Kairo todavía no sabe cuánto gasta por mensaje, porque no hay analítica ni tope
+de gasto en el proveedor.
+
 ## Los tres números que importan al lanzar
 
 De la especificación, sección 8. Se miran cuando haya datos, no antes:
