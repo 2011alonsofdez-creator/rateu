@@ -9,15 +9,16 @@ import { escuchar, hayMicrofono } from "@/lib/voz";
 import { pitido } from "@/lib/sonido";
 import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
 import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
-import { Brain, Chevron, Clip, Close, Globo, Mic, Send } from "./Icons";
+import { Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
 import { IconoNivel } from "./IconoNivel";
-import { siguienteModo, type ModoBusqueda } from "@/lib/buscar-modo";
+import { type ModoBusqueda } from "@/lib/buscar-modo";
 import Link from "next/link";
 
-/* Lo que se enseña de cada nivel es el esfuerzo, no el precio.
-   El número de créditos convertía cada mensaje en un taxímetro: la
-   gente elegía por lo que costaba y no por lo que necesitaba. El saldo
-   sigue a la vista encima del cuadro de escribir, que es donde importa. */
+/* De cada nivel se enseñan las dos cosas, pero no en el mismo sitio:
+   fuera, en la pastilla, va el esfuerzo —cuánto se lo va a pensar—; el
+   precio va dentro del menú, al lado de cada nivel, que es donde se
+   comparan y donde de verdad se decide. Fuera, un número de créditos
+   convierte cada mensaje en un taxímetro. */
 const LEVEL_META: { id: Level; label: TKey; desc: TKey; esfuerzo: TKey }[] = [
   { id: "fast", label: "app.fast", desc: "app.fastDesc", esfuerzo: "effort.low" },
   { id: "normal", label: "app.normal", desc: "app.normalDesc", esfuerzo: "effort.mid" },
@@ -32,8 +33,7 @@ export function Composer({
   setMente,
   onSend,
   busy,
-  buscar,
-  setBuscar,
+  arranque,
 }: {
   level: Nivel;
   setLevel: (l: Nivel) => void;
@@ -41,9 +41,9 @@ export function Composer({
   setMente: (m: Mente | null) => void;
   onSend: (text: string, adjuntos: Adjunto[]) => void;
   busy: boolean;
-  /** Si Kairo busca en internet: automático, siempre o nunca. */
-  buscar: ModoBusqueda;
-  setBuscar: (m: ModoBusqueda) => void;
+  /** En la portada la caja no es la barra de abajo: va suelta, debajo
+      del saludo, sin raya encima y con el ancho de la columna. */
+  arranque?: boolean;
 }) {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -312,8 +312,14 @@ export function Composer({
   const current = LEVEL_META.find((l) => l.id === level);
 
   return (
-    <div className="border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4">
-      <div className="mx-auto max-w-3xl">
+    <div
+      className={
+        arranque
+          ? "w-full shrink-0 px-4 pt-4 sm:px-8"
+          : "shrink-0 border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4"
+      }
+    >
+      <div className={arranque ? "mx-auto w-full max-w-[580px]" : "mx-auto max-w-3xl"}>
         <div
           onDragOver={(e) => {
             if (!e.dataTransfer.types.includes("Files")) return;
@@ -442,33 +448,7 @@ export function Composer({
               </button>
             )}
 
-            {/* EL INTERRUPTOR DE LA BÚSQUEDA.
- 
-                Kairo decide solo si una pregunta necesita datos de hoy, y
-                acierta casi siempre. El problema de "casi siempre" no se
-                arregla añadiendo pistas a la lista: cuando falla, quien
-                pregunta SÍ sabe que esa pregunta era de actualidad.
- 
-                En automático es solo el icono, apagado, para no meter
-                ruido. En cuanto se toca, se ve escrito lo que hace. */}
-            <button
-              onClick={() => setBuscar(siguienteModo(buscar))}
-              title={`${t(`buscar.${buscar}` as "buscar.auto")} · ${t("buscar.ayuda")}`}
-              aria-label={t(`buscar.${buscar}` as "buscar.auto")}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] font-medium transition ${
-                buscar === "siempre"
-                  ? "bg-acento/15 text-acento ring-1 ring-acento/50"
-                  : buscar === "nunca"
-                    ? "bg-panel-hi text-faint ring-1 ring-line"
-                    : "text-muted hover:bg-panel-hi hover:text-fg"
-              }`}
-            >
-              <Globo className="h-[17px] w-[17px] shrink-0" />
-              {buscar !== "auto" && (
-                <span>{t(`buscar.corto.${buscar}` as "buscar.corto.auto")}</span>
-              )}
-            </button>
-
+            
             {/* Selector de Mente. Compacto a propósito: al lado del de
                 nivel, y en el móvil solo el icono cuando no hay ninguna. */}
             <div className="relative" ref={wrapMente}>
@@ -571,7 +551,16 @@ export function Composer({
                   style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
                 />
                 {current ? t(current.label) : t("app.auto")}
-                {current && <span className="text-faint">{t(current.esfuerzo)}</span>}
+                {/* CUÁNTO SE LO VA A PENSAR.
+ 
+                    En Automático no se pone nada: el nivel lo decide
+                    Kairo al leer la pregunta, así que antes de enviar no
+                    hay esfuerzo que prometer.
+ 
+                    Se esconde en el móvil, donde no cabe. */}
+                {current && (
+                  <span className="hidden text-faint sm:inline">· {t(current.esfuerzo)}</span>
+                )}
                 <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
               </button>
 
@@ -618,8 +607,14 @@ export function Composer({
                             {bloqueado ? t("app.upgrade") : t(l.desc)}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[12px] text-muted">
-                          {t(l.esfuerzo)}
+                        <span className="shrink-0 text-right text-[12px] text-muted">
+                          <span className="block">{t(l.esfuerzo)}</span>
+                          <span className="block text-[11px] text-faint">
+                            {/* "1 créditos" no lo dice nadie. */}
+                            {t(
+                              LEVELS[l.id].credits === 1 ? "app.costChipOne" : "app.costChip",
+                            ).replace("{n}", String(LEVELS[l.id].credits))}
+                          </span>
                         </span>
                       </>
                     );
@@ -653,6 +648,12 @@ export function Composer({
               )}
             </div>
 
+            {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
+ 
+                Pegado al de enviar, un atajo de 120 créditos —seis veces
+                Forja— se pulsa sin querer, y el menú de niveles ya
+                explica lo que es. Si alguna vez hace falta sacarlo de
+                ahí, el sitio es el menú, no la fila de enviar. */}
             <button
               onClick={submit}
               disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}

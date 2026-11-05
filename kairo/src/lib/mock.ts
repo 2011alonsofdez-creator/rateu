@@ -177,6 +177,17 @@ export type Plan = {
   bullets: { es: string[]; en: string[] };
 };
 
+/* LO DE LOS MEGABYTES POR PLAN NUNCA FUE VERDAD.
+ *
+ * Decía 5, 25 y 100 MB según el plan, y el tope real era uno solo para
+ * todo el mundo: 3 MB por archivo, porque los archivos viajan dentro de
+ * la petición y Vercel corta a 4,5. O sea que el plan de 25 € prometía
+ * cien megas y rechazaba un PDF de cuatro.
+ *
+ * Ahora los PDF se leen en el navegador y viaja su texto, así que el
+ * tamaño del PDF da igual de verdad. Lo que sigue teniendo tope son las
+ * fotos y los PDF escaneados, que son imágenes. Eso es lo que se dice.
+ */
 export const plans: Plan[] = [
   {
     id: "free",
@@ -224,9 +235,14 @@ export const plans: Plan[] = [
        y pasa a depender del plan, y entonces estas dos viñetas hay que
        rehacerlas, no retocarlas.
        Y que Kairo+ y Supreme digan ahora lo mismo aquí es la verdad:
-       Supreme se distingue en otras cinco viñetas —los tres modelos, los
-       25 Mega-Prompts, los conectores, los 100 MB y el soporte—, pero en
-       Co-Works no se distingue en nada.
+       Supreme se distingue en otras cuatro viñetas —los tres modelos, los
+       25 Mega-Prompts, los conectores y el soporte—, pero en Co-Works no se
+       distingue en nada.
+       (Eran cinco hasta el 04-11. La quinta era "los 100 MB", y se cae con
+       el cambio del dueño de ese día: los PDF se leen en el navegador, así
+       que su tamaño da igual en los dos planes y la viñeta es la misma.
+       Los 100 MB, además, nunca fueron verdad: el tope real son 3 MB por
+       archivo, `ADJUNTOS.bytesPorArchivo` en `lib/tipos.ts:94`.)
 
        LAS MENTES, LO MISMO Y ENCONTRADO DE REBOTE. Buscando si "ilimitado"
        se prometía en algún otro sitio salió "Mentes ilimitadas", también en
@@ -258,7 +274,7 @@ export const plans: Plan[] = [
         "1 Co-Work, que trabaja solo a su hora",
         "Historial de 30 días",
         "1 Mente propia",
-        "Archivos hasta 5 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         `${CREDITOS_PLAN.free} credits per day`,
@@ -267,7 +283,7 @@ export const plans: Plan[] = [
         "1 Co-Work, working on its own at its hour",
         "30-day history",
         "1 Mind of your own",
-        "Files up to 5 MB",
+        "PDFs of any size · photos up to 3 MB",
       ],
     },
   },
@@ -283,7 +299,7 @@ export const plans: Plan[] = [
         "8 Mega-Prompts al mes",
         "10 Co-Works activos",
         "5 conectores · 10 Mentes",
-        "Archivos hasta 25 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "1,000 credits per month",
@@ -291,7 +307,7 @@ export const plans: Plan[] = [
         "8 Mega-Prompts per month",
         "10 active Co-Works",
         "5 connectors · 10 Minds",
-        "Files up to 25 MB",
+        "PDFs of any size · photos up to 3 MB",
       ],
     },
   },
@@ -306,7 +322,7 @@ export const plans: Plan[] = [
         "25 Mega-Prompts al mes",
         "10 Co-Works activos",
         "Todos los conectores · 30 Mentes",
-        "Archivos hasta 100 MB",
+        "PDF de cualquier tamaño · fotos hasta 3 MB",
         "Soporte prioritario",
       ],
       en: [
@@ -315,7 +331,7 @@ export const plans: Plan[] = [
         "25 Mega-Prompts per month",
         "10 active Co-Works",
         "Every connector · 30 Minds",
-        "Files up to 100 MB",
+        "PDFs of any size · photos up to 3 MB",
         "Priority support",
       ],
     },
