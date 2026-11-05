@@ -96,6 +96,91 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-05 — Casos límite (área 4): contestar sin elegir por el usuario
+
+**Qué hice**: un caso nuevo,
+`agentes/ia/ejemplos/2026-11-05-limite-contestar-sin-elegir-por-el-usuario.md`.
+La carpeta pasa de 15 a **16 casos**, ocho de ellos límite.
+
+**Por qué este y no otro**: porque **esta mañana cambió el prompt**. En la
+fusión de las 06:30 entró una regla nueva del dueño, en mayúsculas: *"TU TRABAJO
+ES CONTESTAR, NO PREGUNTAR. Si la petición es ambigua, coge la lectura más
+razonable, HAZLO, y di en una línea qué has supuesto"*, con el motivo escrito
+—*"quien pregunta ya ha pagado por esto y ha esperado"*—. Una regla en
+mayúsculas y con un "nunca" dentro es exactamente donde hay que mirar el día que
+entra, porque el modelo la va a obedecer antes que a cualquier matiz.
+
+**Y el matiz existe, y es de dinero.** `papeles.ts` lleva desde el 27-10 la
+regla contraria en apariencia: cuando una multa ofrece a la vez la reducción por
+pronto pago y la posibilidad de alegar, **"No elijas tú: di qué se gana y qué se
+pierde por cada lado"**. No se contradicen —una prohíbe **devolver una
+pregunta**, la otra prohíbe **elegir por el usuario**—, pero entre las dos queda
+un hueco que nadie había escrito: **contestar sin elegir**. Cubrir las dos
+ramas, poner lo que cuesta cada una, y decir cuál es el dato que decide.
+
+**El detalle que lo convierte en caso límite de verdad y no en un ejercicio**:
+la regla de "no elijas tú" vive **solo en `papeles.ts`**. Comprobado hoy en el
+fuente: en `prompt.ts` no aparece ni "reducción" ni nada parecido, así que
+**cuando el papel llega pegado en el chat —que es como llega la mitad de las
+veces— la regla nueva está sola, sin contrapeso**. Un modelo que la lea sin más
+puede entender que "contestar" es "elegir una", y aquí elegir cuesta cien euros
+o un derecho.
+
+El caso usa un boletín de 200 € con reducción a 100 € y veinte días para las dos
+vías, y la respuesta ideal: el plazo primero, las dos ramas con lo que se gana y
+se pierde en cada una **citando el papel y no la memoria**, el criterio que
+decide convertido en una pregunta de hechos —¿tienes una prueba?—, los números
+del riesgo (arriesgas 100 para ahorrarte 200), el siguiente paso de cada rama, y
+lo que Kairo no puede decir. Sin devolver una pregunta y sin un solo "yo
+pagaría".
+
+**Cómo lo comprobé**: una verificación que extrae **solo el apartado "Respuesta
+ideal"** —el resto del archivo cita a propósito las frases prohibidas, así que
+buscar en todo el archivo da falso positivo, como ya pasó el 03-11— y comprueba
+diez cosas: que no pide aclaraciones, que no acaba preguntando, que no elige,
+que el plazo va antes de las ramas, que el canje va antes de los pasos, que las
+cifras son las del papel, que no hay consejo legal y que no remata con la
+pregunta de cortesía. Y cuatro más contra el código, para no fiarme de mi
+memoria: que `papeles.ts` dice de verdad esa frase, que `prompt.ts` tiene de
+verdad la regla nueva, y que el prompt del chat **no** tiene la del canje, que
+es el hueco que describo.
+
+**14 de 14, con dos fallos en la primera pasada y los dos eran de la
+comprobación**, no del caso:
+
+1. `"No elijas tú"` **no aparecía** en `papeles.ts`… porque en el fuente la
+   frase va **partida por un salto de línea** (`No` al final de una línea,
+   `elijas tú` al principio de la siguiente). Es el mismo fallo exacto del
+   31-10, y van dos. La comprobación ahora normaliza los espacios antes de
+   buscar. **Si vuelve a pasar una tercera vez, el arreglo no es normalizar otra
+   vez: es que ninguna comprobación busque una frase de más de cuatro palabras
+   en un fuente con el texto envuelto a 72 columnas.**
+2. La respuesta "devolvía una pregunta", decía. Era *"¿tienes algo que
+   demostrar?"*, que es la pregunta retórica que se contesta en la línea
+   siguiente y es el centro del caso. El patrón `¿tienes` era demasiado burdo:
+   lo que hay que prohibir es **pedir que aclare** y **acabar preguntando**, no
+   usar una pregunta como bisagra.
+
+**Qué necesito del dueño**: nada para esto. Pero su regla nueva tiene una
+consecuencia que él decide: si quiere que el chat lleve también el contrapeso de
+"no elijas tú", eso es una línea en `BASE` y la dejo escrita al final del caso,
+sin tocarla hoy.
+
+**Lo que vi de paso**, sin promesas:
+
+- **No existe `agentes/ia/casos-limite/`.** El área 4 ha escrito siempre dentro
+  de `ejemplos/` con el prefijo `limite-` en el nombre, y hoy son **ocho de los
+  dieciséis**. Lo anoto porque la rotación nombra una carpeta que no está, y la
+  próxima vez que alguien la busque va a concluir que el área 4 nunca trabajó.
+- **El banco de pruebas tiene ya once cambios de prompt dentro** desde la última
+  pasada del 23-10, trece días. El undécimo es el del dueño de hoy, que entra
+  por fusión y no por un turno de entrenador: o sea que el banco ya no solo va
+  por detrás de lo que entrenamos, también de lo que él cambia.
+- **El tamaño del prompt que figura en el panel (203 líneas, medido el 01-11) ha
+  dejado de ser válido hoy**, porque la fusión le ha cambiado la sección de "no
+  te inventas nada". No lo he vuelto a medir: hace falta el arnés y eso es un
+  turno, no un apunte.
+
 ### 2026-11-04 — Conocimiento (área 3): la referencia de los agentes decía 15
 
 **Qué cambié**: `agentes/ia/conocimiento/creditos-y-planes.md`, el apartado del
