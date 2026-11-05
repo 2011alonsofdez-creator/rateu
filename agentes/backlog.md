@@ -199,7 +199,25 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Para el primero que fusione hoy** —el entrenador a las 07:05 o el
   constructor a las 07:48—: es esto, y no hay que pensarlo.
 
-- **Fusionar la rama de agentes. Siete informes de siete, veinte días, y hoy con la prueba de qué bloquea.** `[origen: radar 2026-10-31]`
+- **Fusionar la rama de agentes. Ocho informes de ocho, 24 días, y hoy el segundo conflicto en cuatro días.** `[origen: radar 2026-10-31 · al día 2026-11-05]`
+  **Lo del 05-11, que es un argumento nuevo y no una repetición.** Anoche
+  entró con **12 commits** —la pantalla de inicio nueva, el PDF leído en el
+  navegador, el saludo por horas, el semáforo de créditos— y esta mañana la
+  rama ya no se fusionaba sola: **segundo conflicto del proyecto**, en
+  `prompt.ts` y `mock.ts`. Resuelto hoy línea a línea y comprobado con `tsc`,
+  `next build` y doce comprobaciones del contenido.
+
+  **Y lo que ese conflicto ha enseñado, que es lo que vale la pena leer**: no
+  es solo que nuestros arreglos no lleguen. **Es que también se pudren.** Una
+  de las tres viñetas en conflicto la teníamos mal **nosotros**: decíamos
+  "Archivos hasta 100 MB" cuando el tope real son **3 MB por archivo**
+  (`ADJUNTOS.bytesPorArchivo`, `lib/tipos.ts:94`), y ha hecho falta su cambio
+  de ayer para que saliera a la luz. Cuanto más tiempo pasa sin fusionar, más
+  trozos de la rama describen una Kairo que ya no es la que hay.
+
+  Cada día de retraso cuesta ahora dos cosas, no una: los arreglos que no se
+  publican y las afirmaciones que envejecen sin que nadie las mire. **100
+  commits**, 24 días.
   Esto no tenía entrada propia y debería haberla tenido desde el primer informe:
   estaba repartido dentro de otras tareas. Hoy va solo, porque hoy se puede
   demostrar qué cuesta.
