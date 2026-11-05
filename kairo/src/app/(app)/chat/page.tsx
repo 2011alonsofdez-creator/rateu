@@ -950,7 +950,7 @@ function Chat() {
              marca, es relleno: ocupaba el sitio por el que empieza la
              mirada y empujaba hacia abajo lo único que se usa de verdad
              en esta pantalla, que es la caja de escribir. */
-          <div className="mx-auto w-full max-w-[580px]">
+          <div className="mx-auto w-full max-w-[680px]">
             <h1 className="text-balance text-[25px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[28px]">
               {saludo}
             </h1>
@@ -1168,7 +1168,7 @@ function Chat() {
           volver a lo de hace un rato. */}
       {inicio && (
         <div className="mb-auto w-full shrink-0 px-4 pb-8 sm:px-8">
-          <div className="mx-auto w-full max-w-[580px]">
+          <div className="mx-auto w-full max-w-[680px]">
             {/* SEGUIR CON LO DE ANTES.
  
                 Hasta ahora esto estaba solo en la barra lateral, en
