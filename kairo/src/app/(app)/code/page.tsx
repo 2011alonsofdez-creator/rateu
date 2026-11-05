@@ -10,6 +10,7 @@ import { Editor } from "@/components/Editor";
 import { Pensando } from "@/components/Pensando";
 import { CodigoEnVivo } from "@/components/CodigoEnVivo";
 import { Code as IconoCode, Descarga, Play, Refresh } from "@/components/Icons";
+import { CREDITOS_NIVEL } from "@/lib/planes";
 
 /* KAIRO CODE: pide una app, la ves escribirse, la ves funcionando.
  *
@@ -247,7 +248,9 @@ export default function CodePage() {
           </button>
 
           {!codigo && !trabajando && (
-            <span className="text-[12.5px] text-faint">{t("code.cost")}</span>
+            <span className="text-[12.5px] text-faint">
+              {t("code.cost").replace("{n}", String(CREDITOS_NIVEL.normal))}
+            </span>
           )}
         </div>
 

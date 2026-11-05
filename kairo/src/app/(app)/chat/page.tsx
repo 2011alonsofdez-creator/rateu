@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
+import { miles } from "@/lib/formato";
 import { LEVELS, pick, type Level, type Message, type Nivel } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -1142,7 +1143,7 @@ function Chat() {
 
           <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
             <Credito className="h-3 w-3 text-gold" />
-            {credits.toLocaleString(lang)} {t("app.credits")}
+            {miles(credits, lang)} {t("app.credits")}
           </span>
         </div>
       )}

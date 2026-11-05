@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
+import { ElegirPlan } from "@/components/ElegirPlan";
 import { Marca } from "@/components/Logo";
 import { Arrow, Brain, Capas, Clock, Fichas, Papel, Plug, Shield } from "@/components/Icons";
 import { IconoNivel } from "@/components/IconoNivel";
@@ -204,7 +205,16 @@ export default function Landing() {
               </h2>
               <p className="mt-4 text-[16px] text-muted">{t("pricing.sub")}</p>
             </div>
+            {/* PRIMERO ELEGIR, DESPUÉS COMPARAR.
+ 
+                El deslizador contesta "¿cuál me hace falta?", que es
+                con lo que llega la gente. Las tarjetas contestan "¿qué
+                incluye cada uno?", que es lo segundo que se pregunta.
+                En ese orden, y no al revés. */}
             <div className="mt-12">
+              <ElegirPlan />
+            </div>
+            <div className="mt-14">
               <PricingCards />
             </div>
           </div>

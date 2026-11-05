@@ -660,7 +660,7 @@ export function Composer({
 
             {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
  
-                Pegado al de enviar, un atajo de 120 créditos —seis veces
+                Pegado al de enviar, un atajo de 240 créditos —seis veces
                 Forja— se pulsa sin querer, y el menú de niveles ya
                 explica lo que es. Si alguna vez hace falta sacarlo de
                 ahí, el sitio es el menú, no la fila de enviar. */}

@@ -3,12 +3,13 @@
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
+import { CREDITOS_NIVEL } from "@/lib/planes";
 
 const FAQ = {
   es: [
     {
       q: "¿Qué es un crédito?",
-      a: "La unidad con la que se mide lo que gastas. Un mensaje rápido cuesta 1 crédito, uno normal 4, y un Mega-Prompt 120. Siempre ves el coste antes de pulsar enviar.",
+      a: `La unidad con la que se mide lo que gastas. Un mensaje rápido cuesta ${CREDITOS_NIVEL.fast} créditos, uno normal ${CREDITOS_NIVEL.normal}, y un Mega-Prompt ${CREDITOS_NIVEL.mega}. Siempre ves el coste antes de pulsar enviar.`,
     },
     {
       q: "¿Qué pasa si me quedo sin créditos?",
