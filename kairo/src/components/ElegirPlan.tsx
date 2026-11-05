@@ -43,35 +43,27 @@ const PARADAS: Parada[] = [
 const NOMBRE = { free: "Free", plus: "Kairo+", supreme: "Supreme" } as const;
 const TINTA = { free: "var(--faint)", plus: "var(--acento-2)", supreme: "var(--acento)" } as const;
 
-function creditosEn(pos: number): number {
-  const [libre, mas, supremo] = PARADAS;
-  const crudo =
-    pos <= 50
-      ? libre.creditos + (mas.creditos - libre.creditos) * (pos / 50)
-      : mas.creditos + (supremo.creditos - mas.creditos) * ((pos - 50) / 50);
-  // Redondeado a la decena: un 1.987 en pantalla parece un error de cuentas.
-  return Math.round(crudo / 20) * 20;
-}
-
-const paradaDe = (creditos: number) => PARADAS.find((p) => creditos <= p.creditos) ?? PARADAS[2];
-
 export function ElegirPlan() {
   const { t, lang } = useUi();
-  const [pos, setPos] = useState(50);
+  /* TRES SITIOS, NO CIEN.
+   *
+   * El carril iba de 0 a 100 y la bolita paraba donde la soltaras, así
+   * que se podía quedar en 1.960 créditos: un número que no se puede
+   * comprar, pegado al nombre de un plan que no es el que te cobran. Un
+   * selector de planes no tiene estados intermedios porque el producto
+   * tampoco los tiene.
+   *
+   * Ahora el carril tiene tres paradas y ya está: la arrastras y se va
+   * entera a la siguiente, hacia donde la lleves. Y de paso las flechas
+   * del teclado funcionan solas, que antes movían de uno en uno y hacían
+   * falta cincuenta pulsaciones para cambiar de plan. */
+  const [i, ponI] = useState(1);
 
-  const creditos = creditosEn(pos);
-  const plan = paradaDe(creditos);
+  const plan = PARADAS[i];
+  const creditos = plan.creditos;
   const color = TINTA[plan.id];
   const euros = (n: number) =>
     n === 0 ? "0 €" : `${n.toFixed(2).replace(".", lang === "es" ? "," : ".")} €`;
-
-  /* Al soltar cerca de una parada, se pega. Sin esto nadie acierta el
-     50 exacto: te quedas en 1.960 créditos leyendo "Kairo+" y parece
-     que la cuenta no cuadra. */
-  const pegar = () => {
-    const cerca = PARADAS.find((p) => Math.abs(p.pos - pos) <= 4);
-    if (cerca) setPos(cerca.pos);
-  };
 
   return (
     <div className="relative mx-auto max-w-2xl overflow-hidden rounded-3xl border border-line bg-bg px-6 py-10 text-center sm:px-12">
@@ -89,7 +81,13 @@ export function ElegirPlan() {
       <p className="mt-2 text-[14px] text-faint">{t("slider.sub")}</p>
 
       <p className="mt-8 text-[42px] font-extrabold leading-none tracking-tight sm:text-[48px]">
-        {miles(creditos, lang)}
+        {/* La `key` hace que React lo pinte de nuevo al cambiar de plan,
+            y al pintarse de nuevo la animación vuelve a empezar: el
+            número salta en vez de cambiar de golpe, que es lo que hace
+            que se note que se ha movido algo. */}
+        <span key={i} className="salta">
+          {miles(creditos, lang)}
+        </span>
         <span className="ml-2 text-[17px] font-medium tracking-normal text-muted">
           {t("slider.credits")}
         </span>
@@ -99,19 +97,16 @@ export function ElegirPlan() {
         <input
           type="range"
           min={0}
-          max={100}
+          max={PARADAS.length - 1}
           step={1}
-          value={pos}
-          onChange={(e) => setPos(+e.target.value)}
-          onMouseUp={pegar}
-          onTouchEnd={pegar}
-          onKeyUp={pegar}
+          value={i}
+          onChange={(e) => ponI(+e.target.value)}
           aria-label={t("slider.title")}
-          aria-valuetext={`${creditos} · ${NOMBRE[plan.id]}`}
+          aria-valuetext={`${NOMBRE[plan.id]} · ${creditos}`}
           className="carril-plan"
           style={
             {
-              "--pista": `linear-gradient(90deg, ${color} ${pos}%, var(--line) ${pos}%)`,
+              "--pista": `linear-gradient(90deg, ${color} ${plan.pos}%, var(--line) ${plan.pos}%)`,
             } as React.CSSProperties
           }
         />
@@ -119,10 +114,10 @@ export function ElegirPlan() {
 
       {/* Las paradas son paradas de verdad: se pulsan y la bolita va allí. */}
       <div className="relative h-14">
-        {PARADAS.map((p) => (
+        {PARADAS.map((p, n) => (
           <button
             key={p.id}
-            onClick={() => setPos(p.pos)}
+            onClick={() => ponI(n)}
             className="absolute -translate-x-1/2 px-2 pt-2 text-center"
             style={{ left: `${p.pos === 0 ? 3 : p.pos === 100 ? 97 : p.pos}%` }}
           >
