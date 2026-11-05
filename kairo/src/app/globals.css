@@ -313,3 +313,58 @@ body {
   }
 }
 
+
+/* EL CARRIL PARA ELEGIR PLAN.
+ 
+   Un `input[type=range]` no se puede pintar con clases: el carril y la
+   bolita son pseudoelementos del navegador y cada motor los llama de
+   una forma. Por eso vive aquí y no en el componente, y por eso está
+   escrito dos veces, una para cada familia de navegador. Si falta la
+   de Firefox no es que se vea distinto: es que se ve el control gris
+   del sistema en medio de la página. */
+.carril-plan {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+.carril-plan::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--pista);
+}
+.carril-plan::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 5px solid var(--acento);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--acento) 18%, transparent),
+    0 4px 14px rgba(0, 0, 0, 0.55);
+  transition: transform 0.12s;
+}
+.carril-plan:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.carril-plan::-moz-range-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--pista);
+}
+.carril-plan::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  border: 5px solid var(--acento);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--acento) 18%, transparent);
+}
+.carril-plan:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 6px;
+  border-radius: 99px;
+}

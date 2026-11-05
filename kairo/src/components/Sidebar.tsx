@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
+import { miles } from "@/lib/formato";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { NOMBRE_PLAN } from "@/lib/planes";
@@ -241,7 +242,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <Link
           href="/precios"
           onClick={onClose}
-          title={`${credits.toLocaleString(lang)} / ${total.toLocaleString(lang)} ${t("app.credits")}`}
+          title={`${miles(credits, lang)} / ${miles(total, lang)} ${t("app.credits")}`}
           className="block rounded-xl border border-line bg-panel p-3 transition hover:border-line-hi"
         >
           {/* EL PORCENTAJE, Y NO EL NÚMERO.

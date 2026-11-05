@@ -369,7 +369,7 @@ export async function POST(req: Request) {
   const saldo = perfil.creditos + perfil.creditos_extra;
 
   /* En automático se mira la pregunta, y luego se recorta a lo que el
-     plan permite y el saldo paga. Nunca elige MEGA: 120 créditos se
+     plan permite y el saldo paga. Nunca elige MEGA: 240 créditos se
      piden a mano.
      Se calcula aquí y no en el navegador porque el plan y los créditos
      viven en la base de datos; fiarse de lo que diga el cliente sería

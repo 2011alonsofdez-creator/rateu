@@ -15,7 +15,7 @@ import type { Level } from "@/lib/mock";
  * una.
  *
  * Tres cosas que NO hace, a propósito:
- *  - No elige MEGA jamás. Cuesta 120 créditos: eso lo pides tú.
+ *  - No elige MEGA jamás. Cuesta 240 créditos: eso lo pides tú.
  *  - No se salta tu plan. Si tu plan solo tiene Rápido, es Rápido.
  *  - No gasta más de lo que tienes. Si no llega, baja al que alcance.
  */

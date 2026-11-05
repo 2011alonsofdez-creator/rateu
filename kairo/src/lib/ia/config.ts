@@ -2,6 +2,7 @@ import type { Level } from "@/lib/mock";
 import type { ModoEdad } from "@/lib/planes";
 import { modelosExtra, partir, proveedorActivo, type Esfuerzo } from "./proveedores";
 
+import { CREDITOS_NIVEL } from "@/lib/planes";
 export { NIVELES_POR_PLAN } from "@/lib/planes";
 export { proveedoresActivos, type Proveedor } from "./proveedores";
 
@@ -180,12 +181,10 @@ export const MAX_SALIDA: Record<Level, number> = {
   mega: 64000,
 };
 
-export const CREDITOS: Record<Level, number> = {
-  fast: 1,
-  normal: 4,
-  forja: 20,
-  mega: 120,
-};
+/* La escala vive en planes.ts, que no depende de nada y lo lee también
+   el navegador. Aquí solo se le pone el nombre con el que la llama el
+   servidor. */
+export const CREDITOS: Record<Level, number> = CREDITOS_NIVEL;
 
 /** Nombre bonito del modelo, para enseñárselo al usuario. */
 export function nombreModelo(id: string): string {
