@@ -5,6 +5,7 @@ import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
 import { ElegirPlan } from "@/components/ElegirPlan";
+import { Probar } from "@/components/Probar";
 import { CREDITOS_NIVEL, CREDITOS_PLAN } from "@/lib/planes";
 import { Marca } from "@/components/Logo";
 import { Arrow, Capas, Clock, Code as Codigo, Papel, Shield, Team } from "@/components/Icons";
@@ -98,60 +99,7 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* Vista previa del chat */}
-          <div className="relative z-10 mx-auto mt-14 max-w-2xl">
-            <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-[var(--shadow)]">
-              <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-red/60" />
-                <span className="h-2.5 w-2.5 rounded-full bg-gold/60" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green/60" />
-                <span className="ml-2 text-[12px] text-faint">kairo.app</span>
-              </div>
-
-              <div className="space-y-4 px-5 py-6 text-left">
-                <div className="flex justify-end">
-                  <p className="max-w-[80%] rounded-2xl rounded-br-md bg-panel-hi px-4 py-2.5 text-[14px]">
-                    {lang === "es"
-                      ? "Prepárame el resumen de ventas de la semana"
-                      : "Draft my weekly sales summary"}
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Marca className="mt-0.5 h-7 w-7 shrink-0" />
-                  <div>
-                    <p className="text-[14px] leading-relaxed text-muted">
-                      {lang === "es"
-                        ? "Hecho. He cruzado tus pedidos con los de la semana pasada: las ventas suben un 12%, pero el ticket medio baja 3 €."
-                        : "Done. I compared this week's orders with last week's: sales are up 12%, but average order value is down €3."}
-                    </p>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11.5px] text-faint">
-                      <span className="rounded-md border border-line px-2 py-0.5">
-                        {lang === "es" ? "Nivel Normal" : "Normal level"}
-                      </span>
-                      <span className="rounded-md border border-line px-2 py-0.5">
-                        {CREDITOS_NIVEL.normal} cr
-                      </span>
-                      <span className="rounded-md border border-line px-2 py-0.5">1,4 s</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-line px-5 py-3">
-                <div className="flex items-center gap-3 rounded-xl border border-line bg-bg-soft px-3.5 py-2.5">
-                  <span className="flex-1 text-[14px] text-faint">{t("app.placeholder")}</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[12px] text-muted">
-                    <IconoNivel nivel="fast" className="h-3 w-3 text-green" />
-                    {t("app.fast")}
-                  </span>
-                  <span className="brand-grad grid h-7 w-7 place-items-center rounded-lg text-on-accent">
-                    <Arrow className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Probar />
         </section>
 
         {/* ---------------- Tres cerebros ---------------- */}

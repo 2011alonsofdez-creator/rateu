@@ -32,6 +32,16 @@ const dict = {
        subtítulo desmentía lo único que no tiene nadie. */
     "hero.sub":
       "Claude, Gemini y GPT en el mismo sitio. Kairo elige el que toca para cada cosa, y cuando la pregunta es gorda les pregunta a los tres y te da una sola respuesta.",
+    "try.hint": "Pruébalo aquí mismo. Sin cuenta y sin tarjeta.",
+    "try.busy": "Pensando…",
+    "try.left": "Te quedan {n} pruebas gratis.",
+    "try.none":
+      "Se acabaron las pruebas gratis. Crea una cuenta y te llevas {n} créditos de regalo, que dan para un Mega-Prompt entero.",
+    "try.error": "No he podido contestar. Prueba otra vez en un momento.",
+    "try.cta": "Seguir en Kairo · {n} créditos de regalo",
+    "try.s1": "¿Puedo recurrir una multa de 200 € por exceso de velocidad?",
+    "try.s2": "Explícame la fotosíntesis como si tuviera 15 años",
+    "try.s3": "Escríbeme un correo para pedir un día libre",
     "hero.cta": "Empezar gratis",
     "hero.cta2": "Ver cómo funciona",
     "hero.note": "Sin tarjeta. {n} créditos gratis cada día.",
@@ -562,6 +572,16 @@ const dict = {
     "hero.titleAccent": "when you don't.",
     "hero.sub":
       "Claude, Gemini and GPT in one place. Kairo picks the right one for each job, and when the question really matters it asks all three and gives you a single answer.",
+    "try.hint": "Try it right here. No account, no card.",
+    "try.busy": "Thinking…",
+    "try.left": "You have {n} free goes left.",
+    "try.none":
+      "That's the free goes used up. Create an account and you get {n} credits, enough for a whole Mega-Prompt.",
+    "try.error": "I couldn't answer that. Try again in a moment.",
+    "try.cta": "Carry on in Kairo · {n} free credits",
+    "try.s1": "Can I appeal a 200 euro speeding fine?",
+    "try.s2": "Explain photosynthesis like I'm 15",
+    "try.s3": "Write me an email asking for a day off",
     "hero.cta": "Start free",
     "hero.cta2": "See how it works",
     "hero.note": "No card required. {n} free credits every day.",
