@@ -1,4 +1,4 @@
-import { cadenaDe, MAX_SALIDA } from "@/lib/ia/config";
+import { cadenaDe, ESFUERZO, MAX_SALIDA, RAZONAMIENTO } from "@/lib/ia/config";
 import { arrancar } from "@/lib/ia/proveedores";
 
 export const runtime = "nodejs";
@@ -124,9 +124,17 @@ export async function POST(request: Request) {
         sistema: SISTEMA,
         mensajes: [{ rol: "user", texto: pregunta }],
         maxSalida: Math.min(MAX_SALIDA.normal, 900),
-        esfuerzo: "medio",
+        esfuerzo: ESFUERZO.normal,
         modoEdad: null,
-        pensar: 0,
+        /* Lo mismo que pide el chat en este nivel, y no un cero.
+ 
+           Poner cero parecía lo barato —no pienses, contesta— y lo que
+           hacía era tumbar la respuesta entera: los Gemini nuevos no
+           dejan apagar el razonamiento y devuelven un 400. Los tres
+           modelos de la cadena fallaban igual y el desconocido veía
+           "no he podido contestar" en la primera pantalla de Kairo.
+           -1 es "decide tú", que es lo que hace el chat de verdad. */
+        pensar: RAZONAMIENTO.normal,
         temperatura: 0.4,
       });
 
@@ -137,9 +145,12 @@ export async function POST(request: Request) {
       for (let n = await resto.next(); !n.done; n = await resto.next()) junta(n.value);
 
       if (texto.trim()) break;
-    } catch {
+    } catch (fallo) {
       texto = "";
-      // y se prueba con el siguiente de la cadena
+      /* Al registro del servidor, no a la respuesta. Sin esto, cuando
+         los tres de la cadena fallan solo queda un "sin_cerebros" que
+         no dice nada, y averiguar por qué cuesta una noche. */
+      console.warn("[probar] %s no contestó: %s", id, String(fallo).slice(0, 300));
     }
   }
 
