@@ -80,7 +80,8 @@ const SISTEMA = `Eres Kairo, un asistente que responde en español de España.
 Alguien te está probando por primera vez desde la página de inicio y no tiene cuenta.
 Contesta a lo que te pregunten de forma directa y útil, en menos de 120 palabras.
 Nada de presentarte, ni de dar la bienvenida, ni de ofrecer ayuda adicional al final: solo la respuesta.
-Si la pregunta necesita datos de los últimos meses, dilo en una línea en vez de inventártelos.`;
+Si la pregunta necesita datos de los últimos meses, dilo en una línea en vez de inventártelos.
+No sabes quién está al otro lado y puede ser un menor: nada de contenido sexual, violento, ni instrucciones peligrosas.`;
 
 function respuesta(cuerpo: Record<string, unknown>, estado: number, usadas?: number) {
   const r = Response.json(cuerpo, { status: estado });
@@ -112,9 +113,26 @@ export async function POST(request: Request) {
   const ip = (request.headers.get("x-forwarded-for") ?? "desconocida").split(",")[0].trim();
   if (!dentroDelTope(ip)) return respuesta({ error: "muchas_pruebas" }, 429);
 
-  /* La cadena de Estándar, y solo los tres primeros. Si esos tres están
-     caídos no es el momento de enseñarle Kairo a nadie. */
-  const cadena = cadenaDe("normal", null).slice(0, 3);
+  /* QUÉ CEREBROS ATIENDEN A UN DESCONOCIDO.
+   *
+   * De quien llega a la portada no se sabe la edad, así que lo primero
+   * que se pide es la cadena de edad desconocida: `cadenaDe(.., null)`
+   * devuelve SOLO Gemini, que es el único de los tres con filtro de
+   * contenido por petición.
+   *
+   * Y ahí estuvo el fallo que costó dos despliegues: si esta casa no
+   * tiene clave de Gemini puesta —porque tira de OpenRouter, que es
+   * configurable— esa lista sale VACÍA. No falla nada, no salta ningún
+   * error: simplemente no hay a quién preguntar, y el desconocido ve
+   * "no he podido contestar" en su primera pantalla de Kairo.
+   *
+   * Así que si no hay Gemini se usa el resto de la cadena. Se pierde el
+   * filtro por petición y lo que queda es el entrenamiento de seguridad
+   * que traen los propios modelos, así que el encargo de abajo lo dice
+   * en voz alta: puede estar preguntando un menor.
+   */
+  const soloGemini = cadenaDe("normal", null);
+  const cadena = (soloGemini.length ? soloGemini : cadenaDe("normal", "adulto")).slice(0, 3);
   let texto = "";
 
   for (const id of cadena) {
