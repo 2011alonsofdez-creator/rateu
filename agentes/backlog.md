@@ -13,6 +13,61 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Ha vuelto a `/precios` el "No" sobre entrenamiento, y en la capa gratuita de Gemini es falso.** `[origen: guardian 2026-11-06]`
+  En su fusión del 05-11, la FAQ de `/precios` recupera la pregunta *"¿Se usan
+  mis conversaciones para entrenar modelos?"* con la respuesta **"No."** (y en
+  inglés *"No. And on child profiles…"*). Está en `main`, o sea **en
+  producción**, en la página donde se decide pagar.
+
+  **Por qué es falso hoy, con las dos piezas puestas una al lado de la otra**:
+
+  1. La tabla de precios del proveedor tiene una fila *"Used to improve our
+     products"* que dice **Yes** en la capa gratuita y **No** en la de pago
+     (informe de mercado del 05-11).
+  2. La cuenta de Kairo está **en la capa gratuita**: lo anotó `CONTEXTO.md` el
+     25-10, sacado de un commit suyo que hablaba de *"Gemini's free tier"*.
+
+  Esa frase ya se quitó una vez, el 21-10, por este mismo motivo, y el bloque
+  `PRIVACIDAD` del prompt lleva desde el 24-10 escrito para **no** decirla. O
+  sea que hoy **Kairo, en el chat, se niega a afirmar lo que su propia página de
+  precios afirma**. De las dos, la que se puede comprobar es la del prompt.
+
+  **Qué he hecho y qué no.** En la rama, al resolver el conflicto, **no me he
+  llevado esa respuesta**: queda la verificable, la de "qué se guarda". `main`
+  es suyo y ahí sigue lo suyo. **Lo que decide esto es una línea suya**: o paga
+  la capa de la API —y entonces el "No." es verdad y lo pongo yo en los dos
+  idiomas— o se queda la respuesta comprobable. Lo que no puede quedarse es como
+  está.
+
+- **🟡 La escala de créditos se dobló ayer, y todo el material de entrenamiento enseña la vieja.** `[origen: guardian 2026-11-06]`
+  Su commit del 05-11 (`4d9d13b`, migración `0020_escala_x2.sql`) multiplica por
+  dos la escala entera: **rápido 2, normal 8, Forja 40, MEGA 240**; los planes,
+  **40 al día** en el gratuito, **2.000** Kairo+ y **6.000** Supreme; y el regalo
+  de bienvenida, de 150 a **300**. La proporción se mantiene, así que con la
+  misma suscripción salen las mismas preguntas; lo que cambia son todos los
+  números que tenemos escritos.
+
+  **El prompt de Kairo no se ha enterado y está bien**, porque interpola
+  `CREDITOS_NIVEL` y `CREDITOS_PLAN`. **Lo que está mal es lo nuestro**, que está
+  a mano. Comprobado archivo por archivo hoy:
+
+  | Archivo | Qué dice todavía |
+  |---|---|
+  | `agentes/ia/conocimiento/creditos-y-planes.md` | la tabla entera: 1/4/20/120, 20 al día, los 150 de regalo y la cuenta del primer día |
+  | `agentes/ia/ejemplos/2026-11-03-limite-ayer-podia-usar-mega.md` | *"rápido 1, normal 4, Forja 20, MEGA 120"*, los 20 al día y la cuenta de los seis días |
+  | `agentes/ia/ejemplos/2026-10-13-cuanto-gasta-mega.md` | *"Un Mega-Prompt gasta 120 créditos"* y *"te dan para ocho"* |
+  | `agentes/ia/evals/banco-de-pruebas.md` | el **caso 7** espera como respuesta buena *"120 créditos; con 1.000 al mes son 8"* |
+
+  **Y el último es el que más urge, aunque parezca el más pequeño**: el banco de
+  pruebas lleva 14 días sin pasarse y es la tarea que el radar pide desde el
+  31-10. Si se pasa hoy tal cual, **el caso 7 va a fallar por la escala vieja del
+  banco, no por Kairo**, y eso enseña a desconfiar del banco. Antes de pasarlo
+  hay que actualizar lo que el banco espera.
+
+  Es trabajo del entrenador (áreas 3 y 5) y **no necesita nada del dueño**. El
+  diario de entrenamiento **no se toca**: es histórico y dice lo que era verdad
+  cada día.
+
 - **Ayer se perdió el día entero: ninguno de los cuatro agentes corrió. Y la culpa no es de ningún agente.** `[origen: guardian 2026-11-03]`
   **Veintidós días sin perder un turno, y ayer se rompió la racha.** Lo digo con
   el dato: `git log --since=2026-11-02 --until=2026-11-03` sobre la rama devuelve
