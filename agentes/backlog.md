@@ -39,7 +39,8 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   idiomas— o se queda la respuesta comprobable. Lo que no puede quedarse es como
   está.
 
-- **🟡 La escala de créditos se dobló ayer, y todo el material de entrenamiento enseña la vieja.** `[origen: guardian 2026-11-06]`
+- **~~🟡 La escala de créditos se dobló ayer, y todo el material de entrenamiento enseña la vieja~~ — HECHO el mismo día.** `[origen: guardian 2026-11-06 · hecho 2026-11-06]`
+  **Arreglado por el constructor en el turno siguiente**, ver `## Hecho`. Lo que queda de este hallazgo es la regla que ha dejado escrita, no la tarea.
   Su commit del 05-11 (`4d9d13b`, migración `0020_escala_x2.sql`) multiplica por
   dos la escala entera: **rápido 2, normal 8, Forja 40, MEGA 240**; los planes,
   **40 al día** en el gratuito, **2.000** Kairo+ y **6.000** Supreme; y el regalo
@@ -1485,6 +1486,59 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **El material de entrenamiento ya enseña la escala de créditos de verdad.** `[hecho 2026-11-06]`
+  Lo encontró el guardián esta mañana: el dueño dobló la escala el 05-11 —rápido
+  **2**, normal **8**, Forja **40**, MEGA **240**; planes **40** al día, **2.000**
+  y **6.000**; regalo **300**— y todo lo que los agentes tenían escrito a mano
+  seguía con la vieja. El prompt de Kairo nunca se equivocó, porque interpola las
+  constantes; lo que miente cuando él cambia un número es siempre lo nuestro.
+
+  **Entregado**, cuatro archivos y por este orden de urgencia:
+
+  1. **`agentes/ia/evals/banco-de-pruebas.md`**, el más urgente aunque parezca el
+     menor: su **caso 7** esperaba *"120 créditos; con 1.000 al mes son 8"*. El
+     banco lleva 14 días sin pasarse y es lo que el radar pide desde el 31-10; si
+     se pasaba hoy tal cual, **el caso habría fallado por la escala vieja del
+     banco y no por Kairo**, que es la peor avería posible en una prueba.
+  2. **`agentes/ia/conocimiento/creditos-y-planes.md`**: la tabla de niveles, los
+     tres planes, el regalo y la cuenta del primer día (40 + 300 = 340; un MEGA
+     deja **100**, que son dos Forja y sobran 20).
+  3. **`agentes/ia/ejemplos/2026-10-13-cuanto-gasta-mega.md`**: 240 y 2.000, la
+     tabla entera y la cuenta del mes (7.200 frente a 2.000).
+  4. **`agentes/ia/ejemplos/2026-11-03-limite-ayer-podia-usar-mega.md`**: 40 al
+     día, 240 el MEGA y la lista de precios.
+
+  **El diario de entrenamiento no se toca**: es histórico y dice lo que era
+  verdad cada día. Eso no es dejadez, es el apartado 5 del protocolo.
+
+  **Y lo que de verdad deja este arreglo, que vale más que las cifras**: las
+  cuentas que esos textos enseñan **no han cambiado ni una**. Ocho MEGA al mes,
+  1.000 rápidos, 250 normales, 50 Forja, seis días de recarga para un MEGA.
+  Porque niveles y planes se doblaron a la vez. Así que el caso del 03-11 sigue
+  en pie palabra por palabra, y de ahí sale la regla que queda escrita en los
+  dos sitios: **una cifra del producto dentro de una respuesta ideal es deuda**;
+  si lo mismo se puede enseñar con la proporción —"un MEGA son seis Forjas"—, se
+  enseña así. Y en el banco, además: cuando una respuesta esperada lleve una
+  cifra, el caso dice de dónde sale en el código y al pasarlo **se comprueba
+  antes la cifra y después la respuesta**.
+
+  **Comprobado**: un verificador que **lee la escala del propio
+  `planes.ts`** con una expresión regular y compara contra ella las cifras de
+  los cuatro archivos, más las cuatro cuentas que no debían cambiar. **22 de
+  22.** Dos fallos de la primera pasada eran de la comprobación: uno buscaba una
+  frase partida por un salto de línea —la cuarta vez que me pasa, 31-10 y 05-11
+  incluidos—, y el otro marcaba como cifra vieja la que la propia nota de
+  mantenimiento cita a propósito. **Esta vez el arreglo no ha sido normalizar
+  otra vez**: el verificador lee ahora toda la prosa con los espacios
+  colapsados, por plantilla, que es lo que la lección del 05-11 pedía y yo no
+  había hecho.
+
+  **Y un hallazgo de paso que no puedo arreglar**: el comentario de `nivelesDe()`
+  en `planes.ts` sigue diciendo que el regalo da para un MEGA *"y que sobren
+  treinta"*. Con la escala nueva sobran **sesenta**. Es un comentario, no el
+  comportamiento, y `planes.ts` está en la lista de lo que ningún agente toca, así
+  que se reporta y se queda.
 
 - **`/precios` y `/legal` ya no salen en Google con el título de la portada.** `[hecho 2026-11-05]`
   Siete días en 🟡 en el checklist (desde el 29-10) y un día en la cola. Las dos

@@ -1,7 +1,15 @@
 # Créditos y planes de Kairo
 
-**Última revisión**: 2026-11-04 · Revisar cuando cambien `kairo/src/lib/ia/config.ts`
+**Última revisión**: 2026-11-06 · Revisar cuando cambien `kairo/src/lib/ia/config.ts`
 o `kairo/src/lib/planes.ts`, y antes de encender la tienda de pagos.
+
+**El 05-11 el dueño dobló la escala entera y este archivo tardó un día en
+enterarse.** Es la segunda vez en tres días que pasa lo mismo —el 04-11 decía 15
+donde había 20— y la causa es la de siempre: **aquí los números están escritos a
+mano y en el código están interpolados.** Así que la línea de arriba, "revisar
+cuando cambien", no basta: nadie la lee a tiempo. Lo que sí funciona es lo que
+hizo el guardián hoy, y queda dicho aquí para que se repita: **cuando el dueño
+toque `planes.ts` o `config.ts`, se revisa este archivo en el mismo turno.**
 
 **Este archivo no llega a Kairo.** Es la referencia de los agentes. Lo que Kairo
 sabe es lo que está escrito en `kairo/src/lib/ia/prompt.ts`; corregir un número
@@ -13,17 +21,26 @@ que diga un documento.
 
 ## Cuánto cuesta cada cosa, en créditos
 
-Confirmado en `kairo/src/lib/ia/config.ts:183` (la constante `CREDITOS`), que es
-la que usan de verdad `api/chat`, `api/paperwork` y `api/coworks`.
+Confirmado en **`kairo/src/lib/planes.ts`** (la constante `CREDITOS_NIVEL`), que
+desde el 05-11 es el único sitio donde vive el precio: `config.ts` ya solo
+reexporta (`export const CREDITOS = CREDITOS_NIVEL`), y eso lo arregla el dueño
+a propósito —antes estaba escrito dos veces, una en cada lado—.
+
+**Era 1 / 4 / 20 / 120 hasta el 05-11.** Se multiplicó por dos, y los planes
+también, así que **con la misma suscripción salen exactamente las mismas
+preguntas que antes**: lo único que cambia es que los números suenan a más. La
+proporción, que es lo que dice algo real, no se ha tocado: un Forja son veinte
+rápidos y un MEGA son seis Forjas.
 
 | Acción | Créditos |
 |---|---|
-| Mensaje rápido (nivel Rápido) | 1 |
-| Mensaje normal | 4 |
-| Forja (razonamiento a fondo) | 20 |
-| Mega-Prompt | 120 |
-| Leer un papel con Paperwork | 4 (cobra como un mensaje normal) |
-| Un Co-Work ejecutado | 4 (cobra como un mensaje normal) |
+| Mensaje rápido (nivel Rápido) | 2 |
+| Mensaje normal | 8 |
+| Forja (razonamiento a fondo) | 40 |
+| Mega-Prompt | 240 |
+| Leer un papel con Paperwork | 8 (cobra como un mensaje normal) |
+| Un Co-Work ejecutado | 8 (cobra como un mensaje normal) |
+| Una app con Código | 8, **y cada arreglo otros 8**: se escribe otra vez |
 
 Generar imágenes: **no hay coste definido en el código** (sin confirmar). La
 especificación dice 20 créditos, pero no se ha encontrado dónde se cobra, así
@@ -35,31 +52,32 @@ Confirmado en `kairo/src/lib/planes.ts` (`CREDITOS_PLAN` y `NOMBRE_PLAN`).
 
 | Plan | Se llama | Créditos |
 |---|---|---|
-| `free` | Free | 20 al día |
-| `plus` | Kairo+ | 1.000 al mes |
-| `supreme` | Supreme | 3.000 al mes |
+| `free` | Free | 40 al día |
+| `plus` | Kairo+ | 2.000 al mes |
+| `supreme` | Supreme | 6.000 al mes |
 
-Lo que da de sí 1.000 créditos: 1.000 mensajes rápidos, o 250 normales, o 50
-Forja, o 8 Mega-Prompts. Son los mismos créditos: se gastan en lo que se use.
+Lo que da de sí el plan de 2.000: **1.000 mensajes rápidos, o 250 normales, o 50
+Forja, o 8 Mega-Prompts**. Son los mismos créditos: se gastan en lo que se use.
+**Y fíjate en que esas cuatro cuentas son las de antes**: al doblarse los dos
+lados a la vez, lo que cabe en un plan no se movió ni una pregunta.
 
-Con 20 al día, el plan Free da para 20 mensajes rápidos, o 5 normales —o sea
-cinco apps con Código, o un papel y unas preguntas—. Un Mega-Prompt cuesta 120,
-así que con la recarga de un día no sale.
+Con 40 al día, el plan Free da para 20 mensajes rápidos, o 5 normales —o sea
+cinco apps con Código, o un papel y unas preguntas—. **Las mismas de antes**, por
+lo mismo. Un Mega-Prompt cuesta 240, así que con la recarga de un día no sale.
 
-**Eran 15 hasta el 29-10.** El 20 está en `planes.ts:10` y en
-`0019_plan_gratis.sql` (el `default` de la columna y la función de recarga). Que
-la migración se haya ejecutado en Supabase **no es comprobable desde aquí**
-(hace falta la cuenta), así que en producción podría seguir siendo 15: eso es ⚪,
-no verde. El prompt no se enteró del cambio porque no hacía falta —interpola
-`CREDITOS_PLAN`, así que dice lo que diga el código—; este archivo sí, porque
-estaba escrito a mano, y ha vivido seis días diciendo 15.
+**Historia de esta cifra, que es corta y dice mucho**: 15 hasta el 29-10, 20
+hasta el 05-11, y 40 desde entonces. El 40 está en `planes.ts` y en la migración
+`0020_escala_x2.sql` (el `default` de la columna y la función de recarga). Que
+las migraciones se hayan ejecutado en Supabase **no es comprobable desde aquí**
+(hace falta la cuenta), así que eso es ⚪, no verde.
 
 ### El regalo de bienvenida, que es lo que de verdad tiene una cuenta nueva
 
-Quien se registra entra además con **150 créditos de regalo**, una sola vez.
+Quien se registra entra además con **300 créditos de regalo**, una sola vez
+(eran 150 hasta el 05-11).
 Cuatro hechos del código, cada uno con su sitio:
 
-- Van a `creditos_extra` (`0019_plan_gratis.sql:74`, un `default` de la columna:
+- Van a `creditos_extra` (`0020_escala_x2.sql:69`, un `default` de la columna:
   solo cuentas nuevas, a quien ya estaba no se le toca el saldo).
 - **La recarga diaria no los pisa**: `recargar_creditos_free()` solo escribe
   `creditos`, nunca `creditos_extra`.
@@ -72,10 +90,16 @@ Cuatro hechos del código, cada uno con su sitio:
   cero, vuelve a `NIVELES_POR_PLAN.free`, que es rápido y normal
   (`planes.ts:45`).
 
-La cuenta del primer día, hecha con el orden de gasto real: 20 + 150 = 170. Un
-MEGA se come los 20 del día y 100 del regalo, y quedan 50. No dan para un
-segundo MEGA, sí para dos Forja. El comentario del código dice "que sobren
-treinta" porque cuenta solo el regalo; con los 20 del día son cincuenta.
+La cuenta del primer día, hecha con el orden de gasto real: 40 + 300 = 340. Un
+MEGA se come los 40 del día y 200 del regalo, y **quedan 100**. No dan para un
+segundo MEGA, sí para **dos Forja** y sobran 20.
+
+**Y un detalle del código que anoto por si alguien hace la resta**: el comentario
+de `nivelesDe()` sigue diciendo que el regalo da para un MEGA *"y que sobren
+treinta"*. Con la escala nueva sobran **sesenta** (300 − 240): la frase se quedó
+de cuando eran 150 y 120. Es un comentario, no el comportamiento, y `planes.ts`
+está en lo que ningún agente toca (apartado 5 del protocolo), así que **se
+reporta y no se arregla**.
 
 Y el límite de este archivo, otra vez, porque aquí es donde pica: **de este
 apartado Kairo no puede decir nada**. Los créditos por plan sí los sabe —el
@@ -133,10 +157,15 @@ calla sobre ellas** y el agente no toca nada.
 | Qué | La especificación dice | El código hace |
 |---|---|---|
 | Niveles de Kairo+ | Rápido + Estándar; Máximo y Mega-Prompt solo en Supreme | `plus` y `supreme` tienen los cuatro, MEGA incluido (`planes.ts:46-47`) |
-| Un Co-Work ejecutado | 40 créditos | 4, y con un comentario que lo justifica: "lo mismo que un mensaje normal: es uno" |
-| Analizar un documento | 15 créditos | 4, el precio de un mensaje normal (`api/paperwork/route.ts:73`) |
+| Un Co-Work ejecutado | 40 créditos | **8**, y con un comentario que lo justifica: "lo mismo que un mensaje normal: es uno" |
+| Analizar un documento | 15 créditos | **8**, el precio de un mensaje normal |
 
 Que el código cobre menos no es un descuido: en los dos últimos casos está
 escrito a propósito. Pero la cuenta de la especificación —el margen mínimo
 garantizado— está hecha con 40 y con 15, así que o se corrige el documento o se
 corrigen los precios, y eso lo decide el dueño.
+
+**Y el 05-11 la distancia se acortó sola**: al doblarse la escala, el documento
+pedía 40 por un Co-Work y el código pasó de 4 a **8**; por un documento, el
+documento pedía 15 y el código pasó de 4 a **8**. Sigue cobrando menos de lo que
+dice la especificación, pero ya no es cinco y diez veces menos.

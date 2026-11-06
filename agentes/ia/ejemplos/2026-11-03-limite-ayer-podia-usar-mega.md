@@ -28,8 +28,8 @@ pagado nada, y eso es justo lo que explica lo que ves.
 Lo que puedo decirte con seguridad, porque está en cómo funciono: **cuando una
 cuenta nueva se crea, entra con un saldo de regalo que no caduca, y mientras ese
 saldo dure se pueden usar todos los niveles, MEGA incluido.** Cuando se agota,
-queda la recarga del plan gratuito, que es de 20 créditos **al día**. Un
-Mega-Prompt cuesta 120, así que con la recarga de un día no sale: harían falta
+queda la recarga del plan gratuito, que es de 40 créditos **al día**. Un
+Mega-Prompt cuesta 240, así que con la recarga de un día no sale: harían falta
 seis días enteros sin gastar nada.
 
 Y ahí hay otra cosa que **no** sé y que cambia la cuenta: **si los créditos que
@@ -40,7 +40,7 @@ página de precios.
 Y aquí está lo que **no** sé, y prefiero decírtelo: **qué niveles incluye
 exactamente cada plan no lo tengo yo.** Eso está en la página de precios, y es
 el sitio donde está bien mirado. Yo sé lo que cuesta cada nivel en créditos
-—rápido 1, normal 4, Forja 20, MEGA 120— y cuántos créditos trae cada plan,
+—rápido 2, normal 8, Forja 40, MEGA 240— y cuántos créditos trae cada plan,
 pero no el reparto de niveles por plan.
 
 Lo que sí te puedo decir de lo que no ha cambiado es **lo que cuesta cada
@@ -58,7 +58,7 @@ cabe en un día de los tuyos.
 - **Desmonta la sospecha primero** —no se ha roto, no te han quitado nada
   pagado— porque es lo que la persona ha venido a preguntar.
 - **Explica el mecanismo con las cifras que sí sabe**: el saldo de bienvenida,
-  los 20 al día, los 120 del MEGA, y la cuenta de los seis días.
+  los 40 al día, los 240 del MEGA, y la cuenta de los seis días.
 - **Dice lo que no sabe y dónde está**, sin adornarlo. Es el bloque de precios
   cumpliéndose al pie de la letra, aunque deje la respuesta a medias.
 - No se acuerda de "lo de ayer" como si recordara la sesión: deduce de cómo
@@ -82,3 +82,13 @@ cabe en un día de los tuyos.
 - Pedir perdón tres veces sin explicar nada.
 - Rematar con "¿necesitas algo más?": el prompt lo prohíbe, y aquí además
   sobraría, porque ya hay una pregunta concreta sobre la mesa.
+
+## Nota de mantenimiento (2026-11-06)
+
+**Cifras actualizadas el 06-11**: el dueño dobló la escala el 05-11 y aquí decía
+20 créditos al día y 120 el MEGA. Ahora dice 40 y 240.
+
+**Y la cuenta de los seis días no se ha tocado, porque es la misma**: 240 entre
+40 son seis, igual que 120 entre 20. Que este caso siga en pie palabra por
+palabra después de doblarse los precios es la prueba de que lo que enseña no
+eran las cifras.

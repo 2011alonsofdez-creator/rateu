@@ -16,24 +16,24 @@ la sabe.
 
 ## Respuesta ideal de Kairo
 
-Un Mega-Prompt gasta **120 créditos**. Es lo más caro que hace Kairo, porque
+Un Mega-Prompt gasta **240 créditos**. Es lo más caro que hace Kairo, porque
 lanza los tres modelos a la vez y luego junta las tres respuestas en una.
 
-Con Kairo+ tienes **1.000 créditos al mes**. Así que para Mega-Prompts solos te
+Con Kairo+ tienes **2.000 créditos al mes**. Así que para Mega-Prompts solos te
 dan para **ocho**, y te quedas sin créditos para lo demás. A diario no sale:
-serían unos 3.600 créditos al mes.
+serían unos 7.200 créditos al mes.
 
-Para que te sitúes, con esos mismos 1.000 créditos:
+Para que te sitúes, con esos mismos 2.000 créditos:
 
-| | Créditos | Con 1.000 |
+| | Créditos | Con 2.000 |
 |---|---|---|
-| Mensaje rápido | 1 | 1.000 |
-| Mensaje normal | 4 | 250 |
-| Forja | 20 | 50 |
-| Mega-Prompt | 120 | 8 |
+| Mensaje rápido | 2 | 1.000 |
+| Mensaje normal | 8 | 250 |
+| Forja | 40 | 50 |
+| Mega-Prompt | 240 | 8 |
 
 Si lo que quieres es calidad alta a diario, **Forja** es la que buscas: razona
-a fondo, va a 20 créditos, y te da unas 50 al mes. El Mega-Prompt tiene sentido
+a fondo, va a 40 créditos, y te da unas 50 al mes. El Mega-Prompt tiene sentido
 para una decisión gorda, no para el día a día.
 
 Lo que no te puedo confirmar yo: si tu plan tiene además un tope propio de
@@ -42,10 +42,10 @@ precios o en tus ajustes, que es donde está el dato de verdad.
 
 ## Qué hace bien esta respuesta
 
-- **Da el número y la consecuencia.** "120 créditos" sin el "te dan para ocho"
+- **Da el número y la consecuencia.** "240 créditos" sin el "te dan para ocho"
   no responde a lo que ha preguntado, que era si le da para usarlo a diario.
 - **Hace la cuenta por él** y contesta que no, claramente, con el número que lo
-  demuestra (3.600 al mes frente a 1.000).
+  demuestra (7.200 al mes frente a 2.000).
 - **Propone la alternativa que sí resuelve su problema**: quería calidad
   diaria, no quería específicamente un Mega-Prompt.
 - **Marca el límite de lo que sabe** en una línea y manda al sitio donde está
@@ -69,8 +69,22 @@ precios o en tus ajustes, que es donde está el dato de verdad.
 ## Nota para el entrenador
 
 Estos números salen de `docs/kairo/ESPECIFICACION.md`, sección 3 (tabla de
-consumo de créditos) y de `kairo/src/lib/planes.ts` (1.000 créditos en `plus`).
+consumo de créditos) y de `kairo/src/lib/planes.ts` (2.000 créditos en `plus`
+desde el 05-11; eran 1.000 cuando se escribió este caso).
 **Ninguno de los dos está hoy en el prompt ni en `agentes/ia/conocimiento/`**,
 que está vacío. Es decir: tal como está Kairo hoy, no tiene de dónde sacar esto
 y lo más probable es que se lo invente. Este ejemplo no se cumple hasta que el
 área 3 meta estas cifras en la base de conocimiento.
+
+## Nota de mantenimiento (2026-11-06)
+
+**Las cifras de este caso se actualizaron el 06-11**: el dueño dobló la escala el
+05-11 y aquí decía 120 y 1.000. Lo que **no** cambió es ninguna de las cuentas
+—ocho MEGA al mes, 1.000 rápidos, 250 normales, 50 Forja—, porque niveles y
+planes se doblaron a la vez; y tampoco cambió lo que el caso enseña, que es dar
+el número **con** su consecuencia.
+
+Y de ahí la regla para quien escriba el próximo caso: **una cifra del producto
+dentro de una respuesta ideal es deuda**, porque el día que el dueño la cambie
+este archivo miente sin que nadie lo toque. Si se puede enseñar lo mismo con la
+proporción —"un MEGA son seis Forjas"— se enseña así.
