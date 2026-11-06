@@ -31,7 +31,7 @@ const FAQ = {
   en: [
     {
       q: "What is a credit?",
-      a: "The unit that measures your usage. A fast message costs 1 credit, a normal one 4, and a Mega-Prompt 120. You always see the cost before you hit send.",
+      a: `The unit that measures your usage. A fast message costs ${CREDITOS_NIVEL.fast} credits, a normal one ${CREDITOS_NIVEL.normal}, and a Mega-Prompt ${CREDITOS_NIVEL.mega}. You always see the cost before you hit send.`,
     },
     {
       q: "What happens if I run out of credits?",

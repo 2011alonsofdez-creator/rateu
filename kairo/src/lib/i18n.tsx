@@ -30,7 +30,7 @@ const dict = {
       "Kairo usa los tres mejores modelos del mundo y elige solo el adecuado para cada tarea. Tú escribes; él decide, trabaja y te avisa.",
     "hero.cta": "Empezar gratis",
     "hero.cta2": "Ver cómo funciona",
-    "hero.note": "Sin tarjeta. 15 créditos gratis cada día.",
+    "hero.note": "Sin tarjeta. {n} créditos gratis cada día.",
 
     "brains.title": "Tres cerebros. Una sola IA.",
     "brains.sub":
@@ -111,6 +111,7 @@ const dict = {
     "slider.credits": "créditos al mes",
     "slider.questions": "preguntas normales",
     "slider.councils": "consejos de las 3 IAs",
+    "slider.fast": "preguntas rápidas",
     "slider.perMonth": "al mes con {p}",
     "slider.freePrice": "gratis, sin tarjeta",
     "slider.freeNote": "Son {n} al día y no se acumulan, y solo con Rápido y Estándar.",
@@ -488,7 +489,7 @@ const dict = {
     "auth.haveAccount": "¿Ya tienes cuenta?",
     "auth.goLogin": "Entrar",
     "auth.registerTitle": "Crea tu cuenta",
-    "auth.registerSub": "15 créditos gratis cada día. Sin tarjeta.",
+    "auth.registerSub": "{n} créditos gratis cada día. Sin tarjeta.",
     "auth.registerCta": "Crear cuenta",
     "auth.terms": "Al crear la cuenta aceptas los términos y la política de privacidad.",
     "auth.checkTitle": "Revisa tu correo",
@@ -550,7 +551,7 @@ const dict = {
       "Kairo runs the world's three best models and picks the right one for every task. You type; it decides, works, and tells you when it's done.",
     "hero.cta": "Start free",
     "hero.cta2": "See how it works",
-    "hero.note": "No card required. 15 free credits every day.",
+    "hero.note": "No card required. {n} free credits every day.",
 
     "brains.title": "Three minds. One AI.",
     "brains.sub":
@@ -630,6 +631,7 @@ const dict = {
     "slider.credits": "credits per month",
     "slider.questions": "normal questions",
     "slider.councils": "councils of all 3 AIs",
+    "slider.fast": "quick questions",
     "slider.perMonth": "a month with {p}",
     "slider.freePrice": "free, no card",
     "slider.freeNote": "That's {n} a day, they don't roll over, and only Fast and Standard.",
@@ -1007,7 +1009,7 @@ const dict = {
     "auth.haveAccount": "Already have an account?",
     "auth.goLogin": "Log in",
     "auth.registerTitle": "Create your account",
-    "auth.registerSub": "15 free credits every day. No card required.",
+    "auth.registerSub": "{n} free credits every day. No card required.",
     "auth.registerCta": "Create account",
     "auth.terms": "By creating an account you accept the terms and the privacy policy.",
     "auth.checkTitle": "Check your email",

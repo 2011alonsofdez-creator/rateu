@@ -136,10 +136,23 @@ export function ElegirPlan() {
         ))}
       </div>
 
+      {/* EN GRATIS NO SE CUENTAN CONSEJOS, PORQUE NO LOS HAY.
+ 
+          Decía "5 consejos de las 3 IAs" dividiendo créditos entre lo
+          que cuesta un MEGA, y la cuenta salía bien pero la frase era
+          mentira: el plan gratis solo tiene Rápido y Estándar (ver
+          `NIVELES_POR_PLAN`), así que esos cinco consejos no se pueden
+          pedir. Encima lo desmentía el aviso de dos líneas más abajo.
+ 
+          Así que en gratis el segundo contador cuenta otra cosa que sí
+          puede hacer, y los consejos aparecen cuando de verdad entran
+          en el plan. */}
       <div className="flex flex-wrap justify-center gap-3">
         {[
           { n: Math.round(creditos / CREDITOS_NIVEL.normal), k: "slider.questions" as const },
-          { n: Math.floor(creditos / CREDITOS_NIVEL.mega), k: "slider.councils" as const },
+          plan.id === "free"
+            ? { n: Math.round(creditos / CREDITOS_NIVEL.fast), k: "slider.fast" as const }
+            : { n: Math.floor(creditos / CREDITOS_NIVEL.mega), k: "slider.councils" as const },
         ].map((c) => (
           <div key={c.k} className="min-w-[168px] rounded-2xl border border-line bg-panel px-5 py-3.5">
             <span className="block text-[24px] font-extrabold tracking-tight">
