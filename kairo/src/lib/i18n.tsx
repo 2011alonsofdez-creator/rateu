@@ -26,8 +26,12 @@ const dict = {
     "hero.badge": "Claude · Gemini · GPT, en una sola suscripción",
     "hero.title": "La IA que trabaja",
     "hero.titleAccent": "cuando tú no.",
+    /* Esto decía "elige SOLO el adecuado", y justo encima la etiqueta
+       vende los tres a la vez. Dos frases en la misma pantalla contando
+       cosas distintas: quien llega no sabe qué compra, y de paso el
+       subtítulo desmentía lo único que no tiene nadie. */
     "hero.sub":
-      "Kairo usa los tres mejores modelos del mundo y elige solo el adecuado para cada tarea. Tú escribes; él decide, trabaja y te avisa.",
+      "Claude, Gemini y GPT en el mismo sitio. Kairo elige el que toca para cada cosa, y cuando la pregunta es gorda les pregunta a los tres y te da una sola respuesta.",
     "hero.cta": "Empezar gratis",
     "hero.cta2": "Ver cómo funciona",
     "hero.note": "Sin tarjeta. {n} créditos gratis cada día.",
@@ -60,6 +64,15 @@ const dict = {
     "features.mega": "Mega-Prompt",
     "features.megaDesc":
       "Un botón que lanza los tres modelos a la vez y combina lo mejor de cada respuesta. Para cuando acertar importa de verdad.",
+    "features.coworks": "Co-Works",
+    "features.coworksDesc":
+      "Encargos con hora. Kairo se despierta solo, lo hace y te deja el resultado esperándote: el resumen de la mañana, el repaso de las cinco, vigilar que algo no se caiga.",
+    "features.team": "Team",
+    "features.teamDesc":
+      "Un equipo que contratas: el abogado que revisa contratos, el contable que ordena facturas, el comercial que contesta a tus clientes. Cada uno sabe de lo suyo y se acuerda de lo tuyo.",
+    "features.code": "Code",
+    "features.codeDesc":
+      "Dile qué herramienta necesitas y te la escribe delante. Sale un archivo que se abre con doble clic: sin instalar nada, sin cuentas y sin internet una vez lo tengas.",
     "features.connect": "Conectores",
     "features.connectDesc":
       "Drive, Gmail, Calendar y GitHub. Kairo trabaja con tus cosas, no con copias pegadas a mano.",
@@ -548,7 +561,7 @@ const dict = {
     "hero.title": "The AI that works",
     "hero.titleAccent": "when you don't.",
     "hero.sub":
-      "Kairo runs the world's three best models and picks the right one for every task. You type; it decides, works, and tells you when it's done.",
+      "Claude, Gemini and GPT in one place. Kairo picks the right one for each job, and when the question really matters it asks all three and gives you a single answer.",
     "hero.cta": "Start free",
     "hero.cta2": "See how it works",
     "hero.note": "No card required. {n} free credits every day.",
@@ -581,6 +594,15 @@ const dict = {
     "features.mega": "Mega-Prompt",
     "features.megaDesc":
       "One button fires all three models and merges the best of each answer. For when getting it right really matters.",
+    "features.coworks": "Co-Works",
+    "features.coworksDesc":
+      "Jobs with a time on them. Kairo wakes up by itself, does the work and leaves the result waiting: the morning briefing, the five o'clock revision, keeping an eye on something.",
+    "features.team": "Team",
+    "features.teamDesc":
+      "A team you hire: the lawyer who reads contracts, the bookkeeper who sorts invoices, the salesperson who answers your clients. Each knows their job and remembers yours.",
+    "features.code": "Code",
+    "features.codeDesc":
+      "Tell it what tool you need and it writes it in front of you. Out comes a file you open with a double click: nothing to install, no accounts, and no internet once you have it.",
     "features.connect": "Connectors",
     "features.connectDesc":
       "Drive, Gmail, Calendar and GitHub. Kairo works with your actual files, not pasted copies.",

@@ -5,9 +5,9 @@ import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
 import { ElegirPlan } from "@/components/ElegirPlan";
-import { CREDITOS_PLAN } from "@/lib/planes";
+import { CREDITOS_NIVEL, CREDITOS_PLAN } from "@/lib/planes";
 import { Marca } from "@/components/Logo";
-import { Arrow, Brain, Capas, Clock, Fichas, Papel, Plug, Shield } from "@/components/Icons";
+import { Arrow, Capas, Clock, Code as Codigo, Papel, Shield, Team } from "@/components/Icons";
 import { IconoNivel } from "@/components/IconoNivel";
 
 const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
@@ -27,13 +27,27 @@ const BRAINS: { name: string; title: TKey; desc: TKey; color: string }[] = [
  * programadas» no le dice nada a quien no conoce Kairo, y contado
  * dentro de Paperwork —te avisa sin que entres— sí. La promesa general
  * ya está arriba del todo, en el titular. */
+/* QUÉ SE ENSEÑA AQUÍ, Y POR QUÉ ESTAS SEIS.
+ *
+ * Antes empezaba por Paperwork y el Mega-Prompt era el cuarto, detrás
+ * de Gist y de Mentes. Eso es poner lo único que no tiene nadie después
+ * de dos cosas que hacen mejor ChatGPT y NotebookLM: te comparan en el
+ * terreno donde pierdes y se van antes de llegar a donde ganas.
+ *
+ * Y faltaban las dos que sostienen el titular. La portada promete «la
+ * IA que trabaja cuando tú no» y luego no enseñaba Co-Works ni Team por
+ * ningún lado: la promesa estaba escrita y sin respaldo.
+ *
+ * Fuera Conectores, que estaba listado en una sección titulada «lo que
+ * los demás no hacen» siendo lo único que Kairo todavía no hace.
+ */
 const FEATURES: { icon: typeof Clock; title: TKey; desc: TKey }[] = [
-  { icon: Papel, title: "features.paperwork", desc: "features.paperworkDesc" },
-  { icon: Fichas, title: "features.gist", desc: "features.gistDesc" },
-  { icon: Brain, title: "features.mentes", desc: "features.mentesDesc" },
   /* La tarjeta de MEGA lleva el dibujo de MEGA, no un rayo suelto. */
   { icon: Capas, title: "features.mega", desc: "features.megaDesc" },
-  { icon: Plug, title: "features.connect", desc: "features.connectDesc" },
+  { icon: Papel, title: "features.paperwork", desc: "features.paperworkDesc" },
+  { icon: Clock, title: "features.coworks", desc: "features.coworksDesc" },
+  { icon: Team, title: "features.team", desc: "features.teamDesc" },
+  { icon: Codigo, title: "features.code", desc: "features.codeDesc" },
   { icon: Shield, title: "features.ages", desc: "features.agesDesc" },
 ];
 
@@ -115,7 +129,9 @@ export default function Landing() {
                       <span className="rounded-md border border-line px-2 py-0.5">
                         {lang === "es" ? "Nivel Normal" : "Normal level"}
                       </span>
-                      <span className="rounded-md border border-line px-2 py-0.5">4 cr</span>
+                      <span className="rounded-md border border-line px-2 py-0.5">
+                        {CREDITOS_NIVEL.normal} cr
+                      </span>
                       <span className="rounded-md border border-line px-2 py-0.5">1,4 s</span>
                     </div>
                   </div>

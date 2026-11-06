@@ -13,17 +13,27 @@ import { useHistorial } from "@/lib/historial";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
-import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plug, Plus, Settings, Team, Trash } from "./Icons";
+import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plus, Settings, Team, Trash } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
+  /* EL ORDEN NO ES ALFABÉTICO NI ES EL DE CUÁNDO SE HIZO CADA UNO.
+ 
+     Es el de lo que la gente viene a hacer. Antes, los dos sitios más
+     valiosos después de Chats los ocupaban Mentes y Gist —lo que hacen
+     mejor ChatGPT y NotebookLM—, mientras Paperwork era el cuarto y
+     Co-Works el séptimo. O sea: lo que nos diferencia, escondido debajo
+     de lo que nos empata.
+ 
+     Ahora van primero las tres que no tiene nadie: el papel que te
+     llega, el encargo que se hace solo y el equipo que contratas.
+     Mentes y Gist siguen ahí, al final, para quien las use. */
   { href: "/chat", label: "app.chats", icon: Chat },
+  { href: "/paperwork", label: "app.paperwork", icon: Papel },
+  { href: "/coworks", label: "app.coworks", icon: Clock },
+  { href: "/team", label: "app.team", icon: Team },
+  { href: "/code", label: "app.code", icon: Code },
   { href: "/mentes", label: "app.mentes", icon: Brain },
   { href: "/gist", label: "app.gist", icon: Fichas },
-  { href: "/paperwork", label: "app.paperwork", icon: Papel },
-  { href: "/code", label: "app.code", icon: Code },
-  { href: "/team", label: "app.team", icon: Team },
-  { href: "/coworks", label: "app.coworks", icon: Clock },
-  { href: "/conectores", label: "app.connectors", icon: Plug },
 ];
 
 type Grupo = "today" | "week" | "earlier";
