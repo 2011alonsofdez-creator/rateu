@@ -5,6 +5,7 @@ import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
 import { ElegirPlan } from "@/components/ElegirPlan";
+import { CREDITOS_PLAN } from "@/lib/planes";
 import { Marca } from "@/components/Logo";
 import { Arrow, Brain, Capas, Clock, Fichas, Papel, Plug, Shield } from "@/components/Icons";
 import { IconoNivel } from "@/components/IconoNivel";
@@ -78,7 +79,9 @@ export default function Landing() {
               </Link>
             </div>
 
-            <p className="mt-4 text-[13px] text-faint">{t("hero.note")}</p>
+            <p className="mt-4 text-[13px] text-faint">
+              {t("hero.note").replace("{n}", String(CREDITOS_PLAN.free))}
+            </p>
           </div>
 
           {/* Vista previa del chat */}

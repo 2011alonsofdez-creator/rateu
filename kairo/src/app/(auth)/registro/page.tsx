@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useUi } from "@/lib/i18n";
+import { CREDITOS_PLAN } from "@/lib/planes";
 import { clienteNavegador } from "@/lib/supabase/client";
 import { hasSupabase } from "@/lib/supabase/config";
 import { razonDeAuth, textoDeRazon } from "@/lib/supabase/errores";
@@ -174,7 +175,9 @@ export default function RegistroPage() {
   return (
     <div className="rounded-2xl border border-line bg-panel p-6 shadow-[var(--shadow)]">
       <h1 className="text-[22px] font-semibold tracking-tight">{t("auth.registerTitle")}</h1>
-      <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{t("auth.registerSub")}</p>
+      <p className="mt-1.5 text-[14px] leading-relaxed text-muted">
+        {t("auth.registerSub").replace("{n}", String(CREDITOS_PLAN.free))}
+      </p>
       <div className="mt-6">{hasSupabase ? <Formulario /> : <ModoDemo />}</div>
     </div>
   );

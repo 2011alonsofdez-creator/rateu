@@ -1,6 +1,7 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
 import { CREDITOS_NIVEL } from "./planes";
+import type { Producto } from "./pagos/config";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
@@ -272,7 +273,20 @@ export const plans: Plan[] = [
   },
 ];
 
-export const creditPacks = [
-  { credits: 1000, price: 5.99 },
-  { credits: 4000, price: 19.99 },
+/* EL NOMBRE DEL PRODUCTO VA ESCRITO, NO SE CALCULA.
+ *
+ * El botón de comprar sacaba el identificador del número de créditos
+ * —`pack_${pack.credits}`—, así que al doblar la escala empezó a pedir
+ * un "pack_1000" que no existe en la tienda y el enlace devolvía a
+ * precios sin comprar nada. En silencio, además: no hay error, solo no
+ * pasa nada.
+ *
+ * Los nombres siguen diciendo 500 y 2000 porque identifican el PRODUCTO
+ * de la tienda, que es el mismo de siempre y está ya configurado en
+ * Vercel. Lo que cambió es cuántos créditos abona, y eso vive en
+ * pagos/config.ts. Aquí van separados a propósito: el día que vuelvan a
+ * cambiar los créditos, el botón sigue apuntando a donde debe. */
+export const creditPacks: { producto: Producto; credits: number; price: number }[] = [
+  { producto: "pack_500", credits: 1000, price: 5.99 },
+  { producto: "pack_2000", credits: 4000, price: 19.99 },
 ];
