@@ -32,6 +32,8 @@ const themeScript = `
   }
 })();`;
 
+import { Rastro } from "@/components/Rastro";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" data-theme="dark" suppressHydrationWarning>
@@ -45,7 +47,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <UiProvider>{children}</UiProvider>
+        <UiProvider>
+          {/* Cuenta las visitas en nuestra propia base de datos. No
+              guarda IP ni galleta: cuenta sucesos, no personas. */}
+          <Rastro />
+          {children}
+        </UiProvider>
       </body>
     </html>
   );

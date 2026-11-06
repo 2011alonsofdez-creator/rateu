@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useUi } from "@/lib/i18n";
+import { apuntar } from "@/lib/rastro";
 import { REGALO_BIENVENIDA } from "@/lib/planes";
 import { Marca } from "./Logo";
 import { Arrow } from "./Icons";
@@ -56,13 +57,16 @@ export function Probar() {
 
       if (!r.ok || !j.texto) {
         setQuedan(j.quedan ?? null);
-        setFallo(j.error === "se_acabaron" || j.error === "muchas_pruebas" ? "try.none" : "try.error");
+        const seAcabo = j.error === "se_acabaron" || j.error === "muchas_pruebas";
+        if (seAcabo) apuntar("prueba_agotada");
+        setFallo(seAcabo ? "try.none" : "try.error");
         /* La pregunta sin contestar no se queda colgando: se quita, que
            si no parece que Kairo te ha ignorado. */
         setTurnos((t) => t.slice(0, -1));
         return;
       }
 
+      apuntar("prueba");
       setQuedan(j.quedan ?? null);
       setTurnos((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, suya: j.texto } : x)));
     } catch {
