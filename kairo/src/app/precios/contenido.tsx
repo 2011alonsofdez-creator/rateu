@@ -17,8 +17,30 @@
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { PricingCards } from "@/components/PricingCards";
+import { CREDITOS_NIVEL } from "@/lib/planes";
 
-/* La pregunta de los datos dice lo que se puede comprobar, y nada más.
+/* EL 06-11, DOS COSAS DE LA FUSIÓN DEL DUEÑO, Y UNA NO LA HE COGIDO.
+ *
+ * Él dobló la escala de créditos el 05-11 (1/4/20/120 → 2/8/40/240,
+ * `CREDITOS_NIVEL` en `lib/planes.ts`, migración `0020_escala_x2.sql`) y
+ * en su versión de esta FAQ interpoló la constante en la respuesta
+ * española. Aquí está hecho igual **y además en la inglesa**, que él dejó
+ * con "1 credit, a normal one 4, and a Mega-Prompt 120" escrito a mano:
+ * con la escala nueva eso es falso, y una clave sin su traducción —o con
+ * una traducción vieja— rompe la otra lengua, que es la regla de la casa.
+ *
+ * Lo que NO he cogido de su versión: volvió a poner la pregunta
+ * "¿Se usan mis conversaciones para entrenar modelos?" con un **"No."**.
+ * Esa frase se quitó el 21-10 con un motivo que sigue en pie y que el
+ * 05-11 quedó confirmado por la tabla del propio proveedor: en la capa
+ * gratuita de la API de Gemini los datos **sí** se usan para mejorar los
+ * productos de Google —la fila "Used to improve our products" dice Yes—, y
+ * la cuenta de Kairo está en esa capa (`CONTEXTO.md`, 25-10, de un commit
+ * suyo). Mientras eso no cambie, ese "No." es falso en la página donde se
+ * decide pagar. Está preguntado en el parte del día, en una línea que se
+ * contesta con un sí: si paga la capa, el "No." vuelve y lo pongo yo.
+ *
+ * La pregunta de los datos dice lo que se puede comprobar, y nada más.
  *
  * Hasta el 21-10 esta FAQ contestaba "¿se usan mis conversaciones para
  * entrenar modelos?" con un "No." a secas. El informe de mercado del
@@ -43,7 +65,7 @@ const FAQ = {
   es: [
     {
       q: "¿Qué es un crédito?",
-      a: "La unidad con la que se mide lo que gastas. Un mensaje rápido cuesta 1 crédito, uno normal 4, y un Mega-Prompt 120. Siempre ves el coste antes de pulsar enviar.",
+      a: `La unidad con la que se mide lo que gastas. Un mensaje rápido cuesta ${CREDITOS_NIVEL.fast} créditos, uno normal ${CREDITOS_NIVEL.normal}, y un Mega-Prompt ${CREDITOS_NIVEL.mega}. Siempre ves el coste antes de pulsar enviar.`,
     },
     {
       q: "¿Qué pasa si me quedo sin créditos?",
@@ -65,7 +87,7 @@ const FAQ = {
   en: [
     {
       q: "What is a credit?",
-      a: "The unit that measures your usage. A fast message costs 1 credit, a normal one 4, and a Mega-Prompt 120. You always see the cost before you hit send.",
+      a: `The unit that measures your usage. A fast message costs ${CREDITOS_NIVEL.fast} credits, a normal one ${CREDITOS_NIVEL.normal}, and a Mega-Prompt ${CREDITOS_NIVEL.mega}. You always see the cost before you hit send.`,
     },
     {
       q: "What happens if I run out of credits?",

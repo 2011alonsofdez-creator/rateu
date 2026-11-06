@@ -11,6 +11,7 @@ import { Section } from "@/components/Section";
 import { Chat as ChatIcon, Clock, Pencil, Play, Plus, Trash } from "@/components/Icons";
 import { esTipo, preguntaSiBusca, type Tipo } from "@/lib/coworks/recetas";
 import type { Fuente } from "@/lib/tipos";
+import { CREDITOS_NIVEL } from "@/lib/planes";
 
 /* Co-Works: los encargos que se ejecutan solos.
  *
@@ -595,7 +596,10 @@ function Coworks() {
                       ? t("cw.lastRun").replace("{f}", fecha(c.ultima_vez))
                       : t("cw.never")}
                     {" · "}
-                    {t(tipoUi(c.tipo).gratis ? "cw.free" : "cw.cost")}
+                    {t(tipoUi(c.tipo).gratis ? "cw.free" : "cw.cost").replace(
+                      "{n}",
+                      String(CREDITOS_NIVEL.normal),
+                    )}
                   </p>
                 </button>
 
@@ -725,7 +729,7 @@ function Coworks() {
                         {texto(op.id).d}
                       </span>
                       <span className="mt-1.5 block text-[12px] text-faint">
-                        {t(op.gratis ? "cw.free" : "cw.cost")}
+                        {t(op.gratis ? "cw.free" : "cw.cost").replace("{n}", String(CREDITOS_NIVEL.normal))}
                       </span>
                     </button>
                   ))}

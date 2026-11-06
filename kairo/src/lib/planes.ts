@@ -5,11 +5,42 @@
 export type ModoEdad = "nino" | "adolescente" | "adulto";
 export type PlanId = "free" | "plus" | "supreme";
 
-/** Créditos que incluye cada plan. Sirve para la barra de progreso. */
+/** Los cuatro niveles de esfuerzo. Sin "auto": eso no es un nivel, es
+ *  dejar que elija Kairo. */
+export type NivelEsfuerzo = "fast" | "normal" | "forja" | "mega";
+
+/* LO QUE CUESTA CADA NIVEL, Y POR QUÉ ESTOS NÚMEROS.
+ *
+ * La escala estaba en 1 / 4 / 20 / 120 y se ha multiplicado por dos.
+ * No es un recorte ni un regalo: los planes se multiplican por dos a la
+ * vez, así que con la misma suscripción salen exactamente las mismas
+ * preguntas que antes. Lo único que cambia es que los números de la
+ * página de precios suenan a más, que es lo que vende.
+ *
+ * La proporción entre niveles sí dice algo real: un Forja cuesta veinte
+ * veces un Rápido porque detrás hay Claude Opus pensando, y un MEGA
+ * cuesta seis Forjas porque son tres modelos y una fusión. De los
+ * cuatro, el que de verdad gasta dinero es Forja; MEGA parece el caro y
+ * sale más barato por crédito.
+ *
+ * Y vive aquí, en un archivo sin dependencias, porque lo usan los dos
+ * lados: el servidor para cobrar y la pantalla para avisar de lo que va
+ * a costar. Estuvo escrito dos veces —una en cada lado— y eso es una
+ * bomba de relojería: el día que se cambie una y no la otra, la app
+ * promete un precio y cobra otro. */
+export const CREDITOS_NIVEL: Record<NivelEsfuerzo, number> = {
+  fast: 2,
+  normal: 8,
+  forja: 40,
+  mega: 240,
+};
+
+/** Créditos que incluye cada plan. Sirve para la barra de progreso.
+ *  El de `free` es el tope DIARIO; los otros dos son al mes. */
 export const CREDITOS_PLAN: Record<PlanId, number> = {
-  free: 20,
-  plus: 1000,
-  supreme: 3000,
+  free: 40,
+  plus: 2000,
+  supreme: 6000,
 };
 
 export const NOMBRE_PLAN: Record<PlanId, string> = {
@@ -49,11 +80,11 @@ export const NIVELES_POR_PLAN: Record<
 
 /* EL REGALO ABRE LAS PUERTAS MIENTRAS DURA.
  *
- * Quien se registra entra con 150 créditos de regalo que no caducan
+ * Quien se registra entra con 300 créditos de regalo que no caducan
  * (van a `creditos_extra`, la hucha que la recarga diaria no toca). Y
  * mientras le queden, puede usarlo TODO: Forja y MEGA incluidos.
  *
- * El 150 no es una cifra redonda por casualidad: un MEGA cuesta 120.
+ * El 300 no es una cifra redonda por casualidad: un MEGA cuesta 240.
  * Da para probar exactamente un MEGA —varios cerebros a la vez, que es
  * lo mejor que hace Kairo— y que sobren treinta. Para el segundo, se
  * paga. Es la diferencia entre leer lo que hace y haberlo visto.

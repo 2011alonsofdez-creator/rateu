@@ -319,7 +319,7 @@ export function Composer({
           : "shrink-0 border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4"
       }
     >
-      <div className={arranque ? "mx-auto w-full max-w-[580px]" : "mx-auto max-w-3xl"}>
+      <div className={arranque ? "mx-auto w-full max-w-[680px]" : "mx-auto max-w-3xl"}>
         <div
           onDragOver={(e) => {
             if (!e.dataTransfer.types.includes("Files")) return;
@@ -407,10 +407,20 @@ export function Composer({
               }
             }}
             placeholder={t("app.placeholder")}
-            className="block w-full resize-none bg-transparent px-4 pt-3.5 text-[15px] leading-relaxed outline-none placeholder:text-faint"
+            /* CON SITIO PARA ESCRIBIR, NO UN RENGLÓN.
+ 
+               Una caja de la altura justa de una línea parece un
+               buscador: invita a meter cuatro palabras. Con dos líneas
+               de alto por dentro invita a contar lo que te pasa, que es
+               con lo que Kairo hace algo decente.
+ 
+               El alto mínimo va en CSS y no en el `rows`: la caja crece
+               sola con el texto escribiendo `style.height`, y un mínimo
+               en CSS manda sobre esa altura sin pelearse con ella. */
+            className="block max-h-[200px] min-h-[52px] w-full resize-none bg-transparent px-4 pt-4 text-[15px] leading-relaxed outline-none placeholder:text-faint"
           />
 
-          <div className="flex items-center gap-1.5 px-2.5 pb-2.5 pt-1">
+          <div className="flex items-center gap-1.5 px-3 pb-3 pt-1">
             <input
               ref={selector}
               type="file"
@@ -650,7 +660,7 @@ export function Composer({
 
             {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
  
-                Pegado al de enviar, un atajo de 120 créditos —seis veces
+                Pegado al de enviar, un atajo de 240 créditos —seis veces
                 Forja— se pulsa sin querer, y el menú de niveles ya
                 explica lo que es. Si alguna vez hace falta sacarlo de
                 ahí, el sitio es el menú, no la fila de enviar. */}

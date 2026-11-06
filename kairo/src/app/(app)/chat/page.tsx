@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
+import { miles } from "@/lib/formato";
 import { LEVELS, pick, type Level, type Message, type Nivel } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -950,7 +951,7 @@ function Chat() {
              marca, es relleno: ocupaba el sitio por el que empieza la
              mirada y empujaba hacia abajo lo único que se usa de verdad
              en esta pantalla, que es la caja de escribir. */
-          <div className="mx-auto w-full max-w-[580px]">
+          <div className="mx-auto w-full max-w-[680px]">
             <h1 className="text-balance text-[25px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[28px]">
               {saludo}
             </h1>
@@ -1142,7 +1143,7 @@ function Chat() {
 
           <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
             <Credito className="h-3 w-3 text-gold" />
-            {credits.toLocaleString(lang)} {t("app.credits")}
+            {miles(credits, lang)} {t("app.credits")}
           </span>
         </div>
       )}
@@ -1168,7 +1169,7 @@ function Chat() {
           volver a lo de hace un rato. */}
       {inicio && (
         <div className="mb-auto w-full shrink-0 px-4 pb-8 sm:px-8">
-          <div className="mx-auto w-full max-w-[580px]">
+          <div className="mx-auto w-full max-w-[680px]">
             {/* SEGUIR CON LO DE ANTES.
  
                 Hasta ahora esto estaba solo en la barra lateral, en

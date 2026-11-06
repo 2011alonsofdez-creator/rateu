@@ -31,8 +31,14 @@ const VARIANTES: { variable: string; plan?: PlanId; creditos?: number }[] = [
   { variable: "LEMON_VARIANTE_PLUS_ANUAL", plan: "plus" },
   { variable: "LEMON_VARIANTE_SUPREME", plan: "supreme" },
   { variable: "LEMON_VARIANTE_SUPREME_ANUAL", plan: "supreme" },
-  { variable: "LEMON_VARIANTE_PACK_500", creditos: 500 },
-  { variable: "LEMON_VARIANTE_PACK_2000", creditos: 2000 },
+  /* Los nombres siguen diciendo 500 y 2000 y los créditos son el doble:
+     no es un descuido. El nombre identifica el PRODUCTO de tu tienda y
+     ya está escrito en las variables de Vercel; cambiarlo ahí para que
+     cuadre con la escala nueva no arregla nada y rompe la tienda hasta
+     que te acuerdes de renombrarlas las dos. Lo que importa es lo que
+     se abona, que es esto de aquí. */
+  { variable: "LEMON_VARIANTE_PACK_500", creditos: 1000 },
+  { variable: "LEMON_VARIANTE_PACK_2000", creditos: 4000 },
 ];
 
 /** Traduce el número de variante del proveedor a lo que significa aquí. */

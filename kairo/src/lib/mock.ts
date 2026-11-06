@@ -1,6 +1,6 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
-import { CREDITOS_PLAN } from "./planes";
+import { CREDITOS_NIVEL, CREDITOS_PLAN } from "./planes";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
@@ -10,11 +10,13 @@ export type Level = "fast" | "normal" | "forja" | "mega";
 /** Lo que puede elegir la persona: un nivel, o que lo elija Kairo. */
 export type Nivel = Level | "auto";
 
+/* El precio sale de planes.ts, el mismo sitio del que lo saca el
+   servidor para cobrar: aquí solo se le pone color. */
 export const LEVELS: Record<Level, { credits: number; color: string }> = {
-  fast: { credits: 1, color: "var(--green)" },
-  normal: { credits: 4, color: "var(--acento-2)" },
-  forja: { credits: 20, color: "var(--acento)" },
-  mega: { credits: 120, color: "var(--gold)" },
+  fast: { credits: CREDITOS_NIVEL.fast, color: "var(--green)" },
+  normal: { credits: CREDITOS_NIVEL.normal, color: "var(--acento-2)" },
+  forja: { credits: CREDITOS_NIVEL.forja, color: "var(--acento)" },
+  mega: { credits: CREDITOS_NIVEL.mega, color: "var(--gold)" },
 };
 
 type Bi = { es: string; en: string };
@@ -64,7 +66,7 @@ export const thread: Message[] = [
     id: "m2",
     role: "kairo",
     level: "normal",
-    credits: 4,
+    credits: CREDITOS_NIVEL.normal,
     model: "Gemini Pro",
     content: {
       es: `Antes de tocar nada, hay que separar **si vienen menos personas** o **si compran menos las que vienen**. Son problemas distintos y se arreglan de forma distinta.
@@ -101,7 +103,7 @@ Tell me which of the four moves and I'll tell you where to look next.`,
     id: "m4",
     role: "kairo",
     level: "mega",
-    credits: 120,
+    credits: CREDITOS_NIVEL.mega,
     model: "Mega-Prompt · Claude + Gemini + GPT",
     content: {
       es: `Mismas visitas, conversión por los suelos y carritos abandonados: **eso no es marketing, es un fallo técnico o de precio que solo aparece los martes**.
@@ -163,9 +165,9 @@ Want me to schedule a **Co-Work** that pings you every Tuesday at 21:00 with the
 export const user = {
   name: "Alonso",
   plan: "Kairo+",
-  credits: 840,
-  creditsTotal: 1000,
-  spentThisMonth: 160,
+  credits: 1680,
+  creditsTotal: 2000,
+  spentThisMonth: 320,
   renewsOn: { es: "14 de octubre", en: "October 14" },
 };
 
@@ -261,15 +263,15 @@ export const plans: Plan[] = [
        parte del 31-10. */
     bullets: {
       /* Esto decía 15 créditos y "modelo rápido", y las dos cosas
-         llevaban días siendo mentira: el plan gratis pasó a 20 al día y
+         llevaban días siendo mentira: el plan gratis pasó a 40 al día y
          a tener también el estándar. Vender MENOS de lo que das es un
          error más tonto que el contrario, porque lo paga la página de
          precios, que es donde se decide si alguien se registra.
-         Y faltaba lo mejor que tiene: los 150 de bienvenida, que dan
+         Y faltaba lo mejor que tiene: los 300 de bienvenida, que dan
          para un MEGA entero. */
       es: [
         `${CREDITOS_PLAN.free} créditos al día`,
-        "150 de regalo al registrarte",
+        "300 de regalo al registrarte",
         "Modelos rápido y normal: chat, Paperwork, Gist y Código",
         "1 Co-Work, que trabaja solo a su hora",
         "Historial de 30 días",
@@ -278,7 +280,7 @@ export const plans: Plan[] = [
       ],
       en: [
         `${CREDITOS_PLAN.free} credits per day`,
-        "150 free credits to start",
+        "300 free credits to start",
         "Fast and standard models: chat, Paperwork, Gist and Code",
         "1 Co-Work, working on its own at its hour",
         "30-day history",
@@ -294,7 +296,7 @@ export const plans: Plan[] = [
     featured: true,
     bullets: {
       es: [
-        "1.000 créditos al mes",
+        "2.000 créditos al mes",
         "Modelos rápido y estándar",
         "8 Mega-Prompts al mes",
         "10 Co-Works activos",
@@ -302,7 +304,7 @@ export const plans: Plan[] = [
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
-        "1,000 credits per month",
+        "2,000 credits per month",
         "Fast and standard models",
         "8 Mega-Prompts per month",
         "10 active Co-Works",
@@ -317,7 +319,7 @@ export const plans: Plan[] = [
     yearly: 249,
     bullets: {
       es: [
-        "3.000 créditos al mes",
+        "6.000 créditos al mes",
         "Los tres modelos, incluido el máximo",
         "25 Mega-Prompts al mes",
         "10 Co-Works activos",
@@ -326,7 +328,7 @@ export const plans: Plan[] = [
         "Soporte prioritario",
       ],
       en: [
-        "3,000 credits per month",
+        "6,000 credits per month",
         "All three models, top tier included",
         "25 Mega-Prompts per month",
         "10 active Co-Works",
@@ -339,6 +341,6 @@ export const plans: Plan[] = [
 ];
 
 export const creditPacks = [
-  { credits: 500, price: 5.99 },
-  { credits: 2000, price: 19.99 },
+  { credits: 1000, price: 5.99 },
+  { credits: 4000, price: 19.99 },
 ];

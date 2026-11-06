@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useUi } from "@/lib/i18n";
+import { miles } from "@/lib/formato";
 import { creditPacks, plans } from "@/lib/mock";
 import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
 import { Bolt, Check, Credito } from "./Icons";
@@ -116,7 +117,7 @@ export function PricingCards() {
             {creditPacks.map((pack) => {
               const dentro = (
                 <>
-                  <span className="font-semibold">{pack.credits.toLocaleString(lang)}</span>
+                  <span className="font-semibold">{miles(pack.credits, lang)}</span>
                   <span className="text-faint"> · {money(pack.price)}</span>
                 </>
               );
