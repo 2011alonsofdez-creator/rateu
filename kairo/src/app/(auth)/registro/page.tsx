@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { CREDITOS_PLAN } from "@/lib/planes";
+import { apuntar } from "@/lib/rastro";
 import { clienteNavegador } from "@/lib/supabase/client";
 import { hasSupabase } from "@/lib/supabase/config";
 import { razonDeAuth, textoDeRazon } from "@/lib/supabase/errores";
@@ -86,6 +87,8 @@ function Formulario() {
       setCargando(false);
       return;
     }
+
+    apuntar("registro");
 
     if (data.session) {
       router.push("/chat");
