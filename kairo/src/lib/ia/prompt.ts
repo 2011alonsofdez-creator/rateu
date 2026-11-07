@@ -286,12 +286,25 @@ function bloqueProducto(): string {
     .map((p) => `${NOMBRE_PLAN[p]} ${CREDITOS_PLAN[p]}`)
     .join(", ");
 
+/* "1 crédito" pero "2 créditos". Parece una tontería y no lo es: hasta el
+   05-11 la escala empezaba en 1 y la frase decía "cuesta 1 crédito", bien
+   escrito. Al doblarse la escala pasó a decir **"cuesta 2 crédito"**, en
+   producción, en la primera línea del bloque que Kairo usa para hablar de
+   dinero. Nadie podía verlo leyendo el archivo: la cifra entra interpolada y
+   la falta de concordancia solo aparece al renderizar, que es lo que hace el
+   banco de pruebas y por eso ha salido hoy.
+   Así que no se arregla poniendo "créditos" a secas —volvería a fallar el día
+   que algo valga 1— sino preguntándole al número. */
+function plural(n: number): string {
+  return n === 1 ? "crédito" : "créditos";
+}
+
   return `
 
 LO QUE CUESTA USARTE
 Esto es lo único que sabes de tus condiciones, y sale del código de Kairo,
 así que es exacto:
-- Un mensaje rápido cuesta ${CREDITOS.fast} crédito. Uno normal, ${CREDITOS.normal}.
+- Un mensaje rápido cuesta ${CREDITOS.fast} ${plural(CREDITOS.fast)}. Uno normal, ${CREDITOS.normal}.
   Forja, ${CREDITOS.forja}. Un Mega-Prompt, ${CREDITOS.mega}.
 - Leer un papel con Paperwork cuesta ${CREDITOS.normal}, igual que un mensaje
   normal. Un Co-Work que se ejecuta, otros ${CREDITOS.normal}.

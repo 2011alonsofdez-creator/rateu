@@ -96,6 +96,67 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-07 — Evaluación (área 5): en producción decía "cuesta 2 crédito"
+
+**Qué cambié**: una línea de `kairo/src/lib/ia/prompt.ts` y un ayudante de tres
+líneas al lado. La primera línea del bloque `LO QUE CUESTA USARTE` decía
+`cuesta ${CREDITOS.fast} crédito`, en singular. Con la escala vieja la cifra era
+**1** y la frase estaba bien. El dueño dobló la escala el 05-11 y desde entonces
+Kairo decía **"cuesta 2 crédito"** en producción, en la primera línea del único
+bloque con el que habla de dinero.
+
+**Por qué esto justifica el área 5 entera**: ese fallo **no se puede ver leyendo
+el archivo**. En el fuente la línea sigue pareciendo correcta —la cifra entra
+interpolada— y la concordancia solo se rompe **al renderizar**. No lo veía la
+revisión del dueño, no lo veían mis arneses —que comprueban que una frase está
+donde tiene que estar— y no lo vio el repaso de ayer del constructor, que tocó
+las cifras de cuatro archivos. Lo encuentra el banco porque el banco **monta el
+prompt y lo mira**, y llevaba **quince días** sin hacerlo.
+
+**Cómo lo arreglé, y por qué no con "créditos" a secas**: poner el plural fijo
+habría vuelto a fallar el día que algo valga 1. La frase le pregunta ahora al
+número, con una función de dos líneas. Comprobado renderizando las dos
+configuraciones: con la escala de hoy sale *"cuesta 2 créditos"*; bajando la
+constante a 1 en el sustituto, *"cuesta 1 crédito"*.
+
+**Y el segundo arreglo, que es del banco y no del prompt**: el **caso 4** tenía
+como criterio *"que pregunta en vez de adivinar"*, y desde el 05-11 el prompt
+lleva la regla del dueño *"TU TRABAJO ES CONTESTAR, NO PREGUNTAR"*. No es
+contradicción —ese caso **es** la excepción que la regla escribe— pero el
+criterio, leído solo, puntuaba mal justo lo que el producto quiere. Reescrito
+para que diga qué mide: **la frontera**. La respuesta esperada no se toca.
+
+Es el segundo caso en dos días que el banco tenía desalineado con el producto
+—ayer las cifras del 7, hoy el criterio del 4—, y por el mismo motivo: el banco
+se escribió antes y nadie lo revisa cuando el producto cambia.
+
+**Longitudes de hoy**, que además actualizan el panel: **185** líneas un adulto
+sin buscador, **208** con buscador —lo de producción, y eran 203 el 01-11— y
+**221** un niño con buscador.
+
+**Lo que esta pasada NO ha hecho, y lo digo antes de que lo pregunte el radar**:
+puntuar los catorce casos. Con tres turnos perdidos esta semana por reinicios y
+el fallo de arriba encontrado en los primeros diez minutos, he preferido
+arreglarlo y dejarlo comprobado antes que empezar catorce puntuaciones que un
+reinicio se llevaría a medias. El banco queda listo —cifras y criterios al día—
+y puntuarlo es lo primero del próximo área 5. Todo en
+`agentes/ia/evals/resultados/2026-11-07.md`.
+
+**Qué necesito del dueño**: nada para esto. Y una propuesta que no es tarea: si
+un día le añade una entrada de `pregunta` a `probar-portada.yml`, el banco
+podría medir **respuestas reales** y no solo lo que el prompt dice. Hoy no se
+puede: ese endpoint usa su propio prompt de seis líneas, no el maestro, y la
+pregunta va escrita dentro del workflow.
+
+**Lo que vi de paso**, sin promesas:
+
+- El bloque de dinero interpola `CREDITOS` para los cuatro niveles y
+  `CREDITOS_PLAN` para los planes, así que **las cifras del prompt no pueden
+  envejecer**; lo que sí puede envejecer es la gramática de alrededor. Hoy he
+  mirado las cinco líneas que llevan la palabra "crédito" y solo fallaba esa.
+- `niño con buscador` son **221** líneas, trece más que un adulto. El bloque de
+  edad va al final a propósito, y es el más caro del prompt.
+
 ### 2026-11-05 — Casos límite (área 4): contestar sin elegir por el usuario
 
 **Qué hice**: un caso nuevo,
