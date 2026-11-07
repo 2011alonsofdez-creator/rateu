@@ -133,13 +133,27 @@ export async function POST(request: Request) {
    * error: simplemente no hay a quién preguntar, y el desconocido ve
    * "no he podido contestar" en su primera pantalla de Kairo.
    *
-   * Así que si no hay Gemini se usa el resto de la cadena. Se pierde el
-   * filtro por petición y lo que queda es el entrenamiento de seguridad
-   * que traen los propios modelos, así que el encargo de abajo lo dice
-   * en voz alta: puede estar preguntando un menor.
+   * Pero quedarse en "¿hay Gemini o no hay Gemini?" tampoco bastaba, y
+   * eso lo dijo la primera comprobación que supo contar lo que pasaba:
+   * tres intentos, `gemini:429`, `gemini:429`, `gemini:429`. Clave de
+   * Gemini había. Lo que no había era cupo: el plan gratuito de Google
+   * tiene un tope diario, y al llegar al tope devuelve 429. La lista
+   * entera eran Gemini, así que los tres intentos eran el mismo modelo
+   * chocando con la misma puerta cerrada.
+   *
+   * Así que Gemini va PRIMERO, no en exclusiva. Si contesta, el visitante
+   * se lleva el filtro de contenido por petición, que es lo que se quería.
+   * Si no contesta —sin cupo, caído, lo que sea— detrás hay otros, porque
+   * entre una respuesta sin ese filtro y ninguna respuesta, ninguna es
+   * peor: el filtro no es lo único que protege, los modelos traen el suyo
+   * de fábrica, y el encargo de abajo lo dice en voz alta por si acaso.
+   *
+   * Dos de cada uno. Cuatro intentos son ya quince segundos de espera, y
+   * quien está probando esto no ha prometido esperar nada.
    */
-  const soloGemini = cadenaDe("normal", null);
-  const cadena = (soloGemini.length ? soloGemini : cadenaDe("normal", "adulto")).slice(0, 3);
+  const conFiltro = cadenaDe("normal", null);
+  const sinFiltro = cadenaDe("normal", "adulto").filter((id) => !conFiltro.includes(id));
+  const cadena = [...conFiltro.slice(0, 2), ...sinFiltro.slice(0, 2)];
   let texto = "";
 
   /* Qué le pasó a cada uno, para poder contarlo si fallan los tres.
