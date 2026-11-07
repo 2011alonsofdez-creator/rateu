@@ -10,11 +10,38 @@ name: Probar la portada
 
 on:
   workflow_dispatch:
+    inputs:
+      marca:
+        description: >-
+          Un trozo de texto que SOLO aparezca en el despliegue que quieres
+          probar. Sirve para esperar a que Vercel publique antes de juzgar
+          nada.
+        default: "El momento justo"
+        required: true
 
 jobs:
   probar:
     runs-on: ubuntu-latest
     steps:
+      # La marca va primero porque contesta a la pregunta que hay que
+      # contestar ANTES que ninguna otra: ¿lo que hay ahí arriba es lo
+      # que acabo de subir, o es el despliegue de antes? Dos veces di por
+      # roto un arreglo que todavía no estaba publicado.
+      - name: Lo que hay publicado es lo último
+        run: |
+          set -e
+          echo "esperando al despliegue…"
+          for i in $(seq 1 20); do
+            PAGINA=$(curl -sS --max-time 30 "${{ secrets.KAIRO_URL }}/" || true)
+            if echo "$PAGINA" | grep -q "${{ inputs.marca }}"; then
+              echo "ok · publicado (intento $i)"; exit 0
+            fi
+            sleep 15
+          done
+          echo "MAL · cinco minutos y sigue sin aparecer «${{ inputs.marca }}»"
+          echo "       o Vercel no ha desplegado, o el despliegue falló."
+          exit 1
+
       - name: La portada responde y trae la caja de probar
         run: |
           set -e
