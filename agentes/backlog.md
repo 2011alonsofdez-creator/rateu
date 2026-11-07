@@ -1068,6 +1068,35 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Un verificador de cifras que no haya que recordar.** `[origen: radar 2026-11-07]`
+  Tres veces en tres días un cambio del dueño dejó **falso** material nuestro, y
+  las tres veces se arregló a mano al día siguiente:
+
+  | Cuándo | Qué quedó falso | Por qué |
+  |---|---|---|
+  | 06-11 | la escala de créditos en cuatro archivos de `agentes/ia/` | dobló `CREDITOS_NIVEL` |
+  | 06-11 | el caso 7 del banco de pruebas, que esperaba 120 y 1.000 | lo mismo |
+  | 07-11 | la política de cookies, que decía "no hay analítica" | puso analítica y una galleta nueva |
+
+  Y la respuesta de las tres veces fue la misma: **dejar escrita una regla**.
+  "Cuando cambie `planes.ts`, revísalo en el mismo turno" está hoy en la
+  cabecera del conocimiento de créditos, en la del banco de pruebas y en el
+  parte del 07-11. **Tres copias de una regla que hay que acordarse de leer no
+  son una regla: son tres sitios donde queda escrito que se nos olvidó.**
+
+  **Lo que hay que hacer, y está medio hecho**: el script que compara las cifras
+  del material con `CREDITOS_NIVEL` y `CREDITOS_PLAN` **ya lo escribí el 06-11**
+  para comprobar aquel arreglo —lee la constante del fuente con una expresión
+  regular y falla si el material dice otra cosa—, y vive en un directorio
+  temporal. Falta: dejarlo en `agentes/`, añadirle las cifras que han aparecido
+  desde entonces (el regalo de 300, los topes de Co-Works y Mentes, las cookies
+  de la política) y ponerlo en la lista de comprobaciones del guardián, que es
+  quien mira cada mañana.
+
+  **Trabajo**: medio día. **Ganancia**: mata una clase entera de errores, la que
+  más veces ha mordido esta semana, y la mata sin que nadie tenga que acordarse
+  de nada.
+
 - **Falta `/avisos-de-plazos`, que es la única página de intención que no compite contra nadie.** `[origen: crecimiento 2026-11-05]`
   De las seis intenciones de la tabla del 17-10, cuatro tienen página y faltan
   dos: `/resumir-video` y esta, que aquella tabla ya llamaba *"el argumento

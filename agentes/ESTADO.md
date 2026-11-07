@@ -3,69 +3,69 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-04 ([informe](informes/2026-11-04-estado.md)),
-la octava
-**Semáforo general**: 🔴 **séptimo rojo seguido. La Kairo publicada sigue vendiendo lo que no tiene, y tu lado de la mesa está a cero: 0 commits en tres días y los 17 P1 abiertos esperan los 17 algo tuyo**
+**Última revisión**: 2026-11-07 ([informe](informes/2026-11-07-estado.md)),
+la novena
+**Semáforo general**: 🔴 **octavo rojo, y el primero que no es por su inacción: lleva tres días publicada una frase falsa sobre datos personales en `/precios`, y 112 commits nuestros sin fusionar**
 
-> **Lo bueno del día, y no es pequeño**: Kairo tiene su **primer documento legal
-> de verdad**, la política de cookies, completa y en dos idiomas. Y existe por
-> **partir una tarea que llevaba tres días marcada como bloqueada**: de los
-> cuatro documentos legales, tres necesitan datos del dueño y uno no necesitaba
-> nada. Es la primera puerta de lanzamiento que se abre con trabajo hecho en vez
-> de con una comprobación.
+> **Lo que ha cambiado de verdad esta semana**: él ha hecho **41 commits en tres
+> días** —su récord— y ha abierto **las dos puertas de lanzamiento que se han
+> movido**: la **analítica**, que este panel llevaba nueve informes pidiendo, y
+> una **prueba sin cuenta** que funciona en producción. Y por primera vez un
+> agente ha **medido producción**: su propio `probar-portada.yml`, lanzado por
+> el guardián, devuelve que un desconocido pregunta y Kairo contesta.
 
 ## Métricas
 
-| Métrica | Valor | Anterior (31-10) | Tendencia |
+| Métrica | Valor | Anterior (04-11) | Tendencia |
 |---|---|---|---|
-| Web responde | sí, leído hoy en `revisar.yml` 33: 200 y "TODO CORRECTO" | sí | = |
-| **Se entiende en la primera pantalla** | ⚪ **sin datos, octavo informe**: la sede no abre la web (403 del proxy, comprobado hoy) | ⚪ | = y ya hay plan para cerrarlo: captura con Playwright desde GitHub |
-| Usuarios reales | **cuatro avisos** de "me da datos viejos" (commit `688ecb2`), sin más datos | 4 avisos | = y sin medir |
-| **Commits tuyos en 3 días** | **0** | 17 | ↓↓ **el dato del informe** |
-| Commits **sin fusionar** en `main` | **99** · 24 días | 87 · veinte días | ↑ lo peor de la tabla, octava vez |
-| Commits de los agentes en 3 días | **11**, con el 02-11 a cero | 11 | = |
-| Cerebros con clave directa | **1 de 3** (hoy: "Gemini 3 clave(s) · Claude NO · GPT NO") | 1 de 3 | = **día 20** |
-| Casas que ficha un MEGA | **3**: google + openai + deepseek · Claude entra **tercero** en la variable y se queda fuera | 3 | = |
-| Modelos que ofrece el repuesto | **419** | 416 (01-11) | ↑ |
-| `laguna` retirado y todavía en la cadena | **4.º día** | 1.º | ↑ y son dos minutos suyos |
-| Coste del repuesto que entra cada tarde | $0,10/M + $0,50/M + ~2 cts/consulta | igual | = **y sigue sin tope** |
-| Reloj de Co-Works | **suena**: 191 ejecuciones, las 8 últimas en verde, hoy a las 06:05 | suena | = **no falló ni el día que se cayó esta sesión** |
-| **Documentos legales escritos** | **1 de 4** (cookies, hoy) | 0 de 4 | ↑ |
-| **Puertas de lanzamiento** | **18**: 1 ✅ · **2** 🟡 · 1 ⚪ · **14** ⬜ | 1 ✅ · 1 🟡 · 1 ⚪ · 15 ⬜ | ↑ la primera abierta con trabajo |
-| Checklist de salud | 13 ✅ · 5 🟡 · 1 ⚪ · 1 ⬜ de 20 | igual | = |
-| Páginas de intención | 5 de 6, **las cinco enlazadas** desde el 01-11 | 5 de 6, ninguna enlazada | ↑ |
-| Banco de pruebas del prompt | 25 de 28 (23-10) · **12 días** sin pasarse, 9 cambios dentro | 8 días, 8 cambios | ↓ empeora a la velocidad a la que se entrena |
-| Tamaño del prompt (adulto + buscador) | **203** líneas (medido el 01-11; sin cambios desde) | 201 | ↑ +2 |
-| Tareas marcadas `[hecho]` en el backlog | **24** | **21** | ↑ +3 |
-| Turnos de agente perdidos | **4 el 02-11**; racha actual **2 días** | 0 en 21 días | ↓ se rompió una racha de 22 |
-| `notas.md` | **vacío, 24 días** desde que existe | vacío, 19 | ↑ en días |
-| Visitas · conversión · ingresos | sin datos | sin datos | = sin analítica |
+| Web responde | sí, leído hoy en `revisar.yml` 36: 200 y "TODO CORRECTO" | sí | = |
+| **Producción, vista de verdad** | **sí, el 07-11**: la portada carga, trae la caja de probar y **un desconocido sin cuenta recibe respuesta** (`probar-portada.yml`, log del día) | ⚪ ocho informes seguidos | ↑ **el agujero más viejo del panel, abierto** |
+| **Se entiende en la primera pantalla** | ⚪ **sigue sin respuesta**: el workflow comprueba que ciertas palabras están, no cómo se lee | ⚪ | = y haría falta una captura |
+| **Analítica** | **instalada el 06-11, suya**: sucesos en su propia base de datos, **sin IP, sin identificador y sin cookie**. Los números, suyos de leer | ninguna | ↑ **nueve informes pidiéndola** |
+| **Prueba sin cuenta** | **existe y funciona**: tres preguntas por visitante, tope de casa de 300 al día | no existía | ↑ |
+| **Commits suyos en 3 días** | **41** | 0 | ↑↑ su récord; el anterior eran 17 |
+| Commits de los agentes en 3 días | **16** | 11 | ↑ |
+| Commits **sin fusionar** en `main` | **112** · 27 días | 99 · 24 días | ↑ lo peor de la tabla, novena vez |
+| **Conflictos de fusión** | **4 en 4 días**, los cuatro resueltos | 1 en total | ↑ consecuencia de la fila de arriba |
+| Cerebros con clave directa | **1 de 3** | 1 de 3 | = **22 días** |
+| Modelos que ofrece el repuesto | **424** | 419 | ↑ |
+| `laguna` retirado y todavía en la cadena | **7.º día** | 4.º | ↑ dos minutos suyos |
+| Reloj de Co-Works | **suena**: 198 ejecuciones, las últimas en verde | suena | = |
+| **Puertas de lanzamiento** | **19**: 2 ✅ · 3 🟡 · 1 ⚪ · **13** ⬜ | 18: 1 ✅ · 2 🟡 · 1 ⚪ · 14 ⬜ | ↑ **las dos que se movieron las abrió él** |
+| Checklist de salud | 14 ✅ · 4 🟡 · 1 ⚪ · 1 ⬜ de 20 | igual | = |
+| Documentos legales escritos | **1 de 4**, y el publicado ya se corrigió una vez | 1 de 4 | = |
+| Banco de pruebas | **pasado el 07-11, parcial**: encontró y arregló un fallo de producción; los 14 casos sin puntuar | 12 días sin pasarse | ↑ con asterisco |
+| Tamaño del prompt (adulto + buscador) | **208** líneas, medido el 07-11 | 203 (medido el 01-11) | ↑ +5 |
+| Tareas marcadas `[hecho]` en el backlog | **27** | 24 | ↑ +3 |
+| P1 abiertos · el más viejo | **19** · 26 días | 17 · 24 días | ↑ en los dos |
+| Turnos de agente perdidos | **3 esta semana**, por reinicios de la sesión | 4 el 02-11 | ↑ |
+| `notas.md` | **vacío, 27 días** | vacío, 24 | ↑ |
+| Visitas · conversión · ingresos | **sin datos, y por primera vez hay de dónde sacarlos** | sin datos | → |
 
-Las tres últimas siguen sin datos porque **no hay analítica instalada** (en el
-backlog desde el 19-10, pedida en nueve informes). Y una corrección de este
-panel: donde el 31-10 decía "tareas cerradas: 24", contando como hoy —marcas
-`[hecho …]` en el backlog— eran **21**. Una métrica que no se puede recalcular
-no es una métrica.
+Las tres últimas siguen sin datos, **pero por un motivo distinto desde el
+06-11**: ya no es que no haya analítica —la hay—, es que **la tabla está en su
+Supabase y ningún agente tiene acceso**. O las lee él, o las expone por alguna
+vía. Lo que ya no se puede decir es "no hay de dónde".
 
 ## Veredicto de la última revisión
 
-**"Bloqueado esperándote" no era del todo verdad, y hoy hay prueba.** El P1 de
-los textos legales llevaba tres días parado entero por cuatro datos del dueño, y
-eso era verdad de **tres** de los cuatro documentos: la política de cookies no
-pregunta quién eres, pregunta qué pone Kairo en el navegador de quien la abre.
-Escrita hoy, completa, con 30 comprobaciones sobre el HTML generado.
+**El cuello de botella se ha movido de sitio.** En tres días él ha hecho **41
+commits** y ha abierto las dos puertas de lanzamiento que se han movido esta
+semana: la analítica —pedida nueve veces— y la prueba sin cuenta. Lo que queda
+bloqueando ya no es que no actúe.
 
-De ahí sale el cambio de método que entra en el backlog: **cada P1 que espere al
-dueño lleva de ahora en adelante una línea «el trozo que no te espera»**, o dice
-que no hay ninguno. Tres días de parón por no haber mirado la costura.
+Lo que queda bloqueando son dos cosas concretas. **Una frase falsa sobre datos
+personales, publicada desde el 05-11**: la FAQ de `/precios` dice que las
+conversaciones no se usan para entrenar modelos, y en la capa gratuita de Gemini
+—que es donde está la cuenta— eso es falso. Se arregla con una línea suya. **Y
+112 commits sin fusionar en 27 días**, que esta semana han empezado a costar
+algo nuevo y medido: **la rama se pudre**. Tres veces en tres días un cambio
+suyo dejó falso material nuestro —la escala de créditos, el banco de pruebas y
+la política de cookies— y las tres veces hubo que arreglarlo a mano al día
+siguiente.
 
-Lo que no ha cambiado, y es lo que pone el semáforo en rojo: `main` sigue sin
-tocar desde el 31-10, así que la Kairo publicada sigue vendiendo *"Mentes
-ilimitadas"* contra un tope de 30 y **conectores que no existen**. El arreglo de
-la primera está escrito desde el 31-10, en la rama de **99 commits y 24 días**.
-La segunda no la arregla ningún agente: es cómo quieres venderlo, y son diez
-minutos en cuanto lo digas.
-
-Y el patrón del 31-10 sigue en pie, cuatro días más viejo: **actúa sobre los
-hallazgos pero no coge los arreglos.** Reimplementa en `main` en vez de
-fusionar, así que el hallazgo le llega y el arreglo se queda en la rama.
+De ahí sale la primera de las tres cosas del próximo tramo, y es nuestra: **un
+verificador que compare las cifras de nuestro material con el código**, fijo y
+en el protocolo, porque la regla "revísalo en el mismo turno" ya está escrita
+tres veces en tres archivos distintos y una regla que hay que recordar no es una
+regla.

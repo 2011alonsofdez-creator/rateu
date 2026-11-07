@@ -71,7 +71,8 @@ y otra actualizada porque el producto ha cambiado desde que se escribió.
 
 | | Qué | Estado | Lo que se sabe hoy |
 |---|---|---|---|
-| ⬜ | Registrarse con una cuenta nueva y llegar a la primera respuesta sin errores | sin verificar | Nadie lo ha hecho de principio a fin. Desde la sede no se puede: no se abre la web. **Es la primera de todas y es de quince minutos suyos.** |
+| ✅ | **Un desconocido llega a su primera respuesta, sin cuenta** | 2026-11-07 | **Fila nueva, y es la primera que se abre midiendo producción y no leyendo código.** Esta puerta no existía porque el camino no existía: lo hizo él el 06-11 con la prueba de la portada. Hoy el guardián ha lanzado su propio `probar-portada.yml` —es de ejecución manual, así que cualquier agente puede— y el log dice las cuatro cosas: el despliegue publicado es el último, la portada carga, **está la caja de probar**, y un desconocido pregunta y Kairo contesta: `{"texto":"FUNCIONA","quedan":2}`. Y el tope por visitante funciona: 200, 200, **429**, 429. No es "se entiende la portada" —eso sigue en ⚪, tres filas más abajo—: es que **funciona para alguien que llega de la calle**, que es la puerta que importa antes de pedirle una cuenta |
+| ⬜ | Registrarse con una cuenta nueva y llegar a la primera respuesta sin errores | sin verificar | Nadie lo ha hecho de principio a fin. Desde la sede no se puede: no se abre la web. Lo que **sí** está medido desde hoy es el camino de antes, el de la prueba sin cuenta (fila de arriba); esta sigue siendo la del registro, y sigue siendo **de quince minutos suyos** |
 | ⬜ | Probar **los cuatro** niveles y comprobar que descuentan bien | sin verificar | La especificación dice tres porque se escribió antes de Forja. Hoy son `fast` 1, `normal` 4, `forja` 20, `mega` 120 (`lib/ia/config.ts`). Que el descuento sea correcto **no lo ha comprobado nadie en producción** |
 | ⬜ | Gastar todos los créditos a propósito y ver que el bloqueo funciona | sin verificar | El bloqueo existe en el código y nadie lo ha visto actuar. Y desde el 29-10 hay dos saldos —la recarga diaria y los 150 de bienvenida—, así que son **dos** finales distintos que probar |
 | ⬜ | Crear un perfil hijo y probar el modo niños con preguntas límite | sin verificar | Es el P2 del entrenador del 16-10: **el modo de edad no se ha probado nunca**. Hay tres ejemplos escritos de casos límite de menores, y ninguno ejecutado contra Kairo |
@@ -96,7 +97,7 @@ y otra actualizada porque el producto ha cambiado desde que se escribió.
 | | Qué | Estado | Lo que se sabe hoy |
 |---|---|---|---|
 | ⬜ | Diez personas usándola una semana entera y contando qué falla | sin verificar | **Y cuidado con confundirlo con lo que ya hay**: el 24-10 cuatro personas avisaron de que Kairo daba datos viejos (commit `688ecb2`). Eso es oro y no es esto: fueron cuatro, no diez, y un aviso suelto, no una semana |
-| ⬜ | Analítica instalada | sin verificar | **Cero** cifras de registros, primer mensaje o pagos. **Pedido ocho veces desde el 19-10**, y es lo que deja en blanco tres métricas de cada informe del radar |
+| 🟡 | Analítica instalada | 2026-11-07 | **La puso él el 06-11, y es suya de arriba abajo**: `lib/rastro.ts` manda los sucesos a `api/rastro`, y `0022_rastro.sql` crea la tabla. Apunta `visita` con su ruta, `prueba`, `prueba_agotada`, `registro` y `mensaje`, **sin IP, sin identificador de visitante y sin cookie**, y guardando solo el dominio de origen. No es un servicio de fuera: es su propia base de datos. **Pedida nueve veces desde el 19-10**, y hecha mejor de lo que se pedía. En 🟡 y no en ✅ por dos cosas, las dos de medición: **que la tabla exista de verdad en Supabase no se puede ver desde aquí** —el endpoint se calla si falta, a propósito— y **los números siguen siendo suyos de leer**: ningún agente tiene acceso al panel. Lo que ya no es verdad es "cero cifras": ahora hay de dónde sacarlas |
 | ⬜ | Un canal para recibir fallos | sin verificar | **Pedido ocho veces desde el 13-10.** Los cuatro avisos del 24-10 llegaron por donde pudieron, y lo único que queda de ellos es una frase en un mensaje de commit |
 | ⬜ | Publicar en Product Hunt, Reddit y foros | sin verificar, **y no lo hace ningún agente** | Está en el apartado 5 del protocolo: publicar en cualquier sitio lo decide y lo hace él. Lo que los agentes sí tienen listo es el material: los canales con sus normas están en `agentes/mercado/2026-10-17-mercado.md` y `2026-10-23-mercado.md`, con el aviso de que varias comunidades expulsan por autopromoción |
 
@@ -113,12 +114,15 @@ no se olviden, y los tres dicen hoy lo mismo.
 
 ### El recuento honesto
 
-**18 puertas de lanzamiento: 1 ✅ · 2 🟡 · 1 ⚪ · 14 ⬜.** Más los tres números de cada
+**19 puertas de lanzamiento: 2 ✅ · 3 🟡 · 1 ⚪ · 13 ⬜.** Más los tres números de cada
 semana, que no son puertas y hoy están los tres sin datos.
 
-La especificación lista diecisiete; aquí son 18 porque la de los textos
-legales va partida en dos —escritos y enlazados—, que es justo la confusión que
-tuvo esto veinte días en verde.
+La especificación lista diecisiete; aquí son **19**: la de los textos legales va
+partida en dos —escritos y enlazados—, que es justo la confusión que tuvo esto
+veinte días en verde, y el **07-11** se añadió una que no existía porque el
+camino no existía: **"un desconocido llega a su primera respuesta, sin cuenta"**.
+Esa es la primera puerta que se abre **midiendo producción** y no leyendo
+código.
 
 Y leído junto a la primera mitad —que el **05-11** pasa a **14 ✅ · 4 🟡 · 1 ⚪ ·
 1 ⬜**, porque hoy las ocho páginas públicas ya tienen su propio título—, es
@@ -134,3 +138,10 @@ no se habían escrito, así que no se podían contar.
 lanzamiento que se abre con trabajo hecho, no con una comprobación. Y lo que
 movió la fila no fue encontrar tiempo, fue **partir la tarea**: de los cuatro
 documentos legales, tres esperan datos del dueño y uno no esperaba nada.
+
+**Y el 07-11 bajó a 13, con las dos filas que movió él**: la analítica, pedida
+nueve veces desde el 19-10 y hecha mejor de lo que se pedía —en su propia base
+de datos, sin IP ni identificador ni cookie—, y la prueba sin cuenta, que
+además es la primera puerta verificada **contra la web de verdad**. Dicho sin
+adornos: **las dos puertas que se han movido esta semana las ha abierto él**;
+los agentes han abierto la de los cookies y han medido la suya.
