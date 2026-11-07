@@ -1,3 +1,23 @@
+<!-- LA MARCA REDUCIDA, PARA 16 PÍXELES.
+
+     Esto no es el logo: es el logo dicho en voz baja. El de verdad son
+     tres aros que se cruzan y un punto donde se solapan, y a 16 píxeles
+     —que es el tamaño real de la pestaña del navegador— eso es una
+     mancha naranja. Lo comprobé dibujándolo a tamaño real: el trazo de
+     los aros cae por debajo de un píxel y medio, los tres se tocan y lo
+     que queda es un borrón ilegible, sobre todo en pestaña clara.
+
+     Así que a este tamaño se cambia de idioma y se guarda la idea en vez
+     del dibujo. La idea es "tres". Tres discos llenos, bien separados,
+     blancos sobre la baldosa de marca: a 16 píxeles cada uno mide cuatro
+     píxeles con dos de hueco, y se cuentan. La baldosa hace el resto del
+     trabajo, que es que se vea el naranja de Kairo antes incluso de
+     distinguir la forma.
+
+     Lo que se pierde es el punto del centro, el "y los tres son uno".
+     A 16 píxeles ese punto es ruido, y lo probé. El logo completo, con
+     aros y punto, sigue estando en Logo.tsx y es el que se ve en todas
+     partes menos aquí y en la pantalla de inicio del móvil. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
@@ -5,10 +25,10 @@
       <stop offset="100%" stop-color="#ff7a18"/>
     </linearGradient>
   </defs>
-  <g stroke="url(#g)" stroke-width="8" fill="none">
-    <circle cx="50" cy="34" r="24"/>
-    <circle cx="34" cy="62" r="24"/>
-    <circle cx="66" cy="62" r="24"/>
+  <rect width="100" height="100" rx="23" fill="url(#g)"/>
+  <g fill="#fff">
+    <circle cx="50" cy="33" r="14"/>
+    <circle cx="30" cy="66" r="14"/>
+    <circle cx="70" cy="66" r="14"/>
   </g>
-  <circle cx="50" cy="51" r="8" fill="url(#g)"/>
 </svg>
