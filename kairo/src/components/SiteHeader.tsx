@@ -83,7 +83,12 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Logo />
-          <p className="mt-2 text-[13px] text-faint">{t("footer.tagline")}</p>
+          {/* El lema primero, en el color del texto normal, y debajo de
+              dónde sale el nombre. Lo segundo es letra pequeña a
+              propósito: no es un argumento de venta, es la nota al pie
+              que contesta "¿y por qué Kairo?" a quien se lo pregunte. */}
+          <p className="mt-2 text-[13.5px] font-medium">{t("footer.lema")}</p>
+          <p className="mt-1 text-[12px] text-faint">{t("footer.origen")}</p>
         </div>
         {/* DOS COLUMNAS DESDE EL 01-11, Y LA PRIMERA NO EXISTÍA.
 

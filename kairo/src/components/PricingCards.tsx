@@ -125,7 +125,7 @@ export function PricingCards() {
                 "rounded-xl border border-line-hi px-4 py-2.5 text-[14px] transition hover:bg-panel-hi";
 
               return HAY_TIENDA ? (
-                <Link key={pack.credits} href={comprar(`pack_${pack.credits}`)} className={clases}>
+                <Link key={pack.credits} href={comprar(pack.producto)} className={clases}>
                   {dentro}
                 </Link>
               ) : (

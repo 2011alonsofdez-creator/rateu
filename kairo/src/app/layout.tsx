@@ -2,20 +2,32 @@ import type { Metadata, Viewport } from "next";
 import { UiProvider } from "@/lib/i18n";
 import "./globals.css";
 
-/* La dirección de producción, escrita aquí a propósito.
+/* DE DÓNDE CUELGAN LAS DIRECCIONES ABSOLUTAS.
  *
- * `metadataBase` tiene que ser absoluta: las redes sociales no piden la
- * tarjeta desde el navegador de nadie, así que una ruta relativa como
- * /og.png no les dice en qué servidor está. Sin esta línea, Next avisa
- * en el build y la imagen de abajo no se enseña en ningún sitio.
- *
- * No sale de una variable de entorno a propósito: no es un secreto, es
- * la dirección pública, y si un día falta la variable la tarjeta deja de
- * salir sin que nadie se entere. Si cambia el dominio, se cambia aquí. */
-const SITIO = "https://kairo-six-lemon.vercel.app";
+ * Hace falta para la tarjeta de compartir: WhatsApp, X y Telegram piden
+ * la imagen por su dirección completa, y sin esto Next la pone relativa
+ * y media internet no la carga. En Vercel la variable de abajo viene
+ * puesta de serie, así que en producción no hay nada que configurar;
+ * NEXT_PUBLIC_SITE_URL es para cuando haya dominio propio. */
+const CASA =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
 
+/* LA TARJETA QUE SE VE AL PEGAR EL ENLACE.
+ *
+ * Hasta ahora no había ninguna: quien pegaba kairo en un grupo de
+ * WhatsApp veía un recuadro gris con la dirección y nada más. Y el plan
+ * de este mes es precisamente mandar gente desde redes, o sea que el
+ * primer contacto con la marca de casi todo el mundo iba a ser ese
+ * recuadro gris.
+ *
+ * La imagen es opengraph-image.png, aquí al lado: Next la encuentra sola
+ * por el nombre del archivo y escribe las etiquetas. No hay que
+ * enlazarla. */
 export const metadata: Metadata = {
-  metadataBase: new URL(SITIO),
+  metadataBase: new URL(CASA),
   title: "Kairo — La IA que trabaja cuando tú no",
   description:
     "Kairo usa Claude, Gemini y GPT a la vez y elige el mejor modelo para cada tarea. Con Co-Works programados que trabajan mientras no estás.",
@@ -26,25 +38,12 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Kairo",
     locale: "es_ES",
-    url: "/",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Kairo — La IA que trabaja cuando tú no",
-      },
-    ],
   },
-  /* X y LinkedIn leen esto antes que lo de arriba. `summary_large_image`
-     es lo que hace que salga la tarjeta grande en vez de una miniatura
-     cuadrada al lado del texto. */
   twitter: {
     card: "summary_large_image",
     title: "Kairo — La IA que trabaja cuando tú no",
     description:
       "Tres modelos, una sola IA. Con trabajos programados que se ejecutan solos.",
-    images: ["/og.png"],
   },
 };
 
@@ -66,6 +65,8 @@ const themeScript = `
   }
 })();`;
 
+import { Rastro } from "@/components/Rastro";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" data-theme="dark" suppressHydrationWarning>
@@ -79,7 +80,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <UiProvider>{children}</UiProvider>
+        <UiProvider>
+          {/* Cuenta las visitas en nuestra propia base de datos. No
+              guarda IP ni galleta: cuenta sucesos, no personas. */}
+          <Rastro />
+          {children}
+        </UiProvider>
       </body>
     </html>
   );

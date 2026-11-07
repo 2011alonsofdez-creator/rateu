@@ -26,8 +26,22 @@ const dict = {
     "hero.badge": "Claude · Gemini · GPT, en una sola suscripción",
     "hero.title": "La IA que trabaja",
     "hero.titleAccent": "cuando tú no.",
+    /* Esto decía "elige SOLO el adecuado", y justo encima la etiqueta
+       vende los tres a la vez. Dos frases en la misma pantalla contando
+       cosas distintas: quien llega no sabe qué compra, y de paso el
+       subtítulo desmentía lo único que no tiene nadie. */
     "hero.sub":
-      "Kairo usa los tres mejores modelos del mundo y elige solo el adecuado para cada tarea. Tú escribes; él decide, trabaja y te avisa.",
+      "Claude, Gemini y GPT en el mismo sitio. Kairo elige el que toca para cada cosa, y cuando la pregunta es gorda les pregunta a los tres y te da una sola respuesta.",
+    "try.hint": "Pruébalo aquí mismo. Sin cuenta y sin tarjeta.",
+    "try.busy": "Pensando…",
+    "try.left": "Te quedan {n} pruebas gratis.",
+    "try.none":
+      "Se acabaron las pruebas gratis. Crea una cuenta y te llevas {n} créditos de regalo, que dan para un Mega-Prompt entero.",
+    "try.error": "No he podido contestar. Prueba otra vez en un momento.",
+    "try.cta": "Seguir en Kairo · {n} créditos de regalo",
+    "try.s1": "¿Puedo recurrir una multa de 200 € por exceso de velocidad?",
+    "try.s2": "Explícame la fotosíntesis como si tuviera 15 años",
+    "try.s3": "Escríbeme un correo para pedir un día libre",
     "hero.cta": "Empezar gratis",
     "hero.cta2": "Ver cómo funciona",
     "hero.note": "Sin tarjeta. {n} créditos gratis cada día.",
@@ -60,6 +74,15 @@ const dict = {
     "features.mega": "Mega-Prompt",
     "features.megaDesc":
       "Un botón que lanza los tres modelos a la vez y combina lo mejor de cada respuesta. Para cuando acertar importa de verdad.",
+    "features.coworks": "Co-Works",
+    "features.coworksDesc":
+      "Encargos con hora. Kairo se despierta solo, lo hace y te deja el resultado esperándote: el resumen de la mañana, el repaso de las cinco, vigilar que algo no se caiga.",
+    "features.team": "Team",
+    "features.teamDesc":
+      "Un equipo que contratas: el abogado que revisa contratos, el contable que ordena facturas, el comercial que contesta a tus clientes. Cada uno sabe de lo suyo y se acuerda de lo tuyo.",
+    "features.code": "Code",
+    "features.codeDesc":
+      "Dile qué herramienta necesitas y te la escribe delante. Sale un archivo que se abre con doble clic: sin instalar nada, sin cuentas y sin internet una vez lo tengas.",
     "features.connect": "Conectores",
     "features.connectDesc":
       "Drive, Gmail, Calendar y GitHub. Kairo trabaja con tus cosas, no con copias pegadas a mano.",
@@ -94,14 +117,33 @@ const dict = {
     "footer.terms": "Términos",
     "footer.rights": "Todos los derechos reservados.",
 
-    /* El pie, con dos columnas desde el 01-11. La de la izquierda es el
+    /* EL LEMA, QUE NO ES EL TITULAR. (Suyo, 06-11.)
+
+       Aquí ponía otra vez "la IA que trabaja cuando tú no", que es
+       la frase del titular. Repetir el titular en el pie no dice
+       nada nuevo: quien llega abajo ya la ha leído, y lo único que
+       aprende es que no había nada más que contar.
+
+       El lema es otra cosa. El titular vende lo que hace el
+       producto; el lema dice por qué se llama así. Kairós es la
+       palabra griega para el momento oportuno —no el tiempo que
+       pasa, que ese es jronos, sino el instante en que algo hay que
+       hacerlo— y resulta que es exactamente lo que vende Kairo:
+       avisarte de la multa antes de que venza, no después. */
+    "footer.lema": "El momento justo.",
+    "footer.origen": "Kairós, en griego: el instante en que algo hay que hacerlo.",
+
+    /* Y las dos columnas del pie, del 01-11. La de la izquierda es el
        único camino que hay desde la web a las cinco páginas de
        intención: estaban las cinco en el `sitemap.xml` y no se llegaba a
        ninguna desde ninguna parte, o sea que existían para Google y no
        para un visitante. Veintiún días así.
        Los nombres son cortos a propósito: en el pie no cabe un titular,
        y lo que tiene que reconocerse es el problema —"Multas"—, no la
-       promesa. */
+       promesa.
+       `footer.tagline` se cae aquí: era la frase que él ha sustituido por
+       el lema, y ya no la usa nadie —comprobado en `SiteHeader.tsx`, que
+       pinta `lema`, `origen` y estas siete—. */
     "footer.solves": "Lo que resuelve",
     "footer.legalTitle": "Legal",
     "footer.multas": "Multas",
@@ -109,7 +151,6 @@ const dict = {
     "footer.contratos": "Contratos",
     "footer.app": "Crear una app",
     "footer.sinSuscripcion": "Sin suscripción",
-    "footer.tagline": "La IA que trabaja cuando tú no.",
 
     "app.newChat": "Nuevo chat",
     "app.chats": "Chats",
@@ -127,6 +168,7 @@ const dict = {
     "slider.credits": "créditos al mes",
     "slider.questions": "preguntas normales",
     "slider.councils": "consejos de las 3 IAs",
+    "slider.fast": "preguntas rápidas",
     "slider.perMonth": "al mes con {p}",
     "slider.freePrice": "gratis, sin tarjeta",
     "slider.freeNote": "Son {n} al día y no se acumulan, y solo con Rápido y Estándar.",
@@ -553,13 +595,13 @@ const dict = {
     "auth.haveAccount": "¿Ya tienes cuenta?",
     "auth.goLogin": "Entrar",
     "auth.registerTitle": "Crea tu cuenta",
-    /* Esta sigue con la cifra escrita, y no por gusto: la pinta
-       `(auth)/registro/page.tsx`, y `(auth)/` no se toca sin permiso del
-       dueño (apartado 5 del protocolo). Para que leyera `CREDITOS_PLAN`
-       hace falta un `{n}` aquí y un `.replace()` allí, que es una línea
-       suya. Pedido en el parte del 30-10. Mientras, al menos dice la
-       verdad: 20, no 15. */
-    "auth.registerSub": "20 créditos gratis cada día. Sin tarjeta.",
+    /* **Hecho por él el 06-11, y era lo que le pedimos el 30-10.** Esta
+       clave llevaba la cifra escrita a mano porque la pinta
+       `(auth)/registro/page.tsx` y `(auth)/` no se toca sin su permiso: para
+       que leyera `CREDITOS_PLAN` hacía falta un `{n}` aquí y un `.replace()`
+       allí, y el `.replace()` era suyo. Ya está puesto, así que esta frase
+       dejó de poder envejecer: hoy dice 40 porque el plan son 40. */
+    "auth.registerSub": "{n} créditos gratis cada día. Sin tarjeta.",
     "auth.registerCta": "Crear cuenta",
     "auth.terms": "Al crear la cuenta aceptas los términos y la política de privacidad.",
     "auth.checkTitle": "Revisa tu correo",
@@ -618,7 +660,17 @@ const dict = {
     "hero.title": "The AI that works",
     "hero.titleAccent": "when you don't.",
     "hero.sub":
-      "Kairo runs the world's three best models and picks the right one for every task. You type; it decides, works, and tells you when it's done.",
+      "Claude, Gemini and GPT in one place. Kairo picks the right one for each job, and when the question really matters it asks all three and gives you a single answer.",
+    "try.hint": "Try it right here. No account, no card.",
+    "try.busy": "Thinking…",
+    "try.left": "You have {n} free goes left.",
+    "try.none":
+      "That's the free goes used up. Create an account and you get {n} credits, enough for a whole Mega-Prompt.",
+    "try.error": "I couldn't answer that. Try again in a moment.",
+    "try.cta": "Carry on in Kairo · {n} free credits",
+    "try.s1": "Can I appeal a 200 euro speeding fine?",
+    "try.s2": "Explain photosynthesis like I'm 15",
+    "try.s3": "Write me an email asking for a day off",
     "hero.cta": "Start free",
     "hero.cta2": "See how it works",
     "hero.note": "No card required. {n} free credits every day.",
@@ -651,6 +703,15 @@ const dict = {
     "features.mega": "Mega-Prompt",
     "features.megaDesc":
       "One button fires all three models and merges the best of each answer. For when getting it right really matters.",
+    "features.coworks": "Co-Works",
+    "features.coworksDesc":
+      "Jobs with a time on them. Kairo wakes up by itself, does the work and leaves the result waiting: the morning briefing, the five o'clock revision, keeping an eye on something.",
+    "features.team": "Team",
+    "features.teamDesc":
+      "A team you hire: the lawyer who reads contracts, the bookkeeper who sorts invoices, the salesperson who answers your clients. Each knows their job and remembers yours.",
+    "features.code": "Code",
+    "features.codeDesc":
+      "Tell it what tool you need and it writes it in front of you. Out comes a file you open with a double click: nothing to install, no accounts, and no internet once you have it.",
     "features.connect": "Connectors",
     "features.connectDesc":
       "Drive, Gmail, Calendar and GitHub. Kairo works with your actual files, not pasted copies.",
@@ -684,6 +745,8 @@ const dict = {
     "footer.terms": "Terms",
     "footer.rights": "All rights reserved.",
 
+    "footer.lema": "The right moment.",
+    "footer.origen": "Kairos, in Greek: the moment when a thing has to be done.",
     "footer.solves": "What it solves",
     "footer.legalTitle": "Legal",
     "footer.multas": "Fines",
@@ -691,7 +754,6 @@ const dict = {
     "footer.contratos": "Contracts",
     "footer.app": "Build an app",
     "footer.sinSuscripcion": "No subscription",
-    "footer.tagline": "The AI that works when you don't.",
 
     "app.newChat": "New chat",
     "app.chats": "Chats",
@@ -709,6 +771,7 @@ const dict = {
     "slider.credits": "credits per month",
     "slider.questions": "normal questions",
     "slider.councils": "councils of all 3 AIs",
+    "slider.fast": "quick questions",
     "slider.perMonth": "a month with {p}",
     "slider.freePrice": "free, no card",
     "slider.freeNote": "That's {n} a day, they don't roll over, and only Fast and Standard.",
@@ -1132,7 +1195,7 @@ const dict = {
     "auth.haveAccount": "Already have an account?",
     "auth.goLogin": "Log in",
     "auth.registerTitle": "Create your account",
-    "auth.registerSub": "20 free credits every day. No card required.",
+    "auth.registerSub": "{n} free credits every day. No card required.",
     "auth.registerCta": "Create account",
     "auth.terms": "By creating an account you accept the terms and the privacy policy.",
     "auth.checkTitle": "Check your email",

@@ -1,0 +1,79 @@
+name: Probar la portada
+
+# Comprueba que un desconocido puede usar Kairo sin cuenta.
+#
+# Esto no se puede probar desde donde se escribe el código: allí no hay
+# claves de modelos y la salida a internet está capada. Aquí sí, y
+# además se prueba contra la web desplegada, que es donde importa.
+#
+# Se lanza a mano desde la pestaña Actions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      marca:
+        description: >-
+          Un trozo de texto que SOLO aparezca en el despliegue que quieres
+          probar. Sirve para esperar a que Vercel publique antes de juzgar
+          nada.
+        default: "El momento justo"
+        required: true
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      # La marca va primero porque contesta a la pregunta que hay que
+      # contestar ANTES que ninguna otra: ¿lo que hay ahí arriba es lo
+      # que acabo de subir, o es el despliegue de antes? Dos veces di por
+      # roto un arreglo que todavía no estaba publicado.
+      - name: Lo que hay publicado es lo último
+        run: |
+          set -e
+          echo "esperando al despliegue…"
+          for i in $(seq 1 20); do
+            PAGINA=$(curl -sS --max-time 30 "${{ secrets.KAIRO_URL }}/" || true)
+            if echo "$PAGINA" | grep -q "${{ inputs.marca }}"; then
+              echo "ok · publicado (intento $i)"; exit 0
+            fi
+            sleep 15
+          done
+          echo "MAL · cinco minutos y sigue sin aparecer «${{ inputs.marca }}»"
+          echo "       o Vercel no ha desplegado, o el despliegue falló."
+          exit 1
+
+      - name: La portada responde y trae la caja de probar
+        run: |
+          set -e
+          PAGINA=$(curl -sS --max-time 30 "${{ secrets.KAIRO_URL }}/")
+          echo "$PAGINA" | grep -q "Pru" && echo "ok · la portada carga"
+          echo "$PAGINA" | grep -qi "sin cuenta" \
+            && echo "ok · está la caja de probar" \
+            || { echo "MAL · no aparece la caja de probar"; exit 1; }
+
+      - name: Un desconocido pregunta y Kairo contesta
+        run: |
+          set -e
+          R=$(curl -sS --max-time 60 -X POST "${{ secrets.KAIRO_URL }}/api/probar" \
+                -H 'Content-Type: application/json' \
+                -d '{"pregunta":"Contesta solo con la palabra FUNCIONA, sin nada mas."}')
+          echo "Respuesta: $(echo "$R" | head -c 300)"
+          echo "$R" | grep -q '"texto"' \
+            && echo "ok · contesta sin cuenta" \
+            || { echo "MAL · no ha contestado"; exit 1; }
+
+      - name: Y a la cuarta dice que se acabó
+        run: |
+          set -e
+          for i in 1 2 3 4; do
+            C=$(curl -sS --max-time 60 -o /tmp/r.json -w '%{http_code}' \
+                  -X POST "${{ secrets.KAIRO_URL }}/api/probar" \
+                  -H 'Content-Type: application/json' \
+                  -H "Cookie: kairo_probar=$i" \
+                  -d '{"pregunta":"hola que tal"}')
+            echo "con $i gastadas → $C"
+            if [ "$i" -ge 3 ] && [ "$C" != "429" ]; then
+              echo "MAL · con $i gastadas tendría que cortar"; exit 1
+            fi
+          done
+          echo "ok · el tope por visitante funciona"

@@ -171,7 +171,7 @@ export function elegirNivel(pregunta: string, ctx: Contexto = {}): Eleccion {
   }
 
   /* Lo demás: Normal. Es el nivel que mejor responde a lo que la gente
-     pregunta de verdad, y cuesta cuatro créditos, no veinte. */
+     pregunta de verdad, y cuesta ocho créditos, no cuarenta. */
   return { nivel: "normal", motivo: "por_defecto" };
 }
 

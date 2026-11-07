@@ -1,6 +1,7 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
 import { CREDITOS_NIVEL, CREDITOS_PLAN } from "./planes";
+import type { Producto } from "./pagos/config";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
    Supabase en el Paso 2: nada de aquí sobrevive a producción. */
@@ -299,16 +300,16 @@ export const plans: Plan[] = [
         "2.000 créditos al mes",
         "Modelos rápido y estándar",
         "8 Mega-Prompts al mes",
-        "10 Co-Works activos",
-        "5 conectores · 10 Mentes",
+        "3 Co-Works activos",
+        "10 Mentes propias",
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "2,000 credits per month",
         "Fast and standard models",
         "8 Mega-Prompts per month",
-        "10 active Co-Works",
-        "5 connectors · 10 Minds",
+        "3 active Co-Works",
+        "10 Minds of your own",
         "PDFs of any size · photos up to 3 MB",
       ],
     },
@@ -323,7 +324,7 @@ export const plans: Plan[] = [
         "Los tres modelos, incluido el máximo",
         "25 Mega-Prompts al mes",
         "10 Co-Works activos",
-        "Todos los conectores · 30 Mentes",
+        "30 Mentes propias",
         "PDF de cualquier tamaño · fotos hasta 3 MB",
         "Soporte prioritario",
       ],
@@ -332,7 +333,7 @@ export const plans: Plan[] = [
         "All three models, top tier included",
         "25 Mega-Prompts per month",
         "10 active Co-Works",
-        "Every connector · 30 Minds",
+        "30 Minds of your own",
         "PDFs of any size · photos up to 3 MB",
         "Priority support",
       ],
@@ -340,7 +341,20 @@ export const plans: Plan[] = [
   },
 ];
 
-export const creditPacks = [
-  { credits: 1000, price: 5.99 },
-  { credits: 4000, price: 19.99 },
+/* EL NOMBRE DEL PRODUCTO VA ESCRITO, NO SE CALCULA.
+ *
+ * El botón de comprar sacaba el identificador del número de créditos
+ * —`pack_${pack.credits}`—, así que al doblar la escala empezó a pedir
+ * un "pack_1000" que no existe en la tienda y el enlace devolvía a
+ * precios sin comprar nada. En silencio, además: no hay error, solo no
+ * pasa nada.
+ *
+ * Los nombres siguen diciendo 500 y 2000 porque identifican el PRODUCTO
+ * de la tienda, que es el mismo de siempre y está ya configurado en
+ * Vercel. Lo que cambió es cuántos créditos abona, y eso vive en
+ * pagos/config.ts. Aquí van separados a propósito: el día que vuelvan a
+ * cambiar los créditos, el botón sigue apuntando a donde debe. */
+export const creditPacks: { producto: Producto; credits: number; price: number }[] = [
+  { producto: "pack_500", credits: 1000, price: 5.99 },
+  { producto: "pack_2000", credits: 4000, price: 19.99 },
 ];

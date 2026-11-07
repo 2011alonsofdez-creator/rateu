@@ -35,6 +35,12 @@ export const CREDITOS_NIVEL: Record<NivelEsfuerzo, number> = {
   mega: 240,
 };
 
+/* Los créditos de bienvenida. El valor de verdad lo pone la base de
+   datos (`creditos_extra` por defecto, migración 0020); esto es para
+   poder decirlo en pantalla sin escribir el número a mano en cuatro
+   sitios. Si se cambia allí, se cambia aquí. */
+export const REGALO_BIENVENIDA = 300;
+
 /** Créditos que incluye cada plan. Sirve para la barra de progreso.
  *  El de `free` es el tope DIARIO; los otros dos son al mes. */
 export const CREDITOS_PLAN: Record<PlanId, number> = {

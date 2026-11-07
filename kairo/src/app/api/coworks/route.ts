@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   /* UNO EN EL PLAN GRATIS, Y NO POR TACAÑERÍA.
  
      Un Co-Work se ejecuta cada mañana y cuesta 8 créditos cada vez. Con
-     veinte al día, el quinto ya no cabe: antes de esto se podían crear
+     cuarenta al día, el quinto ya no cabe: antes de esto se podían crear
      diez, y a partir del quinto fallaban todos los días en silencio.
      Prometer cinco trabajadores y que cuatro no aparezcan nunca es peor
      que decir que hay uno.
