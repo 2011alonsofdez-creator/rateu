@@ -116,7 +116,21 @@ const dict = {
     "footer.cookies": "Cookies",
     "footer.terms": "Términos",
     "footer.rights": "Todos los derechos reservados.",
-    "footer.tagline": "La IA que trabaja cuando tú no.",
+    /* EL LEMA, QUE NO ES EL TITULAR.
+
+       Aquí ponía otra vez "la IA que trabaja cuando tú no", que es
+       la frase del titular. Repetir el titular en el pie no dice
+       nada nuevo: quien llega abajo ya la ha leído, y lo único que
+       aprende es que no había nada más que contar.
+
+       El lema es otra cosa. El titular vende lo que hace el
+       producto; el lema dice por qué se llama así. Kairós es la
+       palabra griega para el momento oportuno —no el tiempo que
+       pasa, que ese es jronos, sino el instante en que algo hay que
+       hacerlo— y resulta que es exactamente lo que vende Kairo:
+       avisarte de la multa antes de que venza, no después. */
+    "footer.lema": "El momento justo.",
+    "footer.origen": "Kairós, en griego: el instante en que algo hay que hacerlo.",
 
     "app.newChat": "Nuevo chat",
     "app.chats": "Chats",
@@ -655,7 +669,8 @@ const dict = {
     "footer.cookies": "Cookies",
     "footer.terms": "Terms",
     "footer.rights": "All rights reserved.",
-    "footer.tagline": "The AI that works when you don't.",
+    "footer.lema": "The right moment.",
+    "footer.origen": "Kairos, in Greek: the moment when a thing has to be done.",
 
     "app.newChat": "New chat",
     "app.chats": "Chats",

@@ -2,7 +2,32 @@ import type { Metadata, Viewport } from "next";
 import { UiProvider } from "@/lib/i18n";
 import "./globals.css";
 
+/* DE DÓNDE CUELGAN LAS DIRECCIONES ABSOLUTAS.
+ *
+ * Hace falta para la tarjeta de compartir: WhatsApp, X y Telegram piden
+ * la imagen por su dirección completa, y sin esto Next la pone relativa
+ * y media internet no la carga. En Vercel la variable de abajo viene
+ * puesta de serie, así que en producción no hay nada que configurar;
+ * NEXT_PUBLIC_SITE_URL es para cuando haya dominio propio. */
+const CASA =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
+
+/* LA TARJETA QUE SE VE AL PEGAR EL ENLACE.
+ *
+ * Hasta ahora no había ninguna: quien pegaba kairo en un grupo de
+ * WhatsApp veía un recuadro gris con la dirección y nada más. Y el plan
+ * de este mes es precisamente mandar gente desde redes, o sea que el
+ * primer contacto con la marca de casi todo el mundo iba a ser ese
+ * recuadro gris.
+ *
+ * La imagen es opengraph-image.png, aquí al lado: Next la encuentra sola
+ * por el nombre del archivo y escribe las etiquetas. No hay que
+ * enlazarla. */
 export const metadata: Metadata = {
+  metadataBase: new URL(CASA),
   title: "Kairo — La IA que trabaja cuando tú no",
   description:
     "Kairo usa Claude, Gemini y GPT a la vez y elige el mejor modelo para cada tarea. Con Co-Works programados que trabajan mientras no estás.",
@@ -11,6 +36,14 @@ export const metadata: Metadata = {
     description:
       "Tres modelos, una sola IA. Con trabajos programados que se ejecutan solos.",
     type: "website",
+    siteName: "Kairo",
+    locale: "es_ES",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kairo — La IA que trabaja cuando tú no",
+    description:
+      "Tres modelos, una sola IA. Con trabajos programados que se ejecutan solos.",
   },
 };
 
