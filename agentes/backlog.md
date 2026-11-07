@@ -13,7 +13,8 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **🟡 La política de cookies —el único documento legal publicado— se quedó incompleta en un día.** `[origen: guardian 2026-11-07]`
+- **~~🟡 La política de cookies se quedó incompleta en un día~~ — HECHO el mismo día.** `[origen: guardian 2026-11-07 · hecho 2026-11-07]`
+  Ver `## Hecho`. Lo que queda es la regla: **cuando él toque lo que el navegador guarda o lo que se cuenta, la política de cookies se revisa en el mismo turno.**
   Se publicó el 04-11 diciendo dos cosas que ayer dejaron de ser verdad, y las
   dos las cambió él en sus 22 commits del 06 y 07-11:
 
@@ -1527,6 +1528,55 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **La política de cookies vuelve a decir la verdad: tres cookies y una analítica que no pide permiso.** `[hecho 2026-11-07]`
+  Se publicó el 04-11 y **duró dos días**: sus 22 commits del 06 y 07-11
+  añadieron la prueba sin cuenta y una analítica propia, y el documento se quedó
+  diciendo dos cosas falsas y una que exigía algo que no hace falta.
+
+  **Lo que decía y ya no**: *"Kairo usa una sola clase de cookies: las que hacen
+  falta para que sigas dentro de tu cuenta"*, *"no hay analítica"*, y —lo peor,
+  porque era mío— *"si algún día Kairo añade analítica […] esa ventana pasa a ser
+  obligatoria"*. Leído a secas, eso último obligaba hoy a una ventana de cookies
+  que la suya **no necesita**.
+
+  **Entregado**, en los dos idiomas y en todos los sitios donde la frase vieja
+  aparecía, que eran más de los que parecían:
+
+  1. **El resumen de arriba**, que es lo que de verdad se lee: tres cookies, las
+     tres imprescindibles, y la analítica dicha en la misma frase.
+  2. **La tabla del punto 1**: `kairo_probar` con lo que es —un número del 1 al
+     3— y lo que dura, **30 días**, leído de `Max-Age=2592000` en
+     `api/probar/route.ts`. Con una nota que importa: **es la única cookie que
+     toca a alguien que no tiene cuenta**, y existe justo para no pedirle una.
+  3. **El punto 2 rehecho**: por qué contar sucesos no pide permiso —en su
+     propia base de datos, sin IP, sin identificador y sin cookie— y, separado,
+     **qué sí obligaría a la ventana**: analítica que identifique o siga, o
+     cualquier pieza de un tercero. Hoy no hay ninguna.
+  4. **El punto 4**: una fila que no es una empresa —*"y una que no está en la
+     lista, a propósito: la analítica"*— porque es la pregunta que todo el mundo
+     se hace al leer una política de cookies.
+  5. **Y una cosa que no estaba y toca la IP del visitante**: la prueba cuenta
+     preguntas **por dirección IP durante una hora**, en memoria del servidor,
+     para que nadie agote la prueba de los demás. No se escribe en ninguna
+     parte, y ahora está dicho.
+  6. **El punto 5**: qué pasa si borras la cookie de la prueba (vuelve a
+     empezar, y no se repone por otro camino).
+
+  **Comprobado**: `tsc --noEmit` 0, `next build` 0 y **25 comprobaciones** sobre
+  el HTML generado y el bundle del cliente, con la prosa leída con los espacios
+  colapsados y el inglés buscado por trozos, que son las dos reglas que esta
+  semana han costado cuatro falsos fallos. **25 de 25**, y **el único fallo de
+  la primera pasada fue de verdad y era mío**: había actualizado los cinco
+  apartados y me había dejado el resumen de arriba, que es justo el párrafo que
+  más gente lee. Lo encontró la comprobación de que la frase *"no hay
+  analítica"* no quedara en ninguna parte.
+
+  **La regla que queda**, y es la tercera de la misma familia esta semana:
+  **cuando el dueño toque lo que se guarda en el navegador o lo que se cuenta,
+  la política de cookies se revisa en el mismo turno.** Las otras dos: las
+  cifras del material de entrenamiento (06-11) y las del banco de pruebas
+  (06-11).
 
 - **El material de entrenamiento ya enseña la escala de créditos de verdad.** `[hecho 2026-11-06]`
   Lo encontró el guardián esta mañana: el dueño dobló la escala el 05-11 —rápido
