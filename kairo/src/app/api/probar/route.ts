@@ -1,5 +1,12 @@
 import { cadenaDe, ESFUERZO, MAX_SALIDA, RAZONAMIENTO } from "@/lib/ia/config";
-import { arrancar } from "@/lib/ia/proveedores";
+import { arrancar, partir } from "@/lib/ia/proveedores";
+
+/** El código HTTP que traía el fallo, si lo traía. Solo el número: el
+ *  mensaje entero no sale de aquí. */
+function codigoDe(fallo: unknown): string {
+  const n = /\b([45]\d\d)\b/.exec(String(fallo));
+  return n ? n[1] : "fallo";
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -135,13 +142,33 @@ export async function POST(request: Request) {
   const cadena = (soloGemini.length ? soloGemini : cadenaDe("normal", "adulto")).slice(0, 3);
   let texto = "";
 
+  /* Qué le pasó a cada uno, para poder contarlo si fallan los tres.
+     Solo el proveedor y el código: ni el modelo exacto ni el mensaje del
+     servidor, que es de donde se escapan las cosas que no deben salir. */
+  const intentos: string[] = [];
+
   for (const id of cadena) {
     try {
       const { primero, resto } = await arrancar({
         id,
         sistema: SISTEMA,
         mensajes: [{ rol: "user", texto: pregunta }],
-        maxSalida: Math.min(MAX_SALIDA.normal, 900),
+        /* EL TECHO NO ES EL LARGO DE LA RESPUESTA.
+ 
+           Aquí ponía 900, pensando "respuesta corta, techo corto". Y el
+           techo no cuenta solo lo que se lee: en los modelos que piensan,
+           el razonamiento sale del mismo saco. Con 900 y el razonamiento
+           en "decide tú", Gemini se gastaba el presupuesto entero
+           pensando y devolvía texto vacío. Sin error, sin excepción, sin
+           nada en el registro: los tres de la cadena "contestaban" en
+           blanco y el desconocido veía "no he podido contestar".
+ 
+           Esto es lo que quedaba del fallo después de arreglar el
+           razonamiento en cero, y es más tonto que aquel, porque no
+           avisa. Ahora el techo va holgado. No se paga por el techo, se
+           paga por lo que salga, y el encargo ya pide menos de 120
+           palabras: lo que cambia es que ahora caben las dos cosas. */
+        maxSalida: Math.min(MAX_SALIDA.normal, 4096),
         esfuerzo: ESFUERZO.normal,
         modoEdad: null,
         /* Lo mismo que pide el chat en este nivel, y no un cero.
@@ -163,16 +190,34 @@ export async function POST(request: Request) {
       for (let n = await resto.next(); !n.done; n = await resto.next()) junta(n.value);
 
       if (texto.trim()) break;
+      intentos.push(`${partir(id).proveedor}:vacio`);
     } catch (fallo) {
       texto = "";
       /* Al registro del servidor, no a la respuesta. Sin esto, cuando
          los tres de la cadena fallan solo queda un "sin_cerebros" que
          no dice nada, y averiguar por qué cuesta una noche. */
       console.warn("[probar] %s no contestó: %s", id, String(fallo).slice(0, 300));
+      intentos.push(`${partir(id).proveedor}:${codigoDe(fallo)}`);
     }
   }
 
-  if (!texto.trim()) return respuesta({ error: "sin_cerebros" }, 503);
+  /* SIN CEREBROS, PERO DICIENDO CUÁL.
+ 
+     El que lo lee no es el visitante —a él la caja le enseña "no he
+     podido contestar" y ya está— sino el comprobador que corre contra la
+     web de verdad desde fuera. Sin esto, un fallo aquí solo se puede
+     mirar en el registro de Vercel, que desde donde yo trabajo no se ve:
+     dos despliegues a ciegas costó la lección.
+ 
+     Va el proveedor y el código, que no son secreto: la portada ya dice
+     que Kairo usa Claude, Gemini y GPT. No va el modelo exacto ni el
+     mensaje del servidor. */
+  if (!texto.trim()) {
+    return respuesta(
+      { error: cadena.length ? "sin_cerebros" : "sin_modelos", intentos },
+      503,
+    );
+  }
 
   return respuesta({ texto: texto.trim(), quedan: POR_VISITANTE - usadas - 1 }, 200, usadas + 1);
 }
