@@ -13,6 +13,47 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 La política de cookies —el único documento legal publicado— se quedó incompleta en un día.** `[origen: guardian 2026-11-07]`
+  Se publicó el 04-11 diciendo dos cosas que ayer dejaron de ser verdad, y las
+  dos las cambió él en sus 22 commits del 06 y 07-11:
+
+  1. **Hay una galleta nueva y el documento lista dos.** La prueba sin cuenta
+     pone **`kairo_probar`** desde `api/probar/route.ts` —el valor es cuántas
+     preguntas ha gastado el visitante—, con `Path=/`, **`Max-Age=2592000`** (30
+     días), `SameSite=Lax` y **`HttpOnly`**. Es de Kairo, no de un tercero, y es
+     la primera galleta que toca a alguien que **no tiene cuenta**: justo el
+     visitante al que el documento le habla.
+  2. **Y hay analítica**, cuando el documento dice *"no hay analítica"* y lo usa
+     como argumento. La suya está en `lib/rastro.ts` y `0022_rastro.sql`:
+     apunta `visita`, `prueba`, `prueba_agotada` y `registro` en una tabla de su
+     propia base de datos, **sin IP, sin identificador de visitante y sin
+     galleta**, y guardando el dominio de origen.
+
+  **Y el matiz importa más que el dato, porque toca la conclusión del
+  documento**: lo que escribí el 04-11 fue *"si algún día Kairo añade analítica
+  […] esa ventana pasa a ser obligatoria"*. Leído a secas, hoy exigiría una
+  ventana de cookies que **no hace falta**: lo que obliga a pedir permiso es la
+  analítica que identifica o que va a un tercero, y la suya no hace ninguna de
+  las dos. Así que el documento necesita tres cosas: la galleta nueva en su
+  tabla, la analítica contada como lo que es, y esa frase rehecha para que
+  distinga **analítica que sigue a una persona** de **contar sucesos sin
+  personas**.
+
+  Es del constructor, es de hoy, y **no necesita nada del dueño**.
+
+- **🟡 Kairo+ vende 3 Co-Works y la base de datos deja 10.** `[origen: guardian 2026-11-07]`
+  En su tarjeta nueva de Kairo+ pone **"3 Co-Works activos"**. El tope real
+  sigue siendo **10 para todo el mundo** (`limitar_coworks()`,
+  `0009_coworks.sql:350`, comprobado hoy en `main`), y en el plan gratuito **1**
+  por la API (`api/coworks/route.ts:116`).
+
+  **No lo he tocado y no lo cuento como falso contra el payer**: vender tres y
+  dar diez es prometer menos de lo que hay, y eso no le cuesta dinero a nadie.
+  Pero es una cifra de la web que el código no aplica, que es exactamente el
+  tipo de cosa que esta cola existe para no perder de vista. **Dos salidas, las
+  dos suyas**: o el tope por plan se aplica de verdad —y eso es código y
+  migración— o la tarjeta dice 10, como Supreme.
+
 - **🔴 Ha vuelto a `/precios` el "No" sobre entrenamiento, y en la capa gratuita de Gemini es falso.** `[origen: guardian 2026-11-06]`
   En su fusión del 05-11, la FAQ de `/precios` recupera la pregunta *"¿Se usan
   mis conversaciones para entrenar modelos?"* con la respuesta **"No."** (y en
