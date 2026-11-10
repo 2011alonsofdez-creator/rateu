@@ -86,9 +86,9 @@ const dict = {
     "features.connect": "Conectores",
     "features.connectDesc":
       "Drive, Gmail, Calendar y GitHub. Kairo trabaja con tus cosas, no con copias pegadas a mano.",
-    "features.ages": "Modo niños, adolescente y adulto",
+    "features.ages": "Modo adolescente y adulto",
     "features.agesDesc":
-      "Cada edad, su Kairo. Los perfiles de menores los crea y supervisa un adulto de la familia.",
+      "Tu fecha de nacimiento decide cómo te contesta: de 13 a 17 años la moderación es bastante más estricta que la de un adulto. Los perfiles para menores de 13, que crea y supervisa un adulto de la familia, están en camino.",
 
     "pricing.title": "Precios claros, sin sorpresas",
     "pricing.sub":
@@ -543,7 +543,7 @@ const dict = {
     "auth.errGeneric": "Algo ha fallado. Inténtalo otra vez.",
     "auth.errCredentials": "Ese correo o esa contraseña no son correctos.",
     "auth.errBirth": "Revisa la fecha de nacimiento.",
-    "auth.errTooYoung": "Para usar Kairo con menos de 13 años, la cuenta la tiene que crear un adulto de tu familia y añadirte como perfil hijo.",
+    "auth.errTooYoung": "Todavía no puedes usar Kairo con menos de 13 años. Los perfiles para menores, que crea y supervisa un adulto de la familia, están en camino: hasta entonces no hay forma de darte de alta, y preferimos decírtelo a dejarte dando vueltas.",
     "auth.errPass": "La contraseña necesita al menos 8 caracteres.",
     "auth.errGoogle": "Entrar con Google no está disponible todavía. Usa tu correo.",
     "auth.errUnconfirmed":
@@ -644,9 +644,9 @@ const dict = {
     "features.connect": "Connectors",
     "features.connectDesc":
       "Drive, Gmail, Calendar and GitHub. Kairo works with your actual files, not pasted copies.",
-    "features.ages": "Kids, teen and adult modes",
+    "features.ages": "Teen and adult modes",
     "features.agesDesc":
-      "A Kairo for every age. Child profiles are created and supervised by an adult in the family.",
+      "Your date of birth decides how Kairo answers you: between 13 and 17 moderation is considerably stricter than an adult's. Profiles for under-13s, created and supervised by an adult in the family, are on the way.",
 
     "pricing.title": "Clear pricing, no surprises",
     "pricing.sub":
@@ -1087,7 +1087,7 @@ const dict = {
     "auth.errGeneric": "Something went wrong. Please try again.",
     "auth.errCredentials": "That email or password is not correct.",
     "auth.errBirth": "Please check the date of birth.",
-    "auth.errTooYoung": "To use Kairo under 13, an adult in your family has to create the account and add you as a child profile.",
+    "auth.errTooYoung": "You can't use Kairo under 13 yet. Profiles for minors, created and supervised by an adult in the family, are on the way: until then there is no way to sign you up, and we would rather tell you than leave you going in circles.",
     "auth.errPass": "The password needs at least 8 characters.",
     "auth.errGoogle": "Google sign-in is not available yet. Use your email instead.",
     "auth.errUnconfirmed":
