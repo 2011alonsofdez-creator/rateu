@@ -104,7 +104,7 @@ const dict = {
     "pricing.plus": "Kairo+",
     "pricing.plusDesc": "Para el día a día",
     "pricing.supreme": "Supreme",
-    "pricing.supremeDesc": "Sin límites reales",
+    "pricing.supremeDesc": "Cuando Kairo es tu herramienta de trabajo",
     "pricing.seeAll": "Ver qué incluye cada plan →",
     "pricing.ctaFree": "Empezar gratis",
     "pricing.ctaPaid": "Elegir plan",
@@ -485,7 +485,7 @@ const dict = {
     "cw.cancel": "Cancelar",
     "cw.on": "Encendido",
     "cw.off": "Apagado",
-    "cw.onlyOneFree": "En el plan gratis puedes tener un Co-Work. Para más, hace falta Kairo+ — y ahí ya no hay tope de uno.",
+    "cw.onlyOneFree": "En el plan gratis puedes tener un Co-Work. Con Kairo+ son cinco, y con Supreme veinticinco.",
     "cw.search": "Que busque en internet antes de escribir",
     "cw.searchHelp": "Para encargos que necesiten datos de hoy: precios, noticias, normativa. Tarda unos segundos más y gasta unos céntimos cada vez que se ejecuta. Si lo que le pides se contesta sin mirar nada fuera, déjalo apagado.",
     "cw.test": "Probar ahora",
@@ -506,7 +506,7 @@ const dict = {
     "cw.inProgress": "Se está haciendo ahora mismo. Vuelve en un minuto y estará aquí.",
     "cw.failed": "No ha podido hacerse. Inténtalo de nuevo en un rato.",
     "cw.noCredits": "No te quedan créditos suficientes.",
-    "cw.limit": "Has llegado al máximo de 10 Co-Works.",
+    "cw.limit": "Has llegado al máximo de {n} Co-Works de tu plan.",
     "cw.needsMigration":
       "Falta pegar una migración en Supabase. Hasta que la pegues, esto no se puede guardar.",
     "cw.needsKey":
@@ -662,7 +662,7 @@ const dict = {
     "pricing.plus": "Kairo+",
     "pricing.plusDesc": "For everyday work",
     "pricing.supreme": "Supreme",
-    "pricing.supremeDesc": "No real limits",
+    "pricing.supremeDesc": "For when Kairo is how you work",
     "pricing.seeAll": "See what each plan includes →",
     "pricing.ctaFree": "Start free",
     "pricing.ctaPaid": "Choose plan",
@@ -1029,7 +1029,7 @@ const dict = {
     "cw.cancel": "Cancel",
     "cw.on": "On",
     "cw.off": "Off",
-    "cw.onlyOneFree": "The free plan gives you one Co-Work. For more you need Kairo+ -- and there the cap is gone.",
+    "cw.onlyOneFree": "The free plan gives you one Co-Work. Kairo+ gives you five, Supreme twenty-five.",
     "cw.search": "Look things up before writing",
     "cw.searchHelp": "For jobs that need today's facts: prices, news, regulations. It takes a few seconds longer and costs a few cents each time it runs. If what you are asking can be answered without looking anything up, leave it off.",
     "cw.test": "Run it now",
@@ -1050,7 +1050,7 @@ const dict = {
     "cw.inProgress": "It is being done right now. Come back in a minute and it will be here.",
     "cw.failed": "It could not be done. Try again in a while.",
     "cw.noCredits": "You do not have enough credits left.",
-    "cw.limit": "You have reached the maximum of 10 Co-Works.",
+    "cw.limit": "You have reached your plan's maximum of {n} Co-Works.",
     "cw.needsMigration":
       "A migration still has to be pasted into Supabase. Until you do, this cannot be saved.",
     "cw.needsKey":

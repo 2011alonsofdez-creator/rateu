@@ -1,3 +1,4 @@
+import { COWORKS_POR_PLAN, type PlanId } from "@/lib/planes";
 import { clienteServidor } from "@/lib/supabase/server";
 import { miPerfil } from "@/lib/supabase/mi-perfil";
 import { faltaColumna } from "@/lib/supabase/compat";
@@ -24,8 +25,8 @@ const COLUMNAS_RESULTADO =
   "id, cowork_id, dia, estado, contenido, fuentes, modelo, conversacion_id, creado_el";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const fallo = (estado: number, motivo: string) =>
-  Response.json({ error: motivo }, { status: estado });
+const fallo = (estado: number, motivo: string, extra?: Record<string, unknown>) =>
+  Response.json({ error: motivo, ...extra }, { status: estado });
 
 /** Una zona horaria que exista de verdad. Si no, Madrid. */
 function zonaValida(z: unknown): string {
@@ -95,25 +96,39 @@ export async function POST(req: Request) {
 
   if (!perfil) return fallo(401, "sin_sesion");
 
-  /* UNO EN EL PLAN GRATIS, Y NO POR TACAÑERÍA.
+  /* EL TOPE SALE DEL PLAN, Y NO ES POR TACAÑERÍA.
  
      Un Co-Work se ejecuta cada mañana y cuesta 8 créditos cada vez. Con
-     cuarenta al día, el quinto ya no cabe: antes de esto se podían crear
-     diez, y a partir del quinto fallaban todos los días en silencio.
-     Prometer cinco trabajadores y que cuatro no aparezcan nunca es peor
-     que decir que hay uno.
+     los cuarenta al día del plan gratis, el quinto ya no cabe: antes de
+     poner tope se podían crear diez, y a partir del quinto fallaban
+     todos los días en silencio. Prometer cinco trabajadores y que
+     cuatro no aparezcan nunca es peor que decir que hay uno. Por eso
+     cada plan tiene el suyo y sale de los créditos que lleva.
  
-     Y es lo que de verdad se paga en Kairo. Lo demás son momentos
-     sueltos que una cuenta nueva te vuelve a dar; esto es continuidad
-     —un encargo que aparece cada mañana y que se acuerda de lo de
-     ayer—, y eso no se consigue registrándose otra vez. */
-  if (perfil.plan === "free") {
-    const { count } = await supabase
-      .from("coworks")
-      .select("id", { count: "exact", head: true })
-      .eq("perfil_id", perfil.id);
+     Esto además es lo que de verdad se paga en Kairo. Lo demás son
+     momentos sueltos que una cuenta nueva te vuelve a dar; esto es
+     continuidad —un encargo que aparece cada mañana y que se acuerda de
+     lo de ayer—, y eso no se consigue registrándose otra vez.
+ 
+     La base de datos tiene los mismos números (migración 0023) y es la
+     que de verdad corta. Esto es para poder dar un error decente en vez
+     de enseñar la excepción de Postgres. */
+  /* El `?? free` no es paranoia de tipos: si algún día la columna
+     trajera un plan que aquí no existe, lo seguro es dar el tope más
+     bajo y no un `undefined` que dejaría pasar todo. */
+  const tope = COWORKS_POR_PLAN[perfil.plan as PlanId] ?? COWORKS_POR_PLAN.free;
+  const { count } = await supabase
+    .from("coworks")
+    .select("id", { count: "exact", head: true })
+    .eq("perfil_id", perfil.id);
 
-    if ((count ?? 0) >= 1) return fallo(409, "solo_uno_gratis");
+  if ((count ?? 0) >= tope) {
+    /* Dos errores distintos a propósito. Al del plan gratis se le ofrece
+       subir de plan, que es la salida que tiene; al que ya paga eso
+       sería una tomadura de pelo, así que se le dice el número y ya. */
+    return perfil.plan === "free"
+      ? fallo(409, "solo_uno_gratis")
+      : fallo(409, "demasiados", { tope });
   }
 
   const { data, error } = await supabase
