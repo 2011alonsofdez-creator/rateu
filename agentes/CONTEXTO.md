@@ -61,10 +61,17 @@ Rutas de API en `kairo/src/app/api/`: `chat`, `conversaciones`, `coworks`,
   y los botones de la tienda están detrás del interruptor
   `NEXT_PUBLIC_TIENDA=1` (`api/estado/route.ts:281`). En el repositorio no
   consta que esté encendido, y desde aquí no se puede comprobar.
-- **Base de datos**: 15 migraciones en `kairo/supabase/migrations/`, hasta
-  `0015_permisos_del_servidor.sql`.
-- **Planes en código** (`lib/planes.ts`): `free` 15 créditos, `plus` ("Kairo+")
-  1000 y `supreme` 3000. `free` solo alcanza el nivel rápido.
+- **Base de datos**: **22 migraciones** en `kairo/supabase/migrations/`, hasta
+  `0022_rastro.sql` (contado el 10-11; el 12-10 eran 15).
+- **Planes en código** (`lib/planes.ts`, leído el **10-11**): `free` **40**
+  créditos al día, `plus` ("Kairo+") **2.000** y `supreme` **6.000**; coste por
+  nivel **2 / 8 / 40 / 240** (`CREDITOS_NIVEL`) y regalo de bienvenida **300**
+  (`0020_escala_x2.sql`). `free` alcanza **rápido y normal**
+  (`NIVELES_PLAN.free`), no solo rápido.
+  *Esta línea decía "`free` 15, `plus` 1000, `supreme` 3000, solo rápido" y era
+  la foto del 12-10: el dueño mejoró el plan gratis el 29-10 (`4a23a57`) y **dobló la escala
+  entera el 05-11**. Corregido el 10-11 por el radar, cinco días tarde, porque
+  `agentes/comprobar/cifras.py` todavía no mira este archivo.*
 
 Según la especificación los precios son Kairo+ 9,99 €/mes y Supreme
 24,99 €/mes, con anual de 99 € y 249 €. Eso está en el documento, no en el
@@ -227,10 +234,14 @@ resultados de búsqueda y con las cifras bailando entre 19,99 $ y 20 $.
 Lo que eso fija, y hay que usarlo al priorizar y al redactar:
 - El tope de **10 Co-Works** de Kairo **no es una carencia**: es el mismo que
   tienen los dos grandes. Dejar de disculparse por él.
-- Un Co-Work cuesta **4 créditos** y el plan Free trae **15 al día**, así que
-  Kairo deja **probar sin tarjeta** lo que ellos cobran a 20 $. Es el argumento
-  de precio más fuerte que tiene y no está escrito en ninguna parte (P2).
-- Pero la frase honesta **no** es "tres Co-Works gratis al día": esos 15
+- Un Co-Work cuesta **8 créditos** (`CREDITOS.normal`, leído en
+  `api/coworks/ejecutar/route.ts:49` el 10-11) y el plan Free trae **40 al
+  día**, así que Kairo deja **probar sin tarjeta** lo que ellos cobran a 20 $.
+  Es el argumento de precio más fuerte que tiene y no está escrito en ninguna
+  parte (P2). *Decía 4 y 15, que eran las cifras del 29-10; la escala se dobló
+  el 05-11 y la proporción no cambia —cinco Co-Works al día—, así que el
+  argumento aguanta igual.*
+- Pero la frase honesta **no** es "cinco Co-Works gratis al día": esos 40
   créditos son los mismos del chat.
 
 **2. Team dejó de ser un escaparate el 28-10, y entró en un mercado con

@@ -57,6 +57,48 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Una línea suya**: paga la capa de la API —y entonces el "No." es verdad y lo
   pongo yo en los dos idiomas— o dice que se queda la respuesta comprobable.
 
+- **El verificador de cifras no mira los dos archivos que todo agente lee primero, y los dos llevaban cinco días con la escala vieja.** `[origen: radar 2026-11-10]`
+  Ayer se entregó `agentes/comprobar/cifras.py` para que las cifras del material
+  no envejezcan solas. Recorre `agentes/ia/conocimiento/`, el banco de pruebas y
+  los ejemplos. **No recorre los paneles vivos**, y hoy, buscando a mano para
+  este informe, han salido **cuatro cifras en presente y falsas**:
+
+  | Archivo (línea de antes de corregirlo) | Decía | Dice el código |
+  |---|---|---|
+  | `agentes/CONTEXTO.md:66` | `free` 15 créditos, `plus` 1000, `supreme` 3000 | **40 · 2.000 · 6.000** (`CREDITOS_PLAN`) |
+  | `agentes/CONTEXTO.md:67` | "`free` solo alcanza el nivel rápido" | **rápido y normal** (`NIVELES_PLAN.free`) |
+  | `agentes/CONTEXTO.md:230` | un Co-Work cuesta 4 créditos, Free trae 15 al día | **8** (`api/coworks/ejecutar/route.ts:49`) y **40** |
+  | `lanzamiento/checklist.md` | "Hoy son `fast` 1, `normal` 4, `forja` 20, `mega` 120" | **2 / 8 / 40 / 240** (`CREDITOS_NIVEL`) |
+
+  **Tres** llevaban desde el **05-11**, cuando el dueño dobló la escala: cinco
+  días. Y la cuarta —*"`free` solo alcanza el nivel rápido"*— es peor: el plan
+  gratis llegó a **normal** el **29-10** (`4a23a57`, *"Let a free account
+  actually try Kairo"*), así que llevaba **doce días** falsa, y es la que más
+  cambia una decisión: con ella, un agente concluye que en el plan gratis no
+  entran Paperwork, Gist ni Código, cuando sí entran. Y está en el archivo que
+  el protocolo manda leer **antes de opinar**: no es material de adorno, es la
+  entrada con la que razonan cinco agentes.
+
+  **Corregidas hoy** por el radar, con la nota de qué decían y por qué cambió,
+  sin borrar nada. Lo que queda es que no vuelva a pasar.
+
+  **Qué haría yo, y está diseñado, no hace falta inventarlo**: añadir
+  `agentes/CONTEXTO.md`, `agentes/lanzamiento/checklist.md` y `agentes/ESTADO.md`
+  a la lista que recorre `cifras.py`, **cortando cada celda en el primer
+  `Lo de antes:` o `Lo de ayer:`**. Ese recorte no es un detalle: esas cadenas
+  citan cifras viejas **a propósito** —son el histórico de la fila— y sin
+  recortarlas el script cantaría falsos positivos, que es el error (c) de los
+  cuatro que ya están escritos en las plantillas de comprobación. Medio día del
+  constructor, y cierra la clase entera de errores en el sitio donde más duele.
+
+  **Lo que este hallazgo dice de la rama**: van **cinco** veces en cinco días que
+  un cambio del dueño deja falso algo nuestro —la escala en cuatro archivos y el
+  caso 7 del banco (06-11), la política de cookies (07-11), el párrafo del
+  ejemplo (10-11) y estas cuatro cifras (10-11)—. El verificador cambió quién lo
+  encuentra en tres de ellas; en esta lo encontró una persona leyendo, que es
+  justo lo que no escala. **116 commits sin fusionar en 30 días** es la causa de
+  todas.
+
 - **~~🟡 La política de cookies se quedó incompleta en un día~~ — HECHO el mismo día.** `[origen: guardian 2026-11-07 · hecho 2026-11-07]`
   Ver `## Hecho`. Lo que queda es la regla: **cuando él toque lo que el navegador guarda o lo que se cuenta, la política de cookies se revisa en el mismo turno.**
   Se publicó el 04-11 diciendo dos cosas que ayer dejaron de ser verdad, y las
@@ -1112,6 +1154,27 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **La prueba de la portada no sabe qué no puede hacer.** `[origen: radar 2026-11-10 · lo vio el entrenador el mismo día y lo dejó anotado]`
+  Desde hoy el `SISTEMA` de `/api/probar` lleva tono —el `cercano`, importado de
+  `TONOS`—, así que la primera respuesta que lee un desconocido ya suena a Kairo.
+  Lo que sigue sin tener es **límites**: nada le dice que no tiene cuenta, ni
+  memoria, ni Paperwork, ni Co-Works.
+
+  **Por qué importa más que un detalle de redacción**: la portada vende leer
+  multas y cartas de Hacienda, así que *"léeme esta multa"* es **la pregunta más
+  probable** que va a recibir esa caja. Hoy no hay instrucción sobre qué
+  contestar, y las dos salidas malas son fáciles: prometer que lo hace —y
+  entonces el registro empieza con una promesa incumplida— o soltar un "no
+  puedo" seco en la pantalla donde se decide si alguien se queda.
+
+  **Qué haría yo**: dos o tres líneas en ese `SISTEMA`, con el mismo criterio del
+  bloque de capacidades del prompt grande (`[hecho 2026-10-16]`): decir qué sí se
+  puede aquí mismo, decir que lo de subir papeles necesita cuenta **gratis**, y
+  ofrecer seguir contestando la parte que sí cabe en una respuesta de texto.
+  Importado del mismo sitio si se puede, no copiado: es la lección de hoy.
+  Medio día del entrenador, y se comprueba con el mismo arnés de 12 puntos que
+  ya existe para esa ruta.
+
 - **~~Un verificador de cifras que no haya que recordar~~ — HECHO, y encontró algo en su primera ejecución.** `[origen: radar 2026-11-07 · hecho 2026-11-10]`
   Ver `## Hecho`.
   Tres veces en tres días un cambio del dueño dejó **falso** material nuestro, y
@@ -1286,6 +1349,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   recibe una sola visita que no venga de Google.
 
 - **El banco de pruebas lleva 12 días sin pasarse, y el prompt ha cambiado 9 veces dentro.** `[origen: radar 2026-10-31 · 8 → 12 días el 2026-11-04]`
+  **Al día 10-11, y con una decisión que explico**: el banco **se pasó el 07-11**
+  tras quince días, y la pasada fue **parcial a propósito** —encontró en diez
+  minutos que en producción Kairo decía *"cuesta 2 crédito"* y el turno se fue en
+  arreglarlo—. Así que lo que queda no es pasarlo: es **puntuar los catorce
+  casos**, con las cifras y los criterios ya al día desde ese mismo día. **Quinto
+  informe pidiéndolo (18 días).** Mi ficha dice que lo que lleva más de cuatro
+  informes sin tocarse baje a P3 o se descarte, y **aquí no aplico esa regla, y
+  digo por qué**: no es que nadie la quiera hacer —se hizo la mitad el 07-11—, es
+  que los turnos del entrenador se los han llevado hallazgos más urgentes y
+  **dos días de avería** (08 y 09-11). Se queda en P2, en lo alto de la cola del
+  entrenador.
+
   **Al día 04-11**: la última pasada sigue siendo la del 23-10 y los commits
   sobre `prompt.ts` y `papeles.ts` desde entonces son **nueve** (el noveno es
   el tope de Co-Works del 01-11). Tercer informe pidiéndolo, y es de los pocos

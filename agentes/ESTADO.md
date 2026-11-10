@@ -3,69 +3,67 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-07 ([informe](informes/2026-11-07-estado.md)),
-la novena
-**Semáforo general**: 🔴 **octavo rojo, y el primero que no es por su inacción: lleva tres días publicada una frase falsa sobre datos personales en `/precios`, y 112 commits nuestros sin fusionar**
+**Última revisión**: 2026-11-10 ([informe](informes/2026-11-10-estado.md)),
+la décima
+**Semáforo general**: 🔴 **noveno rojo, y hoy por dos cosas: el "No." falso de `/precios` cumple cinco días publicado, y los días 8 y 9 no corrió ningún agente —tercera avería en nueve días—**
 
-> **Lo que ha cambiado de verdad esta semana**: él ha hecho **41 commits en tres
-> días** —su récord— y ha abierto **las dos puertas de lanzamiento que se han
-> movido**: la **analítica**, que este panel llevaba nueve informes pidiendo, y
-> una **prueba sin cuenta** que funciona en producción. Y por primera vez un
-> agente ha **medido producción**: su propio `probar-portada.yml`, lanzado por
-> el guardián, devuelve que un desconocido pregunta y Kairo contesta.
+> **Lo que ha cambiado de verdad esta vez**: el que se ha parado es **el
+> sistema**. Dos días en blanco, y él ha pasado de **41 commits en tres días** a
+> **2** —un revert del icono de pestaña, el 07-11— y nada desde entonces. Lo que
+> sí se hizo: el **verificador de cifras**, pedido en el informe anterior y
+> entregado dentro de sus tres días, que encontró un fallo real a la primera. Y
+> el hallazgo propio de hoy: **ese verificador no mira los dos archivos que todo
+> agente lee primero**, y los dos llevaban cinco días con la escala vieja.
 
 ## Métricas
 
-| Métrica | Valor | Anterior (04-11) | Tendencia |
+| Métrica | Valor | Anterior (07-11) | Tendencia |
 |---|---|---|---|
-| Web responde | sí, leído hoy en `revisar.yml` 36: 200 y "TODO CORRECTO" | sí | = |
-| **Producción, vista de verdad** | **sí, el 07-11**: la portada carga, trae la caja de probar y **un desconocido sin cuenta recibe respuesta** (`probar-portada.yml`, log del día) | ⚪ ocho informes seguidos | ↑ **el agujero más viejo del panel, abierto** |
+| **Producción, vista de verdad** | **sí, hoy a las 08:41, y la midió el radar**: ejecución 7 de `probar-portada.yml`, cinco pasos en verde, `{"texto":"FUNCIONA","quedan":2}` y el tope cortando a la tercera (200, 200, 429, 429) | sí, el 07-11, por el guardián | = **dos de dos** |
+| **Los agentes se ejecutan** | **🔴 no**: 08-11 y 09-11 sin ninguno. Ocho avisos leídos de golpe hoy a las 06:17. Tercera avería en nueve días | 3 turnos sueltos perdidos | ↓ antes turnos, ahora **días** |
+| **Commits suyos desde el informe anterior** | **2**, los dos el 07-11 11:39, y son un revert del icono de pestaña. **0** en los tres días siguientes | **41** en tres días | ↓↓ de su récord a cero |
+| Commits de los agentes desde el informe anterior | **3**, los tres de hoy | 16 | ↓ dos días sin ninguno |
+| Commits **sin fusionar** en `main` | **116** · 30 días | 112 · 27 días | ↑ lo peor de la tabla, **décima vez** |
+| Conflictos de fusión | **0** estos 3 días, y **no por mérito**: no ha publicado nada que chocara | 4 en 4 días | ↓ |
+| **Cifras falsas en material nuestro** | **4**, encontradas hoy a mano en `CONTEXTO.md` y el checklist: tres de cinco días y una de **doce**. Corregidas | 1, y la encontró el script | → cambia **quién** lo encuentra |
+| **Verificador de cifras** | **existe y pasa en verde** (`agentes/comprobar/cifras.py`), y **no cubre los paneles vivos**: es el P1 de hoy | no existía | ↑ con su punto ciego anotado |
 | **Se entiende en la primera pantalla** | ⚪ **sigue sin respuesta**: el workflow comprueba que ciertas palabras están, no cómo se lee | ⚪ | = y haría falta una captura |
-| **Analítica** | **instalada el 06-11, suya**: sucesos en su propia base de datos, **sin IP, sin identificador y sin cookie**. Los números, suyos de leer | ninguna | ↑ **nueve informes pidiéndola** |
-| **Prueba sin cuenta** | **existe y funciona**: tres preguntas por visitante, tope de casa de 300 al día | no existía | ↑ |
-| **Commits suyos en 3 días** | **41** | 0 | ↑↑ su récord; el anterior eran 17 |
-| Commits de los agentes en 3 días | **16** | 11 | ↑ |
-| Commits **sin fusionar** en `main` | **112** · 27 días | 99 · 24 días | ↑ lo peor de la tabla, novena vez |
-| **Conflictos de fusión** | **4 en 4 días**, los cuatro resueltos | 1 en total | ↑ consecuencia de la fila de arriba |
-| Cerebros con clave directa | **1 de 3** | 1 de 3 | = **22 días** |
-| Modelos que ofrece el repuesto | **424** | 419 | ↑ |
-| `laguna` retirado y todavía en la cadena | **7.º día** | 4.º | ↑ dos minutos suyos |
-| Reloj de Co-Works | **suena**: 198 ejecuciones, las últimas en verde | suena | = |
-| **Puertas de lanzamiento** | **19**: 2 ✅ · 3 🟡 · 1 ⚪ · **13** ⬜ | 18: 1 ✅ · 2 🟡 · 1 ⚪ · 14 ⬜ | ↑ **las dos que se movieron las abrió él** |
-| Checklist de salud | 14 ✅ · 4 🟡 · 1 ⚪ · 1 ⬜ de 20 | igual | = |
-| Documentos legales escritos | **1 de 4**, y el publicado ya se corrigió una vez | 1 de 4 | = |
-| Banco de pruebas | **pasado el 07-11, parcial**: encontró y arregló un fallo de producción; los 14 casos sin puntuar | 12 días sin pasarse | ↑ con asterisco |
-| Tamaño del prompt (adulto + buscador) | **208** líneas, medido el 07-11 | 203 (medido el 01-11) | ↑ +5 |
-| Tareas marcadas `[hecho]` en el backlog | **27** | 24 | ↑ +3 |
-| P1 abiertos · el más viejo | **19** · 26 días | 17 · 24 días | ↑ en los dos |
-| Turnos de agente perdidos | **3 esta semana**, por reinicios de la sesión | 4 el 02-11 | ↑ |
-| `notas.md` | **vacío, 27 días** | vacío, 24 | ↑ |
-| Visitas · conversión · ingresos | **sin datos, y por primera vez hay de dónde sacarlos** | sin datos | → |
-
-Las tres últimas siguen sin datos, **pero por un motivo distinto desde el
-06-11**: ya no es que no haya analítica —la hay—, es que **la tabla está en su
-Supabase y ningún agente tiene acceso**. O las lee él, o las expone por alguna
-vía. Lo que ya no se puede decir es "no hay de dónde".
+| Analítica | instalada el 06-11, suya; cuatro días recogiendo en su Supabase | instalada | = los números siguen siendo suyos de leer |
+| Prueba sin cuenta | **funciona, medido hoy**, y desde hoy **habla con el tono de Kairo**: el `SISTEMA` no pegaba ninguno de los cuatro | funciona | ↑ |
+| **Puertas de lanzamiento** | **19**: 2 ✅ · 3 🟡 · 1 ⚪ · 13 ⬜ | igual | = **ninguna se ha movido** |
+| Checklist de salud | **13 ✅ · 1 🔴 · 4 🟡 · 1 ⚪ · 1 ⬜** de 20 | 14 ✅ · 4 🟡 · 1 ⚪ · 1 ⬜ | ↓ una pasó a 🔴 |
+| Reloj de Co-Works | **suena**: 215 toques, los cuatro últimos en verde, y **ninguno perdido los días 8 y 9** | suena: 198 | = y hoy prueba algo |
+| `/api/estado` | "TODO CORRECTO", Gemini 3 claves, Telegram válido, búsqueda con 10 modelos (`revisar.yml` 37, hoy 06:18) | igual | = |
+| Cerebros con clave directa | **1 de 3** | 1 de 3 | = **25 días** |
+| Modelos que ofrece el repuesto | **429** | 424 | ↑ |
+| `laguna` retirado y todavía en la cadena | **9 días** (desde el 01-11) | 6 | ↑ dos minutos suyos |
+| Documentos legales escritos | **1 de 4** | 1 de 4 | = esperando cinco campos suyos, 6 días |
+| Banco de pruebas | **sin puntuar**, quinto informe pidiéndolo | sin puntuar | = |
+| Tamaño del prompt (adulto + buscador) | **208** líneas, sin cambio | 208 | = |
+| Tareas marcadas `[hecho]` en el backlog | **28** | 27 | ↑ +1 |
+| P1 abiertos · el más viejo | **21** · 29 días | 19 · 26 días | ↑ los dos nuevos son de hoy |
+| Turnos de agente perdidos | **2 días enteros** (08 y 09-11) | 3 turnos esa semana | ↓ |
+| `notas.md` | **vacío, 30 días** | vacío, 27 | ↑ |
+| Visitas · conversión · ingresos | **sin datos**, y la analítica lleva cuatro días recogiendo | sin datos | → los números existen y no los vemos |
 
 ## Veredicto de la última revisión
 
-**El cuello de botella se ha movido de sitio.** En tres días él ha hecho **41
-commits** y ha abierto las dos puertas de lanzamiento que se han movido esta
-semana: la analítica —pedida nueve veces— y la prueba sin cuenta. Lo que queda
-bloqueando ya no es que no actúe.
+**Esta vez el que se ha parado es el sistema, no él.** Dos días seguidos sin que
+corriera ningún agente —08 y 09-11, la tercera avería en nueve días— y ocho
+avisos leídos de golpe. No falló ninguna rutina: falló el proceso que las
+ejecuta. Lo que se pierde no vuelve: el informe de mercado del 08-11 no existe y
+el mercado lleva sin mirarse desde el 05-11.
 
-Lo que queda bloqueando son dos cosas concretas. **Una frase falsa sobre datos
-personales, publicada desde el 05-11**: la FAQ de `/precios` dice que las
-conversaciones no se usan para entrenar modelos, y en la capa gratuita de Gemini
-—que es donde está la cuenta— eso es falso. Se arregla con una línea suya. **Y
-112 commits sin fusionar en 27 días**, que esta semana han empezado a costar
-algo nuevo y medido: **la rama se pudre**. Tres veces en tres días un cambio
-suyo dejó falso material nuestro —la escala de créditos, el banco de pruebas y
-la política de cookies— y las tres veces hubo que arreglarlo a mano al día
-siguiente.
+Y el hallazgo del día es nuestro, y se escribe aunque dé vergüenza: **el
+verificador que se construyó ayer para que las cifras no envejezcan solas no
+mira `CONTEXTO.md` ni el checklist de lanzamiento**, que son los dos paneles que
+todo agente lee antes de opinar. Los dos llevaban **cinco días** enseñando la
+escala de créditos de antes del 05-11: `free` 15, `plus` 1000, `supreme` 3000, y
+los niveles a 1/4/20/120. Y una más, de **doce** días: que el plan gratis "solo
+alcanza el nivel rápido", cuando llega a `normal` desde el 29-10. Corregidas hoy. Llevar el script a esos archivos
+—recortando las cadenas de `Lo de antes:`, que citan cifras viejas a propósito—
+es el P1 que sale de esta revisión.
 
-De ahí sale la primera de las tres cosas del próximo tramo, y es nuestra: **un
-verificador que compare las cifras de nuestro material con el código**, fijo y
-en el protocolo, porque la regla "revísalo en el mismo turno" ya está escrita
-tres veces en tres archivos distintos y una regla que hay que recordar no es una
-regla.
+Lo que bloquea por su parte no ha cambiado en cinco días: el **"No."** de
+`/precios`. Y lo que ahora bloquea por la nuestra es la máquina, que también se
+arregla con algo suyo: **cron diarios**, pedidos desde el 01-11.
