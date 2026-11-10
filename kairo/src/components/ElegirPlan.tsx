@@ -7,6 +7,7 @@ import { miles } from "@/lib/formato";
 import { plans } from "@/lib/mock";
 import { CREDITOS_NIVEL, CREDITOS_PLAN } from "@/lib/planes";
 import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
+import { Check } from "./Icons";
 
 /* ELEGIR PLAN ARRASTRANDO, EN VEZ DE COMPARANDO TRES TARJETAS.
  *
@@ -61,6 +62,16 @@ export function ElegirPlan() {
 
   const plan = PARADAS[i];
   const creditos = plan.creditos;
+  /* La lista es la misma que la de /precios: sale de `plans`, no copiada
+     aquí. Dos listas de lo que incluye un plan acaban diciendo cosas
+     distintas el día que se cambia una. */
+  const incluye = plans
+    .find((p) => p.id === plan.id)!
+    .bullets[lang === "es" ? "es" : "en"]
+    /* Fuera la línea de los créditos: el número ya está ahí arriba en
+       grande, y repetido en letra pequeña tres centímetros más abajo no
+       informa dos veces, hace dudar de si son dos cosas distintas. */
+    .filter((b) => !/cr[ée]dit/i.test(b));
   const color = TINTA[plan.id];
   const euros = (n: number) =>
     n === 0 ? "0 €" : `${n.toFixed(2).replace(".", lang === "es" ? "," : ".")} €`;
@@ -78,7 +89,6 @@ export function ElegirPlan() {
       />
 
       <h3 className="text-[22px] font-bold tracking-tight sm:text-[26px]">{t("slider.title")}</h3>
-      <p className="mt-2 text-[14px] text-faint">{t("slider.sub")}</p>
 
       <p className="mt-8 text-[42px] font-extrabold leading-none tracking-tight sm:text-[48px]">
         {/* La `key` hace que React lo pinte de nuevo al cambiar de plan,
@@ -163,7 +173,27 @@ export function ElegirPlan() {
         ))}
       </div>
 
-      <p className="mt-6 text-[34px] font-extrabold tracking-tight sm:text-[38px]">
+      {/* LO QUE INCLUYE, AQUÍ DENTRO.
+ 
+          Estaba en las tarjetas de debajo, y las tarjetas se fueron
+          porque eran un segundo selector de plan en la misma pantalla.
+          Pero lo que se llevaron con ellas no era un selector: era la
+          única respuesta a "¿y qué me llevo por eso?". Un precio sin esa
+          lista al lado es un número suelto.
+ 
+          Va dentro del mismo panel y cambia con la bolita, así que al
+          arrastrar no cambia solo el número: cambia lo que te llevas.
+          Que es justo lo que se está decidiendo. */}
+      <ul className="mx-auto mt-7 grid max-w-md gap-2 text-left sm:grid-cols-2">
+        {incluye.map((linea) => (
+          <li key={linea} className="flex items-start gap-2 text-[13.5px] leading-snug text-muted">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green" />
+            <span>{linea}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-7 text-[34px] font-extrabold tracking-tight sm:text-[38px]">
         {plan.precio === 0 ? (
           <>
             <span style={{ color }}>Free</span>
