@@ -64,7 +64,7 @@ const dict = {
     "features.sub": "Seis cosas que cambian cómo trabajas con una IA.",
     "features.paperwork": "Paperwork",
     "features.paperworkDesc":
-      "Súbele una multa, una beca o un contrato. Te dice qué es, qué tienes que hacer y hasta cuándo —y te avisa 7, 3 y 1 día antes de que se acabe el plazo, por Telegram. Sin que tengas que entrar a mirar.",
+      "Súbele una multa, una beca o un contrato. Te dice qué es, qué tienes que hacer y hasta cuándo —y te avisa una semana antes, tres días antes, el día de antes y el mismo día. Si enlazas Telegram te llega al móvil sin que entres a mirar; si no, te espera dentro.",
     "features.gist": "Gist",
     "features.gistDesc":
       "Pega un vídeo de YouTube o un enlace y te sale el resumen parte por parte, con los minutos para saltar a lo que te interesa. Y un chat al lado para lo que no te haya quedado claro.",
@@ -622,7 +622,7 @@ const dict = {
     "features.sub": "Six things that change how you work with an AI.",
     "features.paperwork": "Paperwork",
     "features.paperworkDesc":
-      "Upload a fine, a grant form or a contract. Kairo tells you what it is, what you have to do and by when \u2014 and warns you 7, 3 and 1 day before the deadline, on Telegram. You never have to go and check.",
+      "Upload a fine, a grant form or a contract. Kairo tells you what it is, what you have to do and by when \u2014 and warns you a week before, three days before, the day before and on the day. Link Telegram and it reaches your phone without you looking; otherwise it waits for you inside.",
     "features.gist": "Gist",
     "features.gistDesc":
       "Paste a YouTube video or a link and get the summary part by part, with timestamps to jump straight to what you came for. Plus a chat beside it for whatever did not land.",
