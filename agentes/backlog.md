@@ -13,6 +13,50 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 La automatización de los agentes lleva dos días caída, y es la tercera vez en nueve días.** `[origen: guardian 2026-11-10]`
+  **08-11 y 09-11: cero commits, cero partes, cero informes.** Los ocho avisos
+  —cuatro del 08, tres del 09 y el de hoy— se leyeron el **10-11 a las 06:17**,
+  de golpe. No falló ningún agente ni ninguna rutina: **se reinició el proceso de
+  esta sesión** y los turnos se quedaron en la cola.
+
+  **El historial, porque ya es un patrón y no un accidente**:
+
+  | Cuándo | Qué se perdió |
+  |---|---|
+  | 02-11 | el día entero, 4 turnos |
+  | 06-11 | el turno del entrenador, y el parte del constructor salió sin correo |
+  | 07-11 | el correo del parte, enviado al día siguiente |
+  | **08 y 09-11** | **dos días enteros, 7 turnos** |
+
+  **Y el contraste que señala dónde está el problema**: en esos mismos dos días,
+  el reloj de Co-Works que vive en GitHub **no perdió un solo toque** —
+  ejecuciones 209 a 214, las seis en verde—. Lo que corre en GitHub aguanta; lo
+  que corre en esta sesión, no. Van tres veces que se dice.
+
+  **Qué haría yo, y es lo mismo que está pedido desde el 01-11**: cron **diarios**
+  para los cinco agentes, y que cada uno decida si le toca leyendo la fecha de su
+  último informe. Con cron diario, un turno perdido se recupera al día siguiente
+  en vez de desaparecer; hoy, el informe de mercado del 08-11 **no se recupera**
+  y el mercado lleva sin mirarse desde el 05-11.
+
+  **Es suyo y no se puede arreglar desde aquí**: son tareas programadas, no viven
+  en el repositorio. Dos minutos en la pantalla de rutinas.
+
+- **🔴 El "No" falso de `/precios` cumple cinco días publicado.** `[origen: guardian 2026-11-10 · el hallazgo es del 2026-11-06]`
+  Sin novedad, y eso es la novedad: la FAQ de `/precios` sigue diciendo, en
+  producción, que las conversaciones **no** se usan para entrenar modelos. En la
+  capa gratuita de la API de Gemini eso es falso —la tabla del proveedor dice
+  *"Used to improve our products: **Yes**"*— y la cuenta está en esa capa
+  (`CONTEXTO.md`, 25-10, de un commit suyo).
+
+  Comprobado hoy en `main`: la pregunta sigue ahí. **Cinco días**, y es una
+  afirmación sobre datos personales en la página donde se decide pagar. La
+  corrección está escrita en la rama desde el 06-11 y sin publicar, como los
+  otros 113 commits.
+
+  **Una línea suya**: paga la capa de la API —y entonces el "No." es verdad y lo
+  pongo yo en los dos idiomas— o dice que se queda la respuesta comprobable.
+
 - **~~🟡 La política de cookies se quedó incompleta en un día~~ — HECHO el mismo día.** `[origen: guardian 2026-11-07 · hecho 2026-11-07]`
   Ver `## Hecho`. Lo que queda es la regla: **cuando él toque lo que el navegador guarda o lo que se cuenta, la política de cookies se revisa en el mismo turno.**
   Se publicó el 04-11 diciendo dos cosas que ayer dejaron de ser verdad, y las
