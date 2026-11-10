@@ -935,7 +935,13 @@ function Chat() {
         onScroll={mirarPosicion}
         className={
           inicio
-            ? "mt-auto w-full shrink-0 px-4 pt-8 sm:px-8"
+            /* El relleno de arriba es más grande que el de abajo a
+               propósito: con márgenes automáticos a los dos lados, lo
+               que sobra se reparte a medias, así que cada píxel que se
+               añade arriba baja el bloque medio píxel. Estaba todo
+               centrado matemáticamente y quedaba alto, porque el ojo no
+               busca el centro de la pantalla: busca un poco por debajo. */
+            ? "mt-auto w-full shrink-0 px-4 pt-12 sm:px-8 sm:pt-28"
             : "relative min-h-0 flex-1 overflow-y-auto"
         }
       >
