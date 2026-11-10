@@ -1112,7 +1112,8 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **Un verificador de cifras que no haya que recordar.** `[origen: radar 2026-11-07]`
+- **~~Un verificador de cifras que no haya que recordar~~ — HECHO, y encontró algo en su primera ejecución.** `[origen: radar 2026-11-07 · hecho 2026-11-10]`
+  Ver `## Hecho`.
   Tres veces en tres días un cambio del dueño dejó **falso** material nuestro, y
   las tres veces se arregló a mano al día siguiente:
 
@@ -1601,6 +1602,49 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 - (vacío)
 
 ## Hecho
+
+- **El verificador de cifras existe, y en su primera ejecución encontró algo que un repaso a mano se había dejado.** `[hecho 2026-11-10]`
+  `agentes/comprobar/cifras.py`, con su `README.md`. Lee del **código** los
+  números y los hechos del producto —lo que cuesta cada nivel, lo que trae cada
+  plan, el regalo de bienvenida, los topes de Co-Works y Mentes, la galleta y el
+  tope de la prueba sin cuenta— y comprueba que nada del material de `agentes/`
+  diga otra cosa. Salida 0 si cuadra, 1 y la lista con archivo y línea si no.
+
+  **Lo que encontró nada más escribirse, y es lo que de verdad justifica la
+  tarea**: en `ejemplos/2026-11-03-limite-ayer-podia-usar-mega.md` quedaba un
+  párrafo **entero** con la escala vieja —*"un mensaje rápido, 1 crédito; uno
+  normal, 4; leer un papel con Paperwork, 4…"*—, **cuatro días después** del
+  repaso a mano del 06-11. Aquel repaso se hizo con cuidado, tocó cuatro
+  archivos y se comprobó con 22 puntos propios. Y se dejó esto. Arreglado hoy
+  (2/8/8/8 y "los 40 de un día"), y anotado en la nota de mantenimiento del
+  propio ejemplo, con su nombre: **lo encontró el script, no una persona**.
+
+  **Qué comprueba hoy**, con la fuente de cada cosa en el código:
+
+  | Dato | De dónde sale |
+  |---|---|
+  | 2 / 8 / 40 / 240 | `CREDITOS_NIVEL` en `lib/planes.ts` |
+  | 40 al día · 2.000 · 6.000 | `CREDITOS_PLAN` en `lib/planes.ts` |
+  | regalo de 300 | el `default` de `creditos_extra` en `0020_escala_x2.sql` |
+  | 10 Co-Works · 30 Mentes | `limitar_coworks()` y `limitar_mentes()` |
+  | `kairo_probar`, 3 por visitante | `api/probar/route.ts` |
+  | las seis cosas que la política de cookies tiene que nombrar | el código que las pone |
+
+  **Comprobado de las dos maneras**, que es la parte que importa en un
+  verificador: en verde cuando el material cuadra, **y en rojo cuando no**. Se le
+  metió a mano un *"Un Mega-Prompt cuesta 120 créditos"* en el archivo de
+  conocimiento y lo señaló con su línea; al quitarlo, verde otra vez. Un
+  comprobador que solo se ha visto pasar no está comprobado.
+
+  **Lo que no mira, a propósito**: el diario de entrenamiento, los informes y los
+  partes. Son **histórico** y dicen lo que era verdad el día que se escribieron;
+  tocarlos sería falsificar el registro. Tampoco mira la especificación, donde
+  las diferencias con el código son un hallazgo y no un error.
+
+  **Lo que falta y es una línea suya**: que esté en la ficha del guardián como
+  parte de su comprobación 9. Mientras no lo diga la ficha, lo pasa el guardián
+  por convenio —queda escrito en el README— y eso vuelve a depender de que
+  alguien se acuerde, que es justo lo que este archivo existe para sustituir.
 
 - **La política de cookies vuelve a decir la verdad: tres cookies y una analítica que no pide permiso.** `[hecho 2026-11-07]`
   Se publicó el 04-11 y **duró dos días**: sus 22 commits del 06 y 07-11

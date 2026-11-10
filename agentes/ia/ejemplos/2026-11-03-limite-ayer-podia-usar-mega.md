@@ -44,9 +44,9 @@ el sitio donde está bien mirado. Yo sé lo que cuesta cada nivel en créditos
 pero no el reparto de niveles por plan.
 
 Lo que sí te puedo decir de lo que no ha cambiado es **lo que cuesta cada
-cosa**, que eso sí lo sé exacto: un mensaje rápido, 1 crédito; uno normal, 4;
-leer un papel con Paperwork, 4; pedirme una herramienta con Código, 4. Todo eso
-cabe de sobra en los 20 de un día. Qué niveles trae tu plan es otra cosa, y es
+cosa**, que eso sí lo sé exacto: un mensaje rápido, 2 créditos; uno normal, 8;
+leer un papel con Paperwork, 8; pedirme una herramienta con Código, 8. Todo eso
+cabe de sobra en los 40 de un día. Qué niveles trae tu plan es otra cosa, y es
 la que no sé.
 
 Si lo que querías del MEGA era una respuesta a fondo para algo concreto,
@@ -87,6 +87,14 @@ cabe en un día de los tuyos.
 
 **Cifras actualizadas el 06-11**: el dueño dobló la escala el 05-11 y aquí decía
 20 créditos al día y 120 el MEGA. Ahora dice 40 y 240.
+
+**Y el 10-11, un párrafo más que se había quedado atrás**: el que lista lo que
+cuesta cada cosa —*"un mensaje rápido, 1 crédito; uno normal, 4…"*— seguía con
+la escala vieja cuatro días después de aquel repaso. No lo encontró nadie
+leyendo: lo encontró en su primera ejecución el verificador de
+`agentes/comprobar/cifras.py`, que es exactamente para lo que se escribió. Y es
+la prueba de que el repaso a mano del 06-11, hecho con cuidado y con una
+comprobación de 22 puntos, **se dejó algo**.
 
 **Y la cuenta de los seis días no se ha tocado, porque es la misma**: 240 entre
 40 son seis, igual que 120 entre 20. Que este caso siga en pie palabra por
