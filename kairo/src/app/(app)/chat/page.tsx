@@ -957,7 +957,19 @@ function Chat() {
              marca, es relleno: ocupaba el sitio por el que empieza la
              mirada y empujaba hacia abajo lo único que se usa de verdad
              en esta pantalla, que es la caja de escribir. */
-          <div className="mx-auto w-full max-w-[680px]">
+          /* CENTRADO, COMO LA CAJA QUE VA DEBAJO.
+ 
+             El saludo iba pegado a la izquierda y la caja ocupaba el
+             ancho entero, así que el bloque tenía dos ejes: el texto
+             empezaba en un sitio y el conjunto estaba centrado en otro.
+             A simple vista no se sabe decir qué falla, pero se nota.
+ 
+             Centrado, el saludo y la caja comparten eje y la pantalla de
+             entrada se lee como una sola cosa en medio, que es lo que
+             es. En cuanto escribes el primer mensaje esto desaparece y
+             la conversación vuelve a ir alineada a la izquierda, que es
+             como se lee un texto largo. */
+          <div className="mx-auto w-full max-w-[680px] text-center">
             <h1 className="text-balance text-[25px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[28px]">
               {saludo}
             </h1>
