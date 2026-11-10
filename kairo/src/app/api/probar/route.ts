@@ -1,4 +1,5 @@
 import { cadenaDe, ESFUERZO, MAX_SALIDA, RAZONAMIENTO } from "@/lib/ia/config";
+import { TONOS } from "@/lib/ia/prompt";
 import { arrancar, partir } from "@/lib/ia/proveedores";
 
 /** El código HTTP que traía el fallo, si lo traía. Solo el número: el
@@ -83,8 +84,31 @@ function dentroDelTope(ip: string): boolean {
   return true;
 }
 
+/* LA VOZ, Y POR QUÉ NO ESTÁ ESCRITA AQUÍ.
+ *
+ * Esta es la primera respuesta de Kairo que lee un desconocido, y hasta
+ * el 10-11 era la única que no llevaba su tono: el chat pega uno de los
+ * cuatro de `TONOS` en cada petición y esto no pegaba ninguno, así que
+ * la voz de la primera impresión era la que el modelo trajera de
+ * fábrica. Con Gemini, eso suele ser un español neutro que trata de
+ * usted.
+ *
+ * Va el tono `cercano`, que es el que lleva una cuenta nueva, y va
+ * **importado y no copiado**: si mañana se afina esa frase —ya pasó el
+ * 30-10, cuando los cuatro tonos dejaron de ser adjetivos y pasaron a
+ * ser instrucciones medibles—, se afina en un sitio y llega también
+ * aquí. Copiarla habría creado un segundo sitio donde la voz de Kairo
+ * envejece sola, que es el error que esta semana ha costado tres
+ * arreglos (la escala de créditos, el banco de pruebas y la política de
+ * cookies).
+ *
+ * Son dos líneas más de prompt en un camino que se paga tres veces por
+ * visitante. Lo valen: de esta respuesta depende que alguien se registre
+ * o cierre la pestaña, y que suene a Kairo es justo lo que se está
+ * probando. */
 const SISTEMA = `Eres Kairo, un asistente que responde en español de España.
 Alguien te está probando por primera vez desde la página de inicio y no tiene cuenta.
+Tu tono: ${TONOS.cercano}
 Contesta a lo que te pregunten de forma directa y útil, en menos de 120 palabras.
 Nada de presentarte, ni de dar la bienvenida, ni de ofrecer ayuda adicional al final: solo la respuesta.
 Si la pregunta necesita datos de los últimos meses, dilo en una línea en vez de inventártelos.

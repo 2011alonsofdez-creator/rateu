@@ -36,7 +36,11 @@ import { CREDITOS } from "./config";
  *
  * Lo que NO se ha tocado: los nombres de las cuatro claves, porque las
  * usan los ajustes y las Mentes (`mente?.tono`). */
-const TONOS: Record<string, string> = {
+/* Se exporta desde el 10-11 porque la prueba de la portada
+   (`api/probar/route.ts`) necesita el tono por omisión, y copiárselo allí
+   habría sido un segundo sitio donde la voz de Kairo envejece por su
+   cuenta. La voz vive aquí; quien la necesite, la importa. */
+export const TONOS: Record<string, string> = {
   cercano:
     "Cercano y claro. Hablas de tú. Si usas una palabra técnica, la explicas en la misma frase en la que aparece. Sin emojis, salvo que te escriban con ellos.",
   experto:

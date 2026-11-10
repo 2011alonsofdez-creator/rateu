@@ -96,6 +96,73 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-10 — Tono (área 6): la primera respuesta que lee un desconocido no tenía tono
+
+**Dos días perdidos antes de esta entrada.** El 08 y el 09-11 no corrió ningún
+agente —ocho avisos leídos hoy de golpe, el proceso de la sesión se reinició— y
+está contado en `agentes/diario/2026-11-08.md` y `2026-11-09.md`. Lo digo aquí
+porque la rotación salta: después del área 5 del 07-11 toca la 6, y la 6 cae hoy
+tres días después en vez de uno.
+
+**Qué cambié**: `api/probar/route.ts`, una línea de su `SISTEMA`, y un `export`
+en `prompt.ts`.
+
+**Qué estaba mal, y es de las cosas que solo se ven mirando una pantalla que
+nadie mira**: desde el 06-11 existe la prueba de la portada, que es **la primera
+respuesta de Kairo que lee un desconocido**. Y era la única respuesta de todo el
+producto que **no llevaba tono**. El chat pega uno de los cuatro de `TONOS` en
+cada petición; esto no pegaba ninguno, así que la voz de la primera impresión
+era la que el modelo trajera de fábrica. Con Gemini, eso suele ser un español
+neutro que trata de usted.
+
+O sea: la pantalla donde se decide si alguien se registra o cierra la pestaña
+hablaba como un modelo genérico, que es exactamente lo que el área 6 existe para
+evitar —*"que suene a Kairo y no a un modelo genérico"*—.
+
+**Cómo lo arreglé, y la decisión está en el "cómo"**: va el tono `cercano`, que
+es el que lleva una cuenta nueva, **importado y no copiado**. `TONOS` pasa a
+exportarse y la ruta lo interpola. Copiar la frase habría sido más rápido y
+habría creado **un segundo sitio donde la voz de Kairo envejece sola**, que es
+el error que esta semana ha costado tres arreglos: la escala de créditos en
+cuatro archivos (06-11), el caso 7 del banco (06-11) y la política de cookies
+(07-11). Si mañana se afina ese tono —ya pasó el 30-10, cuando los cuatro
+dejaron de ser adjetivos y pasaron a ser instrucciones medibles—, llega aquí
+solo.
+
+**Cómo lo comprobé**: un arnés que **copia del fuente** el literal de `SISTEMA`
+y la constante `TONOS` —ninguna de las dos escrita a mano— y lo renderiza con
+`node --experimental-strip-types`. El prompt que sale es de siete líneas, una
+más que antes, y la tercera dice: *"Tu tono: Cercano y claro. Hablas de tú. Si
+usas una palabra técnica, la explicas en la misma frase en la que aparece. Sin
+emojis, salvo que te escriban con ellos."*
+
+**12 comprobaciones, 12 de 12**: que `TONOS` se exporta, que la ruta lo importa y
+no lo copia, que no queda ni una frase de tono escrita a mano allí, que el tono
+va **antes** de las instrucciones de forma, y que no se ha tocado nada de lo
+demás de esa ruta —el tope por IP, el de casa, la galleta, la cadena de edad
+desconocida y la temperatura—, que es lo que de verdad me daba miedo tocar.
+`tsc --noEmit` salida 0 y `next build` salida 0.
+
+**Lo que cuesta, dicho a las claras**: dos líneas más de prompt en un camino que
+se paga **tres veces por visitante** y tiene un tope de casa de 300 al día. Lo
+valen porque es la respuesta de la que depende un registro, y porque el texto ya
+se paga en cada mensaje del chat: no es texto nuevo, es el mismo.
+
+**Qué necesito del dueño**: nada. Y si algún día quiere que la prueba suene
+distinta del chat —más corta, con más chispa—, es cambiar `TONOS.cercano` por
+otro de los cuatro en una línea, y queda dicho en el comentario.
+
+**Lo que vi de paso**, sin promesas:
+
+- El `SISTEMA` de la prueba dice *"si la pregunta necesita datos de los últimos
+  meses, dilo"*, y **la prueba no tiene buscador**. El chat tiene un bloque
+  entero para eso (`SIN INTERNET`); aquí hay media línea. No es falso, es
+  estrecho: el riesgo no son solo los datos de los últimos meses.
+- Y **nada le dice a la prueba qué no puede hacer**. Si un desconocido escribe
+  "léeme esta multa", no hay ninguna instrucción sobre cómo contestar que eso se
+  hace con cuenta. Es la pregunta más probable de todas, por lo que vende la
+  portada.
+
 ### 2026-11-07 — Evaluación (área 5): en producción decía "cuesta 2 crédito"
 
 **Qué cambié**: una línea de `kairo/src/lib/ia/prompt.ts` y un ayudante de tres
