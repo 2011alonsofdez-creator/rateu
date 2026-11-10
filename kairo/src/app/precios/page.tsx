@@ -21,11 +21,11 @@ const FAQ = {
     },
     {
       q: "¿Mis hijos pueden usarlo?",
-      a: "Sí, creando un perfil hijo desde tu cuenta de adulto. Tú decides las restricciones y puedes ver lo que hace. Un menor no puede abrirse cuenta por su cuenta.",
+      a: "De 13 a 17 años sí: se registran con su fecha de nacimiento real y Kairo les aplica una moderación bastante más estricta que la de un adulto. Por debajo de 13 todavía no — los perfiles que crea y supervisa un adulto están en camino, y mientras no estén preferimos decirlo a prometerlo.",
     },
     {
       q: "¿Se usan mis conversaciones para entrenar modelos?",
-      a: "No. Y en los perfiles de menores, además, se guardan los datos mínimos imprescindibles.",
+      a: "No. Ni las tuyas ni las de nadie, y tampoco se venden.",
     },
   ],
   en: [
@@ -43,11 +43,11 @@ const FAQ = {
     },
     {
       q: "Can my kids use it?",
-      a: "Yes, by creating a child profile from your adult account. You set the restrictions and can see what they do. A minor cannot open an account on their own.",
+      a: "Between 13 and 17, yes: they sign up with their real date of birth and Kairo applies considerably stricter moderation than an adult's. Under 13 not yet — profiles created and supervised by an adult are on the way, and until they exist we would rather say so than promise it.",
     },
     {
       q: "Are my conversations used to train models?",
-      a: "No. And on child profiles we additionally store only the bare minimum of data.",
+      a: "No. Not yours, not anyone's, and they are not sold either.",
     },
   ],
 };
