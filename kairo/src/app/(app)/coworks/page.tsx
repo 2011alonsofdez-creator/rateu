@@ -244,6 +244,9 @@ function Coworks() {
   const [cargando, setCargando] = useState(true);
   const [falta, setFalta] = useState(false);
   const [aviso, setAviso] = useState<string>();
+  /* El tope que ha dicho el servidor, para no escribirlo aquí: el día
+     que cambien los números del plan, el aviso cambia solo. */
+  const [tope, ponTope] = useState<number>();
   /* El servidor sabe QUÉ archivo falta; la traducción de aquí no, y
      nombraba siempre el 0009. Cuando manda una pista, manda ella. */
   const [pista, setPista] = useState<string>();
@@ -400,6 +403,7 @@ function Coworks() {
               ? "cw.needsMigration"
               : "cw.failed",
         );
+        if (j?.error === "demasiados" && typeof j?.tope === "number") ponTope(j.tope);
         setPista(typeof j?.pista === "string" ? j.pista : undefined);
         if (j?.error === "falta_migracion") setFalta(true);
         return;
@@ -563,7 +567,7 @@ function Coworks() {
 
       {aviso && (
         <p className="mb-4 rounded-xl border border-gold/40 bg-gold/10 px-4 py-2.5 text-[13.5px] leading-relaxed text-gold">
-          {t(aviso as "cw.failed")}
+          {t(aviso as "cw.failed").replace("{n}", String(tope ?? ""))}
           {pista && <span className="mt-1 block text-gold/80">{pista}</span>}
         </p>
       )}

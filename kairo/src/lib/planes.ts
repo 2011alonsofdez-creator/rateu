@@ -49,6 +49,43 @@ export const CREDITOS_PLAN: Record<PlanId, number> = {
   supreme: 6000,
 };
 
+/* LOS TOPES DE VERDAD, Y POR QUÉ AHORA SON POR PLAN.
+ *
+ * Hasta hoy los topes vivían solo en dos disparadores de la base de
+ * datos y eran IGUALES PARA TODOS: 10 Co-Works y 30 Mentes, pagases lo
+ * que pagases. Mientras tanto la página de precios vendía "Co-Works
+ * ilimitados" y "Mentes ilimitadas" en el plan de 24,99 €.
+ *
+ * Eran dos problemas de golpe. Uno es que "ilimitado" era mentira y
+ * alguien que paga tiene razón al reclamarlo. El otro, más callado, es
+ * que dos de los cinco argumentos de venta de Supreme no lo
+ * diferenciaban en NADA de un plan quince euros más barato: los dos
+ * tenían 10 y 30.
+ *
+ * Los números no son redondos por capricho. Un Co-Work se ejecuta cada
+ * mañana y cuesta 8 créditos: con los 2.000 al mes de Kairo+ (unos 66
+ * al día), cinco encargos diarios son 40 y dejan sitio para chatear.
+ * Prometer más sería prometer trabajadores que no aparecen. Las Mentes
+ * no cuestan nada —son instrucciones guardadas—, así que ahí el tope
+ * solo existe para que nadie llene la tabla.
+ *
+ * Esto se escribe aquí porque lo leen los dos lados: la pantalla para
+ * decir la verdad en precios, y el servidor para cortar. La base de
+ * datos tiene los mismos números en la migración 0023 y es la que manda:
+ * si un día bailan, manda la de abajo, no esta.
+ */
+export const COWORKS_POR_PLAN: Record<PlanId, number> = {
+  free: 1,
+  plus: 5,
+  supreme: 25,
+};
+
+export const MENTES_POR_PLAN: Record<PlanId, number> = {
+  free: 3,
+  plus: 30,
+  supreme: 150,
+};
+
 export const NOMBRE_PLAN: Record<PlanId, string> = {
   free: "Free",
   plus: "Kairo+",

@@ -1,6 +1,6 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
-import { CREDITOS_NIVEL } from "./planes";
+import { COWORKS_POR_PLAN, CREDITOS_NIVEL, MENTES_POR_PLAN } from "./planes";
 import type { Producto } from "./pagos/config";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
@@ -205,19 +205,19 @@ export const plans: Plan[] = [
          Y faltaba lo mejor que tiene: los 300 de bienvenida, que dan
          para un MEGA entero. */
       es: [
-        "40 créditos al día",
-        "300 de regalo al registrarte",
-        "Modelos rápido y estándar",
-        "Historial de 30 días",
-        "1 Mente propia",
+        "40 créditos al día, y vuelven cada mañana",
+        "300 de regalo: dan para un Mega-Prompt entero",
+        `${COWORKS_POR_PLAN.free} Co-Work, que trabaja solo cada día`,
+        `${MENTES_POR_PLAN.free} Mentes propias`,
+        "Todo tu historial, sin caducidad",
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
-        "40 credits per day",
-        "300 free credits to start",
-        "Fast and standard models",
-        "30-day history",
-        "1 Mind of your own",
+        "40 credits a day, back every morning",
+        "300 free credits: enough for a whole Mega-Prompt",
+        `${COWORKS_POR_PLAN.free} Co-Work that works on its own every day`,
+        `${MENTES_POR_PLAN.free} Minds of your own`,
+        "All your history, no expiry",
         "PDFs of any size · photos up to 3 MB",
       ],
     },
@@ -230,18 +230,18 @@ export const plans: Plan[] = [
     bullets: {
       es: [
         "2.000 créditos al mes",
-        "Modelos rápido y estándar",
+        "Los cuatro niveles, Mega-Prompt incluido",
         "8 Mega-Prompts al mes",
-        "3 Co-Works activos",
-        "10 Mentes propias",
+        `${COWORKS_POR_PLAN.plus} Co-Works trabajando a la vez`,
+        `${MENTES_POR_PLAN.plus} Mentes propias`,
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "2,000 credits per month",
-        "Fast and standard models",
+        "All four tiers, Mega-Prompt included",
         "8 Mega-Prompts per month",
-        "3 active Co-Works",
-        "10 Minds of your own",
+        `${COWORKS_POR_PLAN.plus} Co-Works running at once`,
+        `${MENTES_POR_PLAN.plus} Minds of your own`,
         "PDFs of any size · photos up to 3 MB",
       ],
     },
@@ -253,19 +253,19 @@ export const plans: Plan[] = [
     bullets: {
       es: [
         "6.000 créditos al mes",
-        "Los tres modelos, incluido el máximo",
+        "Los cuatro niveles, Mega-Prompt incluido",
         "25 Mega-Prompts al mes",
-        "Co-Works ilimitados",
-        "Mentes ilimitadas",
+        `${COWORKS_POR_PLAN.supreme} Co-Works trabajando a la vez`,
+        `${MENTES_POR_PLAN.supreme} Mentes propias`,
         "PDF de cualquier tamaño · fotos hasta 3 MB",
         "Soporte prioritario",
       ],
       en: [
         "6,000 credits per month",
-        "All three models, top tier included",
+        "All four tiers, Mega-Prompt included",
         "25 Mega-Prompts per month",
-        "Unlimited Co-Works",
-        "Unlimited Minds",
+        `${COWORKS_POR_PLAN.supreme} Co-Works running at once`,
+        `${MENTES_POR_PLAN.supreme} Minds of your own`,
         "PDFs of any size · photos up to 3 MB",
         "Priority support",
       ],
