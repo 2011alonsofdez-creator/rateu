@@ -395,26 +395,34 @@ body {
   animation: salta 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
-/* Los tres puntos de "estoy en ello": saltan uno detrás de otro. */
-@keyframes kairo-bote {
-  0%, 60%, 100% {
-    transform: translateY(0);
-    opacity: 0.5;
-  }
-  30% {
-    transform: translateY(-6px);
-    opacity: 1;
-  }
+/* Los tres puntos de "estoy en ello": hacen malabares. Cada uno salta
+   en arco al sitio del siguiente, y el del final vuelve al principio por
+   encima de los otros dos, así que van cambiando de orden sin parar. Es
+   la misma animación para los tres, desfasada un tercio de vuelta. */
+@keyframes kairo-malabar {
+  0%, 20% { transform: translate(0, 0); }
+  26.5% { transform: translate(6px, -7px); }
+  33%, 53% { transform: translate(12px, 0); }
+  59.5% { transform: translate(18px, -7px); }
+  66%, 86% { transform: translate(24px, 0); }
+  93% { transform: translate(12px, -13px); }
+  100% { transform: translate(0, 0); }
+}
+.kairo-puntos {
+  position: relative;
 }
 .kairo-puntos i {
+  position: absolute;
+  left: calc(50% - 15.5px);
+  top: calc(50% - 3.5px);
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--acento), var(--acento-2));
-  animation: kairo-bote 1.1s ease-in-out infinite;
+  animation: kairo-malabar 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
-.kairo-puntos i:nth-child(2) { animation-delay: 0.15s; }
-.kairo-puntos i:nth-child(3) { animation-delay: 0.3s; }
+.kairo-puntos i:nth-child(1) { background: var(--acento); }
+.kairo-puntos i:nth-child(2) { background: #ff6219; animation-delay: -1.2s; }
+.kairo-puntos i:nth-child(3) { background: var(--acento-2); animation-delay: -0.6s; }
 @media (prefers-reduced-motion: reduce) {
-  .kairo-puntos i { animation-duration: 2.4s; }
+  .kairo-puntos i { animation-duration: 3.6s; }
 }

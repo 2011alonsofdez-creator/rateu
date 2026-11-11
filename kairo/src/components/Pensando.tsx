@@ -102,7 +102,7 @@ export function Pensando({
   return (
     <div className="flex gap-3">
       {puntos ? (
-        <span className="kairo-puntos flex h-8 w-8 shrink-0 items-center justify-center gap-[5px]" aria-hidden>
+        <span className="kairo-puntos block h-8 w-8 shrink-0" aria-hidden>
           <i />
           <i />
           <i />
