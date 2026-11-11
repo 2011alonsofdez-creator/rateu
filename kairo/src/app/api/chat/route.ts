@@ -37,10 +37,7 @@ import type { ModoEdad, PlanId } from "@/lib/planes";
 import type { Fuente, Mente } from "@/lib/tipos";
 
 export const runtime = "nodejs";
-/* Cinco minutos: Code escribe un archivo entero, y con un modelo gratis
-   eso se pasa del minuto. Los chats normales siguen parándose solos a
-   los 52 segundos (ver PLAZO_RESPUESTA): esto solo es el techo. */
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 /* Por defecto Vercel ejecuta esto en Estados Unidos, mientras que tu base
    de datos está en Irlanda y tú en España. Cada mensaje cruzaba el
@@ -235,9 +232,7 @@ const fallo = (estado: number, motivo: string) =>
    se guarda nada: ni la respuesta a medias, ni el crédito bien contado.
    Terminando por nuestra cuenta ocho segundos antes, lo escrito hasta
    ahí queda guardado y el usuario sabe por qué se ha parado. */
-const PLAZO_CHAT = 52_000;
-/* Para Code (`largo: true`): casi los cinco minutos de `maxDuration`. */
-const PLAZO_LARGO = 285_000;
+const PLAZO_RESPUESTA = 52_000;
 
 export async function POST(req: Request) {
   const entro = Date.now();
@@ -245,7 +240,6 @@ export async function POST(req: Request) {
   if (!supabase) return fallo(503, "demo");
 
   const cuerpo = await req.json().catch(() => null);
-  const PLAZO_RESPUESTA = cuerpo?.largo === true ? PLAZO_LARGO : PLAZO_CHAT;
 
   /* "auto" no es un nivel: es dejar que lo elija Kairo. Se resuelve más
      abajo, cuando ya se sabe el plan y el saldo, porque el navegador no
@@ -417,7 +411,16 @@ export async function POST(req: Request) {
      cuatro megas en cada línea del historial. */
   const archivos = revisarAdjuntos(entradas[entradas.length - 1]?.adjuntos);
 
-  const todaLaCadena = cadenaDe(nivel, perfil.modo_edad);
+  /* PARA CODE, LOS RÁPIDOS DELANTE. Code escribe un archivo entero en
+     menos de un minuto, y un modelo enorme (Nemotron Ultra, 550B) no
+     llega aunque sea muy listo. Así que en Code los gigantes van al
+     final de la cadena; en el chat se queda todo como está. */
+  const paraCode = cuerpo?.para === "code";
+  const pesado = (id: string) => /ultra|[-_/]\d{3,}b(?:[-_:]|$)/i.test(id);
+  const cadenaBase = cadenaDe(nivel, perfil.modo_edad);
+  const todaLaCadena = paraCode
+    ? [...cadenaBase.filter((m) => !pesado(m)), ...cadenaBase.filter(pesado)]
+    : cadenaBase;
 
   /* Con una imagen o un PDF delante, los modelos que solo leen texto no
      valen: no es que contesten peor, es que devuelven un error raro. Se
