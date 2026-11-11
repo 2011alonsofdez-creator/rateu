@@ -176,6 +176,14 @@ Kairo y son españoles. Cifras de resultados de búsqueda, sin abrir ninguna web
   una foto**, fiscal y laboral en España, **gratis**.~~
   **SIN VERIFICAR desde el 2026-10-23**: no aparece ninguna ficha española. Lo
   que sale es *Lexly SE*, sueca y de pago por documento.
+- **Descartados el 2026-11-11, y es una corrección de método**: `Lexlyia`,
+  `Lexly ES` y `ClausIA` salen de la lista de competidores. Los tres entraron por
+  un título de resultados de búsqueda y **ninguno ha sobrevivido a una búsqueda
+  dirigida**: los dos primeros fallaron el 23-10, ClausIA el 11-11, y ya estaba
+  marcado `(sin verificar)` desde el 29-10. La regla que queda escrita: **un
+  nombre que no reaparece en una segunda búsqueda no es un competidor, es un
+  título**, y dejarlo en el mapa hace priorizar contra una amenaza que nadie ha
+  podido ver dos veces. Si alguno aparece de verdad, vuelve con su enlace.
 - **LexScan** (`lexscan.cc` y App Store) — **nuevo el 23-10, y ocupa el modelo
   de cobro de Kairo en su nicho.** Fotografías un contrato, un alquiler o un
   NDA y lo desglosa, con **nota de riesgo 0-10** y puntuación por cláusula.
@@ -222,6 +230,27 @@ a `/precios`.
 
 Dos cosas que cambian cómo se razona, y por eso están aquí y no solo en el
 informe del día.
+
+**ACTUALIZADO EL 11-11, Y EL SUELO SE HA MOVIDO A FAVOR DE KAIRO.** Lo de abajo
+se escribió el 29-10 diciendo que *"ChatGPT Tasks y Gemini Scheduled Actions
+cuestan los dos ~20 $"*. Verificado hoy, eso ya no es verdad y conviene razonar
+con lo nuevo:
+
+- **ChatGPT Go**, en España, **~8 €/mes** —salió a 9,99 € en noviembre de 2025—,
+  con tareas programadas en **todos** los planes de pago
+  ([Xataka Android](https://www.xatakandroid.com/inteligencia-artificial/chatgpt-go-llega-a-nuestro-pais-misil-a-gemini-asi-queda-batalla-precios-ia-espana)).
+  `(sin verificar al euro: una guía de agosto dice 7,99 € y otra 8 €)`.
+- **Google** ha abierto **AI Plus a 4,99 €/mes**, y ese plan **no** trae
+  Scheduled Actions: para eso sigue haciendo falta **AI Pro, 21,99 €/mes**
+  ([blog de Google](https://blog.google/products-and-platforms/products/gemini/scheduled-actions-gemini-app/),
+  precios de resultados de búsqueda).
+- El tope de los dos sigue en **10** tareas activas.
+
+**Lo que fija, y es el argumento de precio de Kairo**: el suelo para tener una
+IA que trabaja sola es **~8 €** en OpenAI y **21,99 €** en Google. Kairo da **un
+Co-Work que se ejecuta cada día en el plan gratuito, sin tarjeta**, y **25 en
+Supreme contra los 10 de los dos**. Lo que ya no se puede decir es que el tope de
+Kairo+ sea "el mismo que los grandes": son **5 contra 10**.
 
 **1. Ya hay precio de referencia para la frase con la que se vende Kairo.**
 **ChatGPT Tasks y Gemini Scheduled Actions cuestan los dos ~20 $ al mes**

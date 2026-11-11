@@ -1267,6 +1267,46 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Kairo nunca ha dicho su mejor argumento de precio: que "trabaja mientras no estás" se puede probar sin tarjeta.** `[origen: crecimiento 2026-11-11]`
+  **Verificado hoy con los precios de este mes**, que es lo que lo convierte en
+  tarea y no en opinión: el suelo del mercado para tener una IA que trabaja sola
+  es **~8 €/mes** (ChatGPT Go, tareas programadas en todos los planes de pago) y
+  **21,99 €/mes** en Google —su plan nuevo de 4,99 € **no** trae Scheduled
+  Actions—. El tope de los dos es **10** tareas.
+
+  Kairo da **1 Co-Work que se ejecuta cada día en el plan gratuito, sin
+  tarjeta**. Ninguno de los dos da eso a 0 €.
+
+  **Y la portada no lo dice en ninguna parte.** Vende *"La IA que trabaja cuando
+  tú no"* —que es la promesa correcta— y deja al visitante sin saber que puede
+  comprobarla sin pagar. Es la única frase que convierte esa promesa en un motivo
+  para registrarse hoy.
+
+  **Qué haría yo**: un bloque corto en la portada y una línea en `/precios`, en
+  los dos idiomas, con la cifra interpolada de `COWORKS_POR_PLAN.free` para que
+  no envejezca sola. **Sin nombrar marcas**: "los asistentes generales piden
+  suscripción para esto" dice lo mismo y no mete a nadie en un pleito.
+  **Medio día** del constructor.
+
+  **Lo que no voy a prometer**: no podré medir si funciona. La analítica está en
+  su Supabase y ningún agente la lee.
+
+- **Los 25 Co-Works de Supreme son un argumento y están enterrados como una viñeta de seis.** `[origen: crecimiento 2026-11-11]`
+  Anoche los topes pasaron a ser por plan y Supreme quedó en **25 encargos a la
+  vez**. Los dos grandes están en **10**, y Google cobra **21,99 €** por llegar
+  ahí. Es **la primera cifra en la que Supreme gana al mercado**, y hoy está
+  escrita igual que "PDF de cualquier tamaño".
+
+  Es además la respuesta a la pregunta que el propio comentario de `planes.ts` se
+  hacía anoche —*"dos de los cinco argumentos de venta de Supreme no lo
+  diferenciaban en nada"*—: ahora sí lo diferencian, y hay que decirlo donde se
+  decide pagar.
+
+  **Qué haría yo**: una línea de comparación en `/precios`, en los dos idiomas
+  —"25 encargos a la vez; los asistentes generales se quedan en 10"—, sin marcas
+  y con la cifra leída de `COWORKS_POR_PLAN.supreme`. **Una tarde** del
+  constructor.
+
 - **El prompt no sabe en qué plan está quien pregunta, así que recita los tres topes.** `[origen: entrenador 2026-11-11]`
   Desde hoy el prompt dice los topes de Co-Works y Mentes por plan —1 / 5 / 25 y
   3 / 30 / 150, interpolados de `COWORKS_POR_PLAN` y `MENTES_POR_PLAN`—, y tiene
