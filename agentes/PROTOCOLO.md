@@ -108,6 +108,15 @@ git commit -m "agentes(<agente>): <qué hiciste>"
 git push -u origin claude/kairo-agentes
 ```
 
+**Y un cuidado con el mensaje del commit, aprendido el 11-11 a base de
+estropear uno.** Si lo escribes entre comillas dobles, la shell **ejecuta** lo
+que vaya entre comillas invertidas. Un mensaje que citaba `` `free` `` y
+`` `mega` `` acabó publicado con la salida del comando `free` —la memoria libre
+de la máquina— incrustada en mitad de la frase. No se puede arreglar: reescribir
+historia ya empujada está prohibido, así que la corrección va en el commit
+siguiente y el estropicio se queda. Escribe los mensajes con un *here-doc*
+entrecomillado (`git commit -F - <<'MSG'`), que no sustituye nada.
+
 Si el push falla por red, reintenta hasta 4 veces esperando 2 s, 4 s, 8 s y 16 s.
 Si falla por conflicto: `git pull --no-rebase origin claude/kairo-agentes`,
 resuelve y vuelve a empujar. **Nunca reescribas historia ya publicada**
