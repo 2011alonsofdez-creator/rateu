@@ -9,7 +9,7 @@ import { escuchar, hayMicrofono } from "@/lib/voz";
 import { pitido } from "@/lib/sonido";
 import { ADJUNTOS, ADJUNTOS_ACEPTADOS, esImagen, type Adjunto, type Mente } from "@/lib/tipos";
 import { prepararArchivo, pesoTotal, tamano, tipoDe, tipoAceptado } from "@/lib/archivos";
-import { Brain, Chevron, Clip, Close, Mic, Send } from "./Icons";
+import { Brain, Chevron, Clip, Close, Credito, Mic, Send } from "./Icons";
 import { IconoNivel } from "./IconoNivel";
 import { type ModoBusqueda } from "@/lib/buscar-modo";
 import Link from "next/link";
@@ -34,6 +34,7 @@ export function Composer({
   onSend,
   busy,
   arranque,
+  saldo,
 }: {
   level: Nivel;
   setLevel: (l: Nivel) => void;
@@ -44,6 +45,9 @@ export function Composer({
   /** En la portada la caja no es la barra de abajo: va suelta, debajo
       del saludo, sin raya encima y con el ancho de la columna. */
   arranque?: boolean;
+  /** Los créditos que quedan, ya escritos. En conversación van en la
+      fila de abajo, junto al nivel, y no flotando encima de la caja. */
+  saldo?: string;
 }) {
   const { t, lang } = useUi();
   const perfil = usePerfil();
@@ -676,7 +680,13 @@ export function Composer({
                 <button
                   onClick={submit}
                   disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
-                  className="brand-grad grid h-9 w-9 place-items-center rounded-lg text-on-accent transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
+                  className={`grid h-9 w-9 place-items-center rounded-lg transition disabled:cursor-not-allowed ${
+                    /* Vacía, gris: que se lea "aún no has escrito" y no
+                       "esto está roto". En cuanto hay algo, naranja. */
+                    (text.trim() || adjuntos.length) && !busy && !leyendo
+                      ? "brand-grad text-on-accent hover:opacity-90"
+                      : "bg-panel-hi text-faint"
+                  }`}
                   title={t("app.send")}
                   aria-label={t("app.send")}
                 >
@@ -732,7 +742,13 @@ export function Composer({
                 <button
                   onClick={submit}
                   disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
-                  className="brand-grad grid h-9 w-9 place-items-center rounded-lg text-on-accent transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
+                  className={`grid h-9 w-9 place-items-center rounded-lg transition disabled:cursor-not-allowed ${
+                    /* Vacía, gris: que se lea "aún no has escrito" y no
+                       "esto está roto". En cuanto hay algo, naranja. */
+                    (text.trim() || adjuntos.length) && !busy && !leyendo
+                      ? "brand-grad text-on-accent hover:opacity-90"
+                      : "bg-panel-hi text-faint"
+                  }`}
                   title={t("app.send")}
                   aria-label={t("app.send")}
                 >
@@ -875,6 +891,15 @@ export function Composer({
             {!arranque && (
               <span className="hidden min-w-0 flex-1 truncate text-center text-[11.5px] text-faint sm:block">
                 {t("app.disclaimer")}
+              </span>
+            )}
+            {!arranque && saldo && (
+              <span
+                className="ml-auto inline-flex shrink-0 items-center gap-1 px-1.5 text-[12px] text-faint"
+                title={t("app.credits")}
+              >
+                <Credito className="h-3 w-3 text-gold" />
+                {saldo}
               </span>
             )}
             <div className="relative ml-auto" ref={wrap}>

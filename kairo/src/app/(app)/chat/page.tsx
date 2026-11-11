@@ -22,7 +22,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
 import { Marca } from "@/components/Logo";
-import { Altavoz, Bolt, Brain, Check, Chevron, Clock, Code as Codigo, Copy, Credito, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
+import { Altavoz, Bolt, Brain, Check, Chevron, Clock, Code as Codigo, Copy, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
 
 /* Respuestas de ejemplo. Solo se usan en modo demo, cuando no hay
    Supabase ni clave de Gemini configurados. */
@@ -1170,10 +1170,6 @@ function Chat() {
             </button>
           )}
 
-          <span className="pointer-events-auto -mb-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1 text-[12px] text-muted shadow-[var(--shadow)]">
-            <Credito className="h-3 w-3 text-gold" />
-            {miles(credits, lang)} {t("app.credits")}
-          </span>
         </div>
       )}
 
@@ -1190,6 +1186,7 @@ function Chat() {
            ver y pisando el mensaje que se estaba escribiendo. */
         busy={busy || resumiendo}
         arranque={inicio}
+        saldo={`${miles(credits, lang)} ${t("app.credits")}`}
       />
       {/* LO DE DEBAJO DE LA CAJA, SOLO AL ARRANCAR.
  
