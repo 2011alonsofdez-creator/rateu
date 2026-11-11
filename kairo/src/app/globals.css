@@ -448,11 +448,22 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  animation: 4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
-.kairo-puntos i:nth-child(1) { background: var(--acento); animation-name: kairo-punto-1; }
-.kairo-puntos i:nth-child(2) { background: #ff6219; animation-name: kairo-punto-2; }
-.kairo-puntos i:nth-child(3) { background: var(--acento-2); animation-name: kairo-punto-3; }
+/* La animación entera en cada punto, con su nombre dentro. Escrita a
+   trozos —duración en uno, nombre en otro— el compresor de la web la
+   juntaba en `animation: none` y los tres se quedaban quietos. */
+.kairo-puntos i:nth-child(1) {
+  background: var(--acento);
+  animation: kairo-punto-1 4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.kairo-puntos i:nth-child(2) {
+  background: #ff6219;
+  animation: kairo-punto-2 4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.kairo-puntos i:nth-child(3) {
+  background: var(--acento-2);
+  animation: kairo-punto-3 4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-  .kairo-puntos i { animation-duration: 8s; }
+  .kairo-puntos i:nth-child(n) { animation-duration: 8s; }
 }
