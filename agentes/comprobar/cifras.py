@@ -138,6 +138,65 @@ TEXTOS = [
     *[str(p.relative_to(MATERIAL)) for p in sorted((MATERIAL / "ia/ejemplos").glob("*.md"))],
 ]
 
+# LOS PANELES VIVOS, AÑADIDOS EL 11-11 Y POR UN MOTIVO CONCRETO.
+#
+# Este script nació el 10-11 mirando el material de entrenamiento, que es donde
+# habían mordido los cuatro fallos conocidos. Ese mismo día, el radar buscando a
+# mano para su informe encontró **cuatro cifras en presente y falsas** en los dos
+# archivos que el script NO miraba: `CONTEXTO.md` —el que el protocolo manda leer
+# antes de opinar— y el checklist de lanzamiento. Tres llevaban cinco días; una,
+# doce.
+#
+# O sea que el agujero estaba justo donde más caro sale: no en lo que Kairo
+# aprende, sino en lo que los cinco agentes leen antes de decidir nada.
+PANELES = [
+    "CONTEXTO.md",
+    "ESTADO.md",
+    "lanzamiento/checklist.md",
+]
+
+# LO QUE HAY QUE RECORTAR EN ELLOS, Y POR QUÉ NO ES UN DETALLE.
+#
+# Estos archivos guardan su propio histórico **dentro de la misma celda**: una
+# fila del checklist encadena "Lo de antes:" y debajo lleva, citada a propósito,
+# la cifra de hace una semana. Si el script leyera la celda entera cantaría esas
+# citas como desajustes, y un verificador que da falsos positivos se desactiva
+# solo: a la tercera vez nadie lo mira.
+#
+# Es el error (c) de los cuatro que están escritos en las plantillas de
+# comprobación —"un grep sobre todo el archivo encuentra las comillas de uno
+# mismo"—, y ya nos ha pasado: el 06-11 con el material y el 11-11 con la fila
+# de claves del checklist, que cita `sk-` para explicar qué busca.
+#
+# Así que de cada línea se mira solo lo que afirma **hoy**: lo que va antes del
+# primer marcador de histórico. Y se cuenta cuántas se recortaron, porque un
+# recorte silencioso es otra forma de punto ciego.
+MARCAS_DE_HISTORICO = (
+    "Lo de antes:",
+    "Lo de ayer:",
+    "Lo de ayer,",
+    "Lo que decía esta entrada",
+    "Esta línea decía",
+    "esta fila decía",
+    "Decía ",
+    ", de histórico",
+    "El 10-11 era",
+    # Salió en la primera ejecución: el veredicto del panel del 11-11 cita la
+    # escala vieja para contar que estuvo cinco días publicada. Es histórico
+    # como el de las filas, solo que introducido con otras palabras.
+    "de antes del",
+    "la escala de créditos de antes",
+)
+
+
+def solo_lo_de_hoy(linea: str) -> tuple[str, bool]:
+    """Devuelve lo que la línea afirma hoy, y si hubo que recortarla."""
+    corte = min(
+        (linea.index(m) for m in MARCAS_DE_HISTORICO if m in linea),
+        default=-1,
+    )
+    return (linea, False) if corte < 0 else (linea[:corte], True)
+
 # Las cifras de la escala anterior, que es la que ha mordido cuatro veces.
 VIEJAS = {
     "1 crédito": "el rápido cuesta {fast}",
@@ -165,6 +224,63 @@ VIEJAS = {
         f"son {COWORKS['plus']} y {MENTES['plus']} en Kairo+, y {COWORKS['supreme']} y {MENTES['supreme']} en Supreme"
     ),
 }
+
+# --------------------------------------------------------------------------
+# LA SEGUNDA RED, Y LA QUE DE VERDAD HACÍA FALTA (11-11).
+#
+# `VIEJAS` caza **frases** concretas de la escala anterior: sirve porque esas
+# frases son las que mordieron, pero solo pilla lo que ya ha pasado. La prueba
+# está hecha y es incómoda: se le pasaron los paneles del 10-11 por la mañana,
+# con sus cuatro cifras falsas dentro, y **cazó dos** —las dos de "ilimitado"—.
+# Las otras cuatro se le escaparon enteras:
+#
+#     `free` 15 créditos, `plus` 1000 y `supreme` 3000
+#     Hoy son `fast` 1, `normal` 4, `forja` 20, `mega` 120
+#
+# No por poco: por la forma. `VIEJAS` busca "20 créditos al día" y el panel
+# escribe "`free` 15 créditos"; busca "MEGA 120" y el panel escribe "`mega` 120".
+# Un verificador que solo conoce la redacción de ayer no protege de la de mañana.
+#
+# Así que esto no busca frases: busca **un nombre de cifra pegado a un número** y
+# lo compara con el código. "rápido 2" pasa; "rápido 1" no. Da igual cómo esté
+# escrito alrededor.
+#
+# El número tiene que ir pegado al nombre —con comillas, dos puntos, un "cuesta"
+# o un espacio en medio, nada más— para no cazar un número que pasaba por ahí.
+# Por eso "los cuatro niveles: rápido, normal, Forja y MEGA" no dispara: después
+# de "rápido" hay una coma, no una cifra.
+# --------------------------------------------------------------------------
+# El `(?![,.]\d|\s*€)` del final es lo que distingue un crédito de un precio:
+# sin él, "Kairo+ 9,99 €/mes" se leía como "Kairo+ 9" y cantaba un desajuste
+# contra los 2.000 créditos. Salió en la primera ejecución, en `CONTEXTO.md:76`.
+PEGADO = r"[\s:=]*`?(?:cuesta|son|trae|da)?[\s:=]*`?(\d[\d.]*)\b(?![,.]\d|\s*€)"
+
+def _n(txt: str) -> int:
+    return int(txt.replace(".", ""))
+
+
+def cifras_pegadas(linea: str) -> list[str]:
+    """Nombres de cifra seguidos de un número que no es el del código."""
+    malas = []
+    esperado = [
+        (r"`?(?:fast|rápido)`?", NIVELES["fast"], "el nivel rápido"),
+        (r"`?(?:normal|estándar)`?", NIVELES["normal"], "el nivel normal"),
+        (r"`?[Ff]orja`?", NIVELES["forja"], "Forja"),
+        (r"`?(?:mega|MEGA|Mega-Prompt)`?", NIVELES["mega"], "el MEGA"),
+        (r"`?(?:free|Free)`?", PLANES["free"], "el plan gratis, al día"),
+        (r"`?(?:plus|Kairo\+)`?", PLANES["plus"], "Kairo+, al mes"),
+        (r"`?(?:supreme|Supreme)`?", PLANES["supreme"], "Supreme, al mes"),
+    ]
+    for patron, valor, nombre in esperado:
+        for m in re.finditer(patron + PEGADO, linea):
+            if _n(m.group(1)) != _n(valor):
+                malas.append(f"«{m.group(0).strip()}» y {nombre} son {valor}")
+    # El regalo se escribe al revés que las demás: "los 300 de bienvenida".
+    for m in re.finditer(r"(\d[\d.]*)\s+(?:créditos\s+)?de\s+(?:regalo|bienvenida)", linea):
+        if _n(m.group(1)) != _n(REGALO):
+            malas.append(f"«{m.group(0).strip()}» y el regalo son {REGALO}")
+    return malas
+
 
 CONTEXTO = dict(
     fast=NIVELES["fast"], normal=NIVELES["normal"], forja=NIVELES["forja"], mega=NIVELES["mega"],
@@ -216,6 +332,49 @@ def main() -> int:
             for viejo, porque in VIEJAS.items():
                 if viejo in linea:
                     fallos.append(f"{rel}:{n} dice «{viejo}» y {porque.format(**CONTEXTO)}")
+            # La segunda red también aquí: el material se escribe con las
+            # mismas palabras que los paneles y se queda viejo igual.
+            for mala in sorted(set(cifras_pegadas(linea))):
+                fallos.append(f"{rel}:{n} dice {mala}")
+
+    # Los paneles vivos, con el histórico de cada línea recortado.
+    recortadas = 0
+    for rel in PANELES:
+        ruta = MATERIAL / rel
+        if not ruta.exists():
+            continue
+        crudas = ruta.read_text(encoding="utf-8").splitlines()
+        hoy = []
+        for cruda in crudas:
+            linea, hubo = solo_lo_de_hoy(cruda)
+            recortadas += hubo
+            hoy.append(linea)
+
+        # Primera pasada, línea a línea.
+        por_linea: dict[int, set[str]] = {}
+        for n, linea in enumerate(hoy, 1):
+            for viejo, porque in VIEJAS.items():
+                if viejo in linea:
+                    fallos.append(f"{rel}:{n} dice «{viejo}» y {porque.format(**CONTEXTO)}")
+            por_linea[n] = set(cifras_pegadas(linea))
+            for mala in sorted(por_linea[n]):
+                fallos.append(f"{rel}:{n} dice {mala}")
+
+        # Segunda pasada, cada línea pegada a la siguiente: la prosa de los
+        # paneles va envuelta a 76 columnas y una cifra se parte sin avisar.
+        # En el panel del 10-11, «`plus` ("Kairo+")» terminaba la línea y el
+        # «1000» empezaba la de abajo. Es el error (b) de las plantillas.
+        # Solo se dice lo que NO apareció ya en ninguna de las dos sueltas,
+        # que si no se cuenta dos veces el mismo fallo.
+        for n in range(1, len(hoy)):
+            junta = re.sub(r"\s+", " ", f"{hoy[n - 1]} {hoy[n]}")
+            for mala in sorted(set(cifras_pegadas(junta)) - por_linea[n] - por_linea[n + 1]):
+                fallos.append(f"{rel}:{n}-{n + 1} (partida en dos líneas) dice {mala}")
+    print(
+        f"Paneles vivos: {len(PANELES)} archivos, "
+        f"{recortadas} línea(s) con histórico recortado antes de mirarlas."
+    )
+    print()
 
     politica = (MATERIAL / POLITICA).resolve()
     if politica.exists():

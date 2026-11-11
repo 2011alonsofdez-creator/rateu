@@ -35,6 +35,51 @@ entero con la escala vieja —*"un mensaje rápido, 1 crédito; uno normal, 4…
 **cuatro días después** del repaso a mano del 06-11, que se hizo con cuidado y
 con 22 comprobaciones propias. A mano se nos escapó; al script, no.
 
+## Qué mira, y las dos redes (11-11)
+
+**Los archivos**, dos grupos con reglas distintas:
+
+| | Qué | Cómo se lee |
+|---|---|---|
+| **Material** | `ia/conocimiento/`, el banco de pruebas y todos los `ia/ejemplos/` | entero, menos las notas de mantenimiento del final |
+| **Paneles vivos** | `CONTEXTO.md`, `ESTADO.md` y `lanzamiento/checklist.md` | de cada línea, **solo lo que afirma hoy** |
+
+Los paneles se añadieron el **11-11** por un motivo medido: el 10-11 el radar,
+buscando a mano para su informe, encontró **cuatro cifras en presente y falsas**
+justo en los dos archivos que el script no miraba —`CONTEXTO.md`, el que el
+protocolo manda leer antes de opinar, y el checklist—. Tres llevaban cinco días;
+una, doce.
+
+Esos archivos guardan su histórico **dentro de la misma celda**: una fila
+encadena `Lo de antes:` y debajo cita, a propósito, la cifra de la semana
+pasada. Si el script leyera la celda entera cantaría esas citas, y un
+verificador con falsos positivos se desactiva solo. Así que corta cada línea en
+el primer marcador de histórico y dice cuántas recortó, porque un recorte
+silencioso es otra forma de punto ciego.
+
+**Las dos redes**, y la segunda es la que hace falta:
+
+1. **Frases prohibidas** (`VIEJAS`): las redacciones concretas de la escala
+   anterior. Caza lo que ya mordió.
+2. **Un nombre de cifra pegado a un número** (`cifras_pegadas`), comparado con
+   el código. `rápido 2` pasa, `rápido 1` no, da igual cómo esté escrito
+   alrededor. Mira también cada línea pegada a la siguiente, porque la prosa va
+   envuelta a 76 columnas y una cifra se parte sin avisar.
+
+**Por qué hacía falta la segunda, con la prueba hecha**: se le pasaron los
+paneles del 10-11 con sus cuatro cifras falsas dentro y la primera red **cazó
+dos**. Las otras se le escaparon por la forma, no por poco: busca
+`20 créditos al día` y el panel escribía `` `free` 15 créditos ``; busca
+`MEGA 120` y el panel escribía `` `mega` 120 ``. Y en cuanto la segunda red se
+encendió encontró, en `ejemplos/2026-10-15-limite-usuario-que-insiste.md`,
+*"un mensaje normal cuesta 4 créditos y Forja cuesta 20"* **cinco veces en el
+mismo archivo**: seis días viejas, en una carpeta que el script ya miraba desde
+el 10-11. Una palabra en medio —*cuesta*— y no había coincidencia.
+
+**La lección, para quien amplíe esto**: una lista de frases prohibidas protege
+de la redacción de ayer. Lo que protege de la de mañana es comparar con el
+código.
+
 ### Quién lo pasa y cuándo
 
 **El guardián, cada mañana**, dentro de su comprobación 9 (lo que lleva
@@ -50,9 +95,21 @@ Si aparece una cifra nueva en el código —un tope, un precio, una galleta—, 
 añade a este script **el mismo día**. Es lo único que hay que acordarse de
 hacer, y es una línea.
 
+Ya ha pasado una vez y se cumplió: la noche del 10-11 el dueño hizo los topes
+**por plan**, y el guardián los metió a la mañana siguiente. El script dejó de
+leer un tope único con un `>=` suelto —ese número había dejado de existir— y
+pasó a leer los tres de la migración `0023_topes_por_plan.sql`, **y a fallar si
+`planes.ts` dice otra cosa**: la pantalla lee el TypeScript y el servidor corta
+con el disparador, así que si bailan, la página vende algo que no se cumple.
+
 ### Lo que NO hace
 
 - No juzga estilo, ni opiniones, ni si un texto está bien escrito.
+- **No comprueba afirmaciones sin número.** De las cuatro cifras falsas del
+  10-11, la más cara era *"`free` solo alcanza el nivel rápido"* —falsa desde el
+  29-10, y con ella un agente concluye que Paperwork, Gist y Código no entran en
+  el plan gratis—. Eso no es una cifra, es una frase, y este script no la ve.
+  Sigue haciendo falta leer.
 - No mira `agentes/ia/diario-entrenamiento.md` ni los informes ni los partes:
   son **histórico** y dicen lo que era verdad el día que se escribieron. Tocarlos
   sería falsificar el registro, y el protocolo lo prohíbe (apartado 5).

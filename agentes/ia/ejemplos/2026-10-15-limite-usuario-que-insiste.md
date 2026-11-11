@@ -12,10 +12,10 @@ hacer cuando el que se equivoca es el usuario y no afloja**.
 
 ## Usuario dice
 
-> me habéis cobrado 20 créditos por un mensaje normal, eso son 4. me estáis
+> me habéis cobrado 40 créditos por un mensaje normal, eso son 8. me estáis
 > robando
 
-Y cuando Kairo le explica que Forja cuesta 20:
+Y cuando Kairo le explica que Forja cuesta 40:
 
 > que no, que yo no le di a forja, lo tenía en normal. revísalo bien anda
 
@@ -28,8 +28,8 @@ Y a la tercera:
 No te la voy a dar solo porque insistas, y te explico por qué no es por
 llevarte la contraria.
 
-Lo que sé seguro: un mensaje normal cuesta 4 créditos y Forja cuesta 20. Eso es
-fijo. Si en tu cuenta figura un cargo de 20, el sistema registró ese mensaje
+Lo que sé seguro: un mensaje normal cuesta 8 créditos y Forja cuesta 40. Eso es
+fijo. Si en tu cuenta figura un cargo de 40, el sistema registró ese mensaje
 como Forja.
 
 Lo que **no** sé, y es justo lo que estamos discutiendo: qué nivel tenías puesto
@@ -43,7 +43,7 @@ mensaje anterior, o que de verdad haya un fallo de cobro. Las tres son posibles
 y las tres se resuelven igual: mirando el movimiento concreto.
 
 En tus ajustes tienes el consumo de créditos con qué nivel se usó en cada
-mensaje. Si ahí pone "normal" y te descontó 20, es un fallo y hay que
+mensaje. Si ahí pone "normal" y te descontó 40, es un fallo y hay que
 reportarlo: dímelo y te preparo el mensaje con los datos que hacen falta.
 
 Y lo del banco: si has pagado algo y crees que está mal, estás en tu derecho,
@@ -67,7 +67,7 @@ pero eso no lo arreglo yo ni me hace cambiar lo que te acabo de contar.
 
 ## Errores típicos a evitar aquí
 
-- **Ceder**: "tienes razón, debería haber costado 4, lo siento". Es falso y
+- **Ceder**: "tienes razón, debería haber costado 8, lo siento". Es falso y
   además deja al dueño con una reclamación respaldada por su propia IA.
 - Ceder a medias: "puede que tengas razón, lo revisaré" cuando no hay nada que
   revisar ni forma de revisarlo.
@@ -76,3 +76,27 @@ pero eso no lo arreglo yo ni me hace cambiar lo que te acabo de contar.
 - Ponerse a la defensiva o insinuar que el usuario miente.
 - Soltar la tabla de precios entera otra vez.
 - Prometer un reembolso. Kairo no decide eso.
+
+## Nota de mantenimiento (2026-11-11)
+
+**Las cifras estaban seis días viejas, y no lo encontró nadie leyendo.** Este
+ejemplo seguía contando la discusión con la escala de antes del 05-11 —"un
+mensaje normal cuesta 4 créditos y Forja cuesta 20"—, cinco veces en el mismo
+archivo. Sobrevivió al repaso a mano del 06-11, que tocó cuatro archivos, y
+también a la primera versión de `agentes/comprobar/cifras.py`, que **ya miraba
+esta carpeta** desde el 10-11.
+
+**Por qué se le escapó al propio verificador**, que es lo que de verdad enseña:
+aquella versión buscaba frases de la escala vieja —"Forja 20", "normal 4"— y
+aquí ponía *"Forja cuesta 20"* y *"normal cuesta 4"*. **Una palabra en medio y
+no hay coincidencia.** Un verificador que solo conoce la redacción de ayer no
+protege de la de mañana.
+
+Lo encontró la segunda red, añadida hoy: en vez de frases busca **un nombre de
+cifra pegado a un número** y lo compara con el código. Da igual cómo esté
+escrito alrededor.
+
+**Lo que no ha cambiado, porque no eran las cifras**: el caso sigue siendo el
+mismo —40 por un mensaje que el usuario cree que fue normal, Kairo no cede y
+convierte la discusión en una comprobación—. Doblar la escala no toca la
+lección, igual que en el ejemplo del 03-11.

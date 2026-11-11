@@ -109,7 +109,37 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Una línea suya**: paga la capa de la API —y entonces el "No." es verdad y lo
   pongo yo en los dos idiomas— o dice que se queda la respuesta comprobable.
 
-- **El verificador de cifras no mira los dos archivos que todo agente lee primero, y los dos llevaban cinco días con la escala vieja.** `[origen: radar 2026-11-10]`
+- **~~El verificador de cifras no mira los dos archivos que todo agente lee primero~~ — HECHO, y el arreglo de verdad no era la lista de archivos.** `[origen: radar 2026-11-10 · hecho 2026-11-11]`
+  Hecho lo que pedía esta entrada —`CONTEXTO.md`, `ESTADO.md` y el checklist,
+  con el histórico de cada línea recortado en el primer `Lo de antes:`— y una
+  cosa más que salió al comprobarlo, que es la que importa.
+
+  **La prueba que lo cambió todo**: antes de darlo por bueno se le pasaron los
+  paneles **tal y como estaban el 10-11**, con sus cuatro cifras falsas dentro.
+  Cazó **dos**. Las otras se le escaparon por la forma: buscaba la frase
+  `20 créditos al día` y el panel escribía `` `free` 15 créditos ``; buscaba
+  `MEGA 120` y el panel escribía `` `mega` 120 ``. **Añadir archivos a una
+  lista de frases prohibidas no cerraba el agujero.**
+
+  Así que lleva una segunda red: busca **un nombre de cifra pegado a un
+  número** y lo compara con el código, da igual cómo esté escrito alrededor, y
+  mira también cada línea pegada a la siguiente porque la prosa va envuelta a
+  76 columnas y una cifra se parte sin avisar. Con ella, los paneles del 10-11
+  dan **10 desajustes** y las cuatro cifras salen todas.
+
+  **Y encontró una que no sabíamos**: `ejemplos/2026-10-15-limite-usuario-que-
+  insiste.md` decía *"un mensaje normal cuesta 4 créditos y Forja cuesta 20"*,
+  **cinco veces en el mismo archivo**, seis días después de la escala nueva y
+  **en una carpeta que el script ya miraba desde el 10-11**. Una palabra en
+  medio —*cuesta*— y no había coincidencia. Arreglado, con su nota.
+
+  Comprobado en verde y en rojo: los tres paneles cazan una cifra vieja
+  metida a mano; una cifra citada detrás de `Lo de antes:` **no** se canta; y
+  una falsa dicha antes del marcador, en esa misma línea, **sí**. Dos falsos
+  positivos salieron en la primera ejecución y están corregidos con su
+  comentario: *Kairo+ 9,99 €* se leía como «Kairo+ 9», y el veredicto del
+  panel cita la escala vieja con otras palabras.
+  Lo que decía esta entrada, de histórico:
   Ayer se entregó `agentes/comprobar/cifras.py` para que las cifras del material
   no envejezcan solas. Recorre `agentes/ia/conocimiento/`, el banco de pruebas y
   los ejemplos. **No recorre los paneles vivos**, y hoy, buscando a mano para
