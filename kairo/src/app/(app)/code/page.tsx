@@ -122,6 +122,37 @@ Arréglalo. Contesta SOLO con el archivo entero corregido dentro de un
 bloque de código. Ni una palabra antes ni después.`;
 }
 
+/** Cuántas veces se le pide que siga si se corta por tiempo. */
+const SEGUIDAS = 3;
+
+/** Lo que se le pide para que siga un archivo cortado a medias. */
+function seguir(pedida: string, llevado: string): string {
+  return `Estabas escribiendo una app en un solo archivo HTML para esto:
+"${pedida.slice(0, 800)}"
+
+Te has cortado a mitad. Así acaba lo que llevas escrito:
+
+${llevado.slice(-1500)}
+
+Sigue EXACTAMENTE desde el último carácter, sin repetir nada de lo de
+arriba. Sin explicaciones y sin abrir un bloque de código: escribe solo
+lo que falta, hasta cerrar el archivo con </html>.`;
+}
+
+/** Quita las vallas de bloque de código (```html y ```). */
+function sinVallas(texto: string): string {
+  return texto.replace(/^[ \t]*```[a-z]*[ \t]*$/gim, "");
+}
+
+/** Si lo nuevo empieza repitiendo el final de lo anterior, lo quita. */
+function sinRepetir(antes: string, nuevo: string): string {
+  const max = Math.min(400, antes.length, nuevo.length);
+  for (let n = max; n >= 12; n--) {
+    if (antes.endsWith(nuevo.slice(0, n))) return nuevo.slice(n);
+  }
+  return nuevo;
+}
+
 const EJEMPLOS = [
   "code.ex1",
   "code.ex2",
@@ -249,50 +280,71 @@ function PantallaCode() {
 
     let todo = "";
     const pedida = peticion;
-    cortar.current = preguntar(texto, NIVEL, {
-      onTexto: (trozo) => {
-        todo += trozo;
-        setEnBruto(todo);
-      },
-      onModelo: setModelo,
-      onError: (clave) => {
-        /* `sin_tiempo` no es "no he podido": es "iba demasiado lento y
-           me han cortado". Con un modelo gratis —que va en cola— es el
-           fallo más frecuente con diferencia, y el cartel genérico
-           mandaba a reintentar lo mismo, que vuelve a tardar lo mismo. */
-        setError(
-          clave === "sin_creditos"
-            ? "gist.noCredits"
-            : clave === "sin_sesion"
-              ? "err.sesion"
-              : clave === "red"
-                ? "err.red"
-                : clave === "sin_tiempo"
-                  ? "code.tooSlow"
-                  : "code.failed",
-        );
-        if (clave === "sin_tiempo") setSeCorto(true);
-      },
-      onFin: (motivo) => {
-        setTrabajando("");
-        if (motivo !== "ok") return;
 
-        const limpio = documentoHtml(todo);
-        if (limpio) {
-          setCodigo(limpio);
-          setEnBruto("");
-          guardarResultado(limpio, modo, pedida);
-          return;
-        }
+    /* UNA RONDA, Y SI SE CORTA, OTRA DESDE DONDE IBA.
+     *
+     * Vercel da un minuto por petición. Gemini escribe una app en veinte
+     * segundos, pero cuando se le acaba la cuota escriben los modelos
+     * gratis, que van en cola y no llegan: la app se quedaba a medias y
+     * salía "se ha pasado del tiempo". Ahora, si se corta, se le pasa el
+     * final de lo que llevaba y se le pide que siga. Hasta tres veces. */
+    const ronda = (prompt: string, vuelta: number) => {
+      let cortadoPorTiempo = false;
+      const antes = todo;
+      let nuevo = "";
 
-        /* Sin bloque de código, lo que ha vuelto no es un archivo: una
-           negativa, una explicación, una pregunta. Dejar la pantalla
-           como estaba sería hacerle creer que no pasó nada, habiendo
-           pagado. Así que se dice, y lo que contestó se queda a la
-           vista en el cuadro de arriba. */
-        setError("code.noFile");
-      },
-    }, { largo: true });
+      cortar.current = preguntar(prompt, NIVEL, {
+        onTexto: (trozo) => {
+          nuevo += trozo;
+          todo = vuelta === 0 ? nuevo : antes + sinRepetir(antes, sinVallas(nuevo));
+          setEnBruto(todo);
+        },
+        onModelo: setModelo,
+        onError: (clave) => {
+          if (clave === "sin_tiempo" && todo.trim() && vuelta < SEGUIDAS) {
+            cortadoPorTiempo = true;
+            return;
+          }
+          /* `sin_tiempo` no es "no he podido": es "iba demasiado lento y
+             me han cortado", incluso después de seguir tres veces. */
+          setError(
+            clave === "sin_creditos"
+              ? "gist.noCredits"
+              : clave === "sin_sesion"
+                ? "err.sesion"
+                : clave === "red"
+                  ? "err.red"
+                  : clave === "sin_tiempo"
+                    ? "code.tooSlow"
+                    : "code.failed",
+          );
+          if (clave === "sin_tiempo") setSeCorto(true);
+        },
+        onFin: (motivo) => {
+          if (cortadoPorTiempo) return ronda(seguir(pedida, todo), vuelta + 1);
+
+          setTrabajando("");
+          if (motivo !== "ok") return;
+
+          const limpio = documentoHtml(vuelta === 0 ? todo : sinVallas(todo));
+          if (limpio) {
+            setCodigo(limpio);
+            setEnBruto("");
+            guardarResultado(limpio, modo, pedida);
+            return;
+          }
+
+          /* Sin bloque de código, lo que ha vuelto no es un archivo: una
+             negativa, una explicación, una pregunta. Dejar la pantalla
+             como estaba sería hacerle creer que no pasó nada, habiendo
+             pagado. Así que se dice, y lo que contestó se queda a la
+             vista en el cuadro de arriba. */
+          setError("code.noFile");
+        },
+      }, { paraCode: true });
+    };
+
+    ronda(texto, 0);
   };
 
   return (
