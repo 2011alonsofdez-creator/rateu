@@ -819,6 +819,33 @@ export async function POST(req: Request) {
           }
         }
 
+        /* Ningún modelo ha podido escribir, pero la búsqueda sí trajo
+           resultados. Antes salía "cuota agotada" y el usuario se quedaba
+           sin nada, con los titulares ya en la mano. Ahora se le enseñan
+           tal cual, con su enlace, y se le dice por qué no hay más. No se
+           cobra: no ha trabajado ningún modelo. */
+        if (!arranque && fuentes.length) {
+          conversacion = await abriendo;
+          avisarConversacion();
+          etiqueta = "Kairo (sin modelo)";
+
+          const lista = fuentes
+            .slice(0, 8)
+            .map((f) => `- [${f.titulo}](${f.url})${f.dominio ? ` · ${f.dominio}` : ""}`)
+            .join("\n");
+          const texto =
+            "Ahora mismo todos mis modelos están saturados y no puedo redactarte una respuesta, " +
+            "pero sí he encontrado esto, lo más reciente primero:\n\n" +
+            `${lista}\n\n` +
+            "Vuelve a preguntarme en un rato y te lo resumo.";
+
+          algoEscrito = true;
+          acumulado += texto;
+          enviar({ t: "texto", v: texto });
+          enviar({ t: "fin" });
+          return;
+        }
+
         if (!arranque) throw ultimoFallo;
         const respuesta = arranque;
 
