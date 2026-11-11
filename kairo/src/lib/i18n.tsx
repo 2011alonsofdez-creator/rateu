@@ -446,7 +446,7 @@ const dict = {
     "err.modelo": "La IA no ha podido responder. Inténtalo otra vez.",
     "err.tiempo":
       "Se ha acabado el tiempo y la respuesta se ha quedado a medias. Lo escrito está guardado: pídele que siga.",
-    "err.bloqueado": "He preferido no responder a eso. Prueba a preguntarlo de otra forma.",
+    "err.bloqueado": "No me ha salido ninguna respuesta. No es por tu pregunta: dale a Reintentar.",
     "err.nivel": "Tu plan no incluye este nivel. Sube de plan para usarlo.",
     "err.sesion": "Se ha cerrado tu sesión. Vuelve a entrar.",
     "err.red": "No he podido conectar. Revisa tu conexión y prueba otra vez.",
@@ -993,7 +993,7 @@ const dict = {
     "err.modelo": "The AI could not answer. Please try again.",
     "err.tiempo":
       "Time ran out and the answer is cut short. What was written is saved: ask it to carry on.",
-    "err.bloqueado": "I would rather not answer that. Try asking it another way.",
+    "err.bloqueado": "No answer came out. It's not your question: hit Retry.",
     "err.nivel": "Your plan does not include this level. Upgrade to use it.",
     "err.sesion": "Your session ended. Please log in again.",
     "err.red": "I could not connect. Check your connection and try again.",

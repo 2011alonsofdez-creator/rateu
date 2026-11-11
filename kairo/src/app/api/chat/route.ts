@@ -774,6 +774,23 @@ export async function POST(req: Request) {
                   ? TEMPERATURA.conDatos
                   : TEMPERATURA.normal,
               });
+              /* UNA RESPUESTA VACÍA NO ES UNA RESPUESTA.
+ 
+                 Si el modelo cierra sin soltar un solo trozo —un modelo
+                 que piensa y se queda sin sitio, un gratuito que devuelve
+                 en blanco—, aquí se daba por bueno y el usuario recibía
+                 "He preferido no responder a eso". A una pregunta sobre
+                 una huelga. Y era mentira: nadie había decidido nada.
+ 
+                 Como todavía no se ha enseñado ni una letra, probar el
+                 siguiente no duplica nada. Así que se trata como lo que
+                 es, un fallo, y se sigue con la cadena. */
+              if (arranque.primero === undefined) {
+                ultimoFallo = new Error(`${candidato} contestó vacío`);
+                descartados.add(candidato);
+                arranque = undefined;
+                continue;
+              }
               usado = candidato;
               break buscar;
             } catch (e) {
