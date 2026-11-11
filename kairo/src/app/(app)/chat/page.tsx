@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { apuntar } from "@/lib/rastro";
+import { detectarEncargo } from "@/lib/coworks/detectar";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
@@ -1004,6 +1006,15 @@ function Chat() {
                   key={m.id}
                   m={m}
                   viva={m.id === escribiendo}
+                  /* Solo a la última respuesta se le pasa la pregunta, y
+                     por eso solo ella puede sugerir un Co-Work: una
+                     sugerencia en cada mensaje viejo llenaría la
+                     conversación de carteles. */
+                  pregunta={
+                    i === messages.length - 1 && !escribiendo
+                      ? pick(messages.slice(0, i).reverse().find((x) => x.role === "user")?.content ?? { es: "", en: "" }, lang)
+                      : undefined
+                  }
                   /* Regenerar solo la última: rehacer una de en medio
                      tiraría también todo lo que viniera después, y eso
                      no es lo que nadie espera de un botón que pone
@@ -1429,17 +1440,38 @@ function KairoMessage({
   m,
   viva = false,
   onRegenerar,
+  pregunta,
 }: {
   m: Message;
   viva?: boolean;
   /** Solo la última respuesta se puede regenerar; a las demás no les
    *  llega esta función y no enseñan el botón. */
   onRegenerar?: () => void;
+  /** Lo que preguntó el usuario antes de esta respuesta. Solo llega a
+   *  la última, y es lo que se mira para sugerir un Co-Work. */
+  pregunta?: string;
 }) {
   const { t, lang } = useUi();
   const [copied, setCopied] = useState(false);
   const [leyendo, setLeyendo] = useState(false);
   const texto = pick(m.content, lang);
+
+  /* SUGERIR UN CO-WORK, SOLO CUANDO LA PREGUNTA YA LO ERA.
+ 
+     "Avísame cuando baje el precio" o "todos los lunes hazme un
+     resumen" no son preguntas: son encargos descritos con palabras. El
+     chat los contesta una vez y se olvida, y quien lo pidió no sabe que
+     hay una pantalla donde eso se hace solo cada día.
+ 
+     La sugerencia va DEBAJO de la respuesta y no en la caja de escribir:
+     primero se le contesta, y luego se le ofrece que no tenga que volver
+     a pedirlo. Al revés sería una pesadez antes de haberle dado nada.
+     Y el enlace lleva la pregunta ya escrita: si tuviera que volver a
+     escribirla, no la escribiría nadie. */
+  const encargo = pregunta && !viva ? detectarEncargo(pregunta) : null;
+  useEffect(() => {
+    if (encargo) apuntar("cowork_sugerido");
+  }, [encargo]);
 
   /* La voz la pone el navegador, no un servicio de pago: no cuesta nada
      y funciona sin conexión. Si el navegador no la trae, el botón no sale.
@@ -1510,6 +1542,24 @@ function KairoMessage({
         )}
 
         <Fuentes fuentes={m.fuentes} busquedas={m.busquedas} />
+
+        {encargo && pregunta && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-acento/35 bg-acento/5 px-3.5 py-2.5 text-[13px] leading-relaxed">
+            <Clock className="h-4 w-4 shrink-0 text-acento" />
+            <span className="min-w-0 flex-1 text-fg">
+              {encargo.tipo === "vigila"
+                ? t("chat.coworkWatch")
+                : t("chat.coworkAsk").replace("{cuando}", encargo.cuando)}
+            </span>
+            <Link
+              href={`/coworks?contratar=${encodeURIComponent(pregunta)}&puesto=${encodeURIComponent(encargo.nombre)}`}
+              onClick={() => apuntar("cowork_aceptado")}
+              className="shrink-0 rounded-lg bg-acento px-3 py-1.5 text-[12.5px] font-semibold text-on-accent transition hover:opacity-90"
+            >
+              {t("chat.coworkMake")}
+            </Link>
+          </div>
+        )}
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button

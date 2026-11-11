@@ -33,7 +33,14 @@ export const preferredRegion = "fra1";
  * una página.
  */
 
-const EVENTOS = new Set(["visita", "prueba", "prueba_agotada", "registro", "mensaje"]);
+/* Los dos últimos miden la sugerencia de Co-Works del chat: cuántas
+   veces sale y cuántas la pulsan. Si tras cien salidas la aceptan menos
+   de cinco, la sugerencia sobra y se quita. Sin esto no se puede quitar
+   nunca, porque siempre queda la duda de si estaba ayudando. */
+const EVENTOS = new Set([
+  "visita", "prueba", "prueba_agotada", "registro", "mensaje",
+  "cowork_sugerido", "cowork_aceptado",
+]);
 
 /** Solo el dominio de donde viene, nunca el enlace entero. */
 function dominio(origen: string | null): string | null {
