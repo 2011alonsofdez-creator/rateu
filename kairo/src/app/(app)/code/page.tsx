@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { cargarApp, guardarApp } from "@/lib/apps-code";
 import { useUi, type TKey } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { documentoHtml, preguntar } from "@/lib/chatear";
@@ -126,7 +128,16 @@ const EJEMPLOS = [
   "code.ex3",
 ] as const;
 
+/* useSearchParams necesita un Suspense alrededor para poder compilarse. */
 export default function CodePage() {
+  return (
+    <Suspense>
+      <PantallaCode />
+    </Suspense>
+  );
+}
+
+function PantallaCode() {
   const { t } = useUi();
   const perfil = usePerfil();
 
@@ -144,6 +155,72 @@ export default function CodePage() {
      honesto es ofrecer una más corta, no reintentar lo mismo. */
   const [seCorto, setSeCorto] = useState(false);
   const cortar = useRef<(() => void) | null>(null);
+
+  /* EL HISTORIAL. La app abierta va en la dirección (`/code?app=…`), así
+     se puede volver a ella desde la barra, recargar o compartir enlace
+     con uno mismo. `appId` es la que está en pantalla ahora. */
+  const router = useRouter();
+  const appParam = useSearchParams().get("app");
+  const appId = useRef<string | null>(null);
+  const guardado = useRef("");
+
+  useEffect(() => {
+    if (appParam === appId.current) return;
+    cortar.current?.();
+    setTrabajando("");
+    setEnBruto("");
+    setError(undefined);
+    setFalloDeLaApp(undefined);
+    setSeCorto(false);
+
+    if (!appParam) {
+      appId.current = null;
+      guardado.current = "";
+      setCodigo("");
+      setPeticion("");
+      return;
+    }
+
+    appId.current = appParam;
+    let vivo = true;
+    cargarApp(appParam).then((app) => {
+      if (!vivo) return;
+      if (!app) return router.replace("/code");
+      guardado.current = app.codigo;
+      setCodigo(app.codigo);
+      setPeticion(app.peticion);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [appParam, router]);
+
+  /* Lo que se toca a mano en el editor también se guarda, con un
+     respiro para no guardar a cada tecla. */
+  useEffect(() => {
+    if (!appId.current || !codigo || codigo === guardado.current || trabajando) return;
+    const id = appId.current;
+    const reloj = window.setTimeout(() => {
+      guardado.current = codigo;
+      guardarApp({ id, peticion: "", codigo });
+    }, 1500);
+    return () => window.clearTimeout(reloj);
+  }, [codigo, trabajando]);
+
+  /** Al acabar una app: si es nueva, se crea en el historial y la
+   *  dirección pasa a ser la suya; si era un arreglo, se pisa. */
+  const guardarResultado = async (limpio: string, modo: "haciendo" | "arreglando", pedida: string) => {
+    guardado.current = limpio;
+    const id = await guardarApp({
+      id: modo === "arreglando" ? (appId.current ?? undefined) : undefined,
+      peticion: pedida,
+      codigo: limpio,
+    });
+    if (id && id !== appId.current) {
+      appId.current = id;
+      router.replace(`/code?app=${id}`);
+    }
+  };
 
   /* Lo que grita el marco cuando la app de dentro se rompe. Se escucha
      siempre: el marco puede petar en cualquier momento, no solo al
@@ -171,6 +248,7 @@ export default function CodePage() {
     setTrabajando(modo);
 
     let todo = "";
+    const pedida = peticion;
     cortar.current = preguntar(texto, NIVEL, {
       onTexto: (trozo) => {
         todo += trozo;
@@ -203,6 +281,7 @@ export default function CodePage() {
         if (limpio) {
           setCodigo(limpio);
           setEnBruto("");
+          guardarResultado(limpio, modo, pedida);
           return;
         }
 
@@ -348,6 +427,9 @@ export default function CodePage() {
                 setCodigo("");
                 setPeticion("");
                 setFalloDeLaApp(undefined);
+                appId.current = null;
+                guardado.current = "";
+                router.push("/code");
               }}
               className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3.5 py-2 text-[13.5px] text-muted transition hover:border-line-hi hover:text-fg"
             >
