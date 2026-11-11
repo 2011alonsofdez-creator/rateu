@@ -10,6 +10,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { NOMBRE_PLAN } from "@/lib/planes";
 import { TITULO_MAX } from "@/lib/tipos";
 import { useHistorial } from "@/lib/historial";
+import { borrarApp, renombrarApp, useAppsCode } from "@/lib/apps-code";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
@@ -61,7 +62,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const conversaciones = useHistorial();
   const pathname = usePathname();
   const router = useRouter();
-  const abierta = useSearchParams().get("c");
+  const params = useSearchParams();
+  const abierta = params.get("c");
+  /* EN CODE, OTRA BARRA. Code es su propio sitio, como Claude Code: en
+     vez de las secciones y los chats, sale el historial de apps. */
+  const enCode = pathname.startsWith("/code");
+  const appAbierta = params.get("app");
+  const apps = useAppsCode(enCode);
   const { credits, total } = useCredits();
   const perfil = usePerfil();
   const pct = Math.round((credits / total) * 100);
@@ -111,7 +118,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   };
 
   return (
-    <div className="flex h-full w-[264px] shrink-0 flex-col border-r border-line bg-bg-soft">
+    <>
+    {/* TODA LA BARRA SE DESLIZA, no solo el historial: en una pantalla
+          baja, las secciones y los créditos también tienen que caber. */}
+    <div className="flex h-full w-[264px] shrink-0 flex-col overflow-y-auto overscroll-contain border-r border-line bg-bg-soft">
       {/* Cabecera */}
       <div className="flex items-center justify-between px-4 py-4">
         <Link href="/" aria-label="Kairo">
@@ -128,6 +138,125 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
+      {enCode ? (
+        <>
+      <div className="space-y-1 px-3">
+        <Link
+          href="/chat"
+          onClick={onClose}
+          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] text-muted transition hover:bg-row hover:text-fg"
+        >
+          <Chat className="h-[18px] w-[18px]" />
+          {t("codeBar.back")}
+        </Link>
+        <Link
+          href="/code"
+          onClick={onClose}
+          className="flex items-center gap-2.5 rounded-xl border border-line-hi px-3 py-2.5 text-[14px] font-medium transition hover:bg-row"
+        >
+          <Plus className="h-4 w-4" />
+          {t("codeBar.new")}
+        </Link>
+      </div>
+
+      <div className="mt-5 flex-1 px-3 pb-4">
+        <p className="flex items-center gap-2 px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-faint">
+          <Code className="h-3.5 w-3.5" />
+          {t("codeBar.title")}
+        </p>
+        {apps.filter((a) => !oculta.includes(a.id)).length === 0 && (
+          <p className="px-3 py-2 text-[12.5px] leading-relaxed text-faint">{t("codeBar.empty")}</p>
+        )}
+        {GROUPS.map((g) => {
+          const items = apps.filter(
+            (a) => !oculta.includes(a.id) && grupoDe(a.actualizadaEl) === g.key,
+          );
+          if (!items.length) return null;
+          return (
+            <div key={g.key} className="mb-4">
+              <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-faint">
+                {t(g.label)}
+              </p>
+              {items.map((a) =>
+                editando === a.id ? (
+                  <input
+                    key={a.id}
+                    autoFocus
+                    defaultValue={a.titulo}
+                    maxLength={80}
+                    onBlur={(e) => {
+                      setEditando(undefined);
+                      renombrarApp(a.id, e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                      if (e.key === "Escape") setEditando(undefined);
+                    }}
+                    className="mb-0.5 w-full rounded-lg border border-acento bg-panel px-3 py-[6px] text-[13.5px] outline-none"
+                  />
+                ) : borrando === a.id ? (
+                  <div key={a.id} className="mb-0.5 flex items-center gap-2 rounded-lg bg-row-sel px-3 py-[7px] text-[13px]">
+                    <span className="min-w-0 flex-1 truncate text-muted">{t("codeBar.deleteAsk")}</span>
+                    <button
+                      onClick={async () => {
+                        setBorrando(undefined);
+                        setOculta((v) => [...v, a.id]);
+                        const ok = await borrarApp(a.id);
+                        if (!ok) return setOculta((v) => v.filter((x) => x !== a.id));
+                        if (appAbierta === a.id) router.push("/code");
+                      }}
+                      className="font-medium text-gold transition hover:underline"
+                    >
+                      {t("chat.yes")}
+                    </button>
+                    <button
+                      onClick={() => setBorrando(undefined)}
+                      className="text-faint transition hover:text-fg"
+                    >
+                      {t("chat.no")}
+                    </button>
+                  </div>
+                ) : (
+                  <div key={a.id} className="group relative">
+                    <Link
+                      href={`/code?app=${a.id}`}
+                      onClick={onClose}
+                      title={a.titulo}
+                      className={`block truncate rounded-lg py-[7px] pl-3 pr-14 text-[13.5px] transition ${
+                        appAbierta === a.id ? "bg-row-sel font-medium" : "hover:bg-row"
+                      }`}
+                    >
+                      {a.titulo}
+                    </Link>
+                    <span className="absolute right-1.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 group-hover:flex">
+                      <button
+                        onClick={() => setEditando(a.id)}
+                        title={t("chat.rename")}
+                        aria-label={t("chat.rename")}
+                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-row-sel hover:text-fg"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setBorrando(a.id)}
+                        title={t("codeBar.delete")}
+                        aria-label={t("codeBar.delete")}
+                        className="grid h-6 w-6 place-items-center rounded text-faint transition hover:bg-row-sel hover:text-gold"
+                      >
+                        <Trash className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+        </>
+      ) : (
+        <>
       <div className="px-3">
         <Link
           href="/chat"
@@ -161,7 +290,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* Historial */}
-      <div className="mt-5 flex-1 overflow-y-auto px-3 pb-4">
+      <div className="mt-5 flex-1 px-3 pb-4">
         {lista.length === 0 && (
           <p className="px-3 py-2 text-[12.5px] leading-relaxed text-faint">
             {t("chat.empty")}
@@ -251,6 +380,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         })}
       </div>
 
+        </>
+      )}
+
       {/* Créditos y perfil */}
       <div className="border-t border-line p-3">
         <Link
@@ -308,5 +440,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
