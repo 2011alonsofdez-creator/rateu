@@ -81,6 +81,25 @@ Así que, cuando una comprobación necesite la web de Kairo:
    `kairo-six-lemon.vercel.app` a los dominios permitidos). Mientras no esté
    abierto, es una limitación conocida, no un hallazgo nuevo.
 
+### Un aviso antes de contar commits (11-11)
+
+La sede se recrea de vez en cuando, y el clon nuevo puede venir **superficial**
+(`shallow`): el historial de `main` llega truncado. Eso no rompe nada del
+trabajo, pero **falsea la cuenta más repetida de estos informes**. El 11-11,
+`git log origin/main..claude/kairo-agentes` dio **373** commits sin fusionar
+donde el día antes daban 116, porque los commits suyos que ya habíamos fusionado
+en la rama dejaban de verse en el `main` truncado.
+
+Así que, antes de dar ese número:
+
+```bash
+test -f .git/shallow && git fetch --unshallow origin main
+git log --oneline origin/main..claude/kairo-agentes | wc -l
+```
+
+Con el clon completo volvió a dar **117**, que era lo cierto. Un número con tres
+veces su valor real, publicado en un informe, es peor que no darlo.
+
 ## 3. Dejar constancia
 
 ```bash

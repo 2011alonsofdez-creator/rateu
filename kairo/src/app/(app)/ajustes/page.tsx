@@ -202,7 +202,7 @@ export default function AjustesPage() {
           <p className="mt-4 flex gap-2.5 rounded-xl border border-line bg-bg-soft p-3.5 text-[13px] leading-relaxed text-muted">
             <Shield className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
             {es
-              ? "El modo sale de tu fecha de nacimiento y no se puede cambiar desde aquí: si se pudiera, bastaría con tocarlo para saltarse la moderación. Los perfiles de menores los crea y supervisa un adulto desde su cuenta."
+              ? "El modo sale de tu fecha de nacimiento y no se puede cambiar desde aquí: si se pudiera, bastaría con tocarlo para saltarse la moderación."
               : "The mode comes from your date of birth and cannot be changed here: if it could, anyone could switch it to bypass moderation. Child profiles are created and supervised by an adult from their account."}
           </p>
         </Card>

@@ -54,8 +54,18 @@ function Formulario() {
       return;
     }
 
-    // Un menor de 13 años no puede abrirse cuenta: la ley exige el
-    // consentimiento de un adulto, así que entra como perfil hijo.
+    /* Un menor de 13 años no puede abrirse cuenta: la ley exige el
+       consentimiento de un adulto.
+ 
+       Aquí ponía "así que entra como perfil hijo", y eso era describir
+       una puerta que no existe. La columna `adulto_responsable_id` está
+       en la base de datos desde la primera migración y la política de
+       seguridad ya la respeta, pero NADIE la escribe nunca: no hay
+       pantalla ni ruta que cree un perfil a cargo de otro.
+ 
+       Mientras siga así, a los de menos de 13 se les dice que todavía
+       no, y no se les manda a pedirle a un adulto algo que el adulto
+       tampoco puede hacer. */
     if (anios < 13) {
       setError(t("auth.errTooYoung"));
       return;

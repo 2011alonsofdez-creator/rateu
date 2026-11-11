@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
-import { PricingCards } from "@/components/PricingCards";
 import { ElegirPlan } from "@/components/ElegirPlan";
 import { Probar } from "@/components/Probar";
 import { CREDITOS_NIVEL, CREDITOS_PLAN } from "@/lib/planes";
@@ -172,18 +171,32 @@ export default function Landing() {
               </h2>
               <p className="mt-4 text-[16px] text-muted">{t("pricing.sub")}</p>
             </div>
-            {/* PRIMERO ELEGIR, DESPUÉS COMPARAR.
+            {/* UN SOLO SELECTOR DE PLAN, NO DOS.
  
-                El deslizador contesta "¿cuál me hace falta?", que es
-                con lo que llega la gente. Las tarjetas contestan "¿qué
-                incluye cada uno?", que es lo segundo que se pregunta.
-                En ese orden, y no al revés. */}
+                Aquí había dos: el deslizador y, debajo, las tres
+                tarjetas. El razonamiento era "primero eliges, después
+                comparas". En papel suena bien; en pantalla son dos
+                aparatos de elegir plan seguidos, y entonces el segundo
+                no se lee como información, se lee como "¿y este qué
+                es?, ¿no acababa de elegir?".
+ 
+                Se queda el deslizador, que es el que contesta la
+                pregunta con la que llega la gente —¿cuál me hace
+                falta?— y lleva su propio botón. La comparación entera
+                sigue existiendo, pero en /precios, que es donde se va
+                quien ya quiere mirarla con calma. */}
             <div className="mt-12">
               <ElegirPlan />
             </div>
-            <div className="mt-14">
-              <PricingCards />
-            </div>
+
+            <p className="mt-10 text-center">
+              <Link
+                href="/precios"
+                className="text-[14px] font-medium text-muted underline-offset-4 transition hover:text-fg hover:underline"
+              >
+                {t("pricing.seeAll")}
+              </Link>
+            </p>
           </div>
         </section>
       </main>

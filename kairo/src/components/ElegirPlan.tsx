@@ -7,6 +7,7 @@ import { miles } from "@/lib/formato";
 import { plans } from "@/lib/mock";
 import { CREDITOS_NIVEL, CREDITOS_PLAN } from "@/lib/planes";
 import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
+import { Check } from "./Icons";
 
 /* ELEGIR PLAN ARRASTRANDO, EN VEZ DE COMPARANDO TRES TARJETAS.
  *
@@ -17,10 +18,28 @@ import { HAY_TIENDA, comprar } from "@/lib/pagos/publico";
  * bolita que leyendo tres columnas.
  */
 
-/** Un mes de días, para pasar el tope diario del plan gratis a meses. */
-const DIAS = 30;
+/* EL PLAN GRATIS SE CUENTA POR DÍAS, Y NO HAY QUE DISIMULARLO.
+ *
+ * Aquí ponía los 40 del plan gratis multiplicados por 30, y el
+ * deslizador anunciaba "1.200 créditos al mes". La cuenta es correcta y
+ * la frase es mentira: esos 40 NO se acumulan. Quien llega el día 1 no
+ * tiene 1.200 para el fin de semana, tiene 40 hoy y 40 mañana.
+ *
+ * Lo hice para que los tres tramos se pudieran comparar en la misma
+ * unidad, que es una razón de diseño. Pero una unidad cómoda que
+ * promete el triple de lo que das no es un apaño, es una reclamación el
+ * primer día. Así que cada plan se enseña en SU unidad —el gratis por
+ * día, los de pago por mes— aunque comparar cueste un segundo más.
+ */
 
-type Parada = { id: "free" | "plus" | "supreme"; creditos: number; precio: number; pos: number };
+type Parada = {
+  id: "free" | "plus" | "supreme";
+  creditos: number;
+  precio: number;
+  pos: number;
+  /** true = la cifra es por día, no por mes. */
+  diario?: boolean;
+};
 
 /* EL CARRIL NO VA EN CRÉDITOS, VA EN SITIOS.
  *
@@ -35,7 +54,7 @@ type Parada = { id: "free" | "plus" | "supreme"; creditos: number; precio: numbe
  * conveniencia es cuánto carril ocupa cada tramo.
  */
 const PARADAS: Parada[] = [
-  { id: "free", creditos: CREDITOS_PLAN.free * DIAS, precio: 0, pos: 0 },
+  { id: "free", creditos: CREDITOS_PLAN.free, precio: 0, pos: 0, diario: true },
   { id: "plus", creditos: CREDITOS_PLAN.plus, precio: plans.find((p) => p.id === "plus")!.monthly, pos: 50 },
   { id: "supreme", creditos: CREDITOS_PLAN.supreme, precio: plans.find((p) => p.id === "supreme")!.monthly, pos: 100 },
 ];
@@ -61,6 +80,16 @@ export function ElegirPlan() {
 
   const plan = PARADAS[i];
   const creditos = plan.creditos;
+  /* La lista es la misma que la de /precios: sale de `plans`, no copiada
+     aquí. Dos listas de lo que incluye un plan acaban diciendo cosas
+     distintas el día que se cambia una. */
+  const incluye = plans
+    .find((p) => p.id === plan.id)!
+    .bullets[lang === "es" ? "es" : "en"]
+    /* Fuera la línea de los créditos: el número ya está ahí arriba en
+       grande, y repetido en letra pequeña tres centímetros más abajo no
+       informa dos veces, hace dudar de si son dos cosas distintas. */
+    .filter((b) => !/cr[ée]dit/i.test(b));
   const color = TINTA[plan.id];
   const euros = (n: number) =>
     n === 0 ? "0 €" : `${n.toFixed(2).replace(".", lang === "es" ? "," : ".")} €`;
@@ -78,7 +107,6 @@ export function ElegirPlan() {
       />
 
       <h3 className="text-[22px] font-bold tracking-tight sm:text-[26px]">{t("slider.title")}</h3>
-      <p className="mt-2 text-[14px] text-faint">{t("slider.sub")}</p>
 
       <p className="mt-8 text-[42px] font-extrabold leading-none tracking-tight sm:text-[48px]">
         {/* La `key` hace que React lo pinte de nuevo al cambiar de plan,
@@ -89,7 +117,7 @@ export function ElegirPlan() {
           {miles(creditos, lang)}
         </span>
         <span className="ml-2 text-[17px] font-medium tracking-normal text-muted">
-          {t("slider.credits")}
+          {t(plan.diario ? "slider.creditsDay" : "slider.credits")}
         </span>
       </p>
 
@@ -149,9 +177,12 @@ export function ElegirPlan() {
           en el plan. */}
       <div className="flex flex-wrap justify-center gap-3">
         {[
-          { n: Math.round(creditos / CREDITOS_NIVEL.normal), k: "slider.questions" as const },
-          plan.id === "free"
-            ? { n: Math.round(creditos / CREDITOS_NIVEL.fast), k: "slider.fast" as const }
+          {
+            n: Math.round(creditos / CREDITOS_NIVEL.normal),
+            k: plan.diario ? ("slider.questionsDay" as const) : ("slider.questions" as const),
+          },
+          plan.diario
+            ? { n: Math.round(creditos / CREDITOS_NIVEL.fast), k: "slider.fastDay" as const }
             : { n: Math.floor(creditos / CREDITOS_NIVEL.mega), k: "slider.councils" as const },
         ].map((c) => (
           <div key={c.k} className="min-w-[168px] rounded-2xl border border-line bg-panel px-5 py-3.5">
@@ -163,7 +194,27 @@ export function ElegirPlan() {
         ))}
       </div>
 
-      <p className="mt-6 text-[34px] font-extrabold tracking-tight sm:text-[38px]">
+      {/* LO QUE INCLUYE, AQUÍ DENTRO.
+ 
+          Estaba en las tarjetas de debajo, y las tarjetas se fueron
+          porque eran un segundo selector de plan en la misma pantalla.
+          Pero lo que se llevaron con ellas no era un selector: era la
+          única respuesta a "¿y qué me llevo por eso?". Un precio sin esa
+          lista al lado es un número suelto.
+ 
+          Va dentro del mismo panel y cambia con la bolita, así que al
+          arrastrar no cambia solo el número: cambia lo que te llevas.
+          Que es justo lo que se está decidiendo. */}
+      <ul className="mx-auto mt-7 grid max-w-md gap-2 text-left sm:grid-cols-2">
+        {incluye.map((linea) => (
+          <li key={linea} className="flex items-start gap-2 text-[13.5px] leading-snug text-muted">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green" />
+            <span>{linea}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-7 text-[34px] font-extrabold tracking-tight sm:text-[38px]">
         {plan.precio === 0 ? (
           <>
             <span style={{ color }}>Free</span>

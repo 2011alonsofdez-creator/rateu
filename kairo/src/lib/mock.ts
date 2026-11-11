@@ -1,6 +1,11 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
-import { CREDITOS_NIVEL, CREDITOS_PLAN } from "./planes";
+import {
+  COWORKS_POR_PLAN,
+  CREDITOS_NIVEL,
+  CREDITOS_PLAN,
+  MENTES_POR_PLAN,
+} from "./planes";
 import type { Producto } from "./pagos/config";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
@@ -247,6 +252,18 @@ export const plans: Plan[] = [
        Los 100 MB, además, nunca fueron verdad: el tope real son 3 MB por
        archivo, `ADJUNTOS.bytesPorArchivo` en `lib/tipos.ts:94`.)
 
+       PASÓ, Y PASÓ COMO ESTABA ESCRITO AQUÍ (11-11). La noche del 10-11
+       el dueño hizo los topes POR PLAN —`COWORKS_POR_PLAN` y
+       `MENTES_POR_PLAN` en `planes.ts`, con la migración
+       `0023_topes_por_plan.sql` como autoridad— y eligió la salida (a) de
+       las dos que este bloque le dejaba: aplicarlos de verdad. Co-Works
+       1 / 5 / 25 y Mentes 3 / 30 / 150. Así que las dos viñetas están
+       rehechas, no retocadas, y ya no hay números escritos a mano: se
+       interpolan. Lo de "en Co-Works no se distingue en nada" dejó de ser
+       verdad: Supreme da 25 y Kairo+ 5. Y las viñetas de conectores, que
+       vendían una función que no existe, las quitó él en el mismo repaso.
+       Lo que sigue abajo es el histórico de cómo se llegó aquí.
+
        LAS MENTES, LO MISMO Y ENCONTRADO DE REBOTE. Buscando si "ilimitado"
        se prometía en algún otro sitio salió "Mentes ilimitadas", también en
        Supreme. El tope real es **30 para todo el mundo**, en
@@ -271,21 +288,19 @@ export const plans: Plan[] = [
          Y faltaba lo mejor que tiene: los 300 de bienvenida, que dan
          para un MEGA entero. */
       es: [
-        `${CREDITOS_PLAN.free} créditos al día`,
-        "300 de regalo al registrarte",
-        "Modelos rápido y normal: chat, Paperwork, Gist y Código",
-        "1 Co-Work, que trabaja solo a su hora",
-        "Historial de 30 días",
-        "1 Mente propia",
+        `${CREDITOS_PLAN.free} créditos al día, y vuelven cada mañana`,
+        "300 de regalo: dan para un Mega-Prompt entero",
+        `${COWORKS_POR_PLAN.free} Co-Work, que trabaja solo cada día`,
+        `${MENTES_POR_PLAN.free} Mentes propias`,
+        "Todo tu historial, sin caducidad",
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
-        `${CREDITOS_PLAN.free} credits per day`,
-        "300 free credits to start",
-        "Fast and standard models: chat, Paperwork, Gist and Code",
-        "1 Co-Work, working on its own at its hour",
-        "30-day history",
-        "1 Mind of your own",
+        `${CREDITOS_PLAN.free} credits a day, back every morning`,
+        "300 free credits: enough for a whole Mega-Prompt",
+        `${COWORKS_POR_PLAN.free} Co-Work that works on its own every day`,
+        `${MENTES_POR_PLAN.free} Minds of your own`,
+        "All your history, no expiry",
         "PDFs of any size · photos up to 3 MB",
       ],
     },
@@ -298,18 +313,18 @@ export const plans: Plan[] = [
     bullets: {
       es: [
         "2.000 créditos al mes",
-        "Modelos rápido y estándar",
+        "Los cuatro niveles, Mega-Prompt incluido",
         "8 Mega-Prompts al mes",
-        "3 Co-Works activos",
-        "10 Mentes propias",
+        `${COWORKS_POR_PLAN.plus} Co-Works trabajando a la vez`,
+        `${MENTES_POR_PLAN.plus} Mentes propias`,
         "PDF de cualquier tamaño · fotos hasta 3 MB",
       ],
       en: [
         "2,000 credits per month",
-        "Fast and standard models",
+        "All four tiers, Mega-Prompt included",
         "8 Mega-Prompts per month",
-        "3 active Co-Works",
-        "10 Minds of your own",
+        `${COWORKS_POR_PLAN.plus} Co-Works running at once`,
+        `${MENTES_POR_PLAN.plus} Minds of your own`,
         "PDFs of any size · photos up to 3 MB",
       ],
     },
@@ -321,19 +336,19 @@ export const plans: Plan[] = [
     bullets: {
       es: [
         "6.000 créditos al mes",
-        "Los tres modelos, incluido el máximo",
+        "Los cuatro niveles, Mega-Prompt incluido",
         "25 Mega-Prompts al mes",
-        "10 Co-Works activos",
-        "30 Mentes propias",
+        `${COWORKS_POR_PLAN.supreme} Co-Works trabajando a la vez`,
+        `${MENTES_POR_PLAN.supreme} Mentes propias`,
         "PDF de cualquier tamaño · fotos hasta 3 MB",
         "Soporte prioritario",
       ],
       en: [
         "6,000 credits per month",
-        "All three models, top tier included",
+        "All four tiers, Mega-Prompt included",
         "25 Mega-Prompts per month",
-        "10 active Co-Works",
-        "30 Minds of your own",
+        `${COWORKS_POR_PLAN.supreme} Co-Works running at once`,
+        `${MENTES_POR_PLAN.supreme} Minds of your own`,
         "PDFs of any size · photos up to 3 MB",
         "Priority support",
       ],

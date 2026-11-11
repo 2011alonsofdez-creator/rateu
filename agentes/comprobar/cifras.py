@@ -72,13 +72,28 @@ def sql_default(archivo: str, columna: str) -> str:
     return m.group(1)
 
 
-def sql_tope(archivo: str, funcion: str) -> str:
-    texto = leer(f"supabase/migrations/{archivo}")
+def sql_topes_por_plan(funcion: str) -> dict:
+    """Los topes del disparador de la 0023, por plan.
+
+    Hasta el 10-11 los topes eran uno para todos y se leían con un `>=`
+    suelto. Esa noche el dueño los hizo POR PLAN (0023), así que el número
+    único dejó de existir: leer ahora un `>=` daría el de un plan
+    cualquiera y el verificador afirmaría un tope que no es de nadie.
+
+    La base de datos manda sobre el TypeScript, y lo dice él mismo en el
+    comentario de `COWORKS_POR_PLAN`: "si un día bailan, manda la de abajo".
+    Así que de aquí salen los de verdad, y abajo se comprueba que los de
+    `planes.ts` dicen lo mismo.
+    """
+    texto = leer("supabase/migrations/0023_topes_por_plan.sql")
     i = texto.index(f"function public.{funcion}")
-    m = re.search(r">=\s*(\d+)", texto[i : i + 1200])
-    if not m:
-        raise SystemExit(f"no encuentro el tope de {funcion} en {archivo}")
-    return m.group(1)
+    trozo = texto[i : i + 1200]
+    sup = re.search(r"when 'supreme'\s*then\s*(\d+)", trozo)
+    plus = re.search(r"when 'plus'\s*then\s*(\d+)", trozo)
+    free = re.search(r"else\s+(\d+)", trozo)
+    if not (sup and plus and free):
+        raise SystemExit(f"no encuentro los topes por plan de {funcion} en 0023")
+    return {"free": free.group(1), "plus": plus.group(1), "supreme": sup.group(1)}
 
 
 planes = leer("src/lib/planes.ts")
@@ -86,8 +101,21 @@ planes = leer("src/lib/planes.ts")
 NIVELES = {k: constante(planes, "CREDITOS_NIVEL", k) for k in ("fast", "normal", "forja", "mega")}
 PLANES = {k: constante(planes, "CREDITOS_PLAN", k) for k in ("free", "plus", "supreme")}
 REGALO = sql_default("0020_escala_x2.sql", "creditos_extra")
-TOPE_COWORKS = sql_tope("0009_coworks.sql", "limitar_coworks")
-TOPE_MENTES = sql_tope("0003_mentes.sql", "limitar_mentes")
+
+# Los topes, por plan desde el 10-11. La migración manda; `planes.ts` se
+# comprueba contra ella, porque la pantalla lee el TypeScript y el servidor
+# corta con el disparador: si bailan, la página vende algo que no se cumple.
+COWORKS = sql_topes_por_plan("limitar_coworks")
+MENTES = sql_topes_por_plan("limitar_mentes")
+for cual, sql, nombre in (("Co-Works", COWORKS, "COWORKS_POR_PLAN"),
+                          ("Mentes", MENTES, "MENTES_POR_PLAN")):
+    for plan, tope in sql.items():
+        ts = constante(planes, nombre, plan)
+        if ts != tope:
+            raise SystemExit(
+                f"{nombre}.{plan} dice {ts} y la 0023 corta en {tope}: "
+                f"la página vendería {ts} {cual} y el servidor dejaría {tope}"
+            )
 
 probar = leer("src/app/api/probar/route.ts")
 GALLETA_PRUEBA = re.search(r'const GALLETA = "([^"]+)"', probar).group(1)
@@ -122,8 +150,20 @@ VIEJAS = {
     "3.000 créditos al mes": "Supreme son {supreme} al mes",
     "150 créditos de regalo": "el regalo son {regalo}",
     "150 de regalo": "el regalo son {regalo}",
-    "Co-Works ilimitados": f"el tope real son {TOPE_COWORKS}",
-    "Mentes ilimitadas": f"el tope real son {TOPE_MENTES}",
+    "Co-Works ilimitados": (
+        f"los topes son {COWORKS['free']} / {COWORKS['plus']} / {COWORKS['supreme']}"
+    ),
+    "Mentes ilimitadas": (
+        f"los topes son {MENTES['free']} / {MENTES['plus']} / {MENTES['supreme']}"
+    ),
+    # Y las dos formas en que nuestro propio material contaba el tope de
+    # antes del 10-11, cuando era uno para todos. Decirlo así ya es falso.
+    "tope de 10 Co-Works": (
+        f"ya no hay un tope único: {COWORKS['free']} / {COWORKS['plus']} / {COWORKS['supreme']}"
+    ),
+    "10 Co-Works y 30 Mentes": (
+        f"son {COWORKS['plus']} y {MENTES['plus']} en Kairo+, y {COWORKS['supreme']} y {MENTES['supreme']} en Supreme"
+    ),
 }
 
 CONTEXTO = dict(
@@ -158,7 +198,12 @@ def main() -> int:
     print("Cifras leídas del código:")
     print(f"  niveles  {NIVELES['fast']} / {NIVELES['normal']} / {NIVELES['forja']} / {NIVELES['mega']}")
     print(f"  planes   {PLANES['free']} al día · {miles(PLANES['plus'])} · {miles(PLANES['supreme'])}")
-    print(f"  regalo   {REGALO} · topes: {TOPE_COWORKS} Co-Works, {TOPE_MENTES} Mentes")
+    print(f"  regalo   {REGALO}")
+    print(
+        f"  topes    Co-Works {COWORKS['free']} / {COWORKS['plus']} / {COWORKS['supreme']}"
+        f" · Mentes {MENTES['free']} / {MENTES['plus']} / {MENTES['supreme']}"
+        "  (free / Kairo+ / Supreme, leídos de la 0023)"
+    )
     print(f"  prueba   {PRUEBAS_POR_VISITANTE} por visitante, galleta «{GALLETA_PRUEBA}»")
     print()
 

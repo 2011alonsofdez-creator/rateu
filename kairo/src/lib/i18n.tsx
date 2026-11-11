@@ -64,7 +64,7 @@ const dict = {
     "features.sub": "Seis cosas que cambian cómo trabajas con una IA.",
     "features.paperwork": "Paperwork",
     "features.paperworkDesc":
-      "Súbele una multa, una beca o un contrato. Te dice qué es, qué tienes que hacer y hasta cuándo —y te avisa 7, 3 y 1 día antes de que se acabe el plazo, por Telegram. Sin que tengas que entrar a mirar.",
+      "Súbele una multa, una beca o un contrato. Te dice qué es, qué tienes que hacer y hasta cuándo —y te avisa una semana antes, tres días antes, el día de antes y el mismo día. Si enlazas Telegram te llega al móvil sin que entres a mirar; si no, te espera dentro.",
     "features.gist": "Gist",
     "features.gistDesc":
       "Pega un vídeo de YouTube o un enlace y te sale el resumen parte por parte, con los minutos para saltar a lo que te interesa. Y un chat al lado para lo que no te haya quedado claro.",
@@ -86,9 +86,9 @@ const dict = {
     "features.connect": "Conectores",
     "features.connectDesc":
       "Drive, Gmail, Calendar y GitHub. Kairo trabaja con tus cosas, no con copias pegadas a mano.",
-    "features.ages": "Modo niños, adolescente y adulto",
+    "features.ages": "Modo adolescente y adulto",
     "features.agesDesc":
-      "Cada edad, su Kairo. Los perfiles de menores los crea y supervisa un adulto de la familia.",
+      "Tu fecha de nacimiento decide cómo te contesta: de 13 a 17 años la moderación es bastante más estricta que la de un adulto. Los perfiles para menores de 13, que crea y supervisa un adulto de la familia, están en camino.",
 
     "pricing.title": "Precios claros, sin sorpresas",
     "pricing.sub":
@@ -104,7 +104,8 @@ const dict = {
     "pricing.plus": "Kairo+",
     "pricing.plusDesc": "Para el día a día",
     "pricing.supreme": "Supreme",
-    "pricing.supremeDesc": "Sin límites reales",
+    "pricing.supremeDesc": "Cuando Kairo es tu herramienta de trabajo",
+    "pricing.seeAll": "Ver qué incluye cada plan →",
     "pricing.ctaFree": "Empezar gratis",
     "pricing.ctaPaid": "Elegir plan",
     "pricing.creditsTitle": "¿Y si me quedo sin créditos?",
@@ -166,12 +167,15 @@ const dict = {
     "slider.title": "¿Cuánto vas a usar Kairo?",
     "slider.sub": "Mueve la bolita y te digo qué plan te hace falta.",
     "slider.credits": "créditos al mes",
+    "slider.creditsDay": "créditos al día",
+    "slider.questionsDay": "preguntas normales al día",
+    "slider.fastDay": "preguntas rápidas al día",
     "slider.questions": "preguntas normales",
     "slider.councils": "consejos de las 3 IAs",
     "slider.fast": "preguntas rápidas",
     "slider.perMonth": "al mes con {p}",
     "slider.freePrice": "gratis, sin tarjeta",
-    "slider.freeNote": "Son {n} al día y no se acumulan, y solo con Rápido y Estándar.",
+    "slider.freeNote": "No se acumulan: cada día vuelves a tener {n}. Solo con Rápido y Estándar.",
     "slider.start": "Empezar gratis",
     "slider.choose": "Elegir {p}",
     "app.costChip": "· {n} créditos",
@@ -550,7 +554,7 @@ const dict = {
     "cw.cancel": "Cancelar",
     "cw.on": "Encendido",
     "cw.off": "Apagado",
-    "cw.onlyOneFree": "En el plan gratis puedes tener un Co-Work. Para más, hace falta Kairo+ — y ahí ya no hay tope de uno.",
+    "cw.onlyOneFree": "En el plan gratis puedes tener un Co-Work. Con Kairo+ son cinco, y con Supreme veinticinco.",
     "cw.search": "Que busque en internet antes de escribir",
     "cw.searchHelp": "Para encargos que necesiten datos de hoy: precios, noticias, normativa. Tarda unos segundos más y gasta unos céntimos cada vez que se ejecuta. Si lo que le pides se contesta sin mirar nada fuera, déjalo apagado.",
     "cw.test": "Probar ahora",
@@ -571,7 +575,7 @@ const dict = {
     "cw.inProgress": "Se está haciendo ahora mismo. Vuelve en un minuto y estará aquí.",
     "cw.failed": "No ha podido hacerse. Inténtalo de nuevo en un rato.",
     "cw.noCredits": "No te quedan créditos suficientes.",
-    "cw.limit": "Has llegado al máximo de 10 Co-Works.",
+    "cw.limit": "Has llegado al máximo de {n} Co-Works de tu plan.",
     "cw.needsMigration":
       "Falta pegar una migración en Supabase. Hasta que la pegues, esto no se puede guardar.",
     "cw.needsKey":
@@ -614,7 +618,7 @@ const dict = {
     "auth.errGeneric": "Algo ha fallado. Inténtalo otra vez.",
     "auth.errCredentials": "Ese correo o esa contraseña no son correctos.",
     "auth.errBirth": "Revisa la fecha de nacimiento.",
-    "auth.errTooYoung": "Para usar Kairo con menos de 13 años, la cuenta la tiene que crear un adulto de tu familia y añadirte como perfil hijo.",
+    "auth.errTooYoung": "Todavía no puedes usar Kairo con menos de 13 años. Los perfiles para menores, que crea y supervisa un adulto de la familia, están en camino: hasta entonces no hay forma de darte de alta, y preferimos decírtelo a dejarte dando vueltas.",
     "auth.errPass": "La contraseña necesita al menos 8 caracteres.",
     "auth.errGoogle": "Entrar con Google no está disponible todavía. Usa tu correo.",
     "auth.errUnconfirmed":
@@ -693,7 +697,7 @@ const dict = {
     "features.sub": "Six things that change how you work with an AI.",
     "features.paperwork": "Paperwork",
     "features.paperworkDesc":
-      "Upload a fine, a grant form or a contract. Kairo tells you what it is, what you have to do and by when \u2014 and warns you 7, 3 and 1 day before the deadline, on Telegram. You never have to go and check.",
+      "Upload a fine, a grant form or a contract. Kairo tells you what it is, what you have to do and by when \u2014 and warns you a week before, three days before, the day before and on the day. Link Telegram and it reaches your phone without you looking; otherwise it waits for you inside.",
     "features.gist": "Gist",
     "features.gistDesc":
       "Paste a YouTube video or a link and get the summary part by part, with timestamps to jump straight to what you came for. Plus a chat beside it for whatever did not land.",
@@ -715,9 +719,9 @@ const dict = {
     "features.connect": "Connectors",
     "features.connectDesc":
       "Drive, Gmail, Calendar and GitHub. Kairo works with your actual files, not pasted copies.",
-    "features.ages": "Kids, teen and adult modes",
+    "features.ages": "Teen and adult modes",
     "features.agesDesc":
-      "A Kairo for every age. Child profiles are created and supervised by an adult in the family.",
+      "Your date of birth decides how Kairo answers you: between 13 and 17 moderation is considerably stricter than an adult's. Profiles for under-13s, created and supervised by an adult in the family, are on the way.",
 
     "pricing.title": "Clear pricing, no surprises",
     "pricing.sub":
@@ -733,7 +737,8 @@ const dict = {
     "pricing.plus": "Kairo+",
     "pricing.plusDesc": "For everyday work",
     "pricing.supreme": "Supreme",
-    "pricing.supremeDesc": "No real limits",
+    "pricing.supremeDesc": "For when Kairo is how you work",
+    "pricing.seeAll": "See what each plan includes →",
     "pricing.ctaFree": "Start free",
     "pricing.ctaPaid": "Choose plan",
     "pricing.creditsTitle": "What if I run out of credits?",
@@ -769,12 +774,15 @@ const dict = {
     "slider.title": "How much will you use Kairo?",
     "slider.sub": "Drag the dot and I'll tell you which plan you need.",
     "slider.credits": "credits per month",
+    "slider.creditsDay": "credits per day",
+    "slider.questionsDay": "normal questions a day",
+    "slider.fastDay": "quick questions a day",
     "slider.questions": "normal questions",
     "slider.councils": "councils of all 3 AIs",
     "slider.fast": "quick questions",
     "slider.perMonth": "a month with {p}",
     "slider.freePrice": "free, no card",
-    "slider.freeNote": "That's {n} a day, they don't roll over, and only Fast and Standard.",
+    "slider.freeNote": "They don't roll over: every day you get {n} again. Fast and Standard only.",
     "slider.start": "Start free",
     "slider.choose": "Choose {p}",
     "app.costChip": "· {n} credits",
@@ -1150,7 +1158,7 @@ const dict = {
     "cw.cancel": "Cancel",
     "cw.on": "On",
     "cw.off": "Off",
-    "cw.onlyOneFree": "The free plan gives you one Co-Work. For more you need Kairo+ -- and there the cap is gone.",
+    "cw.onlyOneFree": "The free plan gives you one Co-Work. Kairo+ gives you five, Supreme twenty-five.",
     "cw.search": "Look things up before writing",
     "cw.searchHelp": "For jobs that need today's facts: prices, news, regulations. It takes a few seconds longer and costs a few cents each time it runs. If what you are asking can be answered without looking anything up, leave it off.",
     "cw.test": "Run it now",
@@ -1171,7 +1179,7 @@ const dict = {
     "cw.inProgress": "It is being done right now. Come back in a minute and it will be here.",
     "cw.failed": "It could not be done. Try again in a while.",
     "cw.noCredits": "You do not have enough credits left.",
-    "cw.limit": "You have reached the maximum of 10 Co-Works.",
+    "cw.limit": "You have reached your plan's maximum of {n} Co-Works.",
     "cw.needsMigration":
       "A migration still has to be pasted into Supabase. Until you do, this cannot be saved.",
     "cw.needsKey":
@@ -1208,7 +1216,7 @@ const dict = {
     "auth.errGeneric": "Something went wrong. Please try again.",
     "auth.errCredentials": "That email or password is not correct.",
     "auth.errBirth": "Please check the date of birth.",
-    "auth.errTooYoung": "To use Kairo under 13, an adult in your family has to create the account and add you as a child profile.",
+    "auth.errTooYoung": "You can't use Kairo under 13 yet. Profiles for minors, created and supervised by an adult in the family, are on the way: until then there is no way to sign you up, and we would rather tell you than leave you going in circles.",
     "auth.errPass": "The password needs at least 8 characters.",
     "auth.errGoogle": "Google sign-in is not available yet. Use your email instead.",
     "auth.errUnconfirmed":

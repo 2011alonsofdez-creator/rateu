@@ -13,6 +13,58 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Anoche tocó el "No" de `/precios` y lo reforzó: ahora dice "ni las tuyas ni las de nadie". Sexto día.** `[origen: guardian 2026-11-11 · el hallazgo es del 2026-11-06]`
+  En el repaso de honestidad de anoche —14 commits, y casi todo bueno— pasó por
+  **esa misma respuesta** y la dejó así:
+
+  > ¿Se usan mis conversaciones para entrenar modelos?
+  > **"No. Ni las tuyas ni las de nadie, y tampoco se venden."**
+
+  Antes decía *"No. Y en los perfiles de menores, además, se guardan los datos
+  mínimos imprescindibles."* Las dos frases **nuevas** son verdad: no se venden
+  y no hay otro destino. **La primera palabra sigue siendo falsa** mientras la
+  cuenta de Gemini esté en la capa gratuita —la tabla del proveedor dice *"Used
+  to improve our products: **Yes**"* en gratuita y **No** en pago, y la capa de
+  Kairo es la gratuita (`CONTEXTO.md`, 25-10, de un commit suyo)—. Y ahora lo
+  afirma **más fuerte**, con dos refuerzos que empujan a creerlo.
+
+  **Por qué esto es lo único rojo de un día de buenas noticias**: anoche quitó
+  de la web "ilimitado", "modo niños", los conectores que no existen y los
+  "1.200 créditos al mes". Es un barrido de honestidad, hecho por iniciativa
+  suya, y es exactamente la dirección correcta. Dentro de ese mismo barrido, la
+  única frase que **no** se corrigió es la que trata de datos personales, que es
+  la que más pesa, en la página donde se decide pagar. No es que no la viera:
+  la tocó.
+
+  **No se ha traído a la rama.** `/precios/contenido.tsx` sigue contestando lo
+  que se puede comprobar —qué se guarda de lo que le mandas—, y la nota del
+  archivo explica por qué, con fecha de hoy.
+
+  **Sigue siendo una decisión suya de una línea**, la misma desde el 06-11:
+  paga la capa de la API y el "No." pasa a ser verdad —y lo pongo yo ese día—,
+  o dice que se queda la respuesta comprobable y se queda. Lo que no puede
+  seguir es publicado tal cual: Kairo **en el chat** se niega a afirmar lo que su
+  propia página afirma, porque el bloque `PRIVACIDAD` del prompt está escrito
+  desde el 24-10 para no decirlo.
+
+- **🟡 El plan gratis ha dejado de contar su mejor argumento: que trae rápido y normal.** `[origen: guardian 2026-11-11]`
+  En el repaso de anoche la tarjeta del plan gratis se rehízo entera y perdió
+  una viñeta que pusimos el 30-10: **"Modelos rápido y normal: chat, Paperwork,
+  Gist y Código"**. Las seis que tiene ahora son buenas —40 al día que vuelven
+  cada mañana, los 300 de regalo, 1 Co-Work, 3 Mentes, historial sin caducidad,
+  PDF de cualquier tamaño—, pero ninguna dice **qué puede hacer** con eso.
+
+  **Por qué importa y no es una nostalgia de redacción**: el plan gratis llega
+  al nivel `normal` desde el 29-10 (`NIVELES_PLAN.free`), y el nivel normal es
+  lo que hace funcionar Paperwork, Gist y Código. O sea que **leer una multa
+  gratis y sin tarjeta entra en el plan gratis**, que es justo lo que la portada
+  vende y lo que trae a la gente. Hoy la tarjeta no lo dice en ninguna parte.
+
+  **No lo he tocado**: es su tarjeta y la rehizo entera anoche, con un criterio
+  —seis viñetas, todas de cuánto— que se respeta. **Lo que hace falta es una
+  línea suya**: o se añade una séptima viñeta con lo que se puede hacer, o se
+  cambia una de las de cuánto por ella. Diez minutos míos en cuanto diga cuál.
+
 - **🔴 La automatización de los agentes lleva dos días caída, y es la tercera vez en nueve días.** `[origen: guardian 2026-11-10]`
   **08-11 y 09-11: cero commits, cero partes, cero informes.** Los ocho avisos
   —cuatro del 08, tres del 09 y el de hoy— se leyeron el **10-11 a las 06:17**,
@@ -128,7 +180,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   Es del constructor, es de hoy, y **no necesita nada del dueño**.
 
-- **🟡 Kairo+ vende 3 Co-Works y la base de datos deja 10.** `[origen: guardian 2026-11-07]`
+- **~~🟡 Kairo+ vende 3 Co-Works y la base de datos deja 10~~ — HECHO POR EL DUEÑO el 10-11, y por la salida buena.** `[origen: guardian 2026-11-07 · hecho 2026-11-10, marcado 2026-11-11]`
+  De las dos salidas que le dejó esta entrada —aplicar el tope por plan de
+  verdad, o escribir 10 en la tarjeta— eligió la primera: `COWORKS_POR_PLAN`
+  **1 / 5 / 25** en `planes.ts` y la migración `0023_topes_por_plan.sql`
+  cortando los mismos números en el servidor. Kairo+ da **5** y la tarjeta
+  dice 5, interpolado. Comprobado hoy en el HTML generado tras la fusión.
+  Lo que decía esta entrada, de histórico:
   En su tarjeta nueva de Kairo+ pone **"3 Co-Works activos"**. El tope real
   sigue siendo **10 para todo el mundo** (`limitar_coworks()`,
   `0009_coworks.sql:350`, comprobado hoy en `main`), y en el plan gratuito **1**
@@ -427,7 +485,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   del protocolo y los agentes no lo tocan nunca—. El `main` de anoche ya está
   dentro de la rama y los dos últimos merges entraron limpios.
 
-- **Dos topes por plan que la web vende y el código no aplica, y una función que se vende y no existe.** `[origen: constructor 2026-10-31]`
+- **~~Dos topes por plan que la web vende y el código no aplica, y una función que se vende y no existe~~ — HECHO POR EL DUEÑO el 10-11, las dos partes.** `[origen: constructor 2026-10-31 · hecho 2026-11-10, marcado 2026-11-11]`
+  **Las Mentes por plan**: ahora se aplican, `MENTES_POR_PLAN` **3 / 30 / 150**
+  con la 0023 cortando igual. Eligió la salida (a), la de código y migración,
+  no la de retocar el texto. **Los conectores**: las dos viñetas que vendían
+  una función que es un `BotonAunNo` **han desaparecido** de las tarjetas;
+  comprobado hoy en el HTML de `/precios`, donde ya no aparece la palabra.
+  Esta entrada tenía 11 días y decía, de histórico:
   Salieron de barrer la palabra "ilimitado" por todo el código, que es lo que
   faltaba por hacer después de arreglar la de Supreme. Las tres son suyas
   porque las tres son "cómo se vende", no un dato falso contra quien paga.
@@ -992,7 +1056,26 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   describe lo que pasa. **O se corrige el documento o se corrigen los precios, y
   lo decide el dueño**: los créditos no los toca ningún agente.
 
-- **Kairo+ tiene los mismos niveles que Supreme en el código, MEGA incluido.** `[origen: constructor 2026-10-12]`
+- **~~Kairo+ tiene los mismos niveles que Supreme en el código, MEGA incluido~~ — CONTESTADO por el dueño el 10-11, y en contra del documento.** `[origen: constructor 2026-10-12 · contestado 2026-11-10, marcado 2026-11-11]`
+  Treinta días abierto, y la respuesta no ha venido en una línea: ha venido
+  escrita en la página. Las tarjetas de Kairo+ y Supreme dicen ahora **"Los
+  cuatro niveles, Mega-Prompt incluido"** las dos, así que el código no era
+  un despiste: es la decisión. **La especificación es la que se ha quedado
+  atrás**, no `planes.ts`.
+  Y la pregunta que esta entrada hacía de rebote —si el tope de Mega-Prompts
+  al mes existe— también está contestada por la vía de los hechos: **no hay
+  tope**; los "8 al mes" y "25 al mes" de las tarjetas son la división de los
+  créditos del plan entre los 240 que cuesta un MEGA (2.000/240 = 8,
+  6.000/240 = 25), no un contador. Eso está bien dicho: es lo que da el saldo.
+  **Lo que Supreme sí tiene de propio**, después del repaso de anoche: el
+  triple de créditos, **25 Co-Works contra 5**, **150 Mentes contra 30** y el
+  soporte. Esa es la respuesta a "¿y entonces para qué pago el de arriba?",
+  y ahora tiene una.
+  **Queda una cosa para `docs/kairo/ESPECIFICACION.md`**, que ningún agente
+  toca sin permiso: su sección 3 sigue diciendo lo contrario. Mientras siga
+  así, cualquiera que lea el documento antes que el código se equivoca, y es
+  justo lo que le pasó a este sistema durante treinta días.
+  Lo que decía esta entrada, de histórico:
   `kairo/src/lib/planes.ts:41-45` da a `plus` y a `supreme` los cuatro niveles
   (`fast`, `normal`, `forja`, `mega`). La especificación, sección 3, da a
   Kairo+ solo "Rápido + Estándar" y reserva el Máximo y el Mega-Prompt para

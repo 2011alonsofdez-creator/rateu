@@ -40,6 +40,24 @@ import { CREDITOS_NIVEL } from "@/lib/planes";
  * decide pagar. Está preguntado en el parte del día, en una línea que se
  * contesta con un sí: si paga la capa, el "No." vuelve y lo pongo yo.
  *
+ * ACTUALIZACIÓN 11-11, y es lo que hay que saber antes de tocar este
+ * archivo: anoche (10-11, 14 commits) tocó esa misma respuesta en SU
+ * `page.tsx` y la **reforzó** en vez de resolverla. Ahora dice *"No. Ni las
+ * tuyas ni las de nadie, y tampoco se venden."* Las dos frases nuevas son
+ * verdad —no vendemos nada y no hay otro destino—, pero la primera sigue
+ * siendo falsa mientras la cuenta de Gemini esté en la capa gratuita, y
+ * ahora lo afirma con más fuerza. Sexto día. No se ha traído aquí: esta
+ * página sigue contestando lo que se puede comprobar. La decisión sigue
+ * siendo suya, de una línea, y está en el aviso de hoy.
+ *
+ * Y de ese mismo repaso suyo **sí** se ha traído, el 11-11, su respuesta
+ * nueva de "¿mis hijos pueden usarlo?": de 13 a 17 sí, por debajo de 13
+ * todavía no. La de antes —"sí, creando un perfil hijo desde tu cuenta"—
+ * prometía algo que no se puede hacer, y era nuestra tanto como suya. Su
+ * lado gana porque es el que dice la verdad. De paso se ha quitado la cola
+ * de "en los perfiles de menores se guardan los datos mínimos", por lo
+ * mismo: no existen todavía.
+ *
  * La pregunta de los datos dice lo que se puede comprobar, y nada más.
  *
  * Hasta el 21-10 esta FAQ contestaba "¿se usan mis conversaciones para
@@ -77,11 +95,11 @@ const FAQ = {
     },
     {
       q: "¿Mis hijos pueden usarlo?",
-      a: "Sí, creando un perfil hijo desde tu cuenta de adulto. Tú decides las restricciones y puedes ver lo que hace. Un menor no puede abrirse cuenta por su cuenta.",
+      a: "De 13 a 17 años sí: se registran con su fecha de nacimiento real y Kairo les aplica una moderación bastante más estricta que la de un adulto. Por debajo de 13 todavía no — los perfiles que crea y supervisa un adulto están en camino, y mientras no estén preferimos decirlo a prometerlo.",
     },
     {
       q: "¿Qué se guarda de lo que le mando a Kairo?",
-      a: "De un papel que subes a Paperwork se guarda lo que Kairo ha leído —de qué va, el importe, la fecha límite, los pasos— y el nombre del archivo. El archivo en sí no se guarda, y el papel lo puedes borrar cuando quieras. Las conversaciones sí se guardan, para que puedas volver a ellas. Y en la memoria solo entra lo que tú le pidas que recuerde. En los perfiles de menores se guardan los datos mínimos imprescindibles.",
+      a: "De un papel que subes a Paperwork se guarda lo que Kairo ha leído —de qué va, el importe, la fecha límite, los pasos— y el nombre del archivo. El archivo en sí no se guarda, y el papel lo puedes borrar cuando quieras. Las conversaciones sí se guardan, para que puedas volver a ellas. Y en la memoria solo entra lo que tú le pidas que recuerde.",
     },
   ],
   en: [
@@ -99,11 +117,11 @@ const FAQ = {
     },
     {
       q: "Can my kids use it?",
-      a: "Yes, by creating a child profile from your adult account. You set the restrictions and can see what they do. A minor cannot open an account on their own.",
+      a: "Between 13 and 17, yes: they sign up with their real date of birth and Kairo applies considerably stricter moderation than an adult's. Under 13 not yet — profiles created and supervised by an adult are on the way, and until they exist we would rather say so than promise it.",
     },
     {
       q: "What does Kairo keep of what I send it?",
-      a: "From a document you upload to Paperwork it keeps what Kairo read — what it is about, the amount, the deadline, the steps — plus the file name. The file itself is not kept, and you can delete the document whenever you like. Conversations are kept, so you can come back to them. And memory only holds what you ask it to remember. On child profiles we store only the bare minimum of data.",
+      a: "From a document you upload to Paperwork it keeps what Kairo read — what it is about, the amount, the deadline, the steps — plus the file name. The file itself is not kept, and you can delete the document whenever you like. Conversations are kept, so you can come back to them. And memory only holds what you ask it to remember.",
     },
   ],
 };

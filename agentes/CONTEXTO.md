@@ -232,8 +232,21 @@ programadas a la vez**, y **en Gemini el plan gratuito no las puede usar**
 [flozic](https://www.flozic.ai/blog/comparison/gemini-vs-chatgpt)), de
 resultados de búsqueda y con las cifras bailando entre 19,99 $ y 20 $.
 Lo que eso fija, y hay que usarlo al priorizar y al redactar:
-- El tope de **10 Co-Works** de Kairo **no es una carencia**: es el mismo que
-  tienen los dos grandes. Dejar de disculparse por él.
+- **Los topes de Co-Works, rehechos la noche del 10-11 y ahora por plan**
+  (`COWORKS_POR_PLAN` + migración `0023_topes_por_plan.sql`, que es la que
+  manda): **1 en Free, 5 en Kairo+, 25 en Supreme**; Mentes, **3 / 30 / 150**.
+  *Esta línea decía "el tope de 10 Co-Works no es una carencia: es el mismo que
+  tienen los dos grandes", y era verdad hasta esa noche, cuando el tope único de
+  10 dejó de existir.* Lo que cambia al redactar y al priorizar:
+  - **Supreme gana el argumento**: 25 encargos a la vez contra los **10** de
+    ChatGPT Plus y Google AI Pro, y a 24,99 € contra ~20 $. Antes empataba.
+  - **Kairo+ lo pierde**: 5 contra 10, por 9,99 € contra ~20 $. Sigue siendo la
+    mitad de precio por la mitad de encargos, así que es defendible, pero ya no
+    se puede decir "el mismo tope que los grandes" sin mentir.
+  - Y el motivo está escrito en su comentario, que conviene citar en vez de
+    inventar otro: un Co-Work cuesta 8 créditos y se ejecuta cada mañana, así
+    que con los 2.000 al mes de Kairo+ cinco diarios son 40 y dejan sitio para
+    chatear; prometer más sería **prometer trabajadores que no aparecen**.
 - Un Co-Work cuesta **8 créditos** (`CREDITOS.normal`, leído en
   `api/coworks/ejecutar/route.ts:49` el 10-11) y el plan Free trae **40 al
   día**, así que Kairo deja **probar sin tarjeta** lo que ellos cobran a 20 $.
