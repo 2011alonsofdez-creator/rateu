@@ -6,7 +6,6 @@ import { detectarEncargo } from "@/lib/coworks/detectar";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
-import { miles } from "@/lib/formato";
 import { LEVELS, pick, type Level, type Message, type Nivel } from "@/lib/mock";
 import { useCredits } from "@/lib/credits";
 import { usePerfil } from "@/lib/perfil-cliente";
@@ -1186,7 +1185,6 @@ function Chat() {
            ver y pisando el mensaje que se estaba escribiendo. */
         busy={busy || resumiendo}
         arranque={inicio}
-        saldo={`${miles(credits, lang)} ${t("app.credits")}`}
       />
       {/* LO DE DEBAJO DE LA CAJA, SOLO AL ARRANCAR.
  
