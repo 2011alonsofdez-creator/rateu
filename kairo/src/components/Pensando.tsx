@@ -46,6 +46,7 @@ export function Pensando({
   elegido,
   fases: fasesPropias,
   girando = false,
+  puntos = false,
 }: {
   nivel: Level;
   /** Nombre del modelo que está respondiendo. Llega del servidor. */
@@ -64,6 +65,8 @@ export function Pensando({
   fases?: TKey[];
   /** Que la marca además gire. Para esperas largas: ver abajo. */
   girando?: boolean;
+  /** Tres puntos que saltan en vez de la marca. */
+  puntos?: boolean;
 }) {
   const { t } = useUi();
   /* Buscar es lo único que no se adivina: si está buscando, se dice, y
@@ -98,9 +101,17 @@ export function Pensando({
 
   return (
     <div className="flex gap-3">
-      <Marca className="mt-0.5 h-8 w-8 shrink-0" animada girando={girando} />
+      {puntos ? (
+        <span className="kairo-puntos flex h-8 w-8 shrink-0 items-center justify-center gap-[5px]" aria-hidden>
+          <i />
+          <i />
+          <i />
+        </span>
+      ) : (
+        <Marca className="mt-0.5 h-8 w-8 shrink-0" animada girando={girando} />
+      )}
 
-      <div className="pt-1">
+      <div className={puntos ? "flex min-h-8 flex-col justify-center" : "pt-1"}>
         <span className="texto-brillo text-[15px] font-medium">
           {t(fases[i])}…
         </span>

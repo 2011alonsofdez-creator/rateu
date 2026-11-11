@@ -302,7 +302,7 @@ export default function CodePage() {
                mirando una frase quieta se leen como colgado. */
             <Pensando
               nivel={NIVEL}
-              girando
+              puntos
               fases={
                 trabajando === "arreglando"
                   ? ["code.fixing"]
