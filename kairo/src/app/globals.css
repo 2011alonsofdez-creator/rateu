@@ -395,34 +395,64 @@ body {
   animation: salta 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
-/* Los tres puntos de "estoy en ello": hacen malabares. Cada uno salta
-   en arco al sitio del siguiente, y el del final vuelve al principio por
-   encima de los otros dos, así que van cambiando de orden sin parar. Es
-   la misma animación para los tres, desfasada un tercio de vuelta. */
-@keyframes kairo-malabar {
-  0%, 20% { transform: translate(0, 0); }
-  26.5% { transform: translate(6px, -7px); }
-  33%, 53% { transform: translate(12px, 0); }
-  59.5% { transform: translate(18px, -7px); }
-  66%, 86% { transform: translate(24px, 0); }
-  93% { transform: translate(12px, -13px); }
-  100% { transform: translate(0, 0); }
+/* Los tres puntos de "estoy en ello". No van en fila: se mueven libres,
+   cambian de sitio y de tamaño, y en cada vuelta forman el triángulo de
+   la marca (los tres anillos) y se juntan en el punto del centro, que es
+   el de la marca también. Así se sabe que es Kairo y no otro. */
+@keyframes kairo-punto-1 {
+  0% { transform: translate(-10px, 0px) scale(1); }
+  8% { transform: translate(-10px, 0px) scale(1); }
+  18% { transform: translate(0px, -7px) scale(1.15); }
+  30% { transform: translate(10px, 0px) scale(0.8); }
+  38% { transform: translate(10px, 0px) scale(0.8); }
+  48% { transform: translate(6.5px, 5px) scale(1); }
+  60% { transform: translate(0px, 0px) scale(1.2); }
+  68% { transform: translate(0px, 0px) scale(1.2); }
+  80% { transform: translate(0px, 0px) scale(1.5); }
+  85% { transform: translate(0px, 0px) scale(1.5); }
+  100% { transform: translate(-10px, 0px) scale(1); }
+}
+@keyframes kairo-punto-2 {
+  0% { transform: translate(0px, 0px) scale(1.2); }
+  8% { transform: translate(0px, 0px) scale(1.2); }
+  18% { transform: translate(-6.5px, 5px) scale(0.85); }
+  30% { transform: translate(-10px, 0px) scale(1); }
+  38% { transform: translate(-10px, 0px) scale(1); }
+  48% { transform: translate(0px, -7px) scale(1.15); }
+  60% { transform: translate(10px, 0px) scale(0.8); }
+  68% { transform: translate(10px, 0px) scale(0.8); }
+  80% { transform: translate(0px, 0px) scale(0.5); }
+  85% { transform: translate(0px, 0px) scale(0.5); }
+  100% { transform: translate(0px, 0px) scale(1.2); }
+}
+@keyframes kairo-punto-3 {
+  0% { transform: translate(10px, 0px) scale(0.8); }
+  8% { transform: translate(10px, 0px) scale(0.8); }
+  18% { transform: translate(6.5px, 5px) scale(1); }
+  30% { transform: translate(0px, 0px) scale(1.2); }
+  38% { transform: translate(0px, 0px) scale(1.2); }
+  48% { transform: translate(-6.5px, 5px) scale(0.85); }
+  60% { transform: translate(-10px, 0px) scale(1); }
+  68% { transform: translate(-10px, 0px) scale(1); }
+  80% { transform: translate(0px, 0px) scale(0.7); }
+  85% { transform: translate(0px, 0px) scale(0.7); }
+  100% { transform: translate(10px, 0px) scale(0.8); }
 }
 .kairo-puntos {
   position: relative;
 }
 .kairo-puntos i {
   position: absolute;
-  left: calc(50% - 15.5px);
+  left: calc(50% - 3.5px);
   top: calc(50% - 3.5px);
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  animation: kairo-malabar 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: 5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
-.kairo-puntos i:nth-child(1) { background: var(--acento); }
-.kairo-puntos i:nth-child(2) { background: #ff6219; animation-delay: -1.2s; }
-.kairo-puntos i:nth-child(3) { background: var(--acento-2); animation-delay: -0.6s; }
+.kairo-puntos i:nth-child(1) { background: var(--acento); animation-name: kairo-punto-1; }
+.kairo-puntos i:nth-child(2) { background: #ff6219; animation-name: kairo-punto-2; }
+.kairo-puntos i:nth-child(3) { background: var(--acento-2); animation-name: kairo-punto-3; }
 @media (prefers-reduced-motion: reduce) {
-  .kairo-puntos i { animation-duration: 3.6s; }
+  .kairo-puntos i { animation-duration: 10s; }
 }
