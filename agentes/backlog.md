@@ -1237,6 +1237,27 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **El prompt no sabe en qué plan está quien pregunta, así que recita los tres topes.** `[origen: entrenador 2026-11-11]`
+  Desde hoy el prompt dice los topes de Co-Works y Mentes por plan —1 / 5 / 25 y
+  3 / 30 / 150, interpolados de `COWORKS_POR_PLAN` y `MENTES_POR_PLAN`—, y tiene
+  que decir los tres porque **`construirPrompt` no recibe el plan**: le llegan
+  tono, nombre, nivel, Mente, zona horaria, adjuntos, hechos y recuerdos
+  (`prompt.ts`, la firma), y el plan no.
+
+  **Qué cambia si entra**: hoy, a "¿cuántos encargos puedo tener?", lo mejor que
+  Kairo puede contestar es los tres números y "mira tus ajustes". Con el plan
+  dentro contesta **"cinco"**, que es lo que la persona ha preguntado. Y el
+  bloque se acorta, porque deja de tener que enumerar.
+
+  **Por qué no lo he hecho hoy**: toca una firma que usan el chat, los Co-Works
+  y Paperwork, y el día del entrenador es para un cambio pequeño. No es difícil
+  —quien llama ya tiene el perfil delante para cobrar los créditos—, pero es un
+  cambio de los que se hacen mirando los tres sitios que llaman, no uno.
+
+  **Y el mismo viaje sirve para dos cosas más** que hoy se contestan con "no lo
+  sé": si los créditos de la persona dan para lo que está pidiendo, y qué
+  niveles tiene disponibles. Las dos son del plan.
+
 - **La prueba de la portada no sabe qué no puede hacer.** `[origen: radar 2026-11-10 · lo vio el entrenador el mismo día y lo dejó anotado]`
   Desde hoy el `SISTEMA` de `/api/probar` lleva tono —el `cercano`, importado de
   `TONOS`—, así que la primera respuesta que lee un desconocido ya suena a Kairo.

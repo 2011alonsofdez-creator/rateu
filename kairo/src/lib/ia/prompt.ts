@@ -1,5 +1,10 @@
 import type { ModoEdad } from "@/lib/planes";
-import { CREDITOS_PLAN, NOMBRE_PLAN } from "@/lib/planes";
+import {
+  COWORKS_POR_PLAN,
+  CREDITOS_PLAN,
+  MENTES_POR_PLAN,
+  NOMBRE_PLAN,
+} from "@/lib/planes";
 import type { Level } from "@/lib/mock";
 import type { Mente } from "@/lib/tipos";
 import { bloqueDeMemoria } from "@/lib/memoria";
@@ -196,32 +201,26 @@ QUÉ NO HACES NUNCA
  * null default false`), no abre archivos hasta que lleguen Conectores, y no es
  * una Mente (`team/page.tsx:149`).
  *
- * EL TOPE DE CO-WORKS, CORREGIDO EL 01-11, Y EL FALLO ERA MÍO.
+ * EL TOPE DE CO-WORKS SE FUE DE AQUÍ EL 11-11, Y POR FIN DE RAÍZ.
  *
- * Esta viñeta decía, desde que la escribí el 29-10, que el tope son "diez
- * por cuenta". Era verdad ese día y dejó de serlo al siguiente: el dueño
- * publicó el 29-10 *"Let a free account actually try Kairo"* y con él un
- * tope de **un** Co-Work en el plan gratuito
- * (`api/coworks/route.ts`: `if (perfil.plan === "free") … >= 1 → 409
- * solo_uno_gratis`). Su razón está escrita ahí y es buena: con veinte
- * créditos al día y cuatro por ejecución, del quinto en adelante fallaban
- * todos los días en silencio, y *"prometer cinco trabajadores y que cuatro
- * no aparezcan nunca es peor que decir que hay uno"*.
+ * Esta viñeta llevó el tope escrito a mano del 29-10 al 11-11, y en ese
+ * tiempo fue falsa dos veces: decía "diez por cuenta" cuando el plan
+ * gratuito bajó a uno (corregido el 01-11), y decía "diez en los de pago"
+ * cuando el dueño hizo los topes por plan la noche del 10-11 —Kairo+ **5**,
+ * Supreme **25**—, así que a un usuario de Kairo+ le habría prometido diez y
+ * el sexto le habría dado un error del servidor.
  *
- * Así que ahora hay **dos** topes y los dos están en el código:
- *   - plan gratuito: **1**, en `api/coworks/route.ts` (capa de API).
- *   - planes de pago: **10**, en `limitar_coworks()`
- *     (`TODO_DE_UNA_VEZ.sql:1058-1080`), que es un `trigger` y no mira el
- *     plan, así que es el techo de todos.
- * Lo que un usuario del plan gratuito notaba hasta hoy: preguntaba cuántos
- * puede tener, Kairo decía diez, y el segundo le daba un 409.
- *
- * Y la lección de método, que vale más que el arreglo: **una cifra del
- * producto metida en el prompt envejece como cualquier otra copia a mano.**
- * Las de precios no, porque salen de `CREDITOS` y `CREDITOS_PLAN`; esta sí,
- * porque los dos topes viven uno en SQL y otro en una ruta de API y no hay
- * constante que importar. No se puede arreglar de raíz hoy; lo que sí se
- * puede es que quede escrito de dónde sale cada número, que es esto.
+ * Las dos veces por el mismo motivo, y aquel arreglo lo dejó escrito: una
+ * cifra del producto copiada a mano en el prompt envejece sola, y entonces
+ * **no había constante que importar** porque los topes vivían uno en SQL y
+ * otro en una ruta de API. Esa frase dejó de ser verdad anoche:
+ * `COWORKS_POR_PLAN` y `MENTES_POR_PLAN` existen desde el 10-11 y la
+ * migración `0023_topes_por_plan.sql` corta los mismos números en el
+ * servidor. Así que la cuota se ha ido al bloque donde ya viven las demás
+ * cifras leídas del código, interpolada, y aquí se queda solo lo que esta
+ * viñeta sabe decir: qué **es** un miembro del Team.
+ * El relato largo de la corrección del 01-11 está en
+ * `agentes/ia/diario-entrenamiento.md`, que es su sitio.
  *
  * Buscar en internet no está en la lista a propósito: depende del motor que
  * conteste, y de eso ya hablan los bloques CON/SIN INTERNET de más abajo. */
@@ -240,10 +239,7 @@ LO QUE SABES HACER
   enciende con un interruptor al contratarlo: si el encargo pide datos de hoy
   y está apagado, no los hay, y se dice. Todavía no puede abrir los archivos
   de nadie —eso llega con Conectores—. Y **no es una Mente**: una Mente cambia
-  cómo hablas; un miembro del Team es un puesto. Y el tope, contando
-  Co-Works y Team juntos, **depende del plan: uno en el gratuito, diez en los
-  de pago**. Si alguien del plan gratuito quiere un segundo, eso es lo que
-  dices, no que le caben diez.
+  cómo hablas; un miembro del Team es un puesto.
 - **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
   decir qué quieren, cuánto y para cuándo.
 - **Gist**: resumir un vídeo o una página.
@@ -280,11 +276,21 @@ que no puedes hacer se descubre el día que esa persona contaba contigo.`;
  * a este archivo. Un prompt con precios copiados a mano envejece mal y
  * nadie se entera hasta que miente.
  *
- * Y lo que NO entra aquí, a propósito: los precios en euros, los topes
- * por plan y lo que incluye cada plan. Eso vive en un documento, no en
- * el código, la tienda no consta encendida, y hay diferencias sin
- * resolver entre los dos (están en agentes/ia/conocimiento/). Antes que
- * decir algo que puede ser falso, Kairo dice que no lo sabe. */
+ * Y lo que NO entra aquí, a propósito: los precios en euros y lo que
+ * incluye cada plan. Eso vive en un documento, no en el código, la tienda
+ * no consta encendida, y hay diferencias sin resolver entre los dos (están
+ * en agentes/ia/conocimiento/). Antes que decir algo que puede ser falso,
+ * Kairo dice que no lo sabe.
+ *
+ * LOS TOPES SÍ ENTRAN, DESDE EL 11-11. Estaban en esa lista de "no lo
+ * sabes" por el mismo motivo que todo lo demás —vivían en un documento—, y
+ * dejaron de estarlo la noche del 10-11: `COWORKS_POR_PLAN` y
+ * `MENTES_POR_PLAN` son código, y la migración `0023_topes_por_plan.sql`
+ * corta los mismos números en el servidor. Cumplen la regla de este bloque
+ * al pie de la letra: solo entra aquí lo que sale del código y es exacto.
+ * Y entraban ya por la puerta de atrás: la viñeta de Team los contaba a
+ * mano, mal desde anoche, mientras cuatro párrafos más abajo se decía que
+ * no se sabían. Se arregla por los dos lados a la vez. */
 function bloqueProducto(): string {
   const porPlan = (["free", "plus", "supreme"] as const)
     .map((p) => `${NOMBRE_PLAN[p]} ${CREDITOS_PLAN[p]}`)
@@ -317,14 +323,16 @@ así que es exacto:
   seguidos, que es mejor que lo descubran en el contador.
 - Créditos de cada plan: ${porPlan}. Los del plan Free son al día; los de los
   otros dos, al mes.
+- Co-Works a la vez, contando los del Team: ${COWORKS_POR_PLAN.free} en Free, ${COWORKS_POR_PLAN.plus} en ${NOMBRE_PLAN.plus}
+  y ${COWORKS_POR_PLAN.supreme} en ${NOMBRE_PLAN.supreme}. Mentes: ${MENTES_POR_PLAN.free}, ${MENTES_POR_PLAN.plus} y ${MENTES_POR_PLAN.supreme}. Pasado el tope el servidor
+  lo rechaza, así que dilo antes; y no sabes en qué plan está quien pregunta.
 - Son los mismos créditos para todo: se gastan en lo que se use.
 - Si te preguntan si algo les da para tanto al día o al mes, haz la cuenta tú y
   dásela hecha. Es lo que están preguntando de verdad.
 
 Cualquier OTRA condición —el precio en euros, cuántos Mega-Prompts entran al
-mes, qué niveles incluye cada plan, cuántos conectores o Mentes, el tamaño
-máximo de un archivo, los días de historial, si los créditos se acumulan— NO
-LA SABES. Dilo en una línea y manda a la página de precios o a los ajustes de
+mes, qué niveles incluye cada plan, cuántos conectores, el tamaño máximo de un
+archivo, los días de historial, si los créditos se acumulan— NO LA SABES. Dilo en una línea y manda a la página de precios o a los ajustes de
 la cuenta, que es donde está el dato de verdad. No la estimes: un precio
 inventado se descubre pagando, y eso no se arregla con una disculpa.`;
 }

@@ -96,6 +96,79 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-11 — Recorte (área 7): la contradicción tenía una cifra falsa dentro
+
+**Qué cambié**: `kairo/src/lib/ia/prompt.ts`, dos bloques, un solo asunto —el
+tope de Co-Works y Mentes—.
+
+**Qué estaba mal, y no es grasa: es una contradicción que ya era falsa.** El
+prompt decía las dos cosas a la vez:
+
+- en `CAPACIDADES`, la viñeta de Team: *"el tope, contando Co-Works y Team
+  juntos, depende del plan: **uno en el gratuito, diez en los de pago**"*;
+- cuatro párrafos más abajo, en `LO QUE CUESTA USARTE`: *"cuántos conectores o
+  **Mentes** … NO LA SABES"*.
+
+Y desde la noche del **10-11** la primera es **falsa**: el dueño hizo los topes
+por plan —`COWORKS_POR_PLAN` 1 / 5 / 25 y `MENTES_POR_PLAN` 3 / 30 / 150, con la
+migración `0023_topes_por_plan.sql` cortando los mismos números en el servidor—.
+O sea que a alguien de Kairo+ que preguntara cuántos encargos puede tener, Kairo
+le habría dicho **diez**, y el sexto le habría dado un error del servidor. Es la
+segunda vez que esa misma viñeta miente por la misma razón: ya pasó el 01-11, al
+revés, cuando el plan gratuito bajó a uno y ella seguía diciendo diez.
+
+**Qué hice**: la cuota sale de la viñeta de Team —que debe decir qué **es** un
+miembro del Team, no cuántos caben— y se va al bloque donde ya viven las demás
+cifras leídas del código, **interpolada**. Y las Mentes salen de la lista de
+"no lo sabes", porque ahora sí se saben y son exactas.
+
+**Por qué esto es área 7 y no área 1**: la ficha dice que el día de recorte se
+quita *"lo duplicado, lo contradictorio y lo que no cambia ninguna respuesta"*.
+Esto era lo contradictorio, y de paso se ha ido un puntero que sobraba —"cuántos
+caben está más abajo"—: el modelo lee el prompt entero, no navega por él.
+
+**La medida, que es lo que pide el área**, con el arnés que renderiza el prompt
+de verdad:
+
+| | Antes | Después |
+|---|---|---|
+| adulto, sin buscador | 185 líneas · 10.938 car. | **184 · 10.937** |
+| **adulto + buscador (producción)** | 208 líneas · 12.519 car. | **207 · 12.518** |
+| niño + buscador | 221 líneas · 13.244 car. | **220 · 13.243** |
+
+Una línea y un carácter menos. **Poco, y lo digo sin adornarlo**: el recorte de
+verdad fueron **30 líneas de comentario** que explicaban por qué la cifra tenía
+que ir a mano —*"no hay constante que importar"*—, y los comentarios no se
+renderizan, así que no se pagan en cada llamada. Lo que sí se paga bajó en una
+línea. Si alguien busca el relato largo de la corrección del 01-11, está en este
+diario, que es su sitio; el código ahora solo dice lo que hace.
+
+**Cómo lo comprobé**: arnés que copia el fuente y le cambia **solo las rutas de
+import** —comprobado línea a línea: las 6 que difieren llevan todas `from "`— y
+lo renderiza con node. **15 comprobaciones, 15 en verde**: las seis cifras
+interpoladas (leídas del propio módulo, ninguna escrita a mano en la prueba),
+que ya no dice "diez en los de pago" ni "no que le caben diez", que ya no dice
+que no sabe las Mentes, y cinco que vigilan que **no se haya movido nada más**:
+sigue sin saber los conectores, los niveles por plan ni si los créditos se
+acumulan, sigue entero el bullet de Team, y sigue el bloque de privacidad.
+`tsc --noEmit` 0 y `next build` 0.
+
+**Lo que vi de paso y no he tocado**: **el prompt no sabe en qué plan está quien
+pregunta.** `construirPrompt` recibe tono, nombre, nivel, Mente, zona horaria y
+recuerdos, pero no el plan, así que Kairo tiene que recitar los tres topes y
+decir que no sabe cuál es el tuyo. Con el plan dentro diría *"puedes tener
+cinco"*, que es la respuesta que la persona busca, y de paso el bloque se
+acortaría. Va al backlog como P2, no lo hago hoy: toca una firma que usan el
+chat, los Co-Works y Paperwork, y hoy tocaba una cosa.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 1, prompt maestro. Y una cosa que conviene decir en voz
+alta sobre esta rotación: **puntuar los catorce casos del banco (área 5) lleva
+cinco informes pedido y la rotación no lo alcanza hasta el 16-11**, porque el
+turno manda. Si el radar quiere que una petición repetida se salte la rotación,
+que lo diga en una línea: es una regla de una frase y no la puedo decidir yo.
+
 ### 2026-11-10 — Tono (área 6): la primera respuesta que lee un desconocido no tenía tono
 
 **Dos días perdidos antes de esta entrada.** El 08 y el 09-11 no corrió ningún
