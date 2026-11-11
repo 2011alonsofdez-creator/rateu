@@ -292,7 +292,7 @@ function PantallaCode() {
            vista en el cuadro de arriba. */
         setError("code.noFile");
       },
-    });
+    }, { largo: true });
   };
 
   return (

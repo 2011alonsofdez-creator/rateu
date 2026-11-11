@@ -44,6 +44,9 @@ export function preguntar(
   texto: string,
   nivel: Level,
   { onTexto, onModelo, onError, onFin }: Respuesta,
+  /** `largo`: hasta cinco minutos en vez de uno, y sin buscar en
+   *  internet antes. Es para Code, que escribe un archivo entero. */
+  { largo = false }: { largo?: boolean } = {},
 ): () => void {
   const corte = new AbortController();
 
@@ -66,6 +69,7 @@ export function preguntar(
           nivel,
           mensajes: [{ rol: "user", texto }],
           zona: zonaDelNavegador(),
+          ...(largo ? { largo: true, buscar: "nunca" } : {}),
         }),
       });
 
