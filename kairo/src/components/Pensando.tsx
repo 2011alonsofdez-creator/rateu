@@ -38,6 +38,77 @@ function colorModelo(modelo: string) {
   return "var(--muted)";
 }
 
+/* LOS TRES PUNTOS DE KAIRO.
+ *
+ * Cada poco se elige una figura al azar —nunca la misma dos veces
+ * seguidas— y qué punto va a qué sitio también al azar, así que no hay
+ * una secuencia que se pueda adivinar. Entre las figuras está el
+ * triángulo de los tres anillos de la marca y el punto del centro (los
+ * tres juntos): es lo que lo hace de Kairo y no de otro. */
+type Sitio = [x: number, y: number, escala: number];
+
+const FIGURAS: { nombre: string; sitios: Sitio[]; salta?: boolean }[] = [
+  { nombre: "fila", sitios: [[-8, 0, 1], [0, 0, 1], [8, 0, 1]] },
+  { nombre: "salto", sitios: [[-8, 0, 1], [0, 0, 1], [8, 0, 1]], salta: true },
+  { nombre: "marca", sitios: [[0, -6, 1.15], [-5.5, 4, 1], [5.5, 4, 1]] },
+  { nombre: "juntos", sitios: [[0, 0, 1.6], [0, 0, 0.7], [0, 0, 1]] },
+  { nombre: "diagonal", sitios: [[-7, 5, 0.85], [0, 0, 1.1], [7, -5, 0.85]] },
+  { nombre: "arco", sitios: [[-7, 3, 1], [0, -5, 1.2], [7, 3, 1]] },
+  { nombre: "pareja", sitios: [[-6, 0, 1.2], [-2, 0, 0.8], [8, -3, 1]] },
+];
+
+const COLORES = ["var(--acento)", "#ff6219", "var(--acento-2)"];
+
+function barajar<T>(lista: T[]): T[] {
+  const copia = [...lista];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+function PuntosKairo() {
+  const [figura, setFigura] = useState(0);
+  const [orden, setOrden] = useState([0, 1, 2]);
+
+  useEffect(() => {
+    const lento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    let reloj = 0;
+    let anterior = 0;
+    const siguiente = () => {
+      let n = anterior;
+      while (n === anterior) n = Math.floor(Math.random() * FIGURAS.length);
+      anterior = n;
+      setFigura(n);
+      setOrden(barajar([0, 1, 2]));
+      /* Unas veces cambia rápido y otras se queda un poco: también eso
+         lo hace menos previsible. */
+      const espera = (FIGURAS[n].salta ? 1300 : 650 + Math.random() * 650) * (lento ? 2 : 1);
+      reloj = window.setTimeout(siguiente, espera);
+    };
+    reloj = window.setTimeout(siguiente, 500);
+    return () => window.clearTimeout(reloj);
+  }, []);
+
+  const actual = FIGURAS[figura];
+  return (
+    <span
+      className={`kairo-puntos relative block h-8 w-8 shrink-0 ${actual.salta ? "salta" : ""}`}
+      aria-hidden
+    >
+      {COLORES.map((color, punto) => {
+        const [x, y, escala] = actual.sitios[orden[punto]];
+        return (
+          <span key={punto} style={{ transform: `translate(${x}px, ${y}px) scale(${escala})` }}>
+            <i style={{ background: color }} />
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 export function Pensando({
   nivel,
   modelo,
@@ -102,11 +173,7 @@ export function Pensando({
   return (
     <div className="flex gap-3">
       {puntos ? (
-        <span className="kairo-puntos block h-8 w-8 shrink-0" aria-hidden>
-          <i />
-          <i />
-          <i />
-        </span>
+        <PuntosKairo />
       ) : (
         <Marca className="mt-0.5 h-8 w-8 shrink-0" animada girando={girando} />
       )}
