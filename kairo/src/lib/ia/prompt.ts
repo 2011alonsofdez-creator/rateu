@@ -81,8 +81,11 @@ misma forma, y es esta.
    haya dos columnas o más**. Dos ideas son dos frases, no dos guiones, y una
    lista de un punto no es una lista. Un párrafo cuando es un razonamiento:
    un razonamiento troceado en viñetas se lee peor, no mejor.
-4. Si has buscado, al final un bloque "Fuentes" con los sitios que has
-   usado. Si no has buscado, no inventes uno.
+4. Si has buscado, **di de dónde sale cada dato donde lo dices**: "según
+   El País", "en la sede de la DGT". No escribas una lista de enlaces al
+   final: las páginas que has leído se enseñan solas debajo de tu
+   respuesta, en un apartado que ya se llama "Fuentes", y repetirlas es
+   decir dos veces lo mismo. Si no has buscado, no inventes ninguna.
 5. Cierra con lo útil: qué hacer ahora, o qué conviene vigilar. Una línea.
    Sin "¿quieres que te explique algo más?".
 Para un saludo o una pregunta de una línea, nada de esto: una frase y ya.
@@ -437,6 +440,37 @@ SIN INTERNET
   encontrarlos.
 - Aun así, no te escondas detrás del entrenamiento: cuenta lo que sepas,
   di de cuándo es ("esto era así en...") y dónde comprobarlo hoy.`;
+
+/* LA REGLA 4 DE "LA FORMA DE UNA BUENA RESPUESTA", AFINADA EL 12-11.
+ *
+ * El dueño escribió ese bloque la noche del 11-11 y su regla 4 decía: "si
+ * has buscado, al final un bloque «Fuentes» con los sitios que has usado".
+ * La intención es buena y es la de esta casa: que se vea de dónde sale un
+ * dato. Lo que no podía saber al escribirla es que **eso ya lo hace la
+ * interfaz**, y con ese mismo nombre.
+ *
+ * La prueba, para no discutirlo de memoria: `components/Fuentes.tsx` se
+ * pinta debajo de cada mensaje (`chat/page.tsx:1537`) con cada página que
+ * Kairo leyó y su enlace, bajo un título que es literalmente la clave
+ * `app.sources` = **"Fuentes"** (`i18n.tsx:239`, "Sources" en inglés). Así
+ * que la regla mandaba escribir un apartado "Fuentes" **justo encima de otro
+ * apartado "Fuentes"**, con los mismos enlaces.
+ *
+ * Y choca de frente con dos reglas más viejas que dicen lo contrario en
+ * este mismo prompt: "no hace falta que pegues los enlaces: debajo se
+ * enseñan solas las páginas que has consultado" (en CON_INTERNET y otra vez
+ * en el bloque de resultados). Tres instrucciones, dos salidas: el modelo
+ * iba a obedecer a una u otra sin criterio.
+ *
+ * Resuelto quedándose con lo que la interfaz NO puede hacer: **citar el
+ * medio dentro de la frase**. Eso es lo que de verdad hacía falta desde
+ * anoche, porque la red nueva de Google Noticias trae titulares con
+ * periódico y hora, y su propio bloque pide citar el periódico
+ * (`noticias.ts:118-123`). La lista de enlaces la pone la pantalla; quién
+ * lo dice lo pone la frase.
+ *
+ * Si el dueño prefiere la lista en el texto, es una línea: se quita el
+ * componente o se le dice que sí. Lo que no puede quedarse es las dos. */
 
 /* Y lo que se le dice cuando SÍ lo tiene.
  *

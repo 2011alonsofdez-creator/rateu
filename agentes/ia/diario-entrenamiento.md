@@ -96,6 +96,77 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-12 — Prompt maestro (área 1): mandaba escribir "Fuentes" encima de "Fuentes"
+
+**Qué cambié**: `kairo/src/lib/ia/prompt.ts`, la **regla 4** del bloque nuevo
+`LA FORMA DE UNA BUENA RESPUESTA`, que el dueño escribió anoche.
+
+**Qué estaba mal.** Su regla 4 decía:
+
+> *"Si has buscado, al final un bloque «Fuentes» con los sitios que has usado."*
+
+La intención es la de esta casa —que se vea de dónde sale un dato— y por eso no
+la he quitado: la he puesto donde sirve. Lo que no podía saber al escribirla es
+que **eso ya lo hace la interfaz, y con ese mismo nombre**.
+
+**La prueba, para no discutirlo de memoria**: `components/Fuentes.tsx` se pinta
+debajo de cada mensaje (`chat/page.tsx:1537`) con cada página que Kairo leyó y
+su enlace, bajo un título que es literalmente la clave `app.sources` =
+**"Fuentes"** (`i18n.tsx:239`; "Sources" en inglés). Así que la regla mandaba
+escribir un apartado "Fuentes" **justo encima de otro apartado "Fuentes"**, con
+los mismos enlaces.
+
+**Y no era solo redundancia: era una contradicción de tres contra una.** En este
+mismo prompt había ya dos reglas más viejas diciendo lo contrario —*"no hace
+falta que pegues los enlaces en el texto: debajo de tu respuesta se enseñan
+solas las páginas que has consultado"* (en `CON_INTERNET`) y *"no hace falta que
+pegues los enlaces: debajo salen solos"* (en el bloque de resultados)—. Tres
+instrucciones y dos salidas posibles: el modelo iba a obedecer a una o a otra
+sin criterio, y la mitad de las respuestas buscadas acabarían con una lista
+duplicada.
+
+**Cómo lo he resuelto**: quedándome con lo que la pantalla **no** puede hacer,
+que es **citar el medio dentro de la frase**. La regla 4 dice ahora que se diga
+de dónde sale cada dato donde se dice —*"según El País"*, *"en la sede de la
+DGT"*— y que no se escriba la lista al final, porque ya está debajo.
+
+**Y eso, además, era lo que de verdad hacía falta desde anoche**: la red nueva
+de **Google Noticias** (`lib/ia/noticias.ts`, suya, del 11-11) trae **titulares
+con periódico y hora**, y su propio bloque le pide al modelo *"citar el
+periódico"* (`noticias.ts:118-123`). Sin esta regla, el único sitio donde se
+pedía citar el medio era un bloque que solo aparece cuando hay noticias; ahora
+es la forma de toda respuesta buscada. Las dos cosas encajan sin tocarse.
+
+**Cómo lo comprobé**: el arnés de siempre —copia del fuente con **solo** las
+rutas de import cambiadas, verificado línea a línea: las 6 que difieren llevan
+todas `from "`— renderizando el prompt con node. **13 comprobaciones, 13 en
+verde**: que manda citar el medio con su ejemplo, que dice que la pantalla ya
+pone el apartado, que sigue prohibiendo inventarse fuentes, que **ya no queda
+ninguna instrucción que mande una lista al final**, que las dos reglas viejas
+siguen en pie y ahora dicen lo mismo, y cinco que vigilan que **no se haya
+movido nada más** del bloque de anoche: la regla 1, la 3 con los umbrales que
+metí ayer, la 5, la de las fechas y el bloque `SIN INTERNET`. `tsc --noEmit` 0 y
+`next build` 0.
+
+**Y una comprobación que falló y era culpa mía, que es lo que toca contar**: la
+que vigila que `CON_INTERNET` siga diciendo que los enlaces salen solos salió en
+rojo. No era el prompt: cité la frase de memoria y me dejé *"de tu respuesta"*
+en medio, y además va partida en dos líneas (`prompt.ts:526-527`). Es el error
+(b) de las plantillas —la prosa va envuelta a 76 columnas— combinado con el (d):
+**una comprobación que falla se comprueba antes de cambiar nada**. Si hubiera
+"arreglado" el prompt para que pasara, habría roto una regla buena.
+
+**Tamaño**: el prompt de producción pasa de 207 a **237 líneas** (14.390
+caracteres). **Las 30 que suben son suyas, de anoche**, no mías: mi cambio deja
+la regla 4 en cinco líneas donde tenía dos. Lo digo con el número porque ayer
+presumí de bajar una.
+
+**Qué necesito del dueño**: nada, pero **una línea suya lo revierte** si prefería
+la lista en el texto: o se quita el componente `Fuentes`, o se le dice que sí y
+vuelvo a su redacción. Lo que no puede quedarse es las dos cosas a la vez.
+
+**Mañana toca**: área 2, ejemplos.
+
 ### 2026-11-11 — Recorte (área 7): la contradicción tenía una cifra falsa dentro
 
 **Qué cambié**: `kairo/src/lib/ia/prompt.ts`, dos bloques, un solo asunto —el
