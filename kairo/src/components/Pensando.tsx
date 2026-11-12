@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level } from "@/lib/mock";
 import { Marca } from "./Logo";
@@ -87,23 +87,68 @@ function repartir(desde: Sitio[], hacia: Sitio[]): number[] {
   return mejor;
 }
 
-function PuntosKairo() {
+/* QUÉ HACEN LOS PUNTOS EN CADA ETAPA. Cada etapa tiene su baile, así
+   se ve por dónde va sin leer: al arrancar saltan, montando la pantalla
+   giran en el triángulo de la marca, con la lógica se juntan y se
+   separan, y al final se cierran en el punto del centro. Dentro de cada
+   etapa, la figura sigue saliendo al azar entre las suyas. */
+export type EtapaPuntos =
+  | "piensa"
+  | "empieza"
+  | "estilo"
+  | "pantalla"
+  | "logica"
+  | "casi"
+  | "arreglando"
+  | "libre";
+
+const BAILES: Record<EtapaPuntos, string[]> = {
+  piensa: ["salto"], // saltan sin parar
+  empieza: ["fila", "arco", "salto"],
+  estilo: ["arco", "diagonal", "diagonal2"],
+  pantalla: ["marca", "marca2"],
+  logica: ["juntos", "fila", "juntos", "diagonal"],
+  casi: ["marca", "juntos"],
+  arreglando: ["diagonal", "diagonal2", "juntos"],
+  libre: FIGURAS.map((f) => f.nombre),
+};
+
+const indice = (nombre: string) => FIGURAS.findIndex((f) => f.nombre === nombre);
+
+function PuntosKairo({ etapa = "libre" }: { etapa?: EtapaPuntos }) {
   const [figura, setFigura] = useState(0);
   const [orden, setOrden] = useState([0, 1, 2]);
+  /* Dónde está cada punto ahora. Va en una ref para que, al cambiar de
+     etapa, el siguiente movimiento salga de donde están y no de cero. */
+  const donde = useRef<Sitio[]>(FIGURAS[0].sitios);
+  const siempreSalta = etapa === "piensa";
 
   useEffect(() => {
     const lento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const lista = (BAILES[etapa] ?? BAILES.libre).map(indice).filter((i) => i >= 0);
     let reloj = 0;
-    let anterior = 0;
-    let donde: Sitio[] = FIGURAS[0].sitios;
-    const siguiente = () => {
-      let n = anterior;
-      while (n === anterior) n = Math.floor(Math.random() * FIGURAS.length);
-      anterior = n;
-      const nuevo = repartir(donde, FIGURAS[n].sitios);
-      donde = nuevo.map((i) => FIGURAS[n].sitios[i]);
+    let anterior = -1;
+
+    const ir = (n: number) => {
+      const nuevo = repartir(donde.current, FIGURAS[n].sitios);
+      donde.current = nuevo.map((i) => FIGURAS[n].sitios[i]);
       setFigura(n);
       setOrden(nuevo);
+    };
+
+    /* Saltando sin parar no hay nada que elegir: a la fila y a botar. */
+    if (siempreSalta) {
+      ir(indice("salto"));
+      return;
+    }
+
+    const siguiente = () => {
+      let n = lista[Math.floor(Math.random() * lista.length)];
+      if (lista.length > 1) {
+        while (n === anterior) n = lista[Math.floor(Math.random() * lista.length)];
+      }
+      anterior = n;
+      ir(n);
       /* El salto dura lo que dura (dos botes y el desfase del tercero:
          1,34 s) y no se le corta a medias, que daba un tirón. El resto
          se queda entre 0,7 y 1,4 s: también eso lo hace menos
@@ -111,14 +156,16 @@ function PuntosKairo() {
       const espera = (FIGURAS[n].salta ? 1500 : 700 + Math.random() * 700) * (lento ? 2 : 1);
       reloj = window.setTimeout(siguiente, espera);
     };
-    reloj = window.setTimeout(siguiente, 600);
+    siguiente();
     return () => window.clearTimeout(reloj);
-  }, []);
+  }, [etapa, siempreSalta]);
 
   const actual = FIGURAS[figura];
   return (
     <span
-      className={`kairo-puntos relative block h-8 w-8 shrink-0 ${actual.salta ? "salta" : ""}`}
+      className={`kairo-puntos relative block h-8 w-8 shrink-0 ${
+        siempreSalta ? "salta-siempre" : actual.salta ? "salta" : ""
+      }`}
       aria-hidden
     >
       {COLORES.map((color, punto) => {
@@ -142,6 +189,7 @@ export function Pensando({
   fases: fasesPropias,
   girando = false,
   puntos = false,
+  etapa,
 }: {
   nivel: Level;
   /** Nombre del modelo que está respondiendo. Llega del servidor. */
@@ -162,6 +210,8 @@ export function Pensando({
   girando?: boolean;
   /** Tres puntos que saltan en vez de la marca. */
   puntos?: boolean;
+  /** En qué etapa va, para que los puntos bailen según eso. */
+  etapa?: EtapaPuntos;
 }) {
   const { t } = useUi();
   /* Buscar es lo único que no se adivina: si está buscando, se dice, y
@@ -197,7 +247,7 @@ export function Pensando({
   return (
     <div className="flex gap-3">
       {puntos ? (
-        <PuntosKairo />
+        <PuntosKairo etapa={etapa} />
       ) : (
         <Marca className="mt-0.5 h-8 w-8 shrink-0" animada girando={girando} />
       )}
