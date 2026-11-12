@@ -44,6 +44,10 @@ export function preguntar(
   texto: string,
   nivel: Level,
   { onTexto, onModelo, onError, onFin }: Respuesta,
+  /** `paraCode`: sin buscar en internet antes (Code no lo necesita, y
+   *  se come hasta 18 de sus 52 segundos) y con los modelos rápidos
+   *  delante de los enormes. */
+  { paraCode = false }: { paraCode?: boolean } = {},
 ): () => void {
   const corte = new AbortController();
 
@@ -66,6 +70,7 @@ export function preguntar(
           nivel,
           mensajes: [{ rol: "user", texto }],
           zona: zonaDelNavegador(),
+          ...(paraCode ? { buscar: "nunca", para: "code" } : {}),
         }),
       });
 

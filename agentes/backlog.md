@@ -13,6 +13,65 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 La portada promete "Claude · Gemini · GPT" y desde anoche ninguno de los dos está en la cadena.** `[origen: guardian 2026-11-12]`
+  Es la **primera línea que lee un visitante**, en los dos idiomas:
+
+  > `hero.badge`: **"Claude · Gemini · GPT, en una sola suscripción"**
+  > `hero.sub`: *"Claude, Gemini y GPT en el mismo sitio… cuando la pregunta es
+  > gorda **les pregunta a los tres**"*
+
+  **Y la cadena de anoche no tiene ninguno de los dos.** `/api/estado` de hoy
+  (`revisar.yml` 39, 06:14) dice que los modelos configurados son **tres y todos
+  `:free`**: `nvidia/nemotron-3-ultra-550b-a55b`, `google/gemma-4-26b-a4b-it` y
+  `baidu/ernie-5.5-flash-preview`. **Ni un `anthropic/`, ni un `openai/`.** Antes
+  estaban `anthropic/claude-haiku-5.5` y `openai/gpt-6-luna`, y eran justo lo que
+  hacía defendible esa frase.
+
+  **Esto ya pasó y se corrigió al revés.** El P1 del 16-10 decía *"la portada
+  promete tres cerebros y en producción solo hay uno"*; el 31-10 me corregí
+  porque los dos habían entrado en la cadena vía OpenRouter y en MEGA sí había
+  tres casas. **Hoy vuelve a ser falsa**, por el otro lado.
+
+  **Lo que sigue siendo verdad, para no pasarse de frenada**: MEGA **sí** sigue
+  preguntando a tres casas distintas —Gemini, NVIDIA y Baidu, que `mega.ts`
+  cuenta por proveedor—, así que *"les pregunta a tres"* se sostiene. Lo que no
+  se sostiene es **qué tres**: la frase nombra dos marcas que no están, y nombrar
+  marcas de terceros que no se usan no es una exageración de marketing, es un
+  dato falso en el escaparate.
+
+  **Dos salidas, las dos suyas, y no las toco porque es la frase con la que se
+  vende Kairo**:
+  1. **Poner las claves** de Anthropic y OpenAI —que es el P1 de 27 días— o
+     devolver un `anthropic/` y un `openai/` a `KAIRO_EXTRA_MODELOS`. Entonces la
+     frase vuelve a ser verdad y no hay que tocar ni una palabra.
+  2. **Cambiar la frase** por lo que sí se cumple: "varios modelos a la vez, y
+     para lo gordo les pregunta a tres". Son **diez minutos míos** en los dos
+     idiomas en cuanto me diga cuál.
+
+  **Mientras no se decida, cada visitante nuevo lee dos marcas que no están.**
+
+- **🟡 La explicación de las Mentes promete 30 a todo el mundo, y en el plan gratis son 3.** `[origen: guardian 2026-11-12]`
+  `i18n.tsx:462` (y su gemela en inglés) dice: *"Puedes tener hasta **30**, cada
+  una con su tono"*. Desde la noche del 10-11 las Mentes son **por plan**:
+  **3 en Free, 30 en Kairo+, 150 en Supreme** (`MENTES_POR_PLAN` + la migración
+  `0023`, que corta en el servidor).
+
+  Así que a un usuario del plan gratuito esa frase le promete **diez veces** lo
+  que va a poder crear, y el aviso de que no caben más llega del servidor, no de
+  la explicación. Y a quien paga Supreme le **vende de menos**: tiene 150.
+
+  **No es grave como el de arriba** —no nombra marcas ajenas ni habla de datos
+  personales— pero es exactamente el patrón que esta cola existe para no perder:
+  una cifra escrita a mano que el código ya no cumple.
+
+  **El arreglo es mecánico y mío**: interpolar `MENTES_POR_PLAN` como ya se hace
+  en las tarjetas de precios, con la frase en los dos idiomas. **Diez minutos**,
+  y lo haría hoy mismo el constructor.
+
+  **Y lo que esto enseña del verificador**: `cifras.py` no mira `kairo/src`. Las
+  cifras del producto escritas a mano **dentro de la app** siguen sin red. Es el
+  mismo agujero de ayer, un piso más abajo.
+
 - **🔴 Anoche tocó el "No" de `/precios` y lo reforzó: ahora dice "ni las tuyas ni las de nadie". Sexto día.** `[origen: guardian 2026-11-11 · el hallazgo es del 2026-11-06]`
   En el repaso de honestidad de anoche —14 commits, y casi todo bueno— pasó por
   **esa misma respuesta** y la dejó así:
@@ -392,7 +451,14 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   vacíos, cada documento **dice en su último apartado que faltan** en lugar de
   inventarse un titular; el de cookies ya lo hace, y dice exactamente cuáles.
 
-- **El proveedor ha retirado `poolside/laguna-s-2.1:free`, y es la primera vez que esa comprobación salta.** `[origen: guardian 2026-11-01]`
+- **~~El proveedor ha retirado `poolside/laguna-s-2.1:free`~~ — HECHO POR EL DUEÑO anoche, a los diez días.** `[origen: guardian 2026-11-01 · hecho 2026-11-11, marcado 2026-11-12]`
+  Cambió `KAIRO_EXTRA_MODELOS` entera: los configurados son ahora **tres y
+  todos `:free`** —`nvidia/nemotron-3-ultra-550b-a55b`,
+  `google/gemma-4-26b-a4b-it` y `baidu/ernie-5.5-flash-preview`— y `/api/estado`
+  de hoy dice **"Tus 3 modelos existen todos en el proveedor"**: el aviso que
+  llevaba saltando desde el 01-11 ya no salta. Comprobado en `revisar.yml` 39.
+  **Y de paso salieron Claude y GPT de la cadena**, que es el 🔴 de hoy.
+  Lo que decía esta entrada, de histórico:
   El log de hoy dice, literal: **"OJO, estos no existen en el proveedor:
   poolside/laguna-s-2.1:free"**. Es exactamente para lo que se escribieron esas
   líneas de `jq` el 22-10 —*"un nombre retirado o mal escrito no da error,
@@ -808,7 +874,20 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   abogado que **vuelve solo cada día**. Detalle en
   `agentes/mercado/2026-10-29-mercado.md`.
 
-- **El respaldo ya no es gratis, y desde hoy se dispara cada tarde: el repuesto de búsqueda cuesta tokens + unos 2 céntimos por consulta.** `[origen: guardian 2026-10-26 · agravado 2026-10-27]`
+- **~~El respaldo ya no es gratis, y se dispara cada tarde~~ — HECHO POR EL DUEÑO anoche, a los 17 días, y mejor de lo que se pedía.** `[origen: guardian 2026-10-26 · agravado 2026-10-27 · hecho 2026-11-11, marcado 2026-11-12]`
+  No lo ha apagado y punto: **lo ha sustituido**. El buscador de pago está
+  apagado —`/api/estado` dice "Repuesto 1: NO" con la clave puesta y OpenRouter
+  válido, así que la única causa posible es `KAIRO_SIN_BUSCADOR_PAGADO`
+  (`buscar-web.ts:60-62`)— y en su lugar entra **Google Noticias por RSS**
+  (`lib/ia/noticias.ts`, nuevo anoche): sin clave, sin tarjeta y sin cupo
+  diario, delante de Wikipedia y detrás de los buscadores de verdad.
+  Lo que esta entrada pedía era un techo de gasto; lo que ha hecho es **quitar
+  el gasto**. Para "qué ha pasado hoy" ahora hay titulares con periódico y
+  hora, y el bloque se lo dice al modelo con esas palabras —*"no son artículos
+  enteros"*—, así que tampoco abre la puerta a inventar.
+  **Lo que queda vivo de esta entrada**: los topes de gasto en los proveedores
+  siguen sin existir, y eso es otra entrada. Lo de la búsqueda, cerrado.
+  Lo que decía, de histórico:
   **Lo de hoy, y cambia lo que ayer era una sospecha de coste en un gasto
   diario.** El dueño publicó anoche seis commits que arreglan justo lo que
   notaron los cuatro usuarios —que Kairo contesta de memoria cuando se agota

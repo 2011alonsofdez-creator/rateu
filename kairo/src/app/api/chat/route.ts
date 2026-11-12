@@ -411,7 +411,16 @@ export async function POST(req: Request) {
      cuatro megas en cada línea del historial. */
   const archivos = revisarAdjuntos(entradas[entradas.length - 1]?.adjuntos);
 
-  const todaLaCadena = cadenaDe(nivel, perfil.modo_edad);
+  /* PARA CODE, LOS RÁPIDOS DELANTE. Code escribe un archivo entero en
+     menos de un minuto, y un modelo enorme (Nemotron Ultra, 550B) no
+     llega aunque sea muy listo. Así que en Code los gigantes van al
+     final de la cadena; en el chat se queda todo como está. */
+  const paraCode = cuerpo?.para === "code";
+  const pesado = (id: string) => /ultra|[-_/]\d{3,}b(?:[-_:]|$)/i.test(id);
+  const cadenaBase = cadenaDe(nivel, perfil.modo_edad);
+  const todaLaCadena = paraCode
+    ? [...cadenaBase.filter((m) => !pesado(m)), ...cadenaBase.filter(pesado)]
+    : cadenaBase;
 
   /* Con una imagen o un PDF delante, los modelos que solo leen texto no
      valen: no es que contesten peor, es que devuelven un error raro. Se
@@ -774,6 +783,23 @@ export async function POST(req: Request) {
                   ? TEMPERATURA.conDatos
                   : TEMPERATURA.normal,
               });
+              /* UNA RESPUESTA VACÍA NO ES UNA RESPUESTA.
+ 
+                 Si el modelo cierra sin soltar un solo trozo —un modelo
+                 que piensa y se queda sin sitio, un gratuito que devuelve
+                 en blanco—, aquí se daba por bueno y el usuario recibía
+                 "He preferido no responder a eso". A una pregunta sobre
+                 una huelga. Y era mentira: nadie había decidido nada.
+ 
+                 Como todavía no se ha enseñado ni una letra, probar el
+                 siguiente no duplica nada. Así que se trata como lo que
+                 es, un fallo, y se sigue con la cadena. */
+              if (arranque.primero === undefined) {
+                ultimoFallo = new Error(`${candidato} contestó vacío`);
+                descartados.add(candidato);
+                arranque = undefined;
+                continue;
+              }
               usado = candidato;
               break buscar;
             } catch (e) {
@@ -800,6 +826,33 @@ export async function POST(req: Request) {
               }
             }
           }
+        }
+
+        /* Ningún modelo ha podido escribir, pero la búsqueda sí trajo
+           resultados. Antes salía "cuota agotada" y el usuario se quedaba
+           sin nada, con los titulares ya en la mano. Ahora se le enseñan
+           tal cual, con su enlace, y se le dice por qué no hay más. No se
+           cobra: no ha trabajado ningún modelo. */
+        if (!arranque && fuentes.length) {
+          conversacion = await abriendo;
+          avisarConversacion();
+          etiqueta = "Kairo (sin modelo)";
+
+          const lista = fuentes
+            .slice(0, 8)
+            .map((f) => `- [${f.titulo}](${f.url})${f.dominio ? ` · ${f.dominio}` : ""}`)
+            .join("\n");
+          const texto =
+            "Ahora mismo todos mis modelos están saturados y no puedo redactarte una respuesta, " +
+            "pero sí he encontrado esto, lo más reciente primero:\n\n" +
+            `${lista}\n\n` +
+            "Vuelve a preguntarme en un rato y te lo resumo.";
+
+          algoEscrito = true;
+          acumulado += texto;
+          enviar({ t: "texto", v: texto });
+          enviar({ t: "fin" });
+          return;
         }
 
         if (!arranque) throw ultimoFallo;

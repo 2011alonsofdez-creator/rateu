@@ -316,7 +316,7 @@ export function Composer({
       className={
         arranque
           ? "w-full shrink-0 px-4 pt-4 sm:px-8"
-          : "shrink-0 border-t border-line bg-bg px-3 py-3 sm:px-6 sm:py-4"
+          : "shrink-0 bg-bg px-3 pb-3 pt-2.5 sm:px-6 sm:pb-4"
       }
     >
       <div className={arranque ? "mx-auto w-full max-w-[680px]" : "mx-auto max-w-3xl"}>
@@ -387,40 +387,375 @@ export function Composer({
             </div>
           )}
 
-          <textarea
-            ref={box}
-            rows={1}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onPaste={(e) => {
-              /* Pegar una captura de pantalla. Es como la gente manda
-                 de verdad una imagen: Imprimir pantalla y Ctrl+V. */
-              const pegados = [...e.clipboardData.files].filter((f) => tipoAceptado(tipoDe(f)));
-              if (!pegados.length) return;
-              e.preventDefault();
-              anadirArchivos(pegados);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            placeholder={t("app.placeholder")}
-            /* CON SITIO PARA ESCRIBIR, NO UN RENGLÓN.
+          {arranque ? (
+            <>
+              <textarea
+                ref={box}
+                rows={1}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onPaste={(e) => {
+                  /* Pegar una captura de pantalla. Es como la gente manda
+                     de verdad una imagen: Imprimir pantalla y Ctrl+V. */
+                  const pegados = [...e.clipboardData.files].filter((f) => tipoAceptado(tipoDe(f)));
+                  if (!pegados.length) return;
+                  e.preventDefault();
+                  anadirArchivos(pegados);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    submit();
+                  }
+                }}
+                placeholder={t(arranque ? "app.placeholder" : "app.placeholderChat")}
+                /* CON SITIO PARA ESCRIBIR, NO UN RENGLÓN.
  
-               Una caja de la altura justa de una línea parece un
-               buscador: invita a meter cuatro palabras. Con dos líneas
-               de alto por dentro invita a contar lo que te pasa, que es
-               con lo que Kairo hace algo decente.
+                   Una caja de la altura justa de una línea parece un
+                   buscador: invita a meter cuatro palabras. Con dos líneas
+                   de alto por dentro invita a contar lo que te pasa, que es
+                   con lo que Kairo hace algo decente.
  
-               El alto mínimo va en CSS y no en el `rows`: la caja crece
-               sola con el texto escribiendo `style.height`, y un mínimo
-               en CSS manda sobre esa altura sin pelearse con ella. */
-            className="block max-h-[200px] min-h-[52px] w-full resize-none bg-transparent px-4 pt-4 text-[15px] leading-relaxed outline-none placeholder:text-faint"
-          />
+                   El alto mínimo va en CSS y no en el `rows`: la caja crece
+                   sola con el texto escribiendo `style.height`, y un mínimo
+                   en CSS manda sobre esa altura sin pelearse con ella. */
+                className={`block max-h-[200px] w-full resize-none bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-faint ${
+                  arranque ? "min-h-[52px] px-4 pt-4" : "min-h-[44px] flex-1 px-4 py-[11px]"
+                }`}
+              />
 
-          <div className="flex items-center gap-1.5 px-3 pb-3 pt-1">
+              <div className="flex items-center gap-1.5 px-3 pb-3 pt-1">
+                <input
+                  ref={selector}
+                  type="file"
+                  multiple
+                  accept={ADJUNTOS_ACEPTADOS}
+                  className="hidden"
+                  onChange={(e) => {
+                    anadirArchivos(e.target.files);
+                    // Para que elegir dos veces el mismo archivo funcione.
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  onClick={() => selector.current?.click()}
+                  disabled={leyendo || adjuntos.length >= ADJUNTOS.max}
+                  className="grid h-9 w-9 place-items-center rounded-lg text-muted transition hover:bg-panel-hi hover:text-fg disabled:opacity-40"
+                  title={t("file.attach")}
+                  aria-label={t("file.attach")}
+                >
+                  <Clip className={`h-[18px] w-[18px] ${leyendo ? "animate-pulse" : ""}`} />
+                </button>
+                {conMicrofono && (
+                  <button
+                    onClick={micro}
+                    aria-pressed={escuchando}
+                    title={escuchando ? t("app.stopVoice") : t("app.voice")}
+                    aria-label={escuchando ? t("app.stopVoice") : t("app.voice")}
+                    className={`grid h-9 w-9 place-items-center rounded-lg transition ${
+                      escuchando
+                        ? "bg-acento/15 text-acento ring-1 ring-acento/50"
+                        : "text-muted hover:bg-panel-hi hover:text-fg"
+                    }`}
+                  >
+                    <Mic className={`h-[18px] w-[18px] ${escuchando ? "animate-pulse" : ""}`} />
+                  </button>
+                )}
+
+            
+                {/* Selector de Mente. Compacto a propósito: al lado del de
+                    nivel, y en el móvil solo el icono cuando no hay ninguna. */}
+                <div className="relative" ref={wrapMente}>
+                  <button
+                    onClick={abrirMentes}
+                    aria-expanded={menuMente}
+                    title={t("mente.one")}
+                    className={`inline-flex max-w-[150px] items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12.5px] font-medium transition ${
+                      mente
+                        ? "border-acento/50 bg-acento/10 text-fg"
+                        : "border-line text-muted hover:border-line-hi hover:text-fg"
+                    }`}
+                  >
+                    {mente ? (
+                      <>
+                        <span className="text-[14px] leading-none">{mente.emoji}</span>
+                        <span className="truncate">{mente.nombre}</span>
+                      </>
+                    ) : (
+                      <Brain className="h-[15px] w-[15px]" />
+                    )}
+                  </button>
+
+                  {mente && (
+                    <button
+                      onClick={() => setMente(null)}
+                      title={t("mente.none")}
+                      aria-label={t("mente.none")}
+                      className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full border border-line bg-panel text-faint transition hover:text-fg"
+                    >
+                      <Close className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+
+                  {menuMente && (
+                    <div className="absolute bottom-full left-0 z-30 mb-2 w-[260px] overflow-hidden rounded-xl border border-line bg-panel shadow-[var(--shadow)]">
+                      <button
+                        onClick={() => {
+                          setMente(null);
+                          setMenuMente(false);
+                        }}
+                        className={`flex w-full items-start gap-3 px-3.5 py-2.5 text-left transition hover:bg-panel-hi ${
+                          mente ? "" : "bg-panel-hi"
+                        }`}
+                      >
+                        <Brain className="mt-0.5 h-4 w-4 shrink-0 text-faint" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[13.5px] font-medium">{t("mente.none")}</span>
+                          <span className="block text-[12px] text-faint">{t("mente.noneDesc")}</span>
+                        </span>
+                      </button>
+
+                      <div className="max-h-[210px] overflow-y-auto border-t border-line">
+                        {(mentes ?? []).map((m) => (
+                          <button
+                            key={m.id}
+                            onClick={() => {
+                              setMente(m);
+                              setMenuMente(false);
+                            }}
+                            className={`flex w-full items-start gap-3 px-3.5 py-2.5 text-left transition hover:bg-panel-hi ${
+                              mente?.id === m.id ? "bg-panel-hi" : ""
+                            }`}
+                          >
+                            <span className="mt-0.5 shrink-0 text-[15px] leading-none">{m.emoji}</span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[13.5px] font-medium">
+                                {m.nombre}
+                              </span>
+                              {m.descripcion && (
+                                <span className="block truncate text-[12px] text-faint">
+                                  {m.descripcion}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <Link
+                        href="/mentes"
+                        onClick={() => setMenuMente(false)}
+                        className="block border-t border-line px-3.5 py-2.5 text-[12.5px] text-muted transition hover:bg-panel-hi hover:text-fg"
+                      >
+                        {t("mente.manage")}
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {!arranque && (
+                  <span className="hidden min-w-0 flex-1 truncate text-center text-[11.5px] text-faint sm:block">
+                    {t("app.disclaimer")}
+                  </span>
+                )}
+                <div className="relative ml-auto" ref={wrap}>
+                  <button
+                    onClick={() => setMenu((v) => !v)}
+                    aria-expanded={menu}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
+                  >
+                    <IconoNivel
+                      nivel={current ? current.id : "auto"}
+                      className="h-3.5 w-3.5"
+                      style={{ color: current ? LEVELS[current.id].color : "var(--acento-2)" }}
+                    />
+                    {current ? t(current.label) : t("app.auto")}
+                    {/* CUÁNTO SE LO VA A PENSAR.
+ 
+                        En Automático no se pone nada: el nivel lo decide
+                        Kairo al leer la pregunta, así que antes de enviar no
+                        hay esfuerzo que prometer.
+ 
+                        Se esconde en el móvil, donde no cabe. */}
+                    {current && (
+                      <span className="hidden text-faint sm:inline">· {t(current.esfuerzo)}</span>
+                    )}
+                    <Chevron className={`h-3.5 w-3.5 transition ${menu ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {menu && (
+                    <div className="absolute bottom-full right-0 z-30 mb-2 w-[300px] overflow-hidden rounded-xl border border-line bg-panel shadow-[var(--shadow)]">
+                      <div className="flex items-center justify-between border-b border-line px-3.5 py-2 text-[11px] uppercase tracking-wide text-faint">
+                        <span>{t("app.level")}</span>
+                        <span>{t("effort.title")}</span>
+                      </div>
+
+                      {/* Automático, arriba del todo y sin esfuerzo que
+                          enseñar: el esfuerzo lo decide él según preguntes. */}
+                      <button
+                        onClick={() => {
+                          setLevel("auto");
+                          setMenu(false);
+                        }}
+                        className={`flex w-full items-start gap-3 border-b border-line px-3.5 py-3 text-left transition hover:bg-panel-hi ${
+                          level === "auto" ? "bg-panel-hi" : ""
+                        }`}
+                      >
+                        <IconoNivel nivel="auto" className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--acento-2)" }} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[13.5px] font-medium">{t("app.auto")}</span>
+                          <span className="block text-[12px] text-faint">{t("app.autoDesc")}</span>
+                        </span>
+                      </button>
+
+                      {LEVEL_META.map((l) => {
+                        // Un nivel que el plan no incluye no se ofrece como si
+                        // funcionara: se marca y se manda a la página de precios.
+                        const bloqueado = !permitidos.includes(l.id);
+
+                        const contenido = (
+                          <>
+                            <IconoNivel
+                              nivel={l.id}
+                              className="mt-0.5 h-4 w-4 shrink-0"
+                              style={{ color: bloqueado ? "var(--faint)" : LEVELS[l.id].color }}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[13.5px] font-medium">{t(l.label)}</span>
+                              <span className="block text-[12px] text-faint">
+                                {bloqueado ? t("app.upgrade") : t(l.desc)}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-right text-[12px] text-muted">
+                              <span className="block">{t(l.esfuerzo)}</span>
+                              <span className="block text-[11px] text-faint">
+                                {/* "1 créditos" no lo dice nadie. */}
+                                {t(
+                                  LEVELS[l.id].credits === 1 ? "app.costChipOne" : "app.costChip",
+                                ).replace("{n}", String(LEVELS[l.id].credits))}
+                              </span>
+                            </span>
+                          </>
+                        );
+
+                        const clases = `flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-panel-hi ${
+                          level === l.id ? "bg-panel-hi" : ""
+                        } ${bloqueado ? "opacity-55" : ""}`;
+
+                        return bloqueado ? (
+                          <Link key={l.id} href="/precios" className={clases} onClick={() => setMenu(false)}>
+                            {contenido}
+                          </Link>
+                        ) : (
+                          <button
+                            key={l.id}
+                            onClick={() => {
+                              setLevel(l.id);
+                              setMenu(false);
+                            }}
+                            className={clases}
+                          >
+                            {contenido}
+                          </button>
+                        );
+                      })}
+
+                      <p className="border-t border-line px-3.5 py-2.5 text-[11.5px] leading-relaxed text-faint">
+                        {level === "auto" ? t("app.autoNote") : t("effort.note")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
+ 
+                    Pegado al de enviar, un atajo de 240 créditos —seis veces
+                    Forja— se pulsa sin querer, y el menú de niveles ya
+                    explica lo que es. Si alguna vez hace falta sacarlo de
+                    ahí, el sitio es el menú, no la fila de enviar. */}
+                <button
+                  onClick={submit}
+                  disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
+                  className={`grid h-9 w-9 place-items-center rounded-lg transition disabled:cursor-not-allowed ${
+                    /* Vacía, gris: que se lea "aún no has escrito" y no
+                       "esto está roto". En cuanto hay algo, naranja. */
+                    (text.trim() || adjuntos.length) && !busy && !leyendo
+                      ? "brand-grad text-on-accent hover:opacity-90"
+                      : "bg-panel-hi text-faint"
+                  }`}
+                  title={t("app.send")}
+                  aria-label={t("app.send")}
+                >
+                  <Send className="h-[18px] w-[18px]" />
+                </button>
+              </div>
+            </>
+          ) : (
+            /* EN CONVERSACIÓN, COMO LA DE CLAUDE: la caja solo para
+               escribir y enviar, y las herramientas fuera, debajo. Al
+               arrancar sí va todo dentro, que es cuando se elige. */
+            <div className="flex items-end gap-2 pr-2 pb-[5px]">
+              <textarea
+                ref={box}
+                rows={1}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onPaste={(e) => {
+                  /* Pegar una captura de pantalla. Es como la gente manda
+                     de verdad una imagen: Imprimir pantalla y Ctrl+V. */
+                  const pegados = [...e.clipboardData.files].filter((f) => tipoAceptado(tipoDe(f)));
+                  if (!pegados.length) return;
+                  e.preventDefault();
+                  anadirArchivos(pegados);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    submit();
+                  }
+                }}
+                placeholder={t(arranque ? "app.placeholder" : "app.placeholderChat")}
+                /* CON SITIO PARA ESCRIBIR, NO UN RENGLÓN.
+ 
+                   Una caja de la altura justa de una línea parece un
+                   buscador: invita a meter cuatro palabras. Con dos líneas
+                   de alto por dentro invita a contar lo que te pasa, que es
+                   con lo que Kairo hace algo decente.
+ 
+                   El alto mínimo va en CSS y no en el `rows`: la caja crece
+                   sola con el texto escribiendo `style.height`, y un mínimo
+                   en CSS manda sobre esa altura sin pelearse con ella. */
+                className={`block max-h-[200px] w-full resize-none bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-faint ${
+                  arranque ? "min-h-[52px] px-4 pt-4" : "min-h-[44px] flex-1 px-4 py-[11px]"
+                }`}
+              />
+                {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
+ 
+                    Pegado al de enviar, un atajo de 240 créditos —seis veces
+                    Forja— se pulsa sin querer, y el menú de niveles ya
+                    explica lo que es. Si alguna vez hace falta sacarlo de
+                    ahí, el sitio es el menú, no la fila de enviar. */}
+                <button
+                  onClick={submit}
+                  disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
+                  className={`grid h-9 w-9 place-items-center rounded-lg transition disabled:cursor-not-allowed ${
+                    /* Vacía, gris: que se lea "aún no has escrito" y no
+                       "esto está roto". En cuanto hay algo, naranja. */
+                    (text.trim() || adjuntos.length) && !busy && !leyendo
+                      ? "brand-grad text-on-accent hover:opacity-90"
+                      : "bg-panel-hi text-faint"
+                  }`}
+                  title={t("app.send")}
+                  aria-label={t("app.send")}
+                >
+                  <Send className="h-[18px] w-[18px]" />
+                </button>
+            </div>
+          )}
+        </div>
+
+        {!arranque && (
+          <div className="mt-1.5 flex items-center gap-1.5 px-1">
             <input
               ref={selector}
               type="file"
@@ -549,6 +884,11 @@ export function Composer({
               )}
             </div>
 
+            {!arranque && (
+              <span className="hidden min-w-0 flex-1 truncate text-center text-[11.5px] text-faint sm:block">
+                {t("app.disclaimer")}
+              </span>
+            )}
             <div className="relative ml-auto" ref={wrap}>
               <button
                 onClick={() => setMenu((v) => !v)}
@@ -657,24 +997,8 @@ export function Composer({
                 </div>
               )}
             </div>
-
-            {/* AQUÍ ESTUVO UN BOTÓN DE "LAS 3 IAs", Y SE QUITÓ.
- 
-                Pegado al de enviar, un atajo de 240 créditos —seis veces
-                Forja— se pulsa sin querer, y el menú de niveles ya
-                explica lo que es. Si alguna vez hace falta sacarlo de
-                ahí, el sitio es el menú, no la fila de enviar. */}
-            <button
-              onClick={submit}
-              disabled={(!text.trim() && !adjuntos.length) || busy || leyendo}
-              className="brand-grad grid h-9 w-9 place-items-center rounded-lg text-on-accent transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
-              title={t("app.send")}
-              aria-label={t("app.send")}
-            >
-              <Send className="h-[18px] w-[18px]" />
-            </button>
           </div>
-        </div>
+        )}
 
         {avisoArchivo && (
           <p className="mt-2 text-center text-[12px] leading-relaxed text-gold">{avisoArchivo}</p>

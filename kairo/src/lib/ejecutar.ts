@@ -237,6 +237,33 @@ export function ejecutar(
  * Va en una sola pieza y sin depender de nada: el código que vigila
  * puede ser cualquier cosa, incluida una que pise `console`.
  */
+/** Memoria de mentira para la vista previa.
+ *
+ *  El marco va aislado (sin `allow-same-origin`, y así debe seguir: si
+ *  no, el código generado podría leer la sesión de Kairo). Pero aislado,
+ *  tocar `localStorage` lanza un error, y cualquier app que guarde algo
+ *  —una lista de gastos, una de tareas— se rompía nada más abrirse. Aquí
+ *  se le da una memoria que funciona igual mientras la vista previa está
+ *  abierta. En el archivo descargado no va: ahí el navegador ya tiene la
+ *  de verdad. */
+const MEMORIA = `<script>(function(){
+  function hace() {
+    var d = {};
+    return {
+      getItem: function (k) { k = String(k); return Object.prototype.hasOwnProperty.call(d, k) ? d[k] : null; },
+      setItem: function (k, v) { d[String(k)] = String(v); },
+      removeItem: function (k) { delete d[String(k)]; },
+      clear: function () { d = {}; },
+      key: function (i) { var ks = Object.keys(d); return i < ks.length ? ks[i] : null; },
+      get length() { return Object.keys(d).length; }
+    };
+  }
+  ["localStorage", "sessionStorage"].forEach(function (n) {
+    try { window[n].getItem("x"); return; } catch (e) {}
+    try { Object.defineProperty(window, n, { value: hace(), configurable: true }); } catch (e) {}
+  });
+})();</script>`;
+
 const VIGIA = `<script>(function(){
   var manda = function (t) {
     try { parent.postMessage({ kairo: "error", texto: String(t).slice(0, 500) }, "*"); } catch (e) {}
@@ -271,7 +298,7 @@ export function esAvisoDelMarco(dato: unknown): dato is AvisoDelMarco {
  *  Con `vigilado`, se le añade el vigía de arriba. La descarga NO lo
  *  lleva: lo que se baja la persona es su archivo, no el nuestro. */
 export function paraVistaPrevia(codigo: string, vigilado = false): string {
-  const extra = vigilado ? VIGIA : "";
+  const extra = vigilado ? MEMORIA + VIGIA : "";
 
   // Un fragmento suelto (sin <html>) también tiene que verse.
   const tieneEsqueleto = /<html[\s>]/i.test(codigo);

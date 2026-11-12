@@ -7,6 +7,7 @@ import { clavesDeGemini, esDeCuota } from "./claves";
 import { limpiarFallo } from "./fallos";
 import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
+import { comoFuentes as noticiasComoFuentes, comoHechos as noticiasComoHechos, consultaDe, noticiasDe } from "./noticias";
 import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
@@ -510,6 +511,31 @@ async function deRepuesto(
         sobra,
       );
       if (conClaude?.busco) return conClaude;
+    }
+  }
+
+  /* Google Noticias, gratis y sin cupo: titulares de los últimos días.
+     Delante de Wikipedia porque para lo de hoy es la única de las dos
+     que sabe algo. */
+  const paraNoticias = plazo - (Date.now() - empezo);
+  if (paraNoticias >= 1500) {
+    const antesN = Date.now();
+    const noticias = await noticiasDe(pregunta, Math.min(paraNoticias - 500, 4000));
+    if (diario) {
+      diario.intentos.push({
+        modelo: "google-noticias",
+        ms: Date.now() - antesN,
+        resultado: noticias.length ? `OK · ${noticias.length} titular(es)` : "sin titulares (o no contestó)",
+      });
+    }
+    if (noticias.length) {
+      return {
+        hechos: noticiasComoHechos(noticias, hoy),
+        fuentes: noticiasComoFuentes(noticias),
+        busquedas: [consultaDe(pregunta)],
+        modelo: "google-noticias",
+        busco: true,
+      };
     }
   }
 
