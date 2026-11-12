@@ -54,18 +54,37 @@ const FIGURAS: { nombre: string; sitios: Sitio[]; salta?: boolean }[] = [
   { nombre: "juntos", sitios: [[0, 0, 1.6], [0, 0, 0.7], [0, 0, 1]] },
   { nombre: "diagonal", sitios: [[-7, 5, 0.85], [0, 0, 1.1], [7, -5, 0.85]] },
   { nombre: "arco", sitios: [[-7, 3, 1], [0, -5, 1.2], [7, 3, 1]] },
-  { nombre: "pareja", sitios: [[-6, 0, 1.2], [-2, 0, 0.8], [8, -3, 1]] },
+  { nombre: "diagonal2", sitios: [[-7, -5, 0.85], [0, 0, 1.1], [7, 5, 0.85]] },
+  { nombre: "marca2", sitios: [[0, 6, 1.15], [-5.5, -4, 1], [5.5, -4, 1]] },
+];
+
+/* Las seis formas de repartir tres puntos entre tres sitios. */
+const REPARTOS = [
+  [0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0],
 ];
 
 const COLORES = ["var(--acento)", "#ff6219", "var(--acento-2)"];
 
-function barajar<T>(lista: T[]): T[] {
-  const copia = [...lista];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copia[i], copia[j]] = [copia[j], copia[i]];
+/* A qué sitio va cada punto: al que le pille más cerca. Si se reparten
+   al azar, se cruzan en línea recta y parece un fallo. Así el orden
+   solo cambia cuando se juntan y se vuelven a separar (ahí todos los
+   repartos están igual de cerca y se elige uno al azar). */
+function repartir(desde: Sitio[], hacia: Sitio[]): number[] {
+  let mejor = REPARTOS[0];
+  let menor = Infinity;
+  for (const r of [...REPARTOS].sort(() => Math.random() - 0.5)) {
+    let d = 0;
+    for (let p = 0; p < 3; p++) {
+      const [x1, y1] = desde[p];
+      const [x2, y2] = hacia[r[p]];
+      d += (x1 - x2) ** 2 + (y1 - y2) ** 2;
+    }
+    if (d < menor - 0.01) {
+      menor = d;
+      mejor = r;
+    }
   }
-  return copia;
+  return mejor;
 }
 
 function PuntosKairo() {
@@ -76,18 +95,23 @@ function PuntosKairo() {
     const lento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     let reloj = 0;
     let anterior = 0;
+    let donde: Sitio[] = FIGURAS[0].sitios;
     const siguiente = () => {
       let n = anterior;
       while (n === anterior) n = Math.floor(Math.random() * FIGURAS.length);
       anterior = n;
+      const nuevo = repartir(donde, FIGURAS[n].sitios);
+      donde = nuevo.map((i) => FIGURAS[n].sitios[i]);
       setFigura(n);
-      setOrden(barajar([0, 1, 2]));
-      /* Unas veces cambia rápido y otras se queda un poco: también eso
-         lo hace menos previsible. */
-      const espera = (FIGURAS[n].salta ? 1300 : 650 + Math.random() * 650) * (lento ? 2 : 1);
+      setOrden(nuevo);
+      /* El salto dura lo que dura (dos botes y el desfase del tercero:
+         1,34 s) y no se le corta a medias, que daba un tirón. El resto
+         se queda entre 0,7 y 1,4 s: también eso lo hace menos
+         previsible. */
+      const espera = (FIGURAS[n].salta ? 1500 : 700 + Math.random() * 700) * (lento ? 2 : 1);
       reloj = window.setTimeout(siguiente, espera);
     };
-    reloj = window.setTimeout(siguiente, 500);
+    reloj = window.setTimeout(siguiente, 600);
     return () => window.clearTimeout(reloj);
   }, []);
 
