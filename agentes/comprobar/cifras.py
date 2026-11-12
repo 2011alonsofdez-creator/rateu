@@ -155,6 +155,106 @@ PANELES = [
     "lanzamiento/checklist.md",
 ]
 
+# LA COPIA DEL PRODUCTO, AÑADIDA EL 12-11 PORQUE HOY MORDIÓ AHÍ.
+#
+# Este script miraba el material de los agentes (10-11) y los paneles vivos
+# (11-11). Lo que no miraba era **la app**, y hoy el guardián ha encontrado que
+# `i18n.tsx` decía *"Puedes tener hasta 30 Mentes"* cuando desde la noche del
+# 10-11 el tope es por plan: **3 / 30 / 150**. A quien estaba en el plan
+# gratuito le prometía diez veces lo que iba a poder crear.
+#
+# Es el mismo agujero dos pisos más abajo: primero el material, luego los
+# paneles, y debajo la copia que de verdad lee el usuario.
+COPIA = [
+    "src/lib/i18n.tsx",
+    "src/lib/mock.ts",
+    "src/app/precios/contenido.tsx",
+    "src/components/ElegirPlan.tsx",
+]
+
+
+def sin_comentarios_ts(texto: str) -> str:
+    """Fuera los comentarios, y no es un detalle: es lo que hace usable esto.
+
+    La primera pasada sobre la app dio **tres** desajustes y los tres eran
+    comentarios nuestros citando la historia a propósito: "suya la viñeta de
+    los 150 de regalo", "Supreme da 25 y Kairo+ 5", "él dejó con «1 credit, a
+    normal one 4, and a Mega-Prompt 120» escrito a mano". Cantarlos sería el
+    error (c) de las plantillas otra vez, y un verificador con falsos
+    positivos se apaga solo.
+
+    El `(?<!:)` del `//` es para no partir una URL por la mitad.
+    """
+    # Los comentarios de bloque se sustituyen por SUS MISMOS saltos de línea,
+    # no por nada. Borrarlos del todo corre las líneas de abajo y el script
+    # señala el sitio equivocado: la primera versión acusaba a
+    # `mock.ts:130`, que es un trozo de SQL de ejemplo, de hablar de
+    # Co-Works. Un verificador que da bien el fallo y mal la línea manda a
+    # leer el archivo entero, que es justo lo que viene a ahorrar.
+    texto = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), texto, flags=re.S)
+    return re.sub(r"(?<!:)//[^\n]*", "", texto)
+
+
+def topes_sin_plan(linea: str) -> list[str]:
+    """Un tope dicho a secas, sin decir de qué plan es.
+
+    Desde el 10-11 los topes de Co-Works y Mentes son POR PLAN, así que una
+    cifra sola —"hasta 30 Mentes"— es verdad para uno de los tres planes y
+    falsa para los otros dos. Lo que se exige no es un número concreto: es que
+    la frase diga **de quién** es, o que lleve el hueco `{n}` y lo rellene
+    quien sabe el plan.
+
+    Por eso no vale comprobar "que el número esté entre los tres valores":
+    el fallo de hoy decía 30, que es exactamente el de Kairo+.
+    """
+    malas = []
+    PLANES_CERCA = (
+        "free", "Free", "gratis", "gratuito", "plus", "Kairo+", "supreme", "Supreme",
+        "tu plan", "su plan", "your plan", "per plan", "{n}",
+    )
+    if any(p in linea for p in PLANES_CERCA):
+        return malas
+
+
+    # Y se mira la FRASE entera, no solo el número pegado al nombre. El fallo
+    # de hoy tenía las dos formas: «30 Mentes» en el aviso del tope, y «hasta
+    # 30, cada una con su tono» en la explicación, donde la palabra "Mentes"
+    # está al principio de la frase y el número doce palabras después. Buscar
+    # solo lo pegado cazaba el primero y se dejaba el segundo, que es el que
+    # lee todo el mundo porque sale sin tener que chocar con el tope.
+    for cual, topes in (("Mentes", MENTES), ("Co-Works", COWORKS)):
+        # En singular también: la explicación de la pantalla empieza por "Una
+        # Mente es tu propia IA…" y suelta el número doce palabras después,
+        # sin repetir el plural. Esa es la frase que lee todo el mundo.
+        nombres = ("Mentes", "Mente", "Minds", "Mind") if cual == "Mentes" else ("Co-Works", "Co-Work")
+        if not any(n in linea for n in nombres):
+            continue
+        # NO cualquier número de la frase: solo el que de verdad suena a tope.
+        #
+        # La primera versión cogía el primer número que encontrara, y acusó a
+        # dos respuestas de ejemplo que ofrecen "un Co-Work que te avise cada
+        # martes a las 21:00": el 21 de una hora no es un tope. Así que el
+        # número tiene que venir detrás de una palabra de tope —"hasta",
+        # "máximo de", "up to"— o ir pegado al nombre.
+        #
+        # Las dos formas hacen falta, porque el fallo de hoy tenía las dos:
+        # «hasta 30, cada una con su tono» en la explicación y «máximo de 30
+        # Mentes» en el aviso.
+        patrones = [
+            r"(?:hasta|máximo de|máximo|como mucho|up to|maximum of|a maximum of)\s+(\d+)\b",
+            r"\b(\d+)\s+(?:" + "|".join(nombres) + r")\b",
+        ]
+        for patron in patrones:
+            m = re.search(patron, linea)
+            if m:
+                malas.append(
+                    f"«{m.group(0).strip()}» habla de {cual} y no dice de qué plan; "
+                    f"son {topes['free']} / {topes['plus']} / {topes['supreme']}"
+                )
+                break
+    return malas
+
+
 # LO QUE HAY QUE RECORTAR EN ELLOS, Y POR QUÉ NO ES UN DETALLE.
 #
 # Estos archivos guardan su propio histórico **dentro de la misma celda**: una
@@ -370,6 +470,21 @@ def main() -> int:
             junta = re.sub(r"\s+", " ", f"{hoy[n - 1]} {hoy[n]}")
             for mala in sorted(set(cifras_pegadas(junta)) - por_linea[n] - por_linea[n + 1]):
                 fallos.append(f"{rel}:{n}-{n + 1} (partida en dos líneas) dice {mala}")
+    # La copia del producto: lo que de verdad lee el usuario.
+    for rel in COPIA:
+        ruta = CODIGO / rel
+        if not ruta.exists():
+            continue
+        for n, cruda in enumerate(sin_comentarios_ts(ruta.read_text(encoding="utf-8")).splitlines(), 1):
+            for viejo, porque in VIEJAS.items():
+                if viejo in cruda:
+                    fallos.append(f"kairo/{rel}:{n} dice «{viejo}» y {porque.format(**CONTEXTO)}")
+            for mala in sorted(set(cifras_pegadas(cruda))):
+                fallos.append(f"kairo/{rel}:{n} dice {mala}")
+            for mala in topes_sin_plan(cruda):
+                fallos.append(f"kairo/{rel}:{n} dice {mala}")
+    print(f"Copia del producto: {len(COPIA)} archivos, comentarios aparte.")
+
     print(
         f"Paneles vivos: {len(PANELES)} archivos, "
         f"{recortadas} línea(s) con histórico recortado antes de mirarlas."

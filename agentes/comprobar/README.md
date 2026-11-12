@@ -43,6 +43,7 @@ con 22 comprobaciones propias. A mano se nos escapó; al script, no.
 |---|---|---|
 | **Material** | `ia/conocimiento/`, el banco de pruebas y todos los `ia/ejemplos/` | entero, menos las notas de mantenimiento del final |
 | **Paneles vivos** | `CONTEXTO.md`, `ESTADO.md` y `lanzamiento/checklist.md` | de cada línea, **solo lo que afirma hoy** |
+| **Copia del producto** (12-11) | `lib/i18n.tsx`, `lib/mock.ts`, `precios/contenido.tsx`, `ElegirPlan.tsx` | **sin los comentarios**, que citan la historia a propósito |
 
 Los paneles se añadieron el **11-11** por un motivo medido: el 10-11 el radar,
 buscando a mano para su informe, encontró **cuatro cifras en presente y falsas**
@@ -76,9 +77,30 @@ encendió encontró, en `ejemplos/2026-10-15-limite-usuario-que-insiste.md`,
 mismo archivo**: seis días viejas, en una carpeta que el script ya miraba desde
 el 10-11. Una palabra en medio —*cuesta*— y no había coincidencia.
 
+**La tercera red, del 12-11: un tope que no dice de quién es.** Desde el 10-11
+los topes de Co-Works y Mentes son **por plan**, así que una cifra a secas
+—*"puedes tener hasta 30 Mentes"*— es verdad para uno de los tres planes y falsa
+para los otros dos. Por eso esta red no comprueba que el número esté entre los
+tres valores: **el fallo de hoy decía 30, que es exactamente el de Kairo+**. Lo
+que exige es que la frase diga **de quién** es el tope, o que lleve `{n}` y lo
+rellene quien sabe el plan.
+
+Solo mira números que suenan a tope —detrás de *"hasta"*, *"máximo de"*, *"up
+to"*, o pegados al nombre—, y eso también salió de equivocarse: la primera
+versión cogía el primer número de la frase y acusó a dos respuestas de ejemplo
+que ofrecen *"un Co-Work que te avise cada martes a las 21:00"*. El 21 de una
+hora no es un tope.
+
 **La lección, para quien amplíe esto**: una lista de frases prohibidas protege
 de la redacción de ayer. Lo que protege de la de mañana es comparar con el
 código.
+
+**Y una de fontanería que cuesta una tarde si se aprende tarde**: al quitar los
+comentarios de un `.ts` hay que **sustituirlos por sus mismos saltos de línea**.
+Borrarlos del todo corre las líneas de abajo, y la primera versión de esta red
+acusaba a `mock.ts:130` —un trozo de SQL de ejemplo— de hablar de Co-Works. Un
+verificador que da bien el fallo y mal la línea manda a leer el archivo entero,
+que es justo lo que viene a ahorrar.
 
 ### Quién lo pasa y cuándo
 
@@ -105,6 +127,8 @@ con el disparador, así que si bailan, la página vende algo que no se cumple.
 ### Lo que NO hace
 
 - No juzga estilo, ni opiniones, ni si un texto está bien escrito.
+- **No mira el resto de `kairo/src`**: solo los cuatro archivos de copia de la
+  tabla. Una cifra escrita a mano en una pantalla que no esté ahí sigue sin red.
 - **No comprueba afirmaciones sin número.** De las cuatro cifras falsas del
   10-11, la más cara era *"`free` solo alcanza el nivel rápido"* —falsa desde el
   29-10, y con ella un agente concluye que Paperwork, Gist y Código no entran en

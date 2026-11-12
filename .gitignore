@@ -1,0 +1,4 @@
+
+# El verificador de cifras se importa a veces desde otro script, y Python
+# deja su caché al lado. No es nuestro código.
+__pycache__/

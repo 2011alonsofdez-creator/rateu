@@ -7,6 +7,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { Section } from "@/components/Section";
 import { Brain, Check, Close, Plus } from "@/components/Icons";
 import { MENTE, type Mente } from "@/lib/tipos";
+import { MENTES_POR_PLAN } from "@/lib/planes";
 import { borrarMente, guardarMente, type EntradaMente } from "./acciones";
 
 const EMOJIS = [
@@ -108,10 +109,25 @@ export function MentesCliente({ inicial }: { inicial: Mente[] }) {
   const [mentes, setMentes] = useState(inicial);
   const [borrador, setBorrador] = useState<EntradaMente | null>(null);
 
+  /* CUÁNTAS MENTES CABEN, LEÍDO DEL CÓDIGO Y DEL PLAN DE QUIEN MIRA.
+   *
+   * Hasta hoy los dos textos de esta pantalla decían **30** a secas, y
+   * desde la noche del 10-11 el tope es por plan —3 en Free, 30 en Kairo+,
+   * 150 en Supreme (`MENTES_POR_PLAN`, con la migración 0023 cortando en el
+   * servidor)—. A quien está en el plan gratuito le prometían **diez veces**
+   * lo que iba a poder crear, y el "no caben más" se lo decía el servidor,
+   * no la pantalla.
+   *
+   * Se interpola la de su plan y no la lista de las tres porque aquí sí se
+   * sabe en qué plan está: `usePerfil()` trae el perfil cargado en el
+   * servidor. Es la misma solución que el dueño puso anoche en Co-Works
+   * (`cw.limit` con su `{n}`), así que esto no inventa un patrón: lo copia. */
+  const topeMentes = MENTES_POR_PLAN[perfil.plan];
+
   const abrir = (m: Mente) => setBorrador({ ...m });
 
   return (
-    <Section icon={Brain} title={t("app.mentes")} lead={t("mente.lead")} soon={false}>
+    <Section icon={Brain} title={t("app.mentes")} lead={t("mente.lead").replace("{n}", String(topeMentes))} soon={false}>
       {mentes.length === 0 && (
         <div className="mb-6">
           <h2 className="text-[15px] font-semibold">{t("mente.templates")}</h2>
@@ -185,6 +201,7 @@ export function MentesCliente({ inicial }: { inicial: Mente[] }) {
         <Editor
           borrador={borrador}
           demo={perfil.demo}
+          tope={topeMentes}
           onCerrar={() => setBorrador(null)}
           onGuardada={(m) => {
             setMentes((v) => {
@@ -209,12 +226,15 @@ export function MentesCliente({ inicial }: { inicial: Mente[] }) {
 function Editor({
   borrador,
   demo,
+  tope,
   onCerrar,
   onGuardada,
   onBorrada,
 }: {
   borrador: EntradaMente;
   demo: boolean;
+  /** Cuántas Mentes caben en el plan de quien está mirando. */
+  tope: number;
   onCerrar: () => void;
   onGuardada: (m: Mente) => void;
   onBorrada: (id: string) => void;
@@ -236,6 +256,9 @@ function Editor({
 
     if (r.ok) return onGuardada(r.mente);
 
+    /* El `.replace` va fuera del ternario a propósito: solo `mente.errLimit`
+       lleva `{n}`, y en una cadena que no lo tiene no hace nada. Así no hay
+       que acordarse de añadirlo el día que otro aviso necesite una cifra. */
     setError(
       t(
         r.motivo === "demo"
@@ -247,7 +270,7 @@ function Editor({
               : r.motivo === "instrucciones"
                 ? "mente.errInstr"
                 : "mente.errSave",
-      ),
+      ).replace("{n}", String(tope)),
     );
   };
 

@@ -459,7 +459,7 @@ const dict = {
     "mente.manage": "Ver mis Mentes",
     "mente.talkingTo": "Hablas con",
     "mente.lead":
-      "Una Mente es tu propia IA especializada. Le escribes unas instrucciones —cómo trabaja, en qué formato quieres las respuestas, qué no debe hacer nunca— y a partir de ahí responde siempre así, sin que tengas que repetírselo en cada mensaje. Es lo que otros llaman GPTs. Puedes tener hasta 30, cada una con su tono, y cambiar de una a otra desde el propio chat.",
+      "Una Mente es tu propia IA especializada. Le escribes unas instrucciones —cómo trabaja, en qué formato quieres las respuestas, qué no debe hacer nunca— y a partir de ahí responde siempre así, sin que tengas que repetírselo en cada mensaje. Es lo que otros llaman GPTs. Con tu plan puedes tener hasta {n}, cada una con su tono, y cambiar de una a otra desde el propio chat.",
     "mente.new": "Crear Mente",
     "mente.edit": "Editar",
     "mente.delete": "Borrar",
@@ -486,7 +486,7 @@ const dict = {
     "mente.templatesSub": "Se abren rellenadas. Cámbialas a tu gusto antes de guardar.",
     "mente.errName": "Ponle un nombre.",
     "mente.errInstr": "Escríbele unas instrucciones: es lo que la hace distinta.",
-    "mente.errLimit": "Has llegado al máximo de 30 Mentes. Borra alguna para crear otra.",
+    "mente.errLimit": "Has llegado al máximo de {n} Mentes de tu plan. Borra alguna para crear otra.",
     "mente.errDemo": "Esto es la demo: aquí no se guarda nada. Entra con tu cuenta.",
     "mente.errSave": "No se ha podido guardar.",
 
@@ -1074,7 +1074,7 @@ const dict = {
     "mente.manage": "See my Minds",
     "mente.talkingTo": "Talking to",
     "mente.lead":
-      "A Mind is your own specialised AI. You write it some instructions — how it works, what format you want answers in, what it must never do — and from then on it always answers that way, without you repeating yourself every message. It is what others call GPTs. You can keep up to 30, each with its own tone, and switch between them from the chat itself.",
+      "A Mind is your own specialised AI. You write it some instructions — how it works, what format you want answers in, what it must never do — and from then on it always answers that way, without you repeating yourself every message. It is what others call GPTs. Your plan lets you keep up to {n}, each with its own tone, and switch between them from the chat itself.",
     "mente.new": "Create a Mind",
     "mente.edit": "Edit",
     "mente.delete": "Delete",
@@ -1101,7 +1101,7 @@ const dict = {
     "mente.templatesSub": "They open pre-filled. Change them however you like before saving.",
     "mente.errName": "Give it a name.",
     "mente.errInstr": "Write it some instructions: that is what makes it different.",
-    "mente.errLimit": "You have reached the maximum of 30 Minds. Delete one to create another.",
+    "mente.errLimit": "You have reached your plan's maximum of {n} Minds. Delete one to create another.",
     "mente.errDemo": "This is the demo: nothing is saved here. Sign in with your account.",
     "mente.errSave": "Could not save.",
 

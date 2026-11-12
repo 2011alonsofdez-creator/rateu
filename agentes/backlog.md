@@ -50,7 +50,28 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   **Mientras no se decida, cada visitante nuevo lee dos marcas que no están.**
 
-- **🟡 La explicación de las Mentes promete 30 a todo el mundo, y en el plan gratis son 3.** `[origen: guardian 2026-11-12]`
+- **~~🟡 La explicación de las Mentes promete 30 a todo el mundo~~ — HECHO el mismo día.** `[origen: guardian 2026-11-12 · hecho 2026-11-12]`
+  Las **cuatro** cadenas arregladas, en los dos idiomas: la explicación de la
+  pantalla (`mente.lead`) y el aviso del tope (`mente.errLimit`). Ya no llevan
+  un 30 escrito a mano: llevan `{n}`, y `MentesCliente` lo rellena con
+  **`MENTES_POR_PLAN[perfil.plan]`**, o sea con el tope de quien está mirando.
+  Se puede porque esa pantalla ya sabe el plan —`usePerfil()` trae el perfil
+  cargado en el servidor—, así que dice *"con tu plan puedes tener hasta 3"*
+  en vez de recitar los tres. Es el mismo patrón que el dueño puso anoche en
+  Co-Works (`cw.limit` con su `{n}`): esto no inventa nada, lo copia.
+
+  **Comprobado** sin poder abrir la pantalla —está detrás de la cuenta—: un
+  script que lee las cuatro cadenas del fuente y los topes de `planes.ts`,
+  ninguno escrito a mano, y renderiza los tres planes (3 / 30 / 150); más un
+  grep del paquete del navegador, donde están las tres frases nuevas. 7 de 7.
+  `tsc` 0 y `next build` 0.
+
+  **Y la red que faltaba, que es la mitad del trabajo**: `cifras.py` ahora mira
+  también la copia del producto —`i18n.tsx`, `mock.ts`, `precios/contenido.tsx`
+  y `ElegirPlan.tsx`—, sin los comentarios, con una regla nueva: **un tope que
+  no dice de qué plan es**. Pasado contra el `i18n.tsx` de esta mañana saca las
+  **cuatro** cadenas falsas, en los dos idiomas y con su línea.
+  Lo que decía esta entrada, de histórico:
   `i18n.tsx:462` (y su gemela en inglés) dice: *"Puedes tener hasta **30**, cada
   una con su tono"*. Desde la noche del 10-11 las Mentes son **por plan**:
   **3 en Free, 30 en Kairo+, 150 en Supreme** (`MENTES_POR_PLAN` + la migración
