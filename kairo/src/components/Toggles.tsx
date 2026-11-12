@@ -19,7 +19,7 @@ export function LangToggle() {
   const { lang, toggleLang, t } = useUi();
   return (
     <button
-      className={`${btn} w-auto gap-1.5 px-2.5 text-[13px] font-medium`}
+      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
       onClick={toggleLang}
       title={t("lang.toggle")}
       aria-label={t("lang.toggle")}

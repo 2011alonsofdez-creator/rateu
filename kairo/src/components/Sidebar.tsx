@@ -119,9 +119,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <>
-    {/* TODA LA BARRA SE DESLIZA, no solo el historial: en una pantalla
-          baja, las secciones y los créditos también tienen que caber. */}
-    <div className="flex h-full w-[264px] shrink-0 flex-col overflow-y-auto overscroll-contain border-r border-line bg-bg-soft">
+    {/* ARRIBA EL LOGO Y ABAJO EL LÍMITE, QUIETOS; LO DE EN MEDIO SE DESLIZA.
+          Antes solo se deslizaba el historial, y en una pantalla baja las
+          secciones no cabían. Pero el límite, el perfil y el modo noche
+          tienen que verse siempre, sin bajar a buscarlos. */}
+    <div className="flex h-full w-[264px] shrink-0 flex-col border-r border-line bg-bg-soft">
       {/* Cabecera */}
       <div className="flex items-center justify-between px-4 py-4">
         <Link href="/" aria-label="Kairo">
@@ -138,6 +140,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
       {enCode ? (
         <>
       <div className="space-y-1 px-3">
@@ -383,8 +386,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </>
       )}
 
+      </div>
+
       {/* Créditos y perfil */}
-      <div className="border-t border-line p-3">
+      <div className="shrink-0 border-t border-line p-3">
         <Link
           href="/precios"
           onClick={onClose}
