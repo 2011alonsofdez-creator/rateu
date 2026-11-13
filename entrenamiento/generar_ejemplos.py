@@ -35,8 +35,9 @@ SISTEMA_ENTRENO = (
     "Respondes en español de España, de tú, y vas al grano."
 )
 
-# Dos modelos: cada uno tiene su propia cuota gratuita.
-MODELOS = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+# Los modelos se eligen al arrancar, preguntándole a Google cuáles hay con
+# tu clave (ver elegir_modelos). Estos solo se usan si esa pregunta falla.
+MODELOS = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"]
 PAUSA = 6.5  # segundos entre preguntas, para no pasar del límite gratis
 
 # Señales de una respuesta que NO tiene la forma de Kairo.
@@ -82,6 +83,34 @@ def es_buena(texto):
     return not any(m in bajo for m in MALAS)
 
 
+def elegir_modelos(cliente):
+    """Los Flash que tu clave puede usar, del más nuevo al más viejo.
+    Cada uno tiene su propia cuota gratis: si uno se agota, se pasa al otro."""
+    global MODELOS
+    try:
+        nombres = []
+        for m in cliente.models.list():
+            nombre = m.name.split("/")[-1]
+            acciones = getattr(m, "supported_actions", None) or []
+            if acciones and "generateContent" not in acciones:
+                continue
+            raro = ("image", "tts", "audio", "live", "embedding", "thinking", "exp")
+            if "flash" in nombre and not any(r in nombre for r in raro):
+                nombres.append(nombre)
+
+        def orden(n):
+            cifras = "".join(c if c.isdigit() or c == "." else " " for c in n).split()
+            version = float(cifras[0]) if cifras and cifras[0].count(".") <= 1 else 0
+            return ("lite" in n, "preview" in n, -version, n)
+
+        nombres = sorted(set(nombres), key=orden)
+        if nombres:
+            MODELOS = nombres[:5]
+    except Exception as e:
+        print(f"(no he podido pedir la lista de modelos: {str(e)[:120]})")
+    print("Modelos que voy a usar:", ", ".join(MODELOS), "\n")
+
+
 def contestar(cliente, sistema, pregunta, modelo_i):
     """Devuelve (texto, modelo_i). Si un modelo se queda sin cuota, pasa al otro."""
     for intento in range(6):
@@ -98,7 +127,11 @@ def contestar(cliente, sistema, pregunta, modelo_i):
             return (r.text or "").strip(), modelo_i
         except Exception as e:
             msg = str(e)
-            if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+            if "404" in msg or "NOT_FOUND" in msg:
+                # Ese modelo no existe con esta clave: al siguiente, sin esperar.
+                print(f"   · {modelo} no está disponible, paso al siguiente")
+                modelo_i += 1
+            elif "429" in msg or "RESOURCE_EXHAUSTED" in msg:
                 modelo_i += 1
                 espera = 20 if intento < 2 else 65
                 print(f"   · {modelo} sin cuota, pruebo otro en {espera}s")
@@ -134,7 +167,11 @@ def main():
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     sistema = bajar("prompt_kairo.txt")
     todas = preguntas()
-    cliente = genai.Client(api_key=userdata.get("GEMINI_API_KEY"))
+    cliente = genai.Client(
+        api_key=userdata.get("GEMINI_API_KEY"),
+        http_options=types.HttpOptions(api_version="v1beta"),
+    )
+    elegir_modelos(cliente)
 
     if prueba:
         lista = random.sample(todas, min(prueba, len(todas)))
