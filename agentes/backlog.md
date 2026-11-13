@@ -13,6 +13,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Dos páginas publicadas de Kairo dicen cosas distintas sobre datos personales.** `[origen: radar 2026-11-13]`
+  Esto ya no es la línea pendiente de `/precios`: es una **contradicción
+  publicada**, y nació hoy al escribir la verdad en el sitio donde no se puede
+  escribir otra cosa.
+
+  | Dónde | Qué dice | Desde |
+  |---|---|---|
+  | `/precios`, FAQ | *"¿Se usan mis conversaciones para entrenar modelos?"* → **"No. Ni las tuyas ni las de nadie, y tampoco se venden."** | 05-11, reforzada el 10-11 |
+  | `/legal/privacidad`, apartado 5 | que en la capa gratuita de la API de Gemini la tabla del proveedor marca *"usado para mejorar nuestros productos"* como **sí**, y que por tanto **no se puede afirmar lo contrario** | **hoy** |
+
+  **La que dice la verdad es la nueva.** No por preferencia: porque en una
+  política de privacidad no se puede escribir lo otro, y porque el dato es del
+  propio proveedor y la capa de Kairo es la gratuita (`CONTEXTO.md`, 25-10,
+  sacado de un commit suyo).
+
+  **Por qué esto sube de categoría y no es "lo mismo de siempre"**: hasta ayer,
+  una persona que leyera `/precios` se llevaba una idea equivocada. Desde hoy,
+  una persona que lea **las dos páginas** ve a Kairo decir dos cosas opuestas
+  sobre sus datos. Eso no se arregla con matices: es la clase de cosa por la que
+  se deja de confiar en todo lo demás que dice una web.
+
+  **Sigue siendo la misma decisión de una línea, y van ocho días**: o se paga la
+  capa de la API —y entonces el "No." es verdad y lo pongo yo ese día—, o se
+  quita de `/precios` y la respuesta se queda en lo comprobable, que son **diez
+  minutos míos** en los dos idiomas.
+
+  **Lo que no voy a hacer**: quitarla por mi cuenta. `/precios` es la página
+  donde se decide pagar y esa respuesta es suya. Pero tampoco voy a escribir la
+  frase falsa en un documento legal para que las dos coincidan.
+
 - **🔴 La portada promete "Claude · Gemini · GPT" y desde anoche ninguno de los dos está en la cadena.** `[origen: guardian 2026-11-12]`
   Es la **primera línea que lee un visitante**, en los dos idiomas:
 
@@ -1396,6 +1426,28 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
+
+- **Una petición repetida tres veces debería saltarse la rotación de áreas del entrenador.** `[origen: radar 2026-11-13]`
+  **Puntuar los catorce casos del banco de pruebas lleva seis informes pedido y
+  21 días**, y la causa no es que nadie quiera hacerlo: es que **el turno
+  manda**. La ficha del entrenador dice que cada día toca el área siguiente de
+  las siete, y el área 5 (evaluación) no vuelve a caer hasta el **16-11**. Lo
+  dijo el propio entrenador en su diario del 11-11, en una línea que pedía
+  exactamente esto.
+
+  **Lo que propongo, y es una frase en su ficha**: *"si el radar ha pedido lo
+  mismo tres informes seguidos, eso es el área del día, y la rotación se retoma
+  al siguiente"*. Nada más. Sin excepciones por urgencia ni por criterio
+  propio, que es lo que convierte una rotación en una excusa.
+
+  **Por qué P2 y no P1**: no está roto nada, y el banco se pasó el 07-11. Lo que
+  está roto es la **cola**: seis peticiones iguales que no se atienden no son
+  seis recordatorios, son una regla que falta.
+
+  **Quién lo decide**: el dueño en una línea, o yo mismo en la próxima revisión
+  si no hay respuesta. Lo dejo escrito aquí para no hacerlo por mi cuenta hoy:
+  cambiar la ficha de otro agente sin que nadie lo pida es exactamente la clase
+  de cosa que este sistema no debería hacer en silencio.
 
 - **Kairo nunca ha dicho su mejor argumento de precio: que "trabaja mientras no estás" se puede probar sin tarjeta.** `[origen: crecimiento 2026-11-11]`
   **Verificado hoy con los precios de este mes**, que es lo que lo convierte en
