@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { TITULAR, faltanDelTitular, titularCompleto } from "../datos";
+import { Fuerte, Seccion, Tabla } from "../piezas";
 
 /* EL PRIMERO DE LOS CUATRO DOCUMENTOS LEGALES.
  *
@@ -275,68 +276,6 @@ const T = {
     volver: "Back to legal information",
   },
 };
-
-/** Las negritas de `**así**` dentro de un texto, sin traerse un motor de Markdown. */
-function Fuerte({ texto }: { texto: string }) {
-  return (
-    <>
-      {texto.split(/\*\*(.+?)\*\*/g).map((trozo, i) =>
-        i % 2 === 1 ? (
-          <strong key={i} className="font-semibold text-fg">
-            {trozo}
-          </strong>
-        ) : (
-          <span key={i}>{trozo}</span>
-        ),
-      )}
-    </>
-  );
-}
-
-function Tabla({ cabeceras, filas }: { cabeceras: string[]; filas: string[][] }) {
-  return (
-    <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
-      <table className="w-full border-collapse text-left text-[13.5px]">
-        <thead>
-          <tr className="bg-panel">
-            {cabeceras.map((c) => (
-              <th key={c} className="px-4 py-3 font-semibold">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filas.map((fila) => (
-            <tr key={fila[0]} className="border-t border-line align-top">
-              {fila.map((celda, i) => (
-                <td
-                  key={i}
-                  className={
-                    i === 0
-                      ? "px-4 py-3 font-mono text-[12.5px] leading-relaxed"
-                      : "px-4 py-3 leading-relaxed text-muted"
-                  }
-                >
-                  {celda}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-10">
-      <h2 className="text-[18px] font-semibold tracking-tight">{titulo}</h2>
-      {children}
-    </section>
-  );
-}
 
 export function CookiesContenido() {
   const { lang } = useUi();

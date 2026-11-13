@@ -25,5 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
        El primero es el de cookies (04-11): es el único de los cuatro que
        se puede redactar entero leyendo el código. */
     { url: `${sitio}/legal/cookies`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${sitio}/legal/privacidad`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

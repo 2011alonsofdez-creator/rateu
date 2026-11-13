@@ -405,7 +405,37 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   entero.
   Sigue siendo suyo: son tareas programadas y no están en el repositorio.
 
-- **Los cuatro textos legales no existen, y el checklist los lleva en verde veinte días.** `[origen: constructor 2026-11-01]`
+- **Los cuatro textos legales: van dos de cuatro.** `[origen: constructor 2026-11-01 · cookies hecho 2026-11-04 · privacidad hecho 2026-11-13]`
+  **Al día 13-11**: escrita y publicada la **política de privacidad**
+  (`/legal/privacidad`), que era la más urgente de las tres que quedaban por
+  dos motivos que no son de opinión: Kairo lee papeles con nombre, dirección
+  y a veces DNI, y el bloque `PRIVACIDAD` del prompt lleva desde el 24-10
+  mandando a la gente a *"los textos legales"* —o sea, a un documento que no
+  existía—.
+
+  **Y se ha podido escribir sin esperar a los cinco campos del titular**, que
+  es lo que esta entrada daba por bloqueante. El grueso de una política de
+  privacidad no es la identificación: es **qué se guarda**, y eso está en el
+  código y está medido. La identificación sale en su propio apartado diciendo
+  exactamente qué falta, igual que en la de cookies. Lo que sigue bloqueado de
+  verdad por esos campos es el **aviso legal**, que casi no es otra cosa.
+
+  **Lo que el documento dice y pocos dicen**: un apartado entero —el 7— con
+  las cuatro cosas que **no** se pueden afirmar hoy (plazos de conservación,
+  copias de seguridad, cifrado en reposo y quién accede por dentro), y el
+  apartado 5 contando que, en la capa gratuita de la API de Gemini, la tabla
+  del proveedor marca *"usado para mejorar nuestros productos"* como **sí**.
+  En una política de privacidad no se puede escribir lo contrario.
+
+  **Comprobado** en el HTML generado: 17 comprobaciones, incluidas las que
+  vigilan que **no** aparezca la frase que `/precios` sí publica, que no quede
+  ningún `[RELLENAR]`, y que la política de cookies siga entera después de
+  sacarle las tres piezas comunes a `legal/piezas.tsx`. `tsc` 0 y `next build`
+  0, y la página entra en el `sitemap.xml`.
+
+  **Quedan dos**: aviso legal (bloqueado por los cinco campos) y términos
+  (se puede escribir casi entero; lo que falta es la ley y el fuero).
+  Lo que decía esta entrada, de histórico:
   Esto ha salido de anclar los cuatro enlaces del pie: al abrir `/legal` para
   ponerle los `id`, resulta que la página **dice de sí misma que está sin
   escribir**, en los dos idiomas: *"Pendiente de redactar antes del

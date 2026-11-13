@@ -24,13 +24,13 @@ import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 const BLOCKS: Record<"es" | "en", [string, string, string, string | null][]> = {
   es: [
     ["aviso", "Aviso legal", "Titular del servicio, datos de contacto y condiciones de uso.", null],
-    ["privacidad", "Política de privacidad", "Qué datos se guardan, para qué, cuánto tiempo y cómo se borran. Incluye un apartado específico para perfiles de menores.", null],
+    ["privacidad", "Política de privacidad", "Qué datos se guardan y cuáles no, con quién se comparten, qué derechos tienes y qué no se puede afirmar todavía. Incluye un apartado específico para menores.", "/legal/privacidad"],
     ["cookies", "Política de cookies", "Qué cookies se usan, cuánto duran, qué guarda Kairo en tu navegador y cómo borrarlo.", "/legal/cookies"],
     ["terminos", "Términos del servicio", "Planes, créditos, renovaciones, cancelaciones y límites de uso.", null],
   ],
   en: [
     ["aviso", "Legal notice", "Service owner, contact details and terms of use.", null],
-    ["privacidad", "Privacy policy", "What data is stored, why, for how long and how it is deleted. Includes a dedicated section for child profiles.", null],
+    ["privacidad", "Privacy policy", "What is stored and what is not, who else sees it, what rights you have and what cannot be claimed yet. Includes a dedicated section for minors.", "/legal/privacidad"],
     ["cookies", "Cookie policy", "Which cookies are used, how long they last, what Kairo stores in your browser and how to clear it.", "/legal/cookies"],
     ["terminos", "Terms of service", "Plans, credits, renewals, cancellations and usage limits.", null],
   ],
@@ -38,12 +38,12 @@ const BLOCKS: Record<"es" | "en", [string, string, string, string | null][]> = {
 
 const TEXTOS = {
   es: {
-    lead: "De los cuatro documentos necesarios, la política de cookies ya está escrita. Los otros tres están pendientes de redactar antes del lanzamiento.",
+    lead: "De los cuatro documentos necesarios ya están escritos dos: la política de cookies y la de privacidad. El aviso legal y los términos están pendientes de redactar antes del lanzamiento.",
     leer: "Leer el documento",
     pendiente: "Pendiente de redactar",
   },
   en: {
-    lead: "Of the four required documents, the cookie policy is written. The other three are still to be drafted before launch.",
+    lead: "Of the four required documents, two are written: the cookie policy and the privacy policy. The legal notice and the terms are still to be drafted before launch.",
     leer: "Read the document",
     pendiente: "Still to be drafted",
   },
