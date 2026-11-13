@@ -96,6 +96,69 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-13 — Ejemplos (área 2): dos huecos de esta semana que no tenían ninguno
+
+**Qué añadí**: dos casos a `agentes/ia/ejemplos/`, los dos sobre cosas que
+existen desde hace **dos días** y de las que no había ni una línea escrita.
+
+**1. `2026-11-13-titulares-no-son-articulos.md`.** Desde el 11-11 hay una red de
+búsqueda nueva y gratis —Google Noticias por RSS— que entra cuando Gemini agota
+su cupo. Trae **titulares, no artículos**: titular, periódico y hora. Eso cambia
+la respuesta correcta a la pregunta más corriente que existe —*"¿qué ha pasado
+con X?"*— y no había ejemplo.
+
+El caso: *"por qué hay huelga general hoy? que pasa"*, con seis titulares
+dentro, tres coincidiendo en el motivo y **ninguno** explicando la reforma. La
+respuesta ideal contesta en la primera frase, cita los medios **dentro de la
+frase** —regla 4, de ayer—, usa la coincidencia de tres como lo que es
+(solidez), y luego marca la frontera **donde duele**: justo antes de las tres
+preguntas que la persona querría y que los titulares no contestan.
+
+El error que persigue este ejemplo es el que nadie ve: **explicar la reforma de
+memoria**. Un modelo lo hace solo —tiene el tema en sus datos y el hueco pide
+ser rellenado— y suena igual de seguro que lo demás.
+
+**2. `2026-11-13-prueba-sin-cuenta-leeme-esta-multa.md`.** La portada vende leer
+multas y debajo hay una caja donde se pregunta sin registrarse. Así que *"léeme
+esta multa, te la paso en foto"* no es un caso raro: es **el más probable** de
+esa caja. Y el `SISTEMA` de esa ruta todavía no dice qué NO hay ahí —archivos,
+cuenta, Paperwork—, que es el P2 abierto desde el 10-11. El ejemplo es la vara
+de medir mientras tanto: resuelve lo que cabe en texto, dice que no puede abrir
+fotos en media línea, y nombra la cuenta gratis una vez y al final.
+
+**Y aquí casi meto la pata, que es lo que toca contar.** La primera versión de
+esa respuesta ideal decía *"sueles tener 20 días naturales para pagar con el 50%
+de descuento"*. Suena a dato de manual y lo es. Pero `papeles.ts:29-32` tiene
+escrita la regla contraria con todas las letras: **"para no recitar ni el
+porcentaje ni el plazo de memoria: los de la DGT son los de la DGT, y una multa
+municipal puede tener otros"**. O sea que mi ejemplo iba a **enseñar justo lo
+que el código prohíbe**, y encima en el caso más visible que tiene Kairo.
+
+Corregido antes de publicarlo: ahora cuenta **la forma del canje** —hay un plazo
+corto con descuento, y el descuento cierra el recurso— y manda al papel para los
+números. Es más útil, porque es verdad para todo el mundo, y el ejemplo mejora:
+enseña a ser útil **sin** recitar.
+
+**Lo comprobé** leyendo el código de las dos cosas antes de escribir, no después:
+`noticias.ts:111-123` para qué trae y qué cabecera lleva, `api/probar/route.ts:109-115`
+para qué dice y qué no dice el `SISTEMA` de la caja, y `papeles.ts:17-33` para la
+regla del canje. Y `agentes/comprobar/cifras.py` en verde con los dos ejemplos
+dentro: no llevan ninguna cifra del producto escrita a mano.
+
+**Una cosa que comprobé y NO hay que tocar**: el ejemplo del 22-10 sobre los
+tres cerebros se apoya en que *"las cadenas de `config.ts` tienen Claude, GPT y
+Gemini"*. Con el 🔴 de ayer —la portada promete Claude y GPT y no están en la
+cadena de OpenRouter— parecía que ese ejemplo se había quedado viejo. **No**:
+`config.ts:59-111` sigue nombrando `claude:` y `gpt:` en las cadenas; lo que
+falta son las claves, que es otra cosa. La respuesta ideal de aquel ejemplo
+tampoco afirma que los tres estén activos, a propósito. Sigue en pie, palabra
+por palabra.
+
+**Qué necesito del dueño**: nada nuevo. El P2 de los límites de la caja sigue
+esperando, y ahora tiene su ejemplo.
+
+**Mañana toca**: área 3, conocimiento.
+
 ### 2026-11-12 — Prompt maestro (área 1): mandaba escribir "Fuentes" encima de "Fuentes"
 
 **Qué cambié**: `kairo/src/lib/ia/prompt.ts`, la **regla 4** del bloque nuevo
