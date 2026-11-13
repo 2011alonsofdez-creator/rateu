@@ -7,6 +7,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { Section } from "@/components/Section";
 import { Brain, Check, Close, Plus } from "@/components/Icons";
 import { MENTE, type Mente } from "@/lib/tipos";
+import { MENTES_POR_PLAN, type PlanId } from "@/lib/planes";
 import { borrarMente, guardarMente, type EntradaMente } from "./acciones";
 
 const EMOJIS = [
@@ -111,7 +112,7 @@ export function MentesCliente({ inicial }: { inicial: Mente[] }) {
   const abrir = (m: Mente) => setBorrador({ ...m });
 
   return (
-    <Section icon={Brain} title={t("app.mentes")} lead={t("mente.lead")} soon={false}>
+    <Section icon={Brain} title={t("app.mentes")} lead={t("mente.lead").replace("{n}", String(MENTES_POR_PLAN[perfil.plan as PlanId] ?? MENTES_POR_PLAN.free))} soon={false}>
       {mentes.length === 0 && (
         <div className="mb-6">
           <h2 className="text-[15px] font-semibold">{t("mente.templates")}</h2>
