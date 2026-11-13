@@ -434,6 +434,7 @@ function PantallaCode() {
             <Pensando
               nivel={NIVEL}
               puntos
+              etapa={trabajando === "arreglando" ? "arreglando" : faseDe(enBruto)}
               fases={
                 trabajando === "arreglando"
                   ? ["code.fixing"]
