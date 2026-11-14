@@ -61,7 +61,20 @@ export async function hablar(texto: string): Promise<Buffer> {
           httpOptions: { timeout: Math.min(15_000, queda) },
         }).models.generateContent({
           model: modelo,
-          contents: [{ role: "user", parts: [{ text: texto }] }],
+          /* El acento se le pide por escrito: sin decírselo, Gemini lee
+             el español con acento latino. */
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text:
+                    "Lee esto con acento de España (castellano peninsular, de Madrid), " +
+                    `con tono natural, tranquilo y cercano:\n\n${texto}`,
+                },
+              ],
+            },
+          ],
           config: {
             responseModalities: ["AUDIO"],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voz } } },

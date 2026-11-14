@@ -159,7 +159,19 @@ export function mejorVoz(idioma: "es" | "en"): SpeechSynthesisVoice | null {
 
   const elegida = vozElegida(idioma);
   const tuya = elegida ? delIdioma.find((v) => v.name === elegida) : undefined;
-  if (tuya) return tuya;
+  if (tuya && (idioma !== "es" || /^es[-_]ES$/i.test(tuya.lang))) return tuya;
+
+  /* Español DE ESPAÑA primero: Chrome trae también "Google español de
+     Estados Unidos", y si se cuela esa suena sudamericana. */
+  const deEspana = delIdioma.filter((v) => /^es[-_]ES$/i.test(v.lang));
+  const buena = (lista: SpeechSynthesisVoice[]) =>
+    lista.find((v) => /google/i.test(v.name)) ??
+    lista.find((v) => v.localService === false) ??
+    lista.find((v) => /natural|neural|premium|enhanced/i.test(v.name));
+  if (idioma === "es") {
+    const espanola = buena(deEspana) ?? deEspana[0];
+    if (espanola) return espanola;
+  }
 
   return (
     delIdioma.find((v) => /google/i.test(v.name)) ??

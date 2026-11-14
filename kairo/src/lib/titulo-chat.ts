@@ -36,6 +36,7 @@ const NOMBRES: Record<string, string> = {
   google: "Google", gemini: "Gemini", chatgpt: "ChatGPT", kairo: "Kairo",
   españa: "España", espana: "España", madrid: "Madrid", barcelona: "Barcelona",
   hacienda: "Hacienda", dgt: "DGT", itv: "ITV", irpf: "IRPF", iva: "IVA",
+  gta: "GTA", gta5: "GTA 5", gta6: "GTA 6", gtav: "GTA V", gtavi: "GTA VI",
   sepe: "SEPE", dni: "DNI", nie: "NIE", bitcoin: "Bitcoin",
   "real madrid": "Real Madrid", barça: "Barça", barca: "Barça",
 };
@@ -82,13 +83,32 @@ const MAX_PALABRAS = 6;
 export function pareceCrudo(titulo: string): boolean {
   const t = titulo.trim();
   if (!t) return false;
+  // Los de los Co-Works y las Mentes ("Abogado · 14 nov") ya están bien.
+  if (t.includes(" · ")) return false;
   if (/^(\[archivos adjuntos|[¿¡])/i.test(t)) return true;
+  // Cortado con "…": era el principio de la pregunta, no un título.
+  if (/(…|\.\.\.)$/.test(t)) return true;
+  if (/^(estabas escribiendo una app|esta es una app de un solo archivo)/i.test(t)) return true;
+  if (t.split(/\s+/).length > MAX_PALABRAS) return true;
   const primera = [...t][0];
   return primera !== primera.toUpperCase() && primera === primera.toLowerCase() && /\p{L}/u.test(primera);
 }
 
 /** El título resumido de una pregunta. Nunca vacío. */
 export function tituloChat(texto: string): string {
+  /* Los encargos internos de Code que se guardaron como chat antes de
+     separarlo: el tema es lo que pediste, no el encargo. */
+  const app = texto.match(/^Estabas escribiendo una app[^"]*"([^"]+)"/i);
+  if (app) return "App · " + temaDeApp(app[1]);
+  const cambio = texto.match(/^Esta es una app de un solo archivo[\s\S]*Haz este cambio:\s*([\s\S]+)/i);
+  if (cambio) return "Cambio en app · " + tituloChat(cambio[1]);
+  if (/^(hazme|haz|crea|créame|creame|genera|programa)( una| un)? (app|aplicación|aplicacion|web|página|pagina|juego)\b/i.test(texto.trim())) {
+    return "App · " + temaDeApp(texto);
+  }
+  return resumir(texto);
+}
+
+function resumir(texto: string): string {
   let t = texto
     .replace(/\[Archivos adjuntos:[^\]]*\]/gi, " ")
     .replace(/https?:\/\/\S+/g, " ")
@@ -136,4 +156,13 @@ export function tituloChat(texto: string): string {
   if (!t || !/[aeiouáéíóúü0-9]/i.test(t)) return "Chat";
 
   return [...t][0].toUpperCase() + [...t].slice(1).join("");
+}
+
+/** "Hazme una app web de recetas con fotos" → "Recetas con fotos". */
+function temaDeApp(pedido: string): string {
+  const sin = pedido
+    .trim()
+    .replace(/^(hazme|haz|crea|créame|creame|genera|programa|quiero)( una| un)? */i, "")
+    .replace(/^(app|aplicación|aplicacion|web|página|pagina)( web)?( de| para| que| con| sobre)? */i, "");
+  return resumir(sin || pedido);
 }
