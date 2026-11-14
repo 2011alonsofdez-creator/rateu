@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { apartar, disponible } from "./cuarentena";
 import Anthropic from "@anthropic-ai/sdk";
 import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
@@ -170,10 +171,21 @@ export async function buscarHechos(
    * entonces Kairo contesta de memoria.
    *
    * Ocho intentos fallidos son poco más de un segundo. Vale la pena. */
-  const modelos = cadenaDe("normal", modoEdad)
+  /* Los que están en cuarentena —agotados hace un rato, en esta búsqueda
+     o en el chat, que gasta la misma cuota— se saltan. Sin esto cada
+     búsqueda volvía a preguntar a los diez, con las tres claves, para
+     enterarse otra vez de que no hay cuota. */
+  const todos = cadenaDe("normal", modoEdad)
     .filter((id) => partir(id).proveedor === "gemini")
-    .map((id) => partir(id).modelo)
-    .slice(0, 8);
+    .map((id) => partir(id).modelo);
+  const modelos = todos.filter(disponible).slice(0, 8);
+  if (diario && todos.length > modelos.length) {
+    diario.intentos.push({
+      modelo: "cuarentena",
+      ms: 0,
+      resultado: `${todos.length - modelos.length} modelo(s) saltados: sin cuota hace un rato`,
+    });
+  }
 
   if (diario) diario.modelos = [...modelos];
 
@@ -388,6 +400,8 @@ export async function buscarHechos(
         busco: true,
       };
     } catch (e) {
+      // Que la próxima búsqueda (y el chat) no lo vuelva a intentar en balde.
+      apartar(modelo, e);
       /* Se prueba con el siguiente modelo de la cadena. El fallo se
          apunta si alguien está mirando: un identificador de modelo que
          ya no existe, o una cuenta sin buscador, fallan aquí los tres y
