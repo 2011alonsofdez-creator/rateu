@@ -61,15 +61,31 @@ export async function listarConversaciones(): Promise<Conversacion[]> {
        bruto se resumen aquí y se guardan, una sola vez (ya resumidos, no
        vuelven a parecer en bruto). Si guardar falla, se enseña igual. */
     const filas = data as unknown as Record<string, unknown>[];
-    await Promise.all(
-      filas.map(async (c) => {
-        const viejo = (c.titulo as string) || "";
-        if (!pareceCrudo(viejo)) return;
-        const nuevo = [...tituloChat(viejo)].slice(0, 60).join("");
-        c.titulo = nuevo;
-        await supabase.from("conversaciones").update({ titulo: nuevo }).eq("id", c.id as string);
-      }),
-    );
+    const crudas = filas.filter((c) => pareceCrudo((c.titulo as string) || ""));
+    if (crudas.length) {
+      /* El título viejo está cortado ("Hazme una app web d…"): se resume
+         mejor desde tu primer mensaje entero. */
+      const { data: primeros } = await supabase
+        .from("mensajes")
+        .select("conversacion_id, contenido, creado_el")
+        .in("conversacion_id", crudas.map((c) => c.id as string))
+        .eq("rol", "user")
+        .order("creado_el", { ascending: true })
+        .limit(400);
+      const primero = new Map<string, string>();
+      for (const m of (primeros ?? []) as { conversacion_id: string; contenido: string }[]) {
+        if (!primero.has(m.conversacion_id)) primero.set(m.conversacion_id, m.contenido);
+      }
+      await Promise.all(
+        crudas.map(async (c) => {
+          const base = primero.get(c.id as string) || ((c.titulo as string) ?? "").replace(/(…|\.\.\.)$/, "");
+          const nuevo = [...tituloChat(base)].slice(0, 60).join("");
+          if (pareceCrudo(nuevo)) return; // no ha salido mejor: se deja
+          c.titulo = nuevo;
+          await supabase.from("conversaciones").update({ titulo: nuevo }).eq("id", c.id as string);
+        }),
+      );
+    }
 
     return filas.map((c) => ({
       id: c.id as string,
