@@ -123,6 +123,121 @@ function CodeBlock({ code, lang }: { code: string; lang: string }) {
   );
 }
 
+/* UN BLOQUE ES VARIAS COSAS SEGUIDAS.
+   Los modelos escriben "### PSOE" y justo debajo, sin línea en blanco,
+   la lista de lo que propone; o un párrafo y debajo una tabla. Si el
+   bloque entero se trata como una sola cosa, la lista sale como un
+   párrafo con los guiones a la vista. Así que se trocea por tipo de
+   línea, y cada trozo se pinta como lo que es. */
+type Grupo =
+  | { tipo: "titulo"; nivel: number; texto: string }
+  | { tipo: "ul" | "ol" | "tabla" | "p"; lineas: string[] };
+
+const esUl = (l: string) => /^\s*[-*•]\s+/.test(l);
+const esOl = (l: string) => /^\s*\d+[.)]\s+/.test(l);
+const esFila = (l: string) => /^\s*\|.*\|\s*$/.test(l);
+
+function grupos(lineas: string[]): Grupo[] {
+  const out: Grupo[] = [];
+  for (const l of lineas) {
+    const cab = titulo(l);
+    if (cab) {
+      out.push({ tipo: "titulo", nivel: cab.nivel, texto: cab.texto });
+      continue;
+    }
+    const tipo = esFila(l) ? "tabla" : esUl(l) ? "ul" : esOl(l) ? "ol" : "p";
+    const ultimo = out[out.length - 1];
+    if (ultimo && ultimo.tipo === tipo) ultimo.lineas.push(l);
+    else out.push({ tipo, lineas: [l] });
+  }
+  return out;
+}
+
+const celdas = (fila: string) =>
+  fila.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+const esSeparador = (fila: string) => celdas(fila).every((c) => /^:?-{2,}:?$/.test(c));
+
+function pintarGrupo(g: Grupo, key: string): ReactNode {
+  if (g.tipo === "titulo") {
+    const Etiqueta = `h${Math.min(g.nivel + 1, 6)}` as "h2";
+    return (
+      <Etiqueta key={key} className={`mt-5 mb-2 first:mt-0 ${TITULOS[g.nivel - 1]}`}>
+        {inline(g.texto, `${key}-h`)}
+      </Etiqueta>
+    );
+  }
+
+  if (g.tipo === "tabla") {
+    const filas = g.lineas.filter((f) => !esSeparador(f)).map(celdas);
+    const conCabecera = g.lineas.length > 1 && esSeparador(g.lineas[1]);
+    const [cabecera, ...cuerpo] = conCabecera ? filas : [null, ...filas];
+    return (
+      /* Con scroll de lado a lado: en el móvil una tabla de tres columnas
+         no cabe, y apretada se lee peor que deslizando. */
+      <div key={key} className="my-4 overflow-x-auto rounded-xl border border-line">
+        <table className="w-full border-collapse text-left text-[14px] leading-relaxed">
+          {cabecera && (
+            <thead className="bg-panel-hi">
+              <tr>
+                {cabecera.map((c, ci) => (
+                  <th key={ci} className="whitespace-nowrap px-3.5 py-2.5 font-semibold text-fg">
+                    {inline(c, `${key}-th${ci}`)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {cuerpo.map((fila, fi) => (
+              <tr key={fi} className="border-t border-line align-top">
+                {(fila ?? []).map((c, ci) => (
+                  <td key={ci} className={`px-3.5 py-2.5 ${ci === 0 ? "text-fg" : ""}`}>
+                    {inline(c, `${key}-${fi}-${ci}`)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (g.tipo === "ul") {
+    return (
+      <ul key={key} className="my-3 space-y-1.5 pl-1">
+        {g.lineas.map((l, li) => (
+          <li key={li} className="flex gap-2.5">
+            <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-acento" />
+            <span>{inline(l.replace(/^\s*[-*•]\s+/, ""), `${key}-${li}`)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (g.tipo === "ol") {
+    return (
+      <ol key={key} className="my-3 space-y-1.5">
+        {g.lineas.map((l, li) => (
+          <li key={li} className="flex gap-2.5">
+            <span className="mt-0.5 font-mono text-[13px] text-acento">
+              {l.match(/^\s*(\d+)/)?.[1] ?? li + 1}.
+            </span>
+            <span>{inline(l.replace(/^\s*\d+[.)]\s+/, ""), `${key}-${li}`)}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
+  return (
+    <p key={key} className="my-3 first:mt-0 last:mb-0">
+      {inline(g.lineas.join("\n"), key)}
+    </p>
+  );
+}
+
 export function Markdown({ text }: { text: string }) {
   const parts = text.split(/```/);
 
@@ -140,64 +255,11 @@ export function Markdown({ text }: { text: string }) {
         return part
           .split(/\n{2,}/)
           .filter((b) => b.trim())
-          .map((block, bi) => {
-            const lines = block.split("\n").filter((l) => l.trim());
-            const key = `${idx}-${bi}`;
-
-            /* Un título. Va antes que las listas porque "# - algo" es un
-               título, no una viñeta. */
-            const cabecera = titulo(lines[0]);
-            if (cabecera) {
-              const { nivel } = cabecera;
-              const Etiqueta = `h${Math.min(nivel + 1, 6)}` as "h2";
-              return (
-                <div key={key}>
-                  <Etiqueta className={`mt-5 mb-2 first:mt-0 ${TITULOS[nivel - 1]}`}>
-                    {inline(cabecera.texto, `${key}-h`)}
-                  </Etiqueta>
-                  {/* Lo que venga pegado debajo sin línea en blanco es el
-                      párrafo del título, no otro bloque. */}
-                  {lines.length > 1 && (
-                    <p className="my-3">{inline(lines.slice(1).join("\n"), `${key}-p`)}</p>
-                  )}
-                </div>
-              );
-            }
-
-            if (lines.every((l) => /^\s*[-*]\s+/.test(l))) {
-              return (
-                <ul key={key} className="my-3 space-y-1.5 pl-1">
-                  {lines.map((l, li) => (
-                    <li key={li} className="flex gap-2.5">
-                      <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-acento" />
-                      <span>{inline(l.replace(/^\s*[-*]\s+/, ""), `${key}-${li}`)}</span>
-                    </li>
-                  ))}
-                </ul>
-              );
-            }
-
-            if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) {
-              return (
-                <ol key={key} className="my-3 space-y-1.5">
-                  {lines.map((l, li) => (
-                    <li key={li} className="flex gap-2.5">
-                      <span className="mt-0.5 font-mono text-[13px] text-acento">
-                        {li + 1}.
-                      </span>
-                      <span>{inline(l.replace(/^\s*\d+[.)]\s+/, ""), `${key}-${li}`)}</span>
-                    </li>
-                  ))}
-                </ol>
-              );
-            }
-
-            return (
-              <p key={key} className="my-3 first:mt-0 last:mb-0">
-                {inline(block, key)}
-              </p>
-            );
-          });
+          .flatMap((block, bi) =>
+            grupos(block.split("\n").filter((l) => l.trim())).map((g, gi) =>
+              pintarGrupo(g, `${idx}-${bi}-${gi}`),
+            ),
+          );
       })}
     </div>
   );
