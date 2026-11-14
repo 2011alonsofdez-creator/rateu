@@ -405,19 +405,23 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               MEGA?". */}
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[12px] text-faint">
-              <Credito className={`h-3.5 w-3.5 shrink-0 ${tinta}`} />
+              <Credito className={`h-3.5 w-3.5 shrink-0 ${perfil.ilimitado ? "text-green" : tinta}`} />
               <span className="truncate">{t("app.credits")}</span>
             </span>
-            <span className={`shrink-0 text-[13.5px] font-semibold tabular-nums ${tinta}`}>
-              {pct}%
+            <span
+              className={`shrink-0 text-[13.5px] font-semibold tabular-nums ${
+                perfil.ilimitado ? "text-green" : tinta
+              }`}
+            >
+              {perfil.ilimitado ? `∞ ${t("app.unlimited")}` : `${pct}%`}
             </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel-hi">
             <div
-              className={`${comoVa} h-full rounded-full transition-[width,background-color] duration-500`}
+              className={`${perfil.ilimitado ? "bg-green" : comoVa} h-full rounded-full transition-[width,background-color] duration-500`}
               /* Un hilo mínimo aunque no quede nada: una barra vacía
                  del todo se lee como "esto está roto". */
-              style={{ width: `${Math.max(pct, 2)}%` }}
+              style={{ width: perfil.ilimitado ? "100%" : `${Math.max(pct, 2)}%` }}
             />
           </div>
         </Link>
