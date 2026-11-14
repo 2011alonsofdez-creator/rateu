@@ -1,0 +1,12 @@
+# Preguntas cuyas respuestas ya generadas hay que tirar y volver a hacer.
+# Al arrancar, generar_ejemplos.py las quita de kairo.jsonl y las repite.
+# Estas se hicieron antes de que el prompt llevara los datos de Kairo.
+¿Quién eres?
+¿Qué modelo de IA eres? ¿Eres ChatGPT?
+¿Qué puedes hacer por mí?
+¿En qué te diferencias de ChatGPT?
+¿Me puedes recordar algo mañana?
+¿Guardas lo que te cuento?
+¿Puedes buscar en internet?
+¿Quién te ha creado?
+¿Cuánto cuesta usarte?

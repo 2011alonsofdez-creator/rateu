@@ -1,0 +1,65 @@
+# EXAMEN DE KAIRO
+# 20 preguntas que NO están en preguntas.txt: no se usan para entrenar,
+# solo para comparar el modelo antes y después.
+# Formato: la pregunta en una línea y debajo, empezando por →, lo que
+# tiene que decir sí o sí (o lo que no puede decir).
+
+¿Cuántos días tengo para pagar una multa de tráfico con el 50% de descuento?
+→ 20 días naturales desde la notificación. No puede inventarse otro plazo.
+
+¿Hasta cuándo puedo presentar alegaciones a una multa de tráfico?
+→ 20 días naturales desde la notificación.
+
+Si cobro 18.000 € al año de un solo pagador, ¿estoy obligado a hacer la renta?
+→ En general no: con un solo pagador el límite es 22.000 €. Puede convenirte hacerla igual si te sale a devolver.
+
+¿Cuánto me puede pedir el casero de fianza en un alquiler de vivienda?
+→ Un mes de renta de fianza legal (aparte puede pedir garantías adicionales con límite). No puede decir otra cifra como norma.
+
+Llevo 8 meses de alquiler y me quiero ir, ¿con cuánto tengo que avisar?
+→ Con 30 días de antelación (se puede desistir pasados los 6 primeros meses).
+
+¿Cuántos días de vacaciones me corresponden al año por ley?
+→ 30 días naturales como mínimo.
+
+¿Cuánto tiempo tengo que haber cotizado para cobrar el paro?
+→ Al menos 360 días cotizados en los últimos 6 años.
+
+Me han despedido, ¿cuánto tiempo tengo para pedir el paro?
+→ 15 días hábiles desde el despido.
+
+¿Cada cuánto tengo que pasar la ITV con un coche particular?
+→ La primera a los 4 años; después cada 2 años hasta los 10; a partir de ahí, cada año.
+
+¿Con cuántos puntos empieza un conductor novel?
+→ Con 8 puntos; sube a 12 tras 3 años sin perder puntos.
+
+¿Cuál es el IVA general en España?
+→ 21 % (con tipos reducidos del 10 % y del 4 %).
+
+Soy autónomo, ¿cuándo tengo que presentar el IVA trimestral?
+→ Del 1 al 20 de abril, julio y octubre, y del 1 al 30 de enero (modelo 303).
+
+¿A qué edad se puede empezar a trabajar en España?
+→ A los 16 años (con permiso de padres o tutores hasta los 18).
+
+¿Qué produce la fotosíntesis?
+→ Glucosa y oxígeno, a partir de dióxido de carbono y agua, con la luz.
+
+Si hoy es lunes 16 de noviembre de 2026, ¿qué día de la semana cae Navidad?
+→ Viernes 25 de diciembre.
+
+Un abrigo cuesta 120 € y tiene un 35 % de descuento, ¿cuánto pago?
+→ 78 €.
+
+¿Qué dice el artículo 47 de la ordenanza de mi pueblo?
+→ Que no lo sabe y dónde mirarlo (la web del ayuntamiento o el boletín de la provincia). No puede inventarse el artículo.
+
+Dame la frase exacta que dijo Cervantes sobre la inteligencia artificial.
+→ Que no existe tal frase (Cervantes vivió en los siglos XVI y XVII). No puede inventarse una cita.
+
+¿Quién ganó el Mundial de fútbol de 2030?
+→ Que todavía no se ha jugado (es en 2030) o que no lo puede saber. No puede inventarse un ganador.
+
+¿Cuánto dinero tengo ahora mismo en mi cuenta del banco?
+→ Que no tiene acceso a tu banco y que lo mires en la app o la web de tu banco. No puede inventarse una cifra.

@@ -78,6 +78,24 @@ def preguntas():
     return [l.strip() for l in lineas if l.strip() and not l.strip().startswith("#")]
 
 
+def rehacer():
+    """Quita de kairo.jsonl las respuestas de las preguntas de rehacer.txt,
+    para que se vuelvan a generar (por ejemplo, si cambió el prompt)."""
+    if not os.path.exists(SALIDA):
+        return
+    try:
+        lista = {l.strip() for l in bajar("rehacer.txt").splitlines()
+                 if l.strip() and not l.strip().startswith("#")}
+    except Exception:
+        return
+    filas = open(SALIDA, encoding="utf-8").read().splitlines()
+    quedan = [f for f in filas if f.strip() and json.loads(f)["messages"][1]["content"] not in lista]
+    if len(quedan) != len(filas):
+        with open(SALIDA, "w", encoding="utf-8") as f:
+            f.write("\n".join(quedan) + ("\n" if quedan else ""))
+        print(f"Quitadas {len(filas) - len(quedan)} respuestas para rehacerlas.")
+
+
 def ya_hechas():
     if not os.path.exists(SALIDA):
         return set()
@@ -266,6 +284,7 @@ def main():
         return
 
     recuperar()
+    rehacer()
     hechas = ya_hechas()
     pendientes = [p for p in todas if p not in hechas]
     print(f"{len(todas)} preguntas · {len(hechas)} ya hechas · faltan {len(pendientes)}")
