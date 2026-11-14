@@ -202,18 +202,33 @@ let lectura = 0;
    modo demo—, se lee con la voz del navegador, como antes. */
 let sonando: HTMLAudioElement | null = null;
 
+/* Si Gemini no ha podido (sin cuota, sin red), no se le vuelve a
+   preguntar en un rato: así el siguiente "Leer" suena al instante con la
+   voz del navegador en vez de quedarse unos segundos callado. */
+let sinVozHasta = 0;
+const ESPERA_VOZ = 8000;
+
 /** Pide a Kairo el audio de un trozo con esa voz. null si no se puede. */
-export async function audioDe(texto: string): Promise<string | null> {
+export async function audioDe(texto: string, espera = ESPERA_VOZ): Promise<string | null> {
+  if (Date.now() < sinVozHasta) return null;
+  const corte = new AbortController();
+  const reloj = window.setTimeout(() => corte.abort(), espera);
   try {
     const r = await fetch("/api/voz", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ texto }),
+      signal: corte.signal,
     });
-    if (!r.ok) return null;
-    return URL.createObjectURL(await r.blob());
+    if (!r.ok) throw new Error(String(r.status));
+    const blob = await r.blob();
+    if (!blob.size) throw new Error("vacío");
+    return URL.createObjectURL(blob);
   } catch {
+    sinVozHasta = Date.now() + 10 * 60_000;
     return null;
+  } finally {
+    window.clearTimeout(reloj);
   }
 }
 
@@ -236,7 +251,7 @@ async function leerConKairo(trozos: string[], idioma: "es" | "en", alTerminar: (
     const url = await siguiente;
     if (esta !== lectura) return;
     if (!url) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
-    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1]);
+    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1], 25_000);
     const audio = new Audio(url);
     sonando = audio;
     const ok = await new Promise<boolean>((fin) => {
@@ -255,7 +270,10 @@ async function leerConKairo(trozos: string[], idioma: "es" | "en", alTerminar: (
 export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
   if (!texto.trim()) return alTerminar();
   callar();
-  void leerConKairo(trocear(texto, 600), idioma, alTerminar);
+  /* El primer trozo, corto: cuanto menos texto, antes lo tiene Gemini y
+     antes empieza a sonar. Los demás, largos, se preparan mientras. */
+  const [primero, ...resto] = trocear(texto, 220);
+  void leerConKairo([primero, ...trocear(resto.join(" "), 600)].filter(Boolean), idioma, alTerminar);
 }
 
 function leerConNavegador(texto: string, idioma: "es" | "en", alTerminar: () => void) {
