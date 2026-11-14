@@ -1358,7 +1358,6 @@ function UserMessage({
             className="block max-h-64 w-full resize-none bg-transparent px-1.5 text-[15px] leading-relaxed outline-none"
           />
           <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
-            <span className="mr-auto pl-1.5 text-[11.5px] text-faint">{t("app.editHint")}</span>
             <button
               onClick={() => setEditando(false)}
               className="rounded-lg px-2.5 py-1 text-[12.5px] text-muted transition hover:text-fg"
