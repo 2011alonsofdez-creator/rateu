@@ -156,7 +156,7 @@ def token_hf():
 
 
 def subir(callado=False):
-    """Sube kairo.jsonl a tu dataset privado. Se llama cada 20 ejemplos y al
+    """Sube kairo.jsonl a tu dataset privado. Se llama cada 10 ejemplos y al
     final: si Colab se desconecta (y borra sus archivos), lo hecho ya está
     a salvo en Hugging Face."""
     token = token_hf()
@@ -270,7 +270,7 @@ def main():
                 f.write(json.dumps(fila, ensure_ascii=False) + "\n")
                 f.flush()
                 buenas += 1
-                if buenas % 20 == 0:
+                if buenas % 10 == 0:
                     subir(callado=True)
             else:
                 descartadas += 1
