@@ -122,14 +122,44 @@ export function prepararVoces() {
  *      instaladas en el aparato).
  *   3. La que haya, antes que no leer.
  */
-export function mejorVoz(idioma: "es" | "en"): SpeechSynthesisVoice | null {
+/* LA VOZ QUE HAS ELEGIDO TÚ (Ajustes → Voz para leer).
+   Se guarda en este navegador: las voces son del aparato, y la que hay
+   en tu móvil no tiene por qué existir en tu ordenador. */
+const claveVoz = (idioma: "es" | "en") => `kairo-voz-${idioma}`;
+
+export function vozElegida(idioma: "es" | "en"): string | null {
+  try {
+    return localStorage.getItem(claveVoz(idioma));
+  } catch {
+    return null;
+  }
+}
+
+export function elegirVoz(idioma: "es" | "en", nombre: string | null) {
+  try {
+    if (nombre) localStorage.setItem(claveVoz(idioma), nombre);
+    else localStorage.removeItem(claveVoz(idioma));
+  } catch {
+    /* sin almacenamiento: se usará la automática */
+  }
+}
+
+/** Las voces de este navegador para un idioma, para elegir en Ajustes. */
+export function vocesDe(idioma: "es" | "en"): SpeechSynthesisVoice[] {
   if (!vocesGuardadas.length && hayVozParaLeer()) {
     vocesGuardadas = window.speechSynthesis.getVoices();
   }
-
   const prefijo = idioma === "es" ? "es" : "en";
-  const delIdioma = vocesGuardadas.filter((v) => v.lang?.toLowerCase().startsWith(prefijo));
+  return vocesGuardadas.filter((v) => v.lang?.toLowerCase().startsWith(prefijo));
+}
+
+export function mejorVoz(idioma: "es" | "en"): SpeechSynthesisVoice | null {
+  const delIdioma = vocesDe(idioma);
   if (!delIdioma.length) return null;
+
+  const elegida = vozElegida(idioma);
+  const tuya = elegida ? delIdioma.find((v) => v.name === elegida) : undefined;
+  if (tuya) return tuya;
 
   return (
     delIdioma.find((v) => /google/i.test(v.name)) ??
@@ -160,9 +190,16 @@ export function trocear(texto: string, max = 200): string[] {
 }
 
 let empujon: number | undefined;
+/* Cada lectura tiene su número. PARAR NO PARABA por esto: `cancel()`
+   corta la frase que suena, pero el navegador lo cuenta como "frase
+   terminada" y dispara su `onend`/`onerror`, que leía LA SIGUIENTE. Con
+   el número, una lectura cancelada sabe que ya no es la de ahora y no
+   sigue. */
+let lectura = 0;
 
 export function callar() {
   if (!hayVozParaLeer()) return;
+  lectura++;
   window.clearInterval(empujon);
   empujon = undefined;
   window.speechSynthesis.cancel();
@@ -172,12 +209,15 @@ export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: ()
   if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
 
   callar();
+  const esta = lectura;
 
   const voz = mejorVoz(idioma);
   const trozos = trocear(texto);
   let i = 0;
 
   const siguiente = () => {
+    // La han parado (o ha empezado otra): no se lee nada más.
+    if (esta !== lectura) return;
     if (i >= trozos.length) {
       window.clearInterval(empujon);
       empujon = undefined;
