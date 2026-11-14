@@ -197,18 +197,96 @@ let empujon: number | undefined;
    sigue. */
 let lectura = 0;
 
+/* LA VOZ DE GEMINI ELEGIDA EN AJUSTES (Kore, Puck…). Si no hay ninguna
+   elegida, se lee con la voz del navegador, como siempre. */
+const CLAVE_GEMINI = "kairo-voz-gemini";
+export function vozGemini(): string | null {
+  try {
+    return localStorage.getItem(CLAVE_GEMINI);
+  } catch {
+    return null;
+  }
+}
+export function elegirVozGemini(id: string | null) {
+  try {
+    if (id) localStorage.setItem(CLAVE_GEMINI, id);
+    else localStorage.removeItem(CLAVE_GEMINI);
+  } catch {
+    /* sin almacenamiento: voz del navegador */
+  }
+}
+
+let sonando: HTMLAudioElement | null = null;
+
+/** Pide a Kairo el audio de un trozo con esa voz. null si no se puede. */
+export async function audioDe(texto: string, voz: string): Promise<string | null> {
+  try {
+    const r = await fetch("/api/voz", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ texto, voz }),
+    });
+    if (!r.ok) return null;
+    return URL.createObjectURL(await r.blob());
+  } catch {
+    return null;
+  }
+}
+
 export function callar() {
-  if (!hayVozParaLeer()) return;
   lectura++;
+  if (sonando) {
+    sonando.pause();
+    sonando = null;
+  }
+  if (!hayVozParaLeer()) return;
   window.clearInterval(empujon);
   empujon = undefined;
   window.speechSynthesis.cancel();
 }
 
-export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
-  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
+/* Lee con una voz de Gemini, trozo a trozo, pidiendo el siguiente
+   mientras suena el anterior para que no haya silencios largos. Si un
+   trozo no llega (sin cuota, sin red), sigue con la voz del navegador
+   desde ahí: mejor otra voz que quedarse callado a media frase. */
+async function leerConGemini(
+  trozos: string[],
+  voz: string,
+  idioma: "es" | "en",
+  alTerminar: () => void,
+) {
+  const esta = lectura;
+  let siguiente = audioDe(trozos[0], voz);
+  for (let i = 0; i < trozos.length; i++) {
+    const url = await siguiente;
+    if (esta !== lectura) return;
+    if (!url) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1], voz);
+    const audio = new Audio(url);
+    sonando = audio;
+    const ok = await new Promise<boolean>((fin) => {
+      audio.onended = () => fin(true);
+      audio.onerror = () => fin(false);
+      audio.play().catch(() => fin(false));
+    });
+    URL.revokeObjectURL(url);
+    if (esta !== lectura) return;
+    if (!ok) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+  }
+  sonando = null;
+  alTerminar();
+}
 
+export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!texto.trim()) return alTerminar();
   callar();
+  const voz = vozGemini();
+  if (voz) return void leerConGemini(trocear(texto, 600), voz, idioma, alTerminar);
+  leerConNavegador(texto, idioma, alTerminar);
+}
+
+function leerConNavegador(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
   const esta = lectura;
 
   const voz = mejorVoz(idioma);

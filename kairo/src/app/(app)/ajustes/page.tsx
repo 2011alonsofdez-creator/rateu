@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useUi } from "@/lib/i18n";
 import { usePerfil } from "@/lib/perfil-cliente";
 import { useCredits } from "@/lib/credits";
@@ -10,6 +10,8 @@ import { cerrarSesion, guardarAjustes } from "../actions";
 import { haySonido, ponerSonido, pitido } from "@/lib/sonido";
 import { Bolt, Check, Settings, Shield } from "@/components/Icons";
 import { Telegram } from "@/components/Telegram";
+import { audioDe, callar, elegirVozGemini, vozGemini } from "@/lib/voz";
+import { VOCES } from "@/lib/voces";
 
 /* El tono elegido aquí se inyecta en el system prompt ({TONO_ELEGIDO})
    cuando se conecte la IA en el Paso 3. */
@@ -40,6 +42,93 @@ const MODOS = {
     adulto: { n: "Adult", d: "18+ · no extra restrictions" },
   },
 };
+
+/* LAS CINCO VOCES, ESTILO GEMINI: cada una con su nombre, cómo suena y
+   un botón para oírla antes de quedarse con ella. */
+function Voces({ es }: { es: boolean }) {
+  const [elegida, setElegida] = useState<string | null>(null);
+  const [oyendo, setOyendo] = useState<string | null>(null);
+  const [cargando, setCargando] = useState<string | null>(null);
+  const [fallo, setFallo] = useState(false);
+  const audio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    setElegida(vozGemini());
+    return () => {
+      audio.current?.pause();
+      callar();
+    };
+  }, []);
+
+  const escuchar = async (id: string) => {
+    audio.current?.pause();
+    if (oyendo === id) return setOyendo(null);
+    setFallo(false);
+    setCargando(id);
+    const url = await audioDe(
+      es ? `Hola, soy Kairo. Esta es mi voz ${id}. ¿Te gusta cómo sueno?` : `Hi, I'm Kairo. This is my ${id} voice.`,
+      id,
+    );
+    setCargando(null);
+    if (!url) return setFallo(true);
+    const a = new Audio(url);
+    audio.current = a;
+    setOyendo(id);
+    a.onended = () => setOyendo(null);
+    a.play().catch(() => setOyendo(null));
+  };
+
+  const elegir = (id: string | null) => {
+    setElegida(id);
+    elegirVozGemini(id);
+  };
+
+  const fila = "flex items-center gap-3 rounded-xl border px-3.5 py-3 transition";
+  return (
+    <div className="space-y-2">
+      {VOCES.map((v) => (
+        <div key={v.id} className={`${fila} ${elegida === v.id ? "border-acento bg-acento/5" : "border-line"}`}>
+          <button onClick={() => elegir(v.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${elegida === v.id ? "border-acento" : "border-line-hi"}`}>
+              {elegida === v.id && <span className="h-2.5 w-2.5 rounded-full bg-acento" />}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[14.5px] font-semibold">{v.id}</span>
+              <span className="block text-[12.5px] text-muted">{es ? v.es : v.en}</span>
+            </span>
+          </button>
+          <button
+            onClick={() => escuchar(v.id)}
+            className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12.5px] font-medium text-muted transition hover:border-line-hi hover:text-fg"
+          >
+            {cargando === v.id ? "…" : oyendo === v.id ? (es ? "Parar" : "Stop") : (es ? "▶ Escuchar" : "▶ Listen")}
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => elegir(null)}
+        className={`${fila} w-full text-left ${elegida === null ? "border-acento bg-acento/5" : "border-line"}`}
+      >
+        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${elegida === null ? "border-acento" : "border-line-hi"}`}>
+          {elegida === null && <span className="h-2.5 w-2.5 rounded-full bg-acento" />}
+        </span>
+        <span className="min-w-0">
+          <span className="block text-[14.5px] font-semibold">{es ? "La del navegador" : "Browser voice"}</span>
+          <span className="block text-[12.5px] text-muted">
+            {es ? "Más robótica, pero no gasta cuota de Gemini." : "More robotic, but uses no Gemini quota."}
+          </span>
+        </span>
+      </button>
+      {fallo && (
+        <p className="pt-1 text-[12.5px] leading-relaxed text-gold">
+          {es
+            ? "No ha salido el audio: puede que Gemini esté sin cuota ahora mismo. Prueba en un rato."
+            : "No audio came back: Gemini may be out of quota right now. Try again later."}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -262,6 +351,15 @@ export default function AjustesPage() {
               />
             </button>
           </div>
+        </Card>
+
+        <Card title={es ? "Voz de Kairo" : "Kairo's voice"}>
+          <p className="mb-3 text-[13px] leading-relaxed text-muted">
+            {es
+              ? "La que usa \"Leer en voz alta\". Dale a Escuchar para oírlas y toca la que quieras."
+              : "The one \"Read aloud\" uses. Press Listen to hear them and tap the one you want."}
+          </p>
+          <Voces es={es} />
         </Card>
 
         {/* Plan */}
