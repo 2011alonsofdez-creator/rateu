@@ -197,18 +197,69 @@ let empujon: number | undefined;
    sigue. */
 let lectura = 0;
 
+/* LA VOZ DE KAIRO: una de Gemini (masculina, joven, natural), la que
+   suena como cuando Gemini te lee algo. Si no llega —sin cuota, sin red,
+   modo demo—, se lee con la voz del navegador, como antes. */
+let sonando: HTMLAudioElement | null = null;
+
+/** Pide a Kairo el audio de un trozo con esa voz. null si no se puede. */
+export async function audioDe(texto: string): Promise<string | null> {
+  try {
+    const r = await fetch("/api/voz", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ texto }),
+    });
+    if (!r.ok) return null;
+    return URL.createObjectURL(await r.blob());
+  } catch {
+    return null;
+  }
+}
+
 export function callar() {
-  if (!hayVozParaLeer()) return;
   lectura++;
+  if (sonando) {
+    sonando.pause();
+    sonando = null;
+  }
+  if (!hayVozParaLeer()) return;
   window.clearInterval(empujon);
   empujon = undefined;
   window.speechSynthesis.cancel();
 }
 
-export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
-  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
+async function leerConKairo(trozos: string[], idioma: "es" | "en", alTerminar: () => void) {
+  const esta = lectura;
+  let siguiente = audioDe(trozos[0]);
+  for (let i = 0; i < trozos.length; i++) {
+    const url = await siguiente;
+    if (esta !== lectura) return;
+    if (!url) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1]);
+    const audio = new Audio(url);
+    sonando = audio;
+    const ok = await new Promise<boolean>((fin) => {
+      audio.onended = () => fin(true);
+      audio.onerror = () => fin(false);
+      audio.play().catch(() => fin(false));
+    });
+    URL.revokeObjectURL(url);
+    if (esta !== lectura) return;
+    if (!ok) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+  }
+  sonando = null;
+  alTerminar();
+}
 
+export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!texto.trim()) return alTerminar();
   callar();
+  void leerConKairo(trocear(texto, 600), idioma, alTerminar);
+}
+
+function leerConNavegador(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
   const esta = lectura;
 
   const voz = mejorVoz(idioma);
