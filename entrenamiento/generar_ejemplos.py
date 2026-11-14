@@ -131,6 +131,11 @@ def contestar(cliente, sistema, pregunta, modelo_i):
                 # Ese modelo no existe con esta clave: al siguiente, sin esperar.
                 print(f"   · {modelo} no está disponible, paso al siguiente")
                 modelo_i += 1
+            elif "503" in msg or "UNAVAILABLE" in msg:
+                # Saturado un momento: al siguiente modelo, con un respiro corto.
+                print(f"   · {modelo} saturado, pruebo otro")
+                modelo_i += 1
+                time.sleep(8)
             elif "429" in msg or "RESOURCE_EXHAUSTED" in msg:
                 modelo_i += 1
                 espera = 20 if intento < 2 else 65
