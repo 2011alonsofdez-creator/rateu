@@ -539,7 +539,12 @@ export async function POST(req: Request) {
       /* Se abre la conversación a la vez que se llama al modelo, no antes.
          Así guardar el historial no añade ni un milisegundo de espera:
          mientras la base de datos escribe, el modelo ya está pensando. */
-      const abriendo = abrirConversacion(
+      /* Lo que pide Code no es una conversación: va a su propio historial
+         ("Tus apps"). Guardarlo aquí llenaba la lista de chats de
+         "Hazme una app web de…" y "Estabas escribiendo un…". */
+      const abriendo = cuerpo?.para === "code"
+        ? Promise.resolve(null)
+        : abrirConversacion(
         supabase,
         perfil.id,
         conversacionPedida,
