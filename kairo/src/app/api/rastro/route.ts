@@ -40,6 +40,7 @@ export const preferredRegion = "fra1";
 const EVENTOS = new Set([
   "visita", "prueba", "prueba_agotada", "registro", "mensaje",
   "cowork_sugerido", "cowork_aceptado",
+  "seccion_sugerida", "seccion_aceptada",
 ]);
 
 /** Solo el dominio de donde viene, nunca el enlace entero. */
