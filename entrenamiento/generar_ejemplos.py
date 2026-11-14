@@ -119,7 +119,9 @@ def elegir_modelos(cliente):
 
         nombres = sorted(set(nombres), key=orden)
         if nombres:
-            MODELOS = nombres[:5]
+            # Los Flash primero; los "lite" al final, para cuando los
+            # otros estén todos sin cuota y no quedarse parado.
+            MODELOS = nombres[:8]
     except Exception as e:
         print(f"(no he podido pedir la lista de modelos: {str(e)[:120]})")
     print("Modelos que voy a usar:", ", ".join(MODELOS), "\n")
@@ -141,7 +143,10 @@ def contestar(cliente, sistema, pregunta, modelo_i):
             return (r.text or "").strip(), modelo_i
         except Exception as e:
             msg = str(e)
-            if "404" in msg or "NOT_FOUND" in msg:
+            if "timed out" in msg.lower() or "timeout" in msg.lower() or "deadline" in msg.lower():
+                print(f"   · {modelo} no contesta, pruebo otro")
+                modelo_i += 1
+            elif "404" in msg or "NOT_FOUND" in msg:
                 # Ese modelo no existe con esta clave: al siguiente, sin esperar.
                 print(f"   · {modelo} no está disponible, paso al siguiente")
                 modelo_i += 1
@@ -242,7 +247,9 @@ def main():
     todas = preguntas()
     cliente = genai.Client(
         api_key=secreto("GEMINI_API_KEY"),
-        http_options=types.HttpOptions(api_version="v1beta"),
+        # 90 s como mucho por respuesta. Sin esto, con Gemini saturado una
+        # sola pregunta se quedó colgada 50 minutos esperando.
+        http_options=types.HttpOptions(api_version="v1beta", timeout=90_000),
     )
     elegir_modelos(cliente)
 
