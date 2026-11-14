@@ -1,5 +1,5 @@
 import { clienteServidor } from "@/lib/supabase/server";
-import { hablar } from "@/lib/ia/voz-gemini";
+import { hablar, VOCES_PARA_ELEGIR } from "@/lib/ia/voz-gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -16,8 +16,11 @@ export async function POST(req: Request) {
   const texto = typeof cuerpo?.texto === "string" ? cuerpo.texto.trim().slice(0, 1200) : "";
   if (!texto) return Response.json({ error: "mal" }, { status: 400 });
 
+  // Solo para la página de elegir voz: una de la lista, nunca otra cosa.
+  const voz = VOCES_PARA_ELEGIR.includes(cuerpo?.voz) ? (cuerpo.voz as string) : undefined;
+
   try {
-    const wav = await hablar(texto);
+    const wav = await hablar(texto, voz);
     return new Response(new Uint8Array(wav), {
       headers: { "content-type": "audio/wav", "cache-control": "no-store" },
     });
