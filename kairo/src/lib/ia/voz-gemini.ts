@@ -58,6 +58,30 @@ function suavizar(pcm: Buffer): Buffer {
   return out;
 }
 
+/* EL ACENTO DE ESPAÑA.
+ *
+ * Los modelos de voz de Gemini entienden un guion con "notas del
+ * director" y solo leen lo que va debajo de TRANSCRIPT. Es la forma que
+ * recomienda Google para pedir acento y tono SIN que lo lea en voz alta
+ * (la vez que se lo pedí en una frase normal, la leía). */
+function guion(texto: string): string {
+  return [
+    "# AUDIO PROFILE: Kairo",
+    "Young Spanish man in his twenties, born and raised in Madrid.",
+    "",
+    "### DIRECTOR'S NOTES",
+    "Accent: native European Spanish from Madrid, Spain (castellano peninsular).",
+    "Pronounce 'z' and soft 'c' as the 'th' sound (distinción), clear final 's',",
+    "Spain intonation. Absolutely no Latin American accent.",
+    "Style: natural, calm and friendly, with a bit of energy. Not robotic.",
+    "Pace: normal conversational speed.",
+    "Only speak the transcript below. Never read these notes.",
+    "",
+    "#### TRANSCRIPT",
+    texto,
+  ].join("\n");
+}
+
 /* LA VOZ DE KAIRO: Umbriel, la que elegiste (la 5 de las 10): masculina,
    joven, tranquila y cercana. Si un día no está, Fenrir (la 3), algo más
    animada. */
@@ -85,7 +109,7 @@ export async function hablar(texto: string, conIdioma = true): Promise<Buffer> {
           httpOptions: { timeout: Math.min(15_000, queda) },
         }).models.generateContent({
           model: modelo,
-          contents: [{ role: "user", parts: [{ text: texto }] }],
+          contents: [{ role: "user", parts: [{ text: guion(texto) }] }],
           config: {
             responseModalities: ["AUDIO"],
             /* El acento, por configuración y NO escrito en el texto: escrito,
