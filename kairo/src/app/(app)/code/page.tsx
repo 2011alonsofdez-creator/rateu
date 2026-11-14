@@ -211,13 +211,7 @@ function PantallaCode() {
      se puede volver a ella desde la barra, recargar o compartir enlace
      con uno mismo. `appId` es la que está en pantalla ahora. */
   const router = useRouter();
-  const parametros = useSearchParams();
-  const appParam = parametros.get("app");
-  /* Desde el chat ("Hacerla en Code") llega la petición ya escrita. */
-  const pedirParam = parametros.get("pedir");
-  useEffect(() => {
-    if (pedirParam && !appParam) setPeticion(pedirParam.slice(0, 2000));
-  }, [pedirParam, appParam]);
+  const appParam = useSearchParams().get("app");
   const appId = useRef<string | null>(null);
   const guardado = useRef("");
 
