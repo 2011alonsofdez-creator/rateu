@@ -58,20 +58,15 @@ function suavizar(pcm: Buffer): Buffer {
   return out;
 }
 
-/* LA VOZ DE KAIRO: masculina, joven, natural, tranquila pero con chispa.
-   Achird es la "cercana" de Gemini; si esa no está, Puck, más animada. */
-const VOCES = ["Achird", "Puck"];
-
-/** Las 10 para elegir en /voces (masculinas y jóvenes de Gemini). */
-export const VOCES_PARA_ELEGIR = [
-  "Achird", "Puck", "Fenrir", "Orus", "Umbriel",
-  "Algieba", "Enceladus", "Iapetus", "Sadachbia", "Zubenelgenubi",
-];
+/* LA VOZ DE KAIRO: Umbriel, la que elegiste (la 5 de las 10): masculina,
+   joven, tranquila y cercana. Si un día no está, Fenrir (la 3), algo más
+   animada. */
+const VOCES = ["Umbriel", "Fenrir"];
 
 /** El texto dicho con la voz de Kairo, en .wav. Lanza si ningún modelo ni
  *  clave ha podido (el navegador entonces lee con su propia voz). */
-export async function hablar(texto: string, soloVoz?: string, conIdioma = true): Promise<Buffer> {
-  const voces = soloVoz ? [soloVoz] : VOCES;
+export async function hablar(texto: string, conIdioma = true): Promise<Buffer> {
+  const voces = VOCES;
   const claves = clavesDeGemini();
   if (!claves.length) throw new Error("sin clave de Gemini");
 
@@ -115,7 +110,7 @@ export async function hablar(texto: string, soloVoz?: string, conIdioma = true):
         ultimo = e;
         // No acepta "es-ES": otra vez, igual pero sin idioma.
         if (conIdioma && /language/i.test(String(e))) {
-          return hablar(texto, soloVoz, false);
+          return hablar(texto, false);
         }
         // Una voz que no existe no es culpa de la clave: se prueba la otra.
         if (!/voice|voz/i.test(String(e))) break;
