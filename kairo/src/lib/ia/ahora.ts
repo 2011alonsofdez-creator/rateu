@@ -56,7 +56,10 @@ const PISTAS: RegExp[] = [
   palabra("(now|today|currently|latest|recent|this year|just (released|launched))"),
 
   // Dinero y disponibilidad
-  palabra("(precio|precios|cuesta|cuestan|vale|valen|tarifa|tarifas|cuota)"),
+  /* Sin "vale" a secas: en España es "de acuerdo", y "vale, gracias" se
+     ponía a buscar en internet. El precio con "vale" ya lo pilla la de
+     abajo ("cuánto vale"), y "vale X euros" casi nunca se pregunta así. */
+  palabra("(precio|precios|cuesta|cuestan|tarifa|tarifas|cuota)"),
   palabra("(cuanto (cuesta|vale|sale)|que precio)"),
   palabra("(oferta|ofertas|descuento|rebajas|gratis|de pago)"),
   palabra("(stock|disponible|disponibles|agotado|en venta)"),
@@ -82,7 +85,10 @@ const PISTAS: RegExp[] = [
   palabra("(release|version|update|season|episode|premiere)"),
 
   // Resultados, noticias y tiempo atmosférico
-  palabra("(resultado|resultados|marcador|clasificacion|partido|elecciones)"),
+  palabra("(resultado|resultados|marcador|clasificacion|partido|partidos|elecciones)"),
+  /* La política cambia con cada encuesta y cada pacto: lo que el modelo
+     recuerda de un programa o de un gobierno puede tener años. */
+  palabra("(gobierno|congreso|senado|votar|votacion|encuesta|encuestas|programa electoral|pacto|investidura|moción de censura|mocion de censura)"),
   /* "¿Cómo quedó el Madrid-Barça?" es como se pregunta un resultado de
      verdad, y no casaba con nada: la frase no lleva ni "resultado" ni
      "partido", lleva los nombres de los dos equipos, que no están en
@@ -96,7 +102,10 @@ const PISTAS: RegExp[] = [
   palabra("(news|weather|score|standings)"),
 
   // Normas que cambian
-  palabra("(ley|leyes|normativa|plazo|multa|impuesto|iva|irpf|subvencion|ayuda)"),
+  /* "ayuda" sola no: "necesito ayuda con mates" no es una subvención.
+     Solo cuando es una ayuda pública. */
+  palabra("(ley|leyes|normativa|plazo|multa|impuesto|iva|irpf|subvencion|subvenciones|beca|becas)"),
+  palabra("(ayudas?|bono|bonos|prestacion|prestaciones) (de|del|para|al|publicas?|estatal(es)?|por)"),
 
   palabra("(han (puesto|sacado|subido|anunciado|publicado|estrenado)|acaban de)"),
 
@@ -125,6 +134,13 @@ const DEBILES: RegExp[] = [
   /* Un sitio donde el catálogo cambia cada semana: lo que se pregunta es
      qué hay AHORA, no qué hubo. */
   palabra("(netflix|hbo( ?max)?|disney\\+?|prime video|movistar|filmin|skyshowtime|twitch|youtube|tiktok|spotify|steam|epic games|game ?pass|play ?station|xbox|nintendo)"),
+
+  /* Juegos, móviles, apps y criptos: cambian cada semana —un evento de
+     Fortnite, un iPhone nuevo, una función de ChatGPT, el precio del
+     bitcoin—, y lo que el modelo recuerda es de hace meses. "¿Qué es el
+     token de Fortnite?" contestaba de memoria. */
+  palabra("(fortnite|fornite|roblox|minecraft|gta|clash royale|clash of clans|brawl stars|valorant|league of legends|fifa|ea fc|call of duty|warzone|pokemon|genshin)"),
+  palabra("(iphone|ios|android|samsung|galaxy|xiaomi|pixel|whatsapp|instagram|chatgpt|openai|gemini|claude|grok|tesla|bitcoin|ethereum|cripto|criptomonedas?)"),
 
   /* Deporte: un resultado, una plantilla o un calendario de hace dos
      años es igual de inútil que un precio de hace dos años. */

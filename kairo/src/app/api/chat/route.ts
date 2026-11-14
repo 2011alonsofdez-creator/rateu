@@ -28,6 +28,7 @@ import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { correrMega } from "@/lib/ia/mega";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
+import { apartar, disponible } from "@/lib/ia/cuarentena";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
 import { recortar } from "@/lib/texto";
@@ -88,49 +89,8 @@ function permitePeticion(id: string, max = 20, ventanaMs = 60_000) {
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/* Cuarentena de modelos. Si uno falla por algo que no se arregla solo
-   (no tienes acceso, no existe, cuota agotada), no tiene sentido volver a
-   pedírselo en cada mensaje: se aparta un rato y se pasa al siguiente.
-   Vive en memoria, así que cada instancia aprende por su cuenta. */
-const enfriando = new Map<string, number>();
-const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
-const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
-
-/* Aparta un modelo que acaba de fallar, el tiempo que toque según por qué.
- *
- * Cada fallo dura lo suyo, y apartar un modelo más tiempo del necesario es
- * tan malo como no apartarlo: en la capa gratuita cada intento que se tira
- * a la basura es cuota que te comes.
- *
- * Devuelve si además hay que descartarlo para el RESTO de esta petición:
- * un saturado vuelve a estar libre en segundos y merece otra vuelta, pero
- * al que se le ha acabado la cuota del minuto ya no se le pregunta más. */
-function apartar(modelo: string, fallo: unknown): boolean {
-  switch (clasificarError(fallo)) {
-    case "sobrecargado":
-      enfriar(modelo, 30_000);
-      return false;
-    case "cuota_minuto":
-      // El límite por minuto se pasa solo; dentro de esta petición ya no.
-      enfriar(modelo, 70_000);
-      return true;
-    case "cuota_dia":
-      // Hasta mañana. Seguir preguntándole es tirar peticiones.
-      enfriar(modelo, 60 * 60_000);
-      return true;
-    case "modelo_no_sirve":
-    case "modelo_vetado":
-      /* Este no vuelve. No es que esté ocupado: es que a una web no se
-         le sirve, y mañana tampoco. Apartarlo diez minutos sería gastar
-         una petición cada diez minutos en algo que no puede salir. */
-      enfriar(modelo, 24 * 60 * 60_000);
-      return true;
-    default:
-      // No existe, no tienes acceso o lo han retirado.
-      enfriar(modelo, 10 * 60_000);
-      return true;
-  }
-}
+/* La cuarentena de modelos (disponible, apartar) vive en lib/ia/cuarentena.ts:
+   la comparte con la búsqueda, que gasta la misma cuota. */
 
 /* ¿Está puesta la migración 0007, la que añade las columnas de las
    fuentes? Se averigua a la primera y no se vuelve a preguntar. Sin
