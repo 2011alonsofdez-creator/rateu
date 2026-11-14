@@ -122,6 +122,24 @@ Arréglalo. Contesta SOLO con el archivo entero corregido dentro de un
 bloque de código. Ni una palabra antes ni después.`;
 }
 
+type Modo = "haciendo" | "arreglando" | "cambiando";
+
+/** Un cambio sobre una app que ya está hecha: se le da el archivo
+ *  entero y lo que hay que cambiar, y devuelve el archivo entero. */
+function cambio(codigo: string, pedido: string): string {
+  return `Esta es una app de un solo archivo HTML que ya funciona:
+
+\`\`\`html
+${codigo}
+\`\`\`
+
+Haz este cambio: ${pedido}
+
+Cambia solo lo necesario y deja todo lo demás igual. Contesta SOLO con
+el archivo entero, ya cambiado, dentro de un bloque de código. Ni una
+palabra antes ni después.`;
+}
+
 /** Cuántas veces se le pide que siga si se corta por tiempo. */
 const SEGUIDAS = 3;
 
@@ -178,7 +196,9 @@ function PantallaCode() {
      se escribe es la mitad de la gracia— y al acabar se limpia para
      quedarse solo con el archivo. */
   const [enBruto, setEnBruto] = useState("");
-  const [trabajando, setTrabajando] = useState<"" | "haciendo" | "arreglando">("");
+  const [trabajando, setTrabajando] = useState<"" | Modo>("");
+  /* Lo que se escribe en "¿Qué le cambio?". */
+  const [pedidoCambio, setPedidoCambio] = useState("");
   const [error, setError] = useState<string>();
   const [falloDeLaApp, setFalloDeLaApp] = useState<string>();
   const [modelo, setModelo] = useState<string>();
@@ -240,10 +260,10 @@ function PantallaCode() {
 
   /** Al acabar una app: si es nueva, se crea en el historial y la
    *  dirección pasa a ser la suya; si era un arreglo, se pisa. */
-  const guardarResultado = async (limpio: string, modo: "haciendo" | "arreglando", pedida: string) => {
+  const guardarResultado = async (limpio: string, modo: Modo, pedida: string) => {
     guardado.current = limpio;
     const id = await guardarApp({
-      id: modo === "arreglando" ? (appId.current ?? undefined) : undefined,
+      id: modo !== "haciendo" ? (appId.current ?? undefined) : undefined,
       peticion: pedida,
       codigo: limpio,
     });
@@ -268,7 +288,7 @@ function PantallaCode() {
      sigue pagando una respuesta que ya no va a ver nadie. */
   useEffect(() => () => cortar.current?.(), []);
 
-  const pedir = (texto: string, modo: "haciendo" | "arreglando") => {
+  const pedir = (texto: string, modo: Modo) => {
     if (trabajando) return;
     if (perfil.demo) return setError("app.sinIa");
 
@@ -438,6 +458,8 @@ function PantallaCode() {
               fases={
                 trabajando === "arreglando"
                   ? ["code.fixing"]
+                  : trabajando === "cambiando"
+                    ? ["code.changing1", "code.changing2", "code.changing3"]
                   : [...FASES_CODE[faseDe(enBruto)]]
               }
             />
@@ -491,6 +513,39 @@ function PantallaCode() {
             </button>
             {modelo && <span className="text-[12px] text-faint">{modelo}</span>}
           </div>
+
+          {/* PEDIR UN CAMBIO. Antes, para cambiar algo había que pedir la
+              app entera otra vez y salía otra distinta. Ahora se le dice
+              qué cambiar y toca solo eso, en la misma app. */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const pedido = pedidoCambio.trim();
+              if (!pedido || trabajando) return;
+              setPedidoCambio("");
+              pedir(cambio(codigo, pedido), "cambiando");
+            }}
+            className="mt-4 flex items-center gap-2 rounded-2xl border border-line bg-panel p-2 pl-4 transition focus-within:border-line-hi"
+          >
+            <input
+              value={pedidoCambio}
+              onChange={(e) => setPedidoCambio(e.target.value)}
+              placeholder={t("code.changeAsk")}
+              aria-label={t("code.changeAsk")}
+              className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-faint"
+            />
+            <button
+              type="submit"
+              disabled={!pedidoCambio.trim()}
+              className={`shrink-0 rounded-xl px-4 py-2 text-[13.5px] font-semibold transition ${
+                pedidoCambio.trim()
+                  ? "brand-grad text-on-accent hover:opacity-90"
+                  : "bg-panel-hi text-faint"
+              }`}
+            >
+              {t("code.change")}
+            </button>
+          </form>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <div className="overflow-hidden rounded-2xl border border-line">

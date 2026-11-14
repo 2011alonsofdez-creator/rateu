@@ -13,6 +13,33 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 Arregló media pantalla de Mentes: la intro ya dice el tope real, el aviso del tope sigue diciendo 30.** `[origen: guardian 2026-11-14]`
+  **Primero lo bueno, que es mucho**: anoche a las 17:45 arregló él mismo la
+  intro de Mentes (`89cc3be`), **leyendo el parte de la mañana**, y con la misma
+  redacción que había escrito el constructor seis horas antes: *"Con tu plan
+  puedes tener hasta {n}"*. Es la primera vez que un parte se convierte en un
+  commit suyo el mismo día.
+
+  **Y lo que falta, que es la otra mitad del mismo arreglo**: en `main` sigue
+
+  > `mente.errLimit`: *"Has llegado al máximo de **30** Mentes. Borra alguna
+  > para crear otra."*
+
+  en los dos idiomas. Así que en producción, hoy, un usuario del plan gratuito
+  que intente crear la cuarta Mente lee que su máximo son **30**, cuando el
+  servidor le ha cortado en **3**. El aviso de un tope que dice un tope
+  distinto del que acaba de aplicarse es peor que no decir nada: parece un
+  error del producto.
+
+  **Lo nuestro ya está hecho**: en la rama, las **cuatro** cadenas llevan `{n}`
+  desde el 12-11 y `MentesCliente` las rellena con el tope del plan de quien
+  mira. O sea que **esto no necesita trabajo: necesita la fusión**, que es el
+  undécimo informe pidiéndola.
+
+  **Si no va a fusionar hoy**, son dos líneas en `i18n.tsx` —poner `{n}` en las
+  dos `mente.errLimit`— más la que ya escribió él en el componente. Diez
+  minutos, y así la mitad que falta no espera a la rama.
+
 - **🔴 Dos páginas publicadas de Kairo dicen cosas distintas sobre datos personales.** `[origen: radar 2026-11-13]`
   Esto ya no es la línea pendiente de `/precios`: es una **contradicción
   publicada**, y nació hoy al escribir la verdad en el sitio donde no se puede

@@ -411,16 +411,13 @@ export async function POST(req: Request) {
      cuatro megas en cada línea del historial. */
   const archivos = revisarAdjuntos(entradas[entradas.length - 1]?.adjuntos);
 
-  /* PARA CODE, LOS RÁPIDOS DELANTE. Code escribe un archivo entero en
-     menos de un minuto, y un modelo enorme (Nemotron Ultra, 550B) no
-     llega aunque sea muy listo. Así que en Code los gigantes van al
-     final de la cadena; en el chat se queda todo como está. */
-  const paraCode = cuerpo?.para === "code";
+  /* LOS RÁPIDOS DELANTE. Hay menos de un minuto por respuesta, y un
+     modelo enorme (Nemotron Ultra, 550B) no suele llegar aunque sea muy
+     listo: con Gemini sin cuota, el chat se quedaba esperándolo. Así
+     que los gigantes van al final de la cadena, en el chat y en Code. */
   const pesado = (id: string) => /ultra|[-_/]\d{3,}b(?:[-_:]|$)/i.test(id);
   const cadenaBase = cadenaDe(nivel, perfil.modo_edad);
-  const todaLaCadena = paraCode
-    ? [...cadenaBase.filter((m) => !pesado(m)), ...cadenaBase.filter(pesado)]
-    : cadenaBase;
+  const todaLaCadena = [...cadenaBase.filter((m) => !pesado(m)), ...cadenaBase.filter(pesado)];
 
   /* Con una imagen o un PDF delante, los modelos que solo leen texto no
      valen: no es que contesten peor, es que devuelven un error raro. Se

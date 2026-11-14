@@ -7,7 +7,7 @@ import { usePerfil } from "@/lib/perfil-cliente";
 import { Section } from "@/components/Section";
 import { Brain, Check, Close, Plus } from "@/components/Icons";
 import { MENTE, type Mente } from "@/lib/tipos";
-import { MENTES_POR_PLAN } from "@/lib/planes";
+import { MENTES_POR_PLAN, type PlanId } from "@/lib/planes";
 import { borrarMente, guardarMente, type EntradaMente } from "./acciones";
 
 const EMOJIS = [
@@ -122,7 +122,16 @@ export function MentesCliente({ inicial }: { inicial: Mente[] }) {
    * sabe en qué plan está: `usePerfil()` trae el perfil cargado en el
    * servidor. Es la misma solución que el dueño puso anoche en Co-Works
    * (`cw.limit` con su `{n}`), así que esto no inventa un patrón: lo copia. */
-  const topeMentes = MENTES_POR_PLAN[perfil.plan];
+  /* EL `??` ES SUYO, DEL 13-11, Y SE QUEDA.
+   *
+   * Él arregló esta misma pantalla por su cuenta esa tarde —leyó el parte de
+   * la mañana— y escribió `MENTES_POR_PLAN[perfil.plan as PlanId] ?? …free`.
+   * El `as PlanId` sobra aquí, porque `Perfil.plan` ya es `PlanId`; el `??`
+   * **no**: si algún día llega un plan que no está en la tabla —uno nuevo, o
+   * una fila rara en la base de datos—, sin él la pantalla diría
+   * "hasta undefined". Con él dice el del plan gratis, que es el más
+   * prudente. Es mejor que lo que yo había escrito. */
+  const topeMentes = MENTES_POR_PLAN[perfil.plan as PlanId] ?? MENTES_POR_PLAN.free;
 
   const abrir = (m: Mente) => setBorrador({ ...m });
 
