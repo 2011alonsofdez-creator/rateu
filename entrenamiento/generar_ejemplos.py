@@ -23,7 +23,20 @@ import urllib.request
 
 from google import genai
 from google.genai import types
-from google.colab import userdata
+try:
+    from google.colab import userdata  # en Colab: la llave de "Secretos"
+except ImportError:
+    userdata = None  # fuera de Colab (GitHub): variables de entorno
+
+
+def secreto(nombre):
+    """Lee una clave de los Secretos de Colab o, fuera de Colab, del entorno."""
+    if userdata is not None:
+        try:
+            return userdata.get(nombre)
+        except Exception:
+            return None
+    return os.environ.get(nombre) or None
 
 REPO = "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento"
 DATASET = "alonsofg29/kairo-ejemplos"
@@ -149,10 +162,7 @@ def contestar(cliente, sistema, pregunta, modelo_i):
 
 
 def token_hf():
-    try:
-        return userdata.get("HF_TOKEN")
-    except Exception:
-        return None
+    return secreto("HF_TOKEN")
 
 
 def subir(callado=False):
@@ -231,7 +241,7 @@ def main():
     sistema = bajar("prompt_kairo.txt")
     todas = preguntas()
     cliente = genai.Client(
-        api_key=userdata.get("GEMINI_API_KEY"),
+        api_key=secreto("GEMINI_API_KEY"),
         http_options=types.HttpOptions(api_version="v1beta"),
     )
     elegir_modelos(cliente)

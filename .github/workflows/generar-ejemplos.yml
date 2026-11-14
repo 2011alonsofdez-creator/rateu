@@ -1,0 +1,46 @@
+name: Generar ejemplos de Kairo
+
+# Lo mismo que el cuaderno de Colab (entrenamiento/README.md), pero aquí
+# no se desconecta: GitHub deja trabajar hasta 6 horas seguidas sin que
+# tengas nada abierto. Cada 10 ejemplos se guardan en tu Hugging Face, y
+# si se corta, al lanzarlo otra vez sigue por donde iba.
+#
+# Hacen falta dos secretos en GitHub → Settings → Secrets and variables
+# → Actions:
+#   GEMINI_API_KEY   una clave de Google AI Studio
+#   HF_TOKEN         un token de Hugging Face de tipo Write
+#
+# Se lanza a mano desde la pestaña Actions.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar
+        run: pip install -q -U google-genai huggingface_hub
+
+      - name: Generar
+        working-directory: entrenamiento
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "${GEMINI_API_KEY}" ]; then
+            echo "::error::Falta el secreto GEMINI_API_KEY en GitHub."
+            exit 1
+          fi
+          if [ -z "${HF_TOKEN}" ]; then
+            echo "::error::Falta el secreto HF_TOKEN en GitHub (sin él no se guarda nada)."
+            exit 1
+          fi
+          python -u generar_ejemplos.py
