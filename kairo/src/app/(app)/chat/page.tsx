@@ -811,6 +811,9 @@ function Chat() {
               if (abierto) colgarFuentes(lista, buscado);
               else fuentesEnEspera = { lista, buscado };
             }
+          } else if (ev.t === "titulo") {
+            // El título resumido del chat nuevo: que la barra lo enseñe ya.
+            router.refresh();
           } else if (ev.t === "guardado") {
             // Lo mismo para la respuesta: es lo que "Regenerar" reemplaza.
             const idRespuesta = String(ev.id ?? "");
