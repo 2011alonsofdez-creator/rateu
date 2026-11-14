@@ -37,18 +37,24 @@ dímelo y se cambia el prompt antes de hacer las 220.
 
 ## Paso 3 · Hacerlas todas (unos 40 minutos)
 
-En una celda nueva:
+En una celda nueva (si Colab dice "Volver a conectar", pulsa ahí primero):
 
 ```
+!pip -q install -U google-genai huggingface_hub
+!wget -q -O generar_ejemplos.py "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento/generar_ejemplos.py?v=4"
 %run generar_ejemplos.py
 ```
 
-Si se corta (Colab se duerme, se acaba la cuota…), vuelve a pulsar ▶: sigue
-por donde iba. Al acabar lo sube solo a
-`huggingface.co/datasets/alonsofg29/kairo-ejemplos`.
+Cada 20 ejemplos se guardan en tu Hugging Face. Si Colab se desconecta (lo
+hace solo si no lo usas un rato y borra sus archivos), vuelve a lanzar la
+misma celda: recupera lo hecho y sigue.
 
 ## Paso 4 · Revisarlas
 
-En esa página de Hugging Face sale una tabla con todas. Lee una buena parte:
-si una respuesta está mal o tiene un dato inventado, apúntala y se quita.
+```
+%run generar_ejemplos.py revisar
+```
+
+Descarga `revisar.csv`. Ábrelo con Google Sheets y pon una X en la columna
+"quitar" de las que estén mal o tengan algo inventado.
 **Los ejemplos malos enseñan cosas malas.** Es la parte más importante.

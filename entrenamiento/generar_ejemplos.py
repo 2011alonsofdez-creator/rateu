@@ -8,6 +8,7 @@
 # Uso en Colab (ver README.md):
 #   %run generar_ejemplos.py 5    -> prueba: 5 preguntas, las enseña y no sube nada
 #   %run generar_ejemplos.py      -> todas; si se corta, vuelve a lanzarlo y sigue
+#   %run generar_ejemplos.py revisar -> descarga revisar.csv para revisarlas
 #
 # Las claves NO van aquí: se leen de los "Secretos" de Colab (la llave
 # de la izquierda): GEMINI_API_KEY y HF_TOKEN.
@@ -147,28 +148,85 @@ def contestar(cliente, sistema, pregunta, modelo_i):
     return "", modelo_i
 
 
-def subir():
+def token_hf():
     try:
-        token = userdata.get("HF_TOKEN")
+        return userdata.get("HF_TOKEN")
     except Exception:
-        token = None
+        return None
+
+
+def subir(callado=False):
+    """Sube kairo.jsonl a tu dataset privado. Se llama cada 20 ejemplos y al
+    final: si Colab se desconecta (y borra sus archivos), lo hecho ya está
+    a salvo en Hugging Face."""
+    token = token_hf()
     if not token:
-        print("\nNo hay HF_TOKEN en los Secretos: no se sube. El archivo está en kairo.jsonl.")
+        if not callado:
+            print("\nNo hay HF_TOKEN en los Secretos: no se sube. El archivo está en kairo.jsonl.")
         return
     from huggingface_hub import HfApi
 
-    api = HfApi(token=token)
-    api.create_repo(DATASET, repo_type="dataset", private=True, exist_ok=True)
-    api.upload_file(
-        path_or_fileobj=SALIDA,
-        path_in_repo="data/train.jsonl",
-        repo_id=DATASET,
-        repo_type="dataset",
+    try:
+        api = HfApi(token=token)
+        api.create_repo(DATASET, repo_type="dataset", private=True, exist_ok=True)
+        api.upload_file(
+            path_or_fileobj=SALIDA,
+            path_in_repo="data/train.jsonl",
+            repo_id=DATASET,
+            repo_type="dataset",
+        )
+        if not callado:
+            print(f"\nSubido a https://huggingface.co/datasets/{DATASET}")
+    except Exception as e:
+        print(f"   · no se ha podido subir ahora ({str(e)[:100]}); se reintenta luego")
+
+
+def recuperar():
+    """Si en este Colab no está kairo.jsonl (se desconectó y lo borró), lo
+    baja de Hugging Face para seguir por donde iba."""
+    if os.path.exists(SALIDA):
+        return
+    token = token_hf()
+    if not token:
+        return
+    try:
+        from huggingface_hub import hf_hub_download
+
+        ruta = hf_hub_download(
+            DATASET, "data/train.jsonl", repo_type="dataset", token=token
+        )
+        with open(ruta, encoding="utf-8") as origen, open(SALIDA, "w", encoding="utf-8") as destino:
+            destino.write(origen.read())
+        print("Recuperado de Hugging Face lo que ya estaba hecho.")
+    except Exception:
+        pass  # todavía no hay nada subido: se empieza de cero
+
+
+def revisar():
+    """Crea revisar.csv (pregunta, respuesta, columna "quitar") y lo descarga."""
+    import pandas as pd
+    from google.colab import files
+
+    recuperar()
+    if not os.path.exists(SALIDA):
+        print("Todavía no hay ejemplos. Primero: %run generar_ejemplos.py")
+        return
+    filas = [json.loads(l)["messages"] for l in open(SALIDA, encoding="utf-8")]
+    tabla = pd.DataFrame(
+        {
+            "pregunta": [f[1]["content"] for f in filas],
+            "respuesta": [f[2]["content"] for f in filas],
+            "quitar": "",
+        }
     )
-    print(f"\nSubido a https://huggingface.co/datasets/{DATASET}")
+    tabla.to_csv("revisar.csv", index=False)
+    files.download("revisar.csv")
+    print(f"{len(tabla)} ejemplos en revisar.csv")
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "revisar":
+        return revisar()
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     sistema = bajar("prompt_kairo.txt")
     todas = preguntas()
@@ -190,6 +248,7 @@ def main():
             time.sleep(PAUSA)
         return
 
+    recuperar()
     hechas = ya_hechas()
     pendientes = [p for p in todas if p not in hechas]
     print(f"{len(todas)} preguntas · {len(hechas)} ya hechas · faltan {len(pendientes)}")
@@ -211,6 +270,8 @@ def main():
                 f.write(json.dumps(fila, ensure_ascii=False) + "\n")
                 f.flush()
                 buenas += 1
+                if buenas % 20 == 0:
+                    subir(callado=True)
             else:
                 descartadas += 1
                 print(f"   · descartada: {p}")
