@@ -56,7 +56,7 @@ En una celda nueva (si Colab dice "Volver a conectar", pulsa ahí primero):
 %run generar_ejemplos.py
 ```
 
-Cada 10 ejemplos se guardan en tu Hugging Face. Si Colab se desconecta (lo
+Cada 5 ejemplos se guardan en tu Hugging Face. Si Colab se desconecta (lo
 hace solo si no lo usas un rato y borra sus archivos), vuelve a lanzar la
 misma celda: recupera lo hecho y sigue.
 

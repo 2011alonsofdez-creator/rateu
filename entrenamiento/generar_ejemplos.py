@@ -189,7 +189,7 @@ def token_hf():
 
 
 def subir(callado=False):
-    """Sube kairo.jsonl a tu dataset privado. Se llama cada 10 ejemplos y al
+    """Sube kairo.jsonl a tu dataset privado. Se llama cada 5 ejemplos y al
     final: si Colab se desconecta (y borra sus archivos), lo hecho ya está
     a salvo en Hugging Face."""
     token = token_hf()
@@ -290,7 +290,7 @@ def main():
     print(f"{len(todas)} preguntas · {len(hechas)} ya hechas · faltan {len(pendientes)}")
     print(f"Tardará unos {round(len(pendientes) * (PAUSA + 4) / 60)} minutos.\n")
 
-    buenas = descartadas = 0
+    buenas = descartadas = seguidas_malas = 0
     modelo_i = 0
     with open(SALIDA, "a", encoding="utf-8") as f:
         for i, p in enumerate(pendientes, 1):
@@ -306,11 +306,19 @@ def main():
                 f.write(json.dumps(fila, ensure_ascii=False) + "\n")
                 f.flush()
                 buenas += 1
-                if buenas % 10 == 0:
+                seguidas_malas = 0
+                if buenas % 5 == 0:
                     subir(callado=True)
             else:
                 descartadas += 1
+                seguidas_malas += 1
                 print(f"   · descartada: {p}")
+                # Cinco seguidas sin respuesta: no es la pregunta, es que la
+                # clave se ha quedado sin cuota por hoy. Se guarda y se para.
+                if seguidas_malas >= 5:
+                    print("\nCinco seguidas sin respuesta: la cuota de hoy está agotada.")
+                    print("Lo hecho queda guardado. Vuelve a lanzarlo mañana y sigue por aquí.")
+                    break
             if i % 10 == 0:
                 print(f"{i}/{len(pendientes)} · buenas {buenas} · descartadas {descartadas}")
             time.sleep(PAUSA)
