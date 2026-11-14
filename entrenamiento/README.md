@@ -69,3 +69,34 @@ misma celda: recupera lo hecho y sigue.
 Descarga `revisar.csv`. Ábrelo con Google Sheets y pon una X en la columna
 "quitar" de las que estén mal o tengan algo inventado.
 **Los ejemplos malos enseñan cosas malas.** Es la parte más importante.
+
+## Entrenar (cuando los ejemplos estén revisados)
+
+En un cuaderno NUEVO de Colab:
+
+1. Entorno de ejecución → Cambiar tipo de entorno de ejecución → **T4 GPU** → Guardar.
+2. La llave de la izquierda: el secreto `HF_TOKEN` con "Acceso al cuaderno" activado.
+3. Primera celda (instala, unos 3 minutos):
+
+```
+!pip -q install unsloth
+!wget -q -O entrenar.py "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento/entrenar.py?v=1"
+```
+
+4. Examen ANTES de entrenar (apunta qué tal lo hace):
+
+```
+%run entrenar.py examen
+```
+
+5. Entrenar (20-40 minutos; sube el resultado a `alonsofg29/Kairo`):
+
+```
+%run entrenar.py
+```
+
+6. Examen DESPUÉS, para comparar:
+
+```
+%run entrenar.py examen-kairo
+```
