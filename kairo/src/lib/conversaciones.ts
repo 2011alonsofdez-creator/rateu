@@ -2,6 +2,7 @@ import { clienteServidor } from "./supabase/server";
 import { hasSupabase } from "./supabase/config";
 import { busquedasDesdeJson, fuentesDesdeJson } from "./ia/grounding";
 import { faltaColumna } from "./supabase/compat";
+import { pareceCrudo, tituloChat } from "./titulo-chat";
 import type { Conversacion, MensajeGuardado } from "./tipos";
 
 /* Lectura del historial. Solo servidor: usa cookies.
@@ -56,7 +57,21 @@ export async function listarConversaciones(): Promise<Conversacion[]> {
 
     if (error || !data) return [];
 
-    return (data as unknown as Record<string, unknown>[]).map((c) => ({
+    /* LOS CHATS VIEJOS: los que aún tienen de título la pregunta en
+       bruto se resumen aquí y se guardan, una sola vez (ya resumidos, no
+       vuelven a parecer en bruto). Si guardar falla, se enseña igual. */
+    const filas = data as unknown as Record<string, unknown>[];
+    await Promise.all(
+      filas.map(async (c) => {
+        const viejo = (c.titulo as string) || "";
+        if (!pareceCrudo(viejo)) return;
+        const nuevo = [...tituloChat(viejo)].slice(0, 60).join("");
+        c.titulo = nuevo;
+        await supabase.from("conversaciones").update({ titulo: nuevo }).eq("id", c.id as string);
+      }),
+    );
+
+    return filas.map((c) => ({
       id: c.id as string,
       titulo: (c.titulo as string) || "",
       menteId: (c.mente_id as string | null) ?? null,

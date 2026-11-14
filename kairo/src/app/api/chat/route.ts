@@ -31,7 +31,7 @@ import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { apartar, disponible } from "@/lib/ia/cuarentena";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
-import { tituloResumido } from "@/lib/ia/titulo";
+import { tituloChat } from "@/lib/titulo-chat";
 import { recortar } from "@/lib/texto";
 import { faltaColumna } from "@/lib/supabase/compat";
 import type { Level } from "@/lib/mock";
@@ -162,7 +162,8 @@ async function abrirConversacion(
     }
   }
 
-  const titulo = tituloDesde(textoUsuario);
+  // El título, resumido con reglas (sin IA): "q es el token d fornite" → "Token de Fortnite".
+  const titulo = recortar(tituloChat(textoUsuario), 60) || tituloDesde(textoUsuario);
   const { data, error } = await supabase
     .from("conversaciones")
     .insert({ perfil_id: perfilId, titulo, mente_id: menteId })
@@ -954,21 +955,6 @@ export async function POST(req: Request) {
             /* Y el identificador de la respuesta, para que "Regenerar"
                sepa cuál tiene que reemplazar en vez de dejar dos. */
             if (guardado?.id) enviar({ t: "guardado", id: guardado.id });
-
-            /* Chat nuevo: el título pasa de ser el principio de la
-               pregunta a un resumen de 2-5 palabras. Solo si queda
-               tiempo de sobra antes del corte de Vercel. */
-            if (conversacion.nueva && Date.now() - entro < PLAZO_RESPUESTA - 6000) {
-              const pregunta = historial[historial.length - 1]?.texto ?? "";
-              const resumen = await tituloResumido(pregunta, acumulado);
-              if (resumen) {
-                const { error: e2 } = await supabase
-                  .from("conversaciones")
-                  .update({ titulo: resumen })
-                  .eq("id", conversacion.id);
-                if (!e2) enviar({ t: "titulo", v: resumen });
-              }
-            }
           }
         } catch (e) {
           console.error("[kairo] fallo al guardar:", e instanceof Error ? e.message : e);
