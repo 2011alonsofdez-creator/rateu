@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { apuntar } from "@/lib/rastro";
 import { detectarEncargo } from "@/lib/coworks/detectar";
+import { detectarSugerencia } from "@/lib/sugerencias";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUi, type Lang, type TKey } from "@/lib/i18n";
@@ -21,7 +22,7 @@ import { Fuentes } from "@/components/Fuentes";
 import { Markdown } from "@/components/Markdown";
 import { Pensando } from "@/components/Pensando";
 import { Marca } from "@/components/Logo";
-import { Altavoz, Bolt, Brain, Check, Chevron, Clock, Code as Codigo, Copy, Fichas, Papel, Pencil, Refresh, Stop } from "@/components/Icons";
+import { Altavoz, Bolt, Brain, Check, Chevron, Clock, Code as Codigo, Copy, Fichas, Papel, Pencil, Refresh, Stop, Team as EquipoIcono } from "@/components/Icons";
 
 /* Respuestas de ejemplo. Solo se usan en modo demo, cuando no hay
    Supabase ni clave de Gemini configurados. */
@@ -1468,6 +1469,15 @@ function KairoMessage({
     if (encargo) apuntar("cowork_sugerido");
   }, [encargo]);
 
+  /* Y si no es un encargo, quizá otra sección lo hace mejor: Code para
+     una app, Paperwork para una multa, el Team para un contrato… Una
+     sola sugerencia por respuesta, y la de Co-Works va primero. */
+  const sugerencia = pregunta && !viva && !encargo ? detectarSugerencia(pregunta) : null;
+  const tipoSugerido = sugerencia?.tipo;
+  useEffect(() => {
+    if (tipoSugerido) apuntar("seccion_sugerida");
+  }, [tipoSugerido]);
+
   /* La voz la pone el navegador, no un servicio de pago: no cuesta nada
      y funciona sin conexión. Si el navegador no la trae, el botón no sale.
      Se comprueba después de pintar, no durante: preguntarlo al pintar da
@@ -1552,6 +1562,30 @@ function KairoMessage({
               className="shrink-0 rounded-lg bg-acento px-3 py-1.5 text-[12.5px] font-semibold text-on-accent transition hover:opacity-90"
             >
               {t("chat.coworkMake")}
+            </Link>
+          </div>
+        )}
+
+        {sugerencia && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-acento/35 bg-acento/5 px-3.5 py-2.5 text-[13px] leading-relaxed">
+            {sugerencia.tipo === "code" ? (
+              <Codigo className="h-4 w-4 shrink-0 text-acento" />
+            ) : sugerencia.tipo === "paperwork" ? (
+              <Papel className="h-4 w-4 shrink-0 text-acento" />
+            ) : sugerencia.tipo === "gist" ? (
+              <Fichas className="h-4 w-4 shrink-0 text-acento" />
+            ) : sugerencia.tipo === "mentes" ? (
+              <Brain className="h-4 w-4 shrink-0 text-acento" />
+            ) : (
+              <EquipoIcono className="h-4 w-4 shrink-0 text-acento" />
+            )}
+            <span className="min-w-0 flex-1 text-fg">{t(`sug.${sugerencia.tipo}`)}</span>
+            <Link
+              href={sugerencia.href}
+              onClick={() => apuntar("seccion_aceptada")}
+              className="shrink-0 rounded-lg bg-acento px-3 py-1.5 text-[12.5px] font-semibold text-on-accent transition hover:opacity-90"
+            >
+              {t(`sug.${sugerencia.tipo}Btn`)}
             </Link>
           </div>
         )}
