@@ -47,11 +47,19 @@ export async function hablar(texto: string): Promise<Buffer> {
   if (!claves.length) throw new Error("sin clave de Gemini");
 
   let ultimo: unknown = new Error("ningún modelo de voz disponible");
+  // Todo junto, como mucho 20 s: más vale que el navegador lea con su voz
+  // a que te quedes esperando en silencio.
+  const hasta = Date.now() + 20_000;
   for (const modelo of MODELOS) {
     if (!disponible(modelo)) continue;
     for (const clave of claves) for (const voz of VOCES) {
+      const queda = hasta - Date.now();
+      if (queda < 1000) throw ultimo;
       try {
-        const r = await new GoogleGenAI({ apiKey: clave }).models.generateContent({
+        const r = await new GoogleGenAI({
+          apiKey: clave,
+          httpOptions: { timeout: Math.min(15_000, queda) },
+        }).models.generateContent({
           model: modelo,
           contents: [{ role: "user", parts: [{ text: texto }] }],
           config: {
