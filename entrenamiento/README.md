@@ -35,7 +35,18 @@ Pega esto en una celda y pulsa ▶:
 Te enseña 5 respuestas. Léelas: ¿contesta como Kairo? Si algo no te gusta,
 dímelo y se cambia el prompt antes de hacer las 220.
 
-## Paso 3 · Hacerlas todas (unos 40 minutos)
+## Paso 3 (recomendado) · Que lo haga GitHub, sin que se desconecte
+
+1. GitHub → el repositorio → Settings → Secrets and variables → Actions →
+   New repository secret: `GEMINI_API_KEY` y `HF_TOKEN` (los mismos valores
+   que en Colab).
+2. Pestaña Actions → "Generar ejemplos de Kairo" → Run workflow.
+
+Tarda entre 40 minutos y un par de horas (según lo saturado que esté
+Gemini) y no hace falta tener nada abierto. Si se para, se lanza otra vez y
+sigue por donde iba.
+
+## Paso 3 (alternativa) · Hacerlas todas en Colab (unos 40 minutos)
 
 En una celda nueva (si Colab dice "Volver a conectar", pulsa ahí primero):
 
