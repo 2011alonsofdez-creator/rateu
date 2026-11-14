@@ -876,9 +876,12 @@ function Chat() {
   const ultimo = messages[messages.length - 1];
   const puedeReintentar = Boolean(error) && !busy && ultimo?.role === "user" && !perfil.demo;
 
+  /* Por el mismo camino que enviar: así sale "Pensando…" mientras
+     espera. Antes llamaba directamente a `pedir`, que no pone la pantalla
+     en modo "trabajando", y al pulsar no se veía nada hasta la respuesta. */
   const reintentar = () => {
     if (!puedeReintentar) return;
-    pedir(messages, true);
+    void arrancarRespuesta(messages, true);
   };
 
   const empty = messages.length === 0;
@@ -1382,9 +1385,9 @@ function UserMessage({
           onClick={abrir}
           title={t("app.edit")}
           aria-label={t("app.edit")}
-          /* En el móvil no hay ratón por encima de nada, así que ahí se
-             ve siempre, discreto. En el escritorio aparece al pasar. */
-          className="mt-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-faint opacity-70 transition hover:bg-panel-hi hover:text-fg focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          /* Siempre a la vista, discreto: en el escritorio antes solo
+             aparecía al pasar el ratón y nadie sabía que se podía editar. */
+          className="mt-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-faint opacity-70 transition hover:bg-panel-hi hover:text-fg hover:opacity-100 focus-visible:opacity-100 sm:opacity-50 sm:group-hover:opacity-100"
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
