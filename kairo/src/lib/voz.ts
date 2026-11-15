@@ -221,7 +221,11 @@ let sinVozHasta = 0;
 const ESPERA_VOZ = 8000;
 
 /** Pide a Kairo el audio de un trozo con esa voz. null si no se puede. */
-export async function audioDe(texto: string, espera = ESPERA_VOZ): Promise<string | null> {
+export async function audioDe(
+  texto: string,
+  idioma: "es" | "en",
+  espera = ESPERA_VOZ,
+): Promise<string | null> {
   if (Date.now() < sinVozHasta) return null;
   const corte = new AbortController();
   const reloj = window.setTimeout(() => corte.abort(), espera);
@@ -229,7 +233,7 @@ export async function audioDe(texto: string, espera = ESPERA_VOZ): Promise<strin
     const r = await fetch("/api/voz", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ texto }),
+      body: JSON.stringify({ texto, idioma }),
       signal: corte.signal,
     });
     if (!r.ok) throw new Error(String(r.status));
@@ -258,12 +262,12 @@ export function callar() {
 
 async function leerConKairo(trozos: string[], idioma: "es" | "en", alTerminar: () => void) {
   const esta = lectura;
-  let siguiente = audioDe(trozos[0]);
+  let siguiente = audioDe(trozos[0], idioma);
   for (let i = 0; i < trozos.length; i++) {
     const url = await siguiente;
     if (esta !== lectura) return;
     if (!url) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
-    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1], 25_000);
+    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1], idioma, 25_000);
     const audio = new Audio(url);
     sonando = audio;
     const ok = await new Promise<boolean>((fin) => {

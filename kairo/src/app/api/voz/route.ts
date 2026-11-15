@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (!texto) return Response.json({ error: "mal" }, { status: 400 });
 
   try {
-    const wav = await hablar(texto);
+    const wav = await hablar(texto, cuerpo?.idioma === "en" ? "en" : "es");
     return new Response(new Uint8Array(wav), {
       headers: { "content-type": "audio/wav", "cache-control": "no-store" },
     });
