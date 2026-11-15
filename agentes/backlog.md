@@ -13,6 +13,25 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 Ayer se perdió medio día de agentes: cuarta vez en trece días.** `[origen: guardian 2026-11-15]`
+  El 14-11 los avisos del constructor (07:47) y de crecimiento (09:21) **no
+  llegaron hasta las 06:12 de hoy**, veintidós y veintiuna horas tarde, y el del
+  entrenador le pilló a medias: su cambio estaba escrito en el disco y sin commit
+  cuando el proceso se reinició. Solo el guardián entregó a su hora.
+
+  **No es un hallazgo nuevo: es el mismo P1 del 10-11**, cuatro ocurrencias más
+  abajo en este archivo, con su tabla del patrón y con la solución ya escrita
+  —**cron diarios para los cinco agentes**, dos minutos en la pantalla de
+  rutinas—. Lo que añade hoy es la cuarta marca y la prueba de que el daño no se
+  recupera solo: **el informe de mercado va por el cuarto día con una cadencia de
+  tres**, porque un turno de cada 3 días que se pierde no vuelve hasta el
+  siguiente. Y el reloj de Co-Works, que vive en GitHub y no en esta sesión,
+  volvió a no perder un toque en esas mismas horas.
+
+  **Lo que sí se ha recuperado a mano hoy**: el parte del 14 está escrito y dice
+  que fue así en vez de inventarlo, y el turno del entrenador terminado y
+  comprobado.
+
 - **🟡 Arregló media pantalla de Mentes: la intro ya dice el tope real, el aviso del tope sigue diciendo 30.** `[origen: guardian 2026-11-14]`
   **Primero lo bueno, que es mucho**: anoche a las 17:45 arregló él mismo la
   intro de Mentes (`89cc3be`), **leyendo el parte de la mañana**, y con la misma
@@ -230,6 +249,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   **Es suyo y no se puede arreglar desde aquí**: son tareas programadas, no viven
   en el repositorio. Dos minutos en la pantalla de rutinas.
+
+  **Al día 2026-11-15: cuarta vez.** El 14-11 se perdieron los turnos del
+  constructor y de crecimiento (avisos leídos 22 y 21 horas tarde) y el del
+  entrenador se quedó a medio hacer. La tabla de arriba suma una fila:
+
+  | Cuándo | Qué se perdió |
+  |---|---|
+  | **14-11** | **el parte del constructor y el informe de mercado; el entrenador, a medias** |
+
+  Y el argumento de los cron diarios ya no es una previsión, es una medida: el
+  mercado se mira cada 3 días y hoy lleva **cuatro** sin mirarse, igual que el
+  08-11 llevaba siete. Van cuatro veces que se dice.
 
 - **🔴 El "No" falso de `/precios` cumple cinco días publicado.** `[origen: guardian 2026-11-10 · el hallazgo es del 2026-11-06]`
   Sin novedad, y eso es la novedad: la FAQ de `/precios` sigue diciendo, en
