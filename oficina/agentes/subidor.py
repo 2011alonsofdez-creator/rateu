@@ -11,6 +11,7 @@ from ..nucleo.youtube import YouTube, enlace
 
 def publicar(ruta: Path, guion: dict, idea: str | None = None) -> str:
     yt = YouTube()
+    yt.verificar()
     etiquetas = list(guion.get("etiquetas", []))
     descripcion = guion.get("descripcion", "")
     if "#" not in descripcion:

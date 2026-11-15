@@ -2,22 +2,22 @@
   "canal": {
     "nombre": "",
     "id": "",
+    "slug": "",
     "idioma": "es",
     "pais": "ES",
     "zona_horaria": "Europe/Madrid"
   },
   "nicho": {
-    "principal": "RELLENA AQUI TU NICHO EN UNA LINEA",
+    "principal": "",
     "subtemas": [],
-    "publico": "hispanohablantes 18-34 en movil",
+    "publico": "",
     "prohibido": [
       "politica",
-      "salud o medicina con consejos concretos",
-      "finanzas con recomendaciones de inversion",
       "contenido sexual",
       "violencia grafica",
       "menores"
-    ]
+    ],
+    "reglas": []
   },
   "publicacion": {
     "hora_fija": "19:00",

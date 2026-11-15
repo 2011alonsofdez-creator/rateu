@@ -33,13 +33,21 @@ def _peticion(idea: str | None, lecciones: list[str], titulos_usados: list[str])
     publico = AJUSTES.get("nicho.publico", "")
     prohibido = ", ".join(AJUSTES.get("nicho.prohibido", []) or [])
 
+    reglas = AJUSTES.get("nicho.reglas") or []
+
     bloques = [
+        f"Canal: {AJUSTES.get('canal.nombre') or AJUSTES.slug}",
         f"Nicho del canal: {nicho}",
         f"Subtemas preferidos: {subtemas}",
         f"Publico: {publico}",
         f"Temas prohibidos: {prohibido}",
         f"Duracion total objetivo: {duracion} segundos repartidos en {escenas} escenas.",
     ]
+    if reglas:
+        bloques.append(
+            "Reglas propias de ESTE canal (mandan sobre todo lo demas):\n- "
+            + "\n- ".join(str(r) for r in reglas)
+        )
     if idea:
         bloques.append(f"Idea concreta que viene del buscador de nichos: {idea}")
     if lecciones:

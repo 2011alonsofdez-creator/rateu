@@ -171,6 +171,25 @@ class YouTube:
         )
         return [(f[0], int(f[1])) for f in (datos.get("rows") or [])]
 
+    def verificar(self) -> dict:
+        """Evita el desastre de subir el short de un canal al otro."""
+        ficha = self.canal()
+        esperado = (AJUSTES.get("canal.id") or "").strip()
+        real = ficha["id"]
+        if esperado and esperado != real:
+            raise ErrorYouTube(
+                f"el token autoriza el canal {ficha['snippet']['title']} ({real}) "
+                f"pero la configuracion de '{AJUSTES.slug}' espera {esperado}. "
+                "Revisa el secreto YT_REFRESH_TOKEN de ese canal."
+            )
+        if not esperado:
+            di(
+                "youtube",
+                f"canal.id vacio en {AJUSTES.slug}; el token apunta a "
+                f"{ficha['snippet']['title']} ({real}). Apuntalo en canales/{AJUSTES.slug}.json",
+            )
+        return ficha
+
     # ---------- subida ----------
     def subir(
         self,

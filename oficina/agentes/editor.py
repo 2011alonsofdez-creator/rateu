@@ -11,7 +11,7 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-from ..nucleo.ajustes import AJUSTES, VIDEOS
+from ..nucleo.ajustes import AJUSTES
 from ..nucleo.registro import di
 
 SIMULADO = os.environ.get("OFICINA_SIMULADA") == "1"
@@ -218,7 +218,7 @@ def montar(guion: dict[str, Any], carpeta: Path | None = None) -> Path:
     """Devuelve la ruta del mp4 terminado."""
     if not shutil.which("ffmpeg"):
         raise RuntimeError("falta ffmpeg en el sistema")
-    carpeta = carpeta or (VIDEOS / "montaje")
+    carpeta = carpeta or (AJUSTES.carpeta_videos / "montaje")
     if carpeta.exists():
         shutil.rmtree(carpeta)
     carpeta.mkdir(parents=True, exist_ok=True)
@@ -268,7 +268,7 @@ def montar(guion: dict[str, Any], carpeta: Path | None = None) -> Path:
         _ass(escenas, duraciones, subs)
         filtros.append(f"subtitles={subs.name}")
 
-    final = VIDEOS / "short.mp4"
+    final = AJUSTES.carpeta_videos / "short.mp4"
     orden = [
         "ffmpeg", "-y", "-i", video_mudo.name, "-i", voz_entera.name,
     ]

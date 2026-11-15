@@ -1,0 +1,51 @@
+{
+  "canal": {
+    "nombre": "Otra Época",
+    "id": "UCeFxGfEosv2LzPhOSg6OC4A",
+    "slug": "otra-epoca",
+    "idioma": "es",
+    "pais": "ES",
+    "zona_horaria": "Europe/Madrid"
+  },
+  "nicho": {
+    "principal": "POV: eres una persona normal viviendo un dia cualquiera en otra epoca u otro universo",
+    "subtemas": [
+      "POV en epocas historicas: Roma, Edad Media, Egipto, el Oeste, los anos 80",
+      "POV en universos de ficcion y futuros posibles",
+      "que comias, cuanto cobrabas y a que olia de verdad aquello",
+      "costumbres cotidianas que hoy pareceran una locura",
+      "el mismo oficio en tres epocas distintas"
+    ],
+    "publico": "curiosos de 18 a 34 anos, consumo en movil",
+    "prohibido": [
+      "politica",
+      "contenido sexual",
+      "violencia grafica",
+      "menores",
+      "negacionismo o revisionismo historico",
+      "presentar como historico algo inventado sin avisar"
+    ],
+    "reglas": [
+      "Segunda persona todo el rato: 'te despiertas', 'te toca', el espectador ES el personaje.",
+      "El primer plano situa epoca y sitio en menos de tres segundos: un objeto, un olor, un sonido.",
+      "Los datos historicos que des tienen que ser de conocimiento comun y verificable; si es una recreacion libre, que se note en el tono y no se afirme como dato.",
+      "Cierra con el detalle mas chocante del dia, no con un resumen."
+    ]
+  },
+  "publicacion": {
+    "categoria_youtube": "24",
+    "horas_a_probar": [
+      "13:00",
+      "15:00",
+      "17:00",
+      "19:00",
+      "21:00",
+      "22:00",
+      "20:00"
+    ]
+  },
+  "video": {
+    "voz": "onyx",
+    "escenas": 6
+  }
+}

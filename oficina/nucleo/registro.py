@@ -7,10 +7,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .ajustes import DATOS, INFORMES
+from .ajustes import AJUSTES, DATOS
 
-MEMORIA = DATOS / "memoria.json"
-HISTORIAL = DATOS / "historial.json"
+
+def _memoria_ruta() -> Path:
+    return AJUSTES.carpeta_datos / "memoria.json"
+
+
+def _historial_ruta() -> Path:
+    return AJUSTES.carpeta_datos / "historial.json"
 
 _PLANTILLA_MEMORIA: dict[str, Any] = {
     "lecciones": [],          # lo que el analista aprende de la retencion
@@ -30,7 +35,11 @@ def hoy() -> str:
 
 
 def di(agente: str, mensaje: str) -> None:
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {agente:<10} | {mensaje}", flush=True)
+    canal = AJUSTES.slug
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {canal:<11} {agente:<10} | {mensaje}",
+        flush=True,
+    )
 
 
 def _cargar(ruta: Path, por_defecto: Any) -> Any:
@@ -46,23 +55,23 @@ def _guardar(ruta: Path, datos: Any) -> None:
 
 
 def memoria() -> dict:
-    datos = _cargar(MEMORIA, {})
+    datos = _cargar(_memoria_ruta(), {})
     for clave, valor in _PLANTILLA_MEMORIA.items():
         datos.setdefault(clave, json.loads(json.dumps(valor)))
     return datos
 
 
 def guardar_memoria(datos: dict) -> None:
-    _guardar(MEMORIA, datos)
+    _guardar(_memoria_ruta(), datos)
 
 
 def historial() -> list[dict]:
-    datos = _cargar(HISTORIAL, [])
+    datos = _cargar(_historial_ruta(), [])
     return datos if isinstance(datos, list) else []
 
 
 def guardar_historial(datos: list[dict]) -> None:
-    _guardar(HISTORIAL, datos)
+    _guardar(_historial_ruta(), datos)
 
 
 def apuntar_video(entrada: dict) -> None:
@@ -81,7 +90,7 @@ def actualizar_video(video_id: str, cambios: dict) -> None:
 
 
 def informe(nombre: str, texto: str) -> Path:
-    ruta = INFORMES / f"{hoy()}-{nombre}.md"
+    ruta = AJUSTES.carpeta_informes / f"{hoy()}-{nombre}.md"
     ruta.write_text(texto, encoding="utf-8")
     di("oficina", f"informe guardado en {ruta.relative_to(DATOS.parent)}")
     return ruta

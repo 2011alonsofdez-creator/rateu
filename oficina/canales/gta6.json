@@ -1,0 +1,52 @@
+{
+  "canal": {
+    "nombre": "GTA 6",
+    "id": "",
+    "slug": "gta6",
+    "idioma": "es",
+    "pais": "ES",
+    "zona_horaria": "Europe/Madrid"
+  },
+  "nicho": {
+    "principal": "GTA 6: todo lo que se sabe del juego, mapa, personajes, comparativas con GTA 5 y cuenta atras para el lanzamiento",
+    "subtemas": [
+      "detalles del trailer fotograma a fotograma",
+      "mapa de Leonida y sitios reales de Florida en los que se basa",
+      "Jason y Lucia: lo que se sabe de la pareja protagonista",
+      "comparativa GTA 6 contra GTA 5 y contra GTA San Andreas",
+      "cosas de GTA 5 que no volveran",
+      "requisitos, consolas y fecha de salida"
+    ],
+    "publico": "jugadores de 16 a 30 anos esperando el lanzamiento, en movil",
+    "prohibido": [
+      "politica",
+      "contenido sexual",
+      "violencia grafica",
+      "enlaces o instrucciones para descargar el juego, betas o APK falsas",
+      "material de las filtraciones robadas de 2022",
+      "dar rumores por confirmados"
+    ],
+    "reglas": [
+      "Distingue SIEMPRE lo confirmado por Rockstar de lo que es rumor: si no sale en un trailer oficial o en una nota de Rockstar, la frase lleva 'se rumorea' o 'los fans creen'.",
+      "Nunca des una fecha de salida como segura si Rockstar no la ha dicho.",
+      "No prometas gameplay ni filtraciones exclusivas que el video no ensena.",
+      "El gancho puede ser una pregunta sobre el mapa o un detalle concreto del trailer, nunca 'GTA 6 es increible'."
+    ]
+  },
+  "publicacion": {
+    "categoria_youtube": "20",
+    "horas_a_probar": [
+      "14:00",
+      "16:00",
+      "18:00",
+      "20:00",
+      "21:00",
+      "22:00",
+      "12:00"
+    ]
+  },
+  "video": {
+    "voz": "ash",
+    "escenas": 6
+  }
+}

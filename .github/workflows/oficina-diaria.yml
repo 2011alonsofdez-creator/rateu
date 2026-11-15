@@ -8,9 +8,14 @@ name: Oficina de Shorts - turno diario
 # El guion decide si toca o no (agentes/horario.py): publica desde la hora
 # prevista hasta dos horas después, y una sola vez al día.
 #
+# Un trabajo por canal, en paralelo: cada uno con su nicho, su voz y su
+# hora. Si uno se cae, el otro sigue.
+#
 # Secretos en Settings -> Secrets and variables -> Actions:
-#   ANTHROPIC_API_KEY, OPENAI_API_KEY,
-#   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
+#   ANTHROPIC_API_KEY, OPENAI_API_KEY
+#   YT_CLIENT_ID, YT_CLIENT_SECRET          (comunes a los dos canales)
+#   YT_REFRESH_TOKEN_GTA6                   (token del canal de GTA 6)
+#   YT_REFRESH_TOKEN_OTRA_EPOCA             (token de Otra Época)
 
 on:
   schedule:
@@ -21,6 +26,11 @@ on:
         description: "Publicar ahora aunque no sea la hora"
         type: boolean
         default: false
+      canal:
+        description: "Canal (vacío = los dos)"
+        type: choice
+        options: ["", "gta6", "otra-epoca"]
+        default: ""
 
 concurrency:
   group: oficina-shorts
@@ -33,6 +43,11 @@ jobs:
   turno:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        canal: [gta6, otra-epoca]
     steps:
       - uses: actions/checkout@v4
 
@@ -49,22 +64,24 @@ jobs:
           ffmpeg -version | head -1
 
       - name: Pasar el turno
+        if: inputs.canal == '' || inputs.canal == matrix.canal
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_REFRESH_TOKEN_GTA6: ${{ secrets.YT_REFRESH_TOKEN_GTA6 }}
+          YT_REFRESH_TOKEN_OTRA_EPOCA: ${{ secrets.YT_REFRESH_TOKEN_OTRA_EPOCA }}
         run: |
-          python -m oficina.oficina dia ${{ inputs.forzar && '--forzar' || '' }}
+          python -m oficina.oficina dia --canal ${{ matrix.canal }} ${{ inputs.forzar && '--forzar' || '' }}
 
       - name: Guardar lo que ha aprendido la oficina
-        if: always()
+        if: always() && (inputs.canal == '' || inputs.canal == matrix.canal)
         run: |
           git config user.name "Oficina de Shorts"
           git config user.email "actions@github.com"
           git add oficina/datos
           git diff --cached --quiet && echo "nada que guardar" && exit 0
-          git commit -m "Oficina: turno del $(date -u +%Y-%m-%d\ %H:%M) UTC"
+          git commit -m "Oficina (${{ matrix.canal }}): turno del $(date -u +%Y-%m-%d\ %H:%M) UTC"
           git pull --rebase --autostash origin ${{ github.ref_name }} || true
           git push origin HEAD:${{ github.ref_name }}

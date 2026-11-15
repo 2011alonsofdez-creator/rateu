@@ -1,8 +1,22 @@
 # Oficina de YouTube Shorts
 
-Seis agentes que hacen un canal de Shorts solos: buscan tema, escriben, montan,
+Seis agentes que llevan canales de Shorts solos: buscan tema, escriben, montan,
 suben, miden la retención y aprenden a qué hora publicar. Viven en GitHub Actions,
 así que funcionan con tu ordenador apagado.
+
+## Dos canales
+
+| Canal | Carpeta de datos | Nicho | Horas que prueba |
+| --- | --- | --- | --- |
+| **GTA 6** (`canales/gta6.json`) | `datos/gta6/` | Todo lo que se sabe del juego: mapa, personajes, comparativas, cuenta atrás | 12, 14, 16, 18, 20, 21, 22 |
+| **Otra Época** (`canales/otra-epoca.json`) | `datos/otra-epoca/` | POV: un día normal en otra época u otro universo | 13, 15, 17, 19, 20, 21, 22 |
+
+Cada canal tiene su nicho, sus reglas de guion, su voz, su categoría de YouTube,
+su memoria, su historial y su hora. `config.json` son solo los valores por defecto
+que comparten. Las horas van distintas a propósito: así no compiten entre ellos y
+cada uno aprende su mejor hora por separado.
+
+Todas las órdenes aceptan `--canal gta6`, `--canal otra-epoca` o `--canal todos`.
 
 ```
 nichos  →  guionista  →  editor  →  subidor
@@ -24,11 +38,16 @@ El jefe es `oficina.py`: decide si toca publicar y los llama en orden.
 
 ## Puesta en marcha
 
-### 1. Rellena el nicho
+### 1. Repasa los dos canales
 
-En `oficina/config.json`, `nicho.principal` en una línea (por ejemplo:
-`"curiosidades de aviación comercial"`). Lo demás ya trae valores sensatos:
-duración, voz, hora, idioma, temas prohibidos.
+`canales/gta6.json` y `canales/otra-epoca.json` ya vienen con nicho, subtemas,
+reglas de guion y temas prohibidos. Lo único que falta es `canal.id` del canal de
+GTA 6 (el de Otra Época ya está: `UCeFxGfEosv2LzPhOSg6OC4A`). Ese id sale de
+YouTube Studio → Configuración → Configuración del canal → Información avanzada.
+
+Sirve de seguro: antes de subir, la oficina comprueba que el token apunta a ese
+canal y se niega a publicar si no coincide, para que un short de GTA no acabe en
+el canal de POV.
 
 ### 2. Claves de IA
 
@@ -53,8 +72,15 @@ pip install requests
 python oficina/herramientas/obtener_token.py --id TU_CLIENT_ID --secreto TU_SECRETO
 ```
 
-Te imprime un *refresh token*. Guarda los tres como secretos: `YT_CLIENT_ID`,
-`YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN`.
+Te imprime un *refresh token*. **Hazlo dos veces**, una iniciando sesión con la
+cuenta de cada canal, y guarda:
+
+- `YT_CLIENT_ID` y `YT_CLIENT_SECRET` (los mismos para los dos)
+- `YT_REFRESH_TOKEN_GTA6`
+- `YT_REFRESH_TOKEN_OTRA_EPOCA`
+
+Si los dos canales cuelgan de la misma cuenta de Google, al autorizar sale un
+selector de canal: elige el que toca en cada pasada.
 
 ### 4. Enciéndelo
 
@@ -69,7 +95,7 @@ pip install -r oficina/requirements.txt
 ```
 
 ```bash
-OFICINA_SIMULADA=1 python -m oficina.oficina prueba
+OFICINA_SIMULADA=1 python -m oficina.oficina prueba --canal gta6
 ```
 
 `OFICINA_SIMULADA=1` monta el vídeo con tonos y fondos de color en vez de llamar a
@@ -77,11 +103,11 @@ la IA de voz e imagen: sirve para ver que ffmpeg y los subtítulos van bien. Sin
 variable (y con claves) hace el short de verdad y **no** lo sube.
 
 ```bash
-python -m oficina.oficina estado        # qué sabe la oficina ahora mismo
-python -m oficina.oficina nichos        # solo buscar temas
-python -m oficina.oficina retencion     # solo analizar retención
-python -m oficina.oficina horas         # solo recalcular horas
-python -m oficina.oficina dia --forzar  # turno completo y subir ya
+python -m oficina.oficina estado --canal todos        # qué sabe la oficina
+python -m oficina.oficina nichos --canal gta6         # solo buscar temas
+python -m oficina.oficina retencion --canal todos     # solo analizar retención
+python -m oficina.oficina horas --canal todos         # solo recalcular horas
+python -m oficina.oficina dia --canal gta6 --forzar   # turno completo y subir ya
 ```
 
 ## Cómo aprende
@@ -100,9 +126,10 @@ python -m oficina.oficina dia --forzar  # turno completo y subir ya
 - **La retención tarda.** YouTube no da curva hasta que el vídeo tiene unas horas y
   unas cuantas visualizaciones; el analista salta los vídeos de menos de dos días.
 - **Cuota de la API.** La búsqueda de nichos gasta 100 unidades por consulta y el día
-  trae 10 000. Por eso solo se busca una vez por semana o cuando se vacía la cola.
+  trae 10 000 **por proyecto de Google Cloud**, no por canal: con dos canales buscando
+  se gasta el doble. Por eso solo se busca una vez por semana o cuando se vacía la cola.
 - **Sube público y sin revisión previa.** Es lo que pediste. Si algún día quieres
   verlos antes, pon `publicacion.privacidad` en `"private"`.
 - **Coste aproximado por vídeo:** un guion de Claude + una voz corta + 6 imágenes.
   Las imágenes son con diferencia lo más caro; bajar `video.escenas` a 4 lo recorta.
-- **Vídeos generados** (`datos/videos/`) no se guardan en git.
+- **Vídeos generados** (`datos/<canal>/videos/`) no se guardan en git.

@@ -38,12 +38,13 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_REFRESH_TOKEN_GTA6: ${{ secrets.YT_REFRESH_TOKEN_GTA6 }}
+          YT_REFRESH_TOKEN_OTRA_EPOCA: ${{ secrets.YT_REFRESH_TOKEN_OTRA_EPOCA }}
         run: |
-          python -m oficina.oficina retencion || true
-          python -m oficina.oficina horas || true
-          python -m oficina.oficina nichos || true
-          python -m oficina.oficina estado
+          python -m oficina.oficina retencion --canal todos || true
+          python -m oficina.oficina horas --canal todos || true
+          python -m oficina.oficina nichos --canal todos || true
+          python -m oficina.oficina estado --canal todos
 
       - name: Guardar informes
         if: always()
