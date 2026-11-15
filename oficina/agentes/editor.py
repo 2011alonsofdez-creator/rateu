@@ -7,6 +7,7 @@ import math
 import os
 import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 from typing import Any
@@ -51,15 +52,25 @@ def _cliente_openai():
 
 
 # ---------- voz ----------
-def _voz(texto: str, destino: Path) -> None:
-    if SIMULADO:
-        segundos = max(1.5, len(texto.split()) / 2.6)
-        _ejecutar([
-            "ffmpeg", "-y", "-f", "lavfi", "-i",
-            f"sine=frequency=180:duration={segundos:.2f}",
-            "-ac", "1", "-ar", "44100", str(destino),
-        ])
-        return
+def _voz_edge(texto: str, destino: Path) -> None:
+    """Voces de Microsoft Edge: gratis, sin clave, suenan bien en espanol."""
+    voz = AJUSTES.get("video.voz_edge", "es-ES-AlvaroNeural")
+    ritmo = AJUSTES.get("video.ritmo_edge", "+8%")
+    proceso = subprocess.run(
+        [
+            sys.executable, "-m", "edge_tts",
+            "--voice", voz,
+            "--rate", ritmo,
+            "--text", texto,
+            "--write-media", str(destino),
+        ],
+        capture_output=True, text=True, timeout=180,
+    )
+    if proceso.returncode != 0 or not destino.exists() or destino.stat().st_size < 1000:
+        raise RuntimeError(f"edge-tts ha fallado: {(proceso.stderr or '')[-300:]}")
+
+
+def _voz_openai(texto: str, destino: Path) -> None:
     cliente = _cliente_openai()
     respuesta = cliente.audio.speech.create(
         model=AJUSTES.get("ia.modelo_voz", "gpt-4o-mini-tts"),
@@ -72,6 +83,33 @@ def _voz(texto: str, destino: Path) -> None:
         response_format="mp3",
     )
     destino.write_bytes(respuesta.read())
+
+
+def _voz(texto: str, destino: Path) -> None:
+    if SIMULADO:
+        segundos = max(1.5, len(texto.split()) / 2.6)
+        _ejecutar([
+            "ffmpeg", "-y", "-f", "lavfi", "-i",
+            f"sine=frequency=180:duration={segundos:.2f}",
+            "-ac", "1", "-ar", "44100", str(destino),
+        ])
+        return
+    proveedor = (AJUSTES.get("ia.voz_proveedor") or "edge").lower()
+    intentos = ["edge", "openai"] if proveedor == "edge" else ["openai", "edge"]
+    errores = []
+    for intento in intentos:
+        try:
+            if intento == "edge":
+                _voz_edge(texto, destino)
+            elif AJUSTES.clave_openai:
+                _voz_openai(texto, destino)
+            else:
+                continue
+            return
+        except Exception as exc:  # noqa: BLE001
+            errores.append(f"{intento}: {exc}")
+            di("editor", f"la voz por {intento} no ha salido, pruebo otra cosa")
+    raise RuntimeError("no he podido generar la voz -> " + " | ".join(errores))
 
 
 # ---------- imagenes ----------
@@ -98,10 +136,39 @@ def _imagen_placeholder(prompt: str, destino: Path, indice: int) -> None:
     img.save(destino)
 
 
+def _imagen_gratis(prompt: str, destino: Path) -> None:
+    """Pollinations: generacion de imagenes gratis y sin clave."""
+    import urllib.parse
+
+    import requests
+
+    texto = urllib.parse.quote(
+        f"{prompt}. Vertical 9:16, cinematic, high contrast, no text, no watermark"
+    )
+    url = (
+        f"https://image.pollinations.ai/prompt/{texto}"
+        "?width=1024&height=1536&nologo=true&model=flux"
+    )
+    respuesta = requests.get(url, timeout=180)
+    respuesta.raise_for_status()
+    if len(respuesta.content) < 5000:
+        raise RuntimeError("la imagen ha venido vacia")
+    destino.write_bytes(respuesta.content)
+
+
 def _imagen(prompt: str, destino: Path, indice: int) -> None:
     if SIMULADO:
         _imagen_placeholder(prompt, destino, indice)
         return
+    if (AJUSTES.get("ia.imagen_proveedor") or "gratis").lower() == "gratis":
+        try:
+            _imagen_gratis(prompt, destino)
+            return
+        except Exception as exc:  # noqa: BLE001
+            di("editor", f"imagen {indice} gratis ha fallado ({exc})")
+            if not AJUSTES.clave_openai:
+                _imagen_placeholder(prompt, destino, indice)
+                return
     try:
         cliente = _cliente_openai()
         respuesta = cliente.images.generate(

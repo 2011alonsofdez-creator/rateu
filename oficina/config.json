@@ -50,11 +50,16 @@
     "subtitulos": true,
     "musica": false,
     "modo": "alterno",
-    "si_no_hay_flow": "auto"
+    "si_no_hay_flow": "auto",
+    "voz_edge": "es-ES-AlvaroNeural",
+    "ritmo_edge": "+8%"
   },
   "ia": {
+    "modelo_texto_alias": "sonnet",
     "modelo_texto": "claude-opus-5-5",
     "esfuerzo": "medium",
+    "voz_proveedor": "edge",
+    "imagen_proveedor": "gratis",
     "modelo_imagen": "gpt-image-1",
     "modelo_voz": "gpt-4o-mini-tts"
   },

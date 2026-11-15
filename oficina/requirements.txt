@@ -1,4 +1,6 @@
-anthropic>=1.0
-openai>=1.40
+edge-tts>=7.0
 requests>=2.31
 Pillow>=10.0
+# solo si algun dia pagas la API en vez de usar la suscripcion:
+anthropic>=1.0
+openai>=1.40

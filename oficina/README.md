@@ -50,12 +50,34 @@ Sirve de seguro: antes de subir, la oficina comprueba que el token apunta a ese
 canal y se niega a publicar si no coincide, para que un short de GTA no acabe en
 el canal de POV.
 
-### 2. Claves de IA
+### 2. La IA, sin pagar APIs
 
-En GitHub: **Settings → Secrets and variables → Actions → New repository secret**.
+Todo lo que piensa y produce la oficina va con lo que ya tienes:
 
-- `ANTHROPIC_API_KEY` — guiones, nichos y análisis (Claude).
-- `OPENAI_API_KEY` — voz (`gpt-4o-mini-tts`) e imágenes (`gpt-image-1`).
+| Qué | Con qué | Coste |
+| --- | --- | --- |
+| Guiones, nichos, análisis | Claude Code con **tu suscripción** | incluido en tu plan |
+| Voz en off | `edge-tts` (voces de Microsoft Edge) | gratis, sin clave |
+| Imágenes | Pollinations (modelo flux) | gratis, sin clave |
+| Vídeo los días pares | Flow, a mano | tu cuenta de Flow |
+
+Solo hace falta **un secreto** para esto. En tu ordenador, una vez:
+
+```bash
+claude setup-token
+```
+
+Te da un token largo (requiere suscripción de Claude). Lo guardas en GitHub
+→ **Settings → Secrets and variables → Actions → New repository secret** con el
+nombre `CLAUDE_CODE_OAUTH_TOKEN`.
+
+Ese token gasta de tu límite de uso del plan, no de una tarjeta. Si un día lo
+agotas, el turno de ese día falla y el siguiente vuelve a intentarlo.
+
+Si algún día prefieres pagar la API en vez de usar la suscripción, pon
+`ANTHROPIC_API_KEY` (y `OPENAI_API_KEY` para voz e imágenes de pago, cambiando
+`ia.voz_proveedor` a `"openai"` e `ia.imagen_proveedor` a `"openai"`). La
+oficina usa la suscripción si está, y la API si no.
 
 ### 3. Permisos de tu canal de YouTube
 
@@ -175,6 +197,9 @@ o me lo pides y lo sincronizo yo.
   se gasta el doble. Por eso solo se busca una vez por semana o cuando se vacía la cola.
 - **Sube público y sin revisión previa.** Es lo que pediste. Si algún día quieres
   verlos antes, pon `publicacion.privacidad` en `"private"`.
-- **Coste aproximado por vídeo:** un guion de Claude + una voz corta + 6 imágenes.
-  Las imágenes son con diferencia lo más caro; bajar `video.escenas` a 4 lo recorta.
+- **Coste por vídeo:** cero en dinero con la configuración que trae. Lo que gasta
+  es tu límite de uso de Claude (un guion corto por vídeo, poca cosa) y tiempo de
+  GitHub Actions, que en repos públicos es gratis.
+- **Las voces gratis** son `es-ES-AlvaroNeural` (GTA 6) y `es-ES-ElviraNeural`
+  (Otra Época). Hay más: `python -m edge_tts --list-voices | grep es-`.
 - **Vídeos generados** (`datos/<canal>/videos/`) no se guardan en git.

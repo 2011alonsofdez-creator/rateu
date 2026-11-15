@@ -1,8 +1,19 @@
-"""El cerebro que comparten los agentes: Claude a traves del SDK oficial."""
+"""El cerebro que comparten los agentes.
+
+Dos formas de pensar, por orden de preferencia:
+
+1. CLAUDE CODE (lo que usa tu suscripcion, sin pagar API aparte). Hace falta
+   el binario `claude` y un token largo en CLAUDE_CODE_OAUTH_TOKEN, que sale
+   de ejecutar `claude setup-token` una vez en tu ordenador.
+2. API de Anthropic con ANTHROPIC_API_KEY, si algun dia prefieres pagarla.
+"""
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
+import subprocess
 from typing import Any
 
 from .ajustes import AJUSTES
@@ -10,27 +21,58 @@ from .registro import di
 
 
 class SinCerebro(RuntimeError):
-    """No hay clave de API, asi que ningun agente puede pensar."""
+    """No hay forma de pensar: ni Claude Code ni clave de API."""
 
 
-def _cliente():
+def _hay_claude_code() -> bool:
+    return bool(shutil.which("claude")) and bool(
+        os.environ.get("CLAUDE_CODE_OAUTH_TOKEN") or os.environ.get("CLAUDE_CODE_USE_SESSION")
+    )
+
+
+def como_pienso() -> str:
+    if _hay_claude_code():
+        return "claude-code"
+    if AJUSTES.clave_anthropic:
+        return "api"
+    return "nada"
+
+
+def _pensar_claude_code(sistema: str, peticion: str) -> str:
+    orden = [
+        "claude", "-p", peticion,
+        "--system-prompt", sistema,
+        "--model", AJUSTES.get("ia.modelo_texto_alias", "sonnet"),
+        "--output-format", "text",
+        "--restricted",          # sin Bash ni herramientas de codigo
+        "--strict-mcp-config",   # sin conectores
+        "--bare",                # sin hooks ni plugins
+        "--no-session-persistence",
+    ]
+    proceso = subprocess.run(
+        orden,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        stdin=subprocess.DEVNULL,  # si no, se queda esperando entrada estandar
+    )
+    if proceso.returncode != 0:
+        raise SinCerebro(
+            "claude code ha fallado "
+            f"({proceso.returncode}): {(proceso.stderr or proceso.stdout)[-400:]}"
+        )
+    salida = proceso.stdout.strip()
+    if not salida:
+        raise SinCerebro("claude code no ha devuelto nada")
+    return salida
+
+
+def _pensar_api(sistema: str, peticion: str, max_tokens: int, esfuerzo: str | None) -> str:
     try:
         import anthropic
     except ImportError as exc:  # pragma: no cover
-        raise SinCerebro("falta el paquete anthropic (pip install -r requirements.txt)") from exc
-    if not AJUSTES.clave_anthropic:
-        raise SinCerebro("falta ANTHROPIC_API_KEY")
-    return anthropic.Anthropic()
-
-
-def pensar(
-    sistema: str,
-    peticion: str,
-    max_tokens: int = 8000,
-    esfuerzo: str | None = None,
-) -> str:
-    """Una pregunta, una respuesta en texto."""
-    cliente = _cliente()
+        raise SinCerebro("falta el paquete anthropic") from exc
+    cliente = anthropic.Anthropic()
     respuesta = cliente.messages.create(
         model=AJUSTES.get("ia.modelo_texto", "claude-opus-5-5"),
         max_tokens=max_tokens,
@@ -42,8 +84,26 @@ def pensar(
         detalle = getattr(respuesta, "stop_details", None)
         motivo = getattr(detalle, "explanation", "") or getattr(detalle, "category", "")
         raise SinCerebro(f"el modelo ha rechazado la peticion: {motivo}")
-    partes = [b.text for b in respuesta.content if getattr(b, "type", "") == "text"]
-    return "\n".join(partes).strip()
+    return "\n".join(
+        b.text for b in respuesta.content if getattr(b, "type", "") == "text"
+    ).strip()
+
+
+def pensar(
+    sistema: str,
+    peticion: str,
+    max_tokens: int = 8000,
+    esfuerzo: str | None = None,
+) -> str:
+    modo = como_pienso()
+    if modo == "claude-code":
+        return _pensar_claude_code(sistema, peticion)
+    if modo == "api":
+        return _pensar_api(sistema, peticion, max_tokens, esfuerzo)
+    raise SinCerebro(
+        "no hay forma de pensar: falta CLAUDE_CODE_OAUTH_TOKEN (gratis con tu "
+        "suscripcion, sale de `claude setup-token`) o ANTHROPIC_API_KEY"
+    )
 
 
 def _extraer_json(texto: str) -> Any:
@@ -71,7 +131,6 @@ def pensar_json(
     esfuerzo: str | None = None,
     intentos: int = 3,
 ) -> Any:
-    """Lo mismo pero obligando a JSON, con reintentos si sale mal."""
     sistema_json = sistema.rstrip() + (
         "\n\nResponde UNICAMENTE con JSON valido, sin texto antes ni despues, "
         "sin bloques de codigo y sin comentarios."

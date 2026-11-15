@@ -12,7 +12,7 @@ name: Oficina de Shorts - turno diario
 # hora. Si uno se cae, el otro sigue.
 #
 # Secretos en Settings -> Secrets and variables -> Actions:
-#   ANTHROPIC_API_KEY, OPENAI_API_KEY
+#   CLAUDE_CODE_OAUTH_TOKEN                 (gratis: `claude setup-token`)
 #   YT_CLIENT_ID, YT_CLIENT_SECRET          (comunes a los dos canales)
 #   YT_REFRESH_TOKEN_GTA6                   (token del canal de GTA 6)
 #   YT_REFRESH_TOKEN_OTRA_EPOCA             (token de Otra Época)
@@ -60,12 +60,14 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r oficina/requirements.txt
+          pip install edge-tts requests Pillow
+          npm install -g @anthropic-ai/claude-code
           ffmpeg -version | head -1
 
       - name: Pasar el turno
         if: inputs.canal == '' || inputs.canal == matrix.canal
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}

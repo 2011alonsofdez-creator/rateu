@@ -47,6 +47,7 @@
   },
   "video": {
     "voz": "ash",
-    "escenas": 6
+    "escenas": 6,
+    "voz_edge": "es-ES-AlvaroNeural"
   }
 }
