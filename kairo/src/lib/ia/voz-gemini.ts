@@ -89,7 +89,11 @@ const VOCES = ["Umbriel", "Fenrir"];
 
 /** El texto dicho con la voz de Kairo, en .wav. Lanza si ningún modelo ni
  *  clave ha podido (el navegador entonces lee con su propia voz). */
-export async function hablar(texto: string, conIdioma = true): Promise<Buffer> {
+export async function hablar(
+  texto: string,
+  idioma: "es" | "en" = "es",
+  conIdioma = true,
+): Promise<Buffer> {
   const voces = VOCES;
   const claves = clavesDeGemini();
   if (!claves.length) throw new Error("sin clave de Gemini");
@@ -109,14 +113,14 @@ export async function hablar(texto: string, conIdioma = true): Promise<Buffer> {
           httpOptions: { timeout: Math.min(15_000, queda) },
         }).models.generateContent({
           model: modelo,
-          contents: [{ role: "user", parts: [{ text: guion(texto) }] }],
+          contents: [{ role: "user", parts: [{ text: idioma === "es" ? guion(texto) : texto }] }],
           config: {
             responseModalities: ["AUDIO"],
             /* El acento, por configuración y NO escrito en el texto: escrito,
                Gemini lo leía en voz alta. Si el modelo no acepta el idioma,
                se repite sin él (abajo). */
             speechConfig: {
-              ...(conIdioma ? { languageCode: "es-ES" } : {}),
+              ...(conIdioma ? { languageCode: idioma === "es" ? "es-ES" : "en-US" } : {}),
               voiceConfig: { prebuiltVoiceConfig: { voiceName: voz } },
             },
           },
@@ -134,7 +138,7 @@ export async function hablar(texto: string, conIdioma = true): Promise<Buffer> {
         ultimo = e;
         // No acepta "es-ES": otra vez, igual pero sin idioma.
         if (conIdioma && /language/i.test(String(e))) {
-          return hablar(texto, false);
+          return hablar(texto, idioma, false);
         }
         // Una voz que no existe no es culpa de la clave: se prueba la otra.
         if (!/voice|voz/i.test(String(e))) break;
