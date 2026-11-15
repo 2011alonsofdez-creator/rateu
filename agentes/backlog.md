@@ -13,6 +13,30 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Los dos números del suelo de Kairo que nadie ha mirado nunca, y uno cuesta 10 $.** `[origen: crecimiento 2026-11-15]`
+  Las dos capas de las que vive Kairo son gratis, y hoy el proyecto **no sabe
+  cuánto aguantan**. Las dos se contestan en cinco minutos cada una, en una
+  consola, y las dos son suyas porque son cuentas y tarjeta.
+
+  **a) El tope diario de los tres modelos `:free` de OpenRouter.** Varias
+  fuentes de hoy coinciden en **20 por minuto y 50 al día** *(de resultados de
+  búsqueda, sin abrir la web)*. Cincuenta al día es un respaldo que existe en la
+  configuración y no en la práctica: el día que Gemini se agote, aguanta
+  cincuenta respuestas en toda la casa. **Y las mismas fuentes dicen que una
+  compra única de 10 $ lo sube de 50 a 1.000, de por vida**, sin pasar a pago por
+  uso. Comprobar el tope en la cuenta y, si es así, pagarlos: es la mejor
+  relación coste/daño evitado de todo el informe de hoy.
+
+  **b) El límite diario real de la capa gratuita de Gemini.** Dos minutos en AI
+  Studio. Una fuente dice **hasta 1.000 al día**, otra dice **20 al día** para
+  3.8 Flash. Entre esas dos cifras hay un producto lanzable y uno imposible. Y
+  saldrá además si el tope es **por proyecto y no por clave**, como dicen las
+  fuentes, porque entonces las tres claves puestas no suman lo que parece.
+
+  **Por qué es P1 y no una curiosidad**: ninguna decisión de lanzamiento se
+  puede tomar bien sin estos dos números, y uno de los dos se arregla con una
+  compra de diez dólares.
+
 - **🟡 Ayer se perdió medio día de agentes: cuarta vez en trece días.** `[origen: guardian 2026-11-15]`
   El 14-11 los avisos del constructor (07:47) y de crecimiento (09:21) **no
   llegaron hasta las 06:12 de hoy**, veintidós y veintiuna horas tarde, y el del
@@ -1484,6 +1508,38 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
+
+- **Kairo Supreme cuesta más que ChatGPT Plus, y no hay una línea que lo explique.** `[origen: crecimiento 2026-11-15]`
+  Precios de hoy *(de resultados de búsqueda, sin abrir la web)*: **Supreme
+  24,99 €** (`mock.ts:334`) contra **ChatGPT Plus 23 €**; y **Kairo+ 9,99 €**
+  (`mock.ts:310`) contra **ChatGPT Go 7,99 € en App Store / 9,99 € en web**. La
+  diferencia puede ser de impuestos o de canal —no he podido abrir ninguna de
+  las dos páginas—, pero el orden es el que es: **el plan más caro de un producto
+  que no se ha lanzado está por encima de la referencia que todo el mundo
+  conoce**, y se compara solo.
+
+  Dos salidas, las dos honestas: bajarlo a **19,99 €**, o dejarlo y **escribir al
+  lado por qué cuesta eso** (6.000 créditos, 25 Co-Works, 150 Mentes). Lo que no
+  se sostiene es el precio sin el motivo. **Es suyo: es precio.**
+
+  Y lo que sí hay que cobrar sin complejos, porque nadie de esa tabla lo da:
+  40 créditos al día **sin tarjeta**, créditos que **no caducan**, avisos de
+  plazos por Telegram y entender una multa española. El más barato de todos,
+  Google AI Plus a 4,99 €, **no programa tareas**.
+
+- **Hacer en diciembre la cuenta del salto a la capa de pago de Gemini.** `[origen: crecimiento 2026-11-15]`
+  Es la decisión que cierra la contradicción publicada entre `/precios` ("No.")
+  y la política de privacidad ("no se puede afirmar"), que hoy cumple **nueve
+  días**. Lo que añade el informe de hoy es que **tiene fecha**: según una de las
+  fuentes, **el precio de Gemini 3.8 Flash se dobla el 01-01-2027**, así que el
+  mes para calcularlo es diciembre.
+
+  Y ya hay con qué hacerla, que es nuevo: una respuesta normal son **8
+  créditos**, Kairo+ da **2.000 por 9,99 €** (o sea **250 respuestas al mes**), y
+  el *grounding* de Google —que es con lo que Kairo busca de verdad,
+  `buscar.ts:246`— trae **5.000 consultas gratis al mes** y luego **~14 $ por
+  1.000**. Con eso, 250 respuestas buscando cuestan ~3,5 $ contra 9,99 € de
+  ingreso. **El margen existe y es estrecho**; lo que faltaba era escribirlo.
 
 - **Una petición repetida tres veces debería saltarse la rotación de áreas del entrenador.** `[origen: radar 2026-11-13]`
   **Puntuar los catorce casos del banco de pruebas lleva seis informes pedido y
