@@ -48,7 +48,9 @@
     "voz": "onyx",
     "velocidad_voz": 1.06,
     "subtitulos": true,
-    "musica": false
+    "musica": false,
+    "modo": "alterno",
+    "si_no_hay_flow": "auto"
   },
   "ia": {
     "modelo_texto": "claude-opus-5-5",

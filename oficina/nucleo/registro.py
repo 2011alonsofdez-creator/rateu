@@ -89,6 +89,26 @@ def actualizar_video(video_id: str, cambios: dict) -> None:
     guardar_historial(datos)
 
 
+def ordenes() -> dict:
+    """Instrucciones que el jefe (tu) deja a cada trabajador.
+
+    Viven en datos/<canal>/ordenes.json, por ejemplo:
+        {"guionista": "mas humor", "editor": "planos mas cerrados"}
+    La oficina arcade escribe aqui.
+    """
+    datos = _cargar(AJUSTES.carpeta_datos / "ordenes.json", {})
+    return datos if isinstance(datos, dict) else {}
+
+
+def orden(agente: str) -> str:
+    texto = str(ordenes().get(agente, "")).strip()
+    return texto
+
+
+def guardar_ordenes(datos: dict) -> None:
+    _guardar(AJUSTES.carpeta_datos / "ordenes.json", datos)
+
+
 def informe(nombre: str, texto: str) -> Path:
     ruta = AJUSTES.carpeta_informes / f"{hoy()}-{nombre}.md"
     ruta.write_text(texto, encoding="utf-8")

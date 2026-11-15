@@ -32,6 +32,7 @@ nichos  →  guionista  →  editor  →  subidor
 | Editor | `agentes/editor.py` | Voz en off, imágenes, zoom lento, subtítulos quemados y un mp4 vertical 1080x1920 con ffmpeg. |
 | Subidor | `agentes/subidor.py` | Sube el vídeo y apunta la hora exacta de publicación. |
 | Analista de retención | `agentes/analista.py` | Lee la curva real (`audienceWatchRatio`), encuentra los segundos donde la gente se va y escribe lecciones para el guionista. |
+| Flow | `agentes/flow.py` | Los días que toca Flow deja el pedido con el prompt de cada plano y recoge el vídeo que tú exportas. |
 | Horarios | `agentes/horario.py` | La primera semana rota horas; luego compara vistas a 48 h y fija la mejor. |
 
 El jefe es `oficina.py`: decide si toca publicar y los llama en orden.
@@ -109,6 +110,50 @@ python -m oficina.oficina retencion --canal todos     # solo analizar retención
 python -m oficina.oficina horas --canal todos         # solo recalcular horas
 python -m oficina.oficina dia --canal gta6 --forzar   # turno completo y subir ya
 ```
+
+## Un día Flow, otro la oficina
+
+`video.modo` en `config.json`:
+
+- `alterno` (lo que está puesto): días pares del año → Flow, impares → montaje automático.
+- `auto`: siempre lo monta la oficina.
+- `flow`: siempre pide el vídeo a Flow.
+
+Flow **no tiene API pública**: ningún programa puede generar vídeos ahí por su
+cuenta, hay que entrar a mano. Así que el día de Flow la oficina hace las dos
+mitades que sí puede hacer:
+
+1. **Pedido.** Escribe `datos/<canal>/pedidos-flow/<fecha>.md` con el prompt
+   exacto de cada plano, el texto de la voz y el título. Lo copias en Flow.
+2. **Recogida.** Exportas el vídeo y lo dejas en `datos/<canal>/entrantes/`
+   (lo subes al repo desde el móvil o el PC, da igual el nombre). En el
+   siguiente turno la oficina le pone la voz, los subtítulos y el formato
+   1080x1920, lo publica a su hora y archiva el original en `entrantes/usados/`.
+
+Si llega el día de Flow y no hay nada en `entrantes/`, deja el pedido y monta
+igualmente el vídeo automático para no saltarse el día. Para que ese día no se
+publique nada, pon `video.si_no_hay_flow` en `"esperar"`.
+
+## Darles órdenes
+
+Cada trabajador lee `datos/<canal>/ordenes.json`:
+
+```json
+{ "guionista": "menos datos y más historia", "editor": "planos más cerrados" }
+```
+
+Esa orden entra en su prompt por encima del resto. Las claves son los nombres de
+los agentes: `nichos`, `guionista`, `editor`, `flow`, `analista`, `horario`.
+
+La forma cómoda es la **oficina arcade**: una sala isométrica con los seis
+trabajadores, donde eliges canal, tocas a uno y le escribes la orden. Lo que
+guardas ahí vive en la página; para bajarlo al repositorio:
+
+```bash
+python oficina/herramientas/sincronizar_ordenes.py < ordenes.json
+```
+
+o me lo pides y lo sincronizo yo.
 
 ## Cómo aprende
 

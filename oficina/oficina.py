@@ -17,7 +17,7 @@ import sys
 import traceback
 from datetime import datetime, timezone
 
-from .agentes import analista, editor, guionista, horario, nichos, subidor
+from .agentes import analista, editor, flow, guionista, horario, nichos, subidor
 from .nucleo.ajustes import AJUSTES, canales_disponibles
 from .nucleo.registro import di, historial, informe, memoria
 
@@ -32,6 +32,14 @@ def _avisar_de_lo_que_falta() -> None:
         di("oficina", "faltan secretos: " + ", ".join(sorted(set(faltan))))
     if AJUSTES.nicho_sin_rellenar():
         di("oficina", "ojo: nicho.principal esta sin rellenar en config.json")
+
+
+def modo_de_hoy(momento) -> str:
+    """alterno = un dia Flow, otro el montaje automatico de la oficina."""
+    modo = (AJUSTES.get("video.modo") or "alterno").lower()
+    if modo != "alterno":
+        return modo
+    return "flow" if momento.timetuple().tm_yday % 2 == 0 else "auto"
 
 
 def turno_diario(forzar: bool = False, subir: bool = True) -> int:
@@ -57,13 +65,31 @@ def turno_diario(forzar: bool = False, subir: bool = True) -> int:
     (AJUSTES.carpeta_videos / "guion.json").write_text(
         json.dumps(guion, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    ruta = editor.montar(guion)
+
+    modo = modo_de_hoy(momento)
+    di("oficina", f"modo de hoy: {modo}")
+    entrante = flow.recoger() if modo == "flow" else None
+
+    if modo == "flow" and entrante is None:
+        flow.pedido(guion)
+        if (AJUSTES.get("video.si_no_hay_flow") or "auto").lower() != "auto":
+            di("oficina", "no hay video de Flow en entrantes; hoy no se publica")
+            return 0
+        di("oficina", "no hay video de Flow todavia; monto el automatico para no saltarme el dia")
+
+    ruta = (
+        editor.montar_sobre(entrante, guion)
+        if entrante is not None
+        else editor.montar(guion)
+    )
 
     if not subir:
         di("oficina", f"modo sin subir: el video esta en {ruta}")
         return 0
 
     video_id = subidor.publicar(ruta, guion, idea)
+    if entrante is not None:
+        flow.archivar(entrante)
     informe(
         "publicacion",
         f"""# Publicado el {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC
@@ -71,6 +97,7 @@ def turno_diario(forzar: bool = False, subir: bool = True) -> int:
 - **Titulo:** {guion['titulo']}
 - **Idea:** {idea or '(libre)'}
 - **Enlace:** https://www.youtube.com/shorts/{video_id}
+- **Montaje:** {'Flow (' + entrante.name + ')' if entrante is not None else 'automatico de la oficina'}
 - **Escenas:** {len(guion['escenas'])}
 - **Por que deberia retener:** {guion.get('porque_retiene', '')}
 """,

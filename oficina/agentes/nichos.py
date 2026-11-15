@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from ..nucleo.ajustes import AJUSTES
 from ..nucleo.cerebro import pensar_json
-from ..nucleo.registro import di, guardar_memoria, informe, memoria
+from ..nucleo.registro import di, guardar_memoria, informe, memoria, orden
 from ..nucleo.youtube import YouTube
 
 SISTEMA_CONSULTAS = """Eres analista de nichos de YouTube Shorts. Propones busquedas
@@ -84,6 +84,8 @@ def buscar(cantidad_ideas: int = 8) -> dict:
         SISTEMA_IDEAS,
         f"""Nicho del canal: {AJUSTES.get('nicho.principal')}
 Temas prohibidos: {', '.join(AJUSTES.get('nicho.prohibido', []) or [])}
+
+{('ORDEN DEL JEFE: ' + orden('nichos')) if orden('nichos') else ''}
 
 Shorts recientes del nicho (datos reales de la API de YouTube):
 {resumen}

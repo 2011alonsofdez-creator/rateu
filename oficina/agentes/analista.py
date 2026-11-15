@@ -14,6 +14,7 @@ from ..nucleo.registro import (
     historial,
     informe,
     memoria,
+    orden,
 )
 from ..nucleo.youtube import YouTube, enlace
 
@@ -118,6 +119,8 @@ def analizar(maximo_videos: int = 10) -> dict:
         SISTEMA,
         f"""Canal sobre: {AJUSTES.get('nicho.principal')}
 Retencion minima aceptable a los 3 segundos: {minimo_3s}
+
+{('ORDEN DEL JEFE: ' + orden('analista')) if orden('analista') else ''}
 
 Datos reales (audienceWatchRatio de la API de YouTube Analytics):
 {json.dumps(fichas, ensure_ascii=False, indent=1)}

@@ -6,7 +6,7 @@ from typing import Any
 
 from ..nucleo.ajustes import AJUSTES
 from ..nucleo.cerebro import pensar_json
-from ..nucleo.registro import di, memoria
+from ..nucleo.registro import di, memoria, orden
 
 SISTEMA = """Eres guionista de YouTube Shorts en espanol de Espana, especializado en
 retencion. Sabes que el 70% de la gente se va en los primeros 3 segundos si el primer
@@ -48,6 +48,9 @@ def _peticion(idea: str | None, lecciones: list[str], titulos_usados: list[str])
             "Reglas propias de ESTE canal (mandan sobre todo lo demas):\n- "
             + "\n- ".join(str(r) for r in reglas)
         )
+    mandato = orden("guionista")
+    if mandato:
+        bloques.append(f"ORDEN DIRECTA DEL JEFE (por encima de todo lo demas): {mandato}")
     if idea:
         bloques.append(f"Idea concreta que viene del buscador de nichos: {idea}")
     if lecciones:

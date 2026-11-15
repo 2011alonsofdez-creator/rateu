@@ -289,6 +289,75 @@ def montar(guion: dict[str, Any], carpeta: Path | None = None) -> Path:
     return final
 
 
+def montar_sobre(base: Path, guion: dict[str, Any], carpeta: Path | None = None) -> Path:
+    """Igual que montar(), pero el video ya existe (por ejemplo, viene de Flow).
+
+    Le pone la voz, los subtitulos y el formato 1080x1920. Si el video es mas
+    corto que la voz, congela el ultimo fotograma; si es mas largo, lo recorta.
+    """
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("falta ffmpeg en el sistema")
+    carpeta = carpeta or (AJUSTES.carpeta_videos / "montaje")
+    if carpeta.exists():
+        shutil.rmtree(carpeta)
+    carpeta.mkdir(parents=True, exist_ok=True)
+
+    escenas = guion["escenas"]
+    di("editor", f"montando sobre {base.name} ({_duracion(base):.1f}s de video)")
+
+    duraciones: list[float] = []
+    audios: list[Path] = []
+    for indice, escena in enumerate(escenas):
+        audio = carpeta / f"voz{indice}.mp3"
+        _voz(escena["voz"], audio)
+        duraciones.append((_duracion(audio) or float(escena["segundos"])) + 0.25)
+        audios.append(audio)
+
+    lista_audio = carpeta / "audios.txt"
+    lista_audio.write_text(
+        "\n".join(f"file '{a.name}'" for a in audios) + "\n", encoding="utf-8"
+    )
+    voz_entera = carpeta / "voz.mp3"
+    _ejecutar([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lista_audio),
+        "-c:a", "libmp3lame", "-b:a", "192k", str(voz_entera),
+    ])
+
+    total = sum(duraciones)
+    ancho = int(AJUSTES.get("video.ancho", 1080))
+    alto = int(AJUSTES.get("video.alto", 1920))
+    fps = int(AJUSTES.get("video.fps", 30))
+    filtros = [
+        f"scale={ancho}:{alto}:force_original_aspect_ratio=increase",
+        f"crop={ancho}:{alto}",
+        f"fps={fps}",
+        f"tpad=stop_mode=clone:stop_duration={max(0.0, total - _duracion(base)):.3f}",
+    ]
+    if AJUSTES.get("video.subtitulos", True):
+        subs = carpeta / "subs.ass"
+        _ass(escenas, duraciones, subs)
+        filtros.append(f"subtitles={subs.name}")
+
+    final = AJUSTES.carpeta_videos / "short.mp4"
+    proceso = subprocess.run(
+        [
+            "ffmpeg", "-y", "-i", str(base.resolve()), "-i", voz_entera.name,
+            "-vf", ",".join(filtros),
+            "-map", "0:v:0", "-map", "1:a:0",
+            "-t", f"{total:.3f}",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+            "-movflags", "+faststart", str(final.resolve()),
+        ],
+        capture_output=True, text=True, cwd=carpeta,
+    )
+    if proceso.returncode != 0:
+        raise RuntimeError(f"montaje sobre video externo fallido:\n{proceso.stderr[-1200:]}")
+
+    di("editor", f"listo: {final} ({_duracion(final):.1f}s)")
+    return final
+
+
 if __name__ == "__main__":
     guion = json.loads(Path(os.environ.get("GUION", "guion.json")).read_text(encoding="utf-8"))
     montar(guion)
