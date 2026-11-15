@@ -56,6 +56,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", required=True, help="client_id de Google Cloud")
     parser.add_argument("--secreto", required=True, help="client_secret de Google Cloud")
+    parser.add_argument(
+        "--solo-token", action="store_true",
+        help="imprime unicamente el refresh token, para encadenarlo con gh secret set",
+    )
     args = parser.parse_args()
 
     puerto = puerto_libre()
@@ -73,8 +77,9 @@ def main() -> None:
     servidor = http.server.HTTPServer(("127.0.0.1", puerto), Manejador)
     threading.Thread(target=servidor.handle_request, daemon=True).start()
 
-    print("Abriendo el navegador. Si no se abre, pega esta URL:\n")
-    print(url, "\n")
+    aviso = sys.stderr if args.solo_token else sys.stdout
+    print("Abriendo el navegador. Si no se abre, pega esta URL:\n", file=aviso)
+    print(url, "\n", file=aviso)
     webbrowser.open(url)
     while codigo is None:
         threading.Event().wait(0.5)
@@ -92,8 +97,11 @@ def main() -> None:
     )
     respuesta.raise_for_status()
     datos = respuesta.json()
-    print("\nGuarda esto como secreto YT_REFRESH_TOKEN en GitHub:\n")
-    print(datos["refresh_token"])
+    if args.solo_token:
+        print(datos["refresh_token"])
+    else:
+        print("\nGuarda esto como secreto YT_REFRESH_TOKEN en GitHub:\n")
+        print(datos["refresh_token"])
 
 
 if __name__ == "__main__":

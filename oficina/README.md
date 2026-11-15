@@ -50,6 +50,19 @@ Sirve de seguro: antes de subir, la oficina comprueba que el token apunta a ese
 canal y se niega a publicar si no coincide, para que un short de GTA no acabe en
 el canal de POV.
 
+### 0. El atajo: un solo comando
+
+En tu ordenador, dentro de la carpeta del repo:
+
+```bash
+bash oficina/herramientas/instalar.sh
+```
+
+Pide los permisos (Claude y los dos canales), los guarda como secretos en
+GitHub sin enseñarlos por pantalla, y al final se ofrece a lanzar el primer
+vídeo. Necesita `gh` (https://cli.github.com), `python3` y `claude`. Si
+prefieres hacerlo a mano, sigue los pasos de abajo.
+
 ### 2. La IA, sin pagar APIs
 
 Todo lo que piensa y produce la oficina va con lo que ya tienes:
