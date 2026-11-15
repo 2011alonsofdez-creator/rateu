@@ -222,9 +222,9 @@ def _ass(escenas: list[dict], duraciones: list[float], destino: Path) -> None:
     """Subtitulos quemados, grandes y centrados, en coordenadas reales del video."""
     ancho = int(AJUSTES.get("video.ancho", 1080))
     alto = int(AJUSTES.get("video.alto", 1920))
-    cuerpo = int(alto * 0.048)        # ~92 px en 1920
+    cuerpo = int(alto * float(AJUSTES.get('video.subtitulo_tamano', 0.033)))
     borde = max(3, int(cuerpo * 0.09))
-    margen = int(alto * 0.22)         # por encima de la barra de YouTube
+    margen = int(alto * float(AJUSTES.get('video.subtitulo_margen', 0.11)))
 
     cabecera = f"""[Script Info]
 ScriptType: v4.00+
@@ -252,7 +252,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for indice, grupo in enumerate(grupos):
             inicio = reloj + indice * paso
             fin = min(inicio + paso, reloj + duracion)
-            texto = " ".join(grupo).upper().replace("{", "(").replace("}", ")")
+            texto = " ".join(grupo).replace("{", "(").replace("}", ")")
+            if AJUSTES.get("video.subtitulo_mayusculas", False): texto = texto.upper()
             lineas.append(
                 f"Dialogue: 0,{_tiempo_ass(inicio)},{_tiempo_ass(fin)},Short,,0,0,0,,{texto}"
             )
@@ -421,6 +422,79 @@ def montar_sobre(base: Path, guion: dict[str, Any], carpeta: Path | None = None)
     if proceso.returncode != 0:
         raise RuntimeError(f"montaje sobre video externo fallido:\n{proceso.stderr[-1200:]}")
 
+    di("editor", f"listo: {final} ({_duracion(final):.1f}s)")
+    return final
+
+
+def montar_con_clips(guion: dict[str, Any], clips: list[Path], carpeta: Path | None = None) -> Path:
+    """Un clip de video por escena (los que generas en Flow), con voz y subtitulos.
+
+    Cada clip se recorta o se congela hasta durar lo que dura su frase.
+    """
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("falta ffmpeg en el sistema")
+    escenas = guion["escenas"]
+    if len(clips) < len(escenas):
+        raise RuntimeError(f"hacen falta {len(escenas)} clips y solo hay {len(clips)}")
+
+    carpeta = carpeta or (AJUSTES.carpeta_videos / "montaje")
+    if carpeta.exists():
+        shutil.rmtree(carpeta)
+    carpeta.mkdir(parents=True, exist_ok=True)
+
+    ancho = int(AJUSTES.get("video.ancho", 1080))
+    alto = int(AJUSTES.get("video.alto", 1920))
+    fps = int(AJUSTES.get("video.fps", 30))
+
+    di("editor", f"montando {len(escenas)} clips de Flow")
+    duraciones, audios, trozos = [], [], []
+    for indice, (escena, clip) in enumerate(zip(escenas, clips)):
+        audio = carpeta / f"voz{indice}.mp3"
+        _voz(escena["voz"], audio)
+        duracion = (_duracion(audio) or float(escena["segundos"])) + 0.2
+        duraciones.append(duracion)
+        audios.append(audio)
+
+        falta = max(0.0, duracion - _duracion(clip))
+        salida = carpeta / f"clip{indice}.mp4"
+        _ejecutar([
+            "ffmpeg", "-y", "-i", str(clip.resolve()),
+            "-vf", (f"scale={ancho}:{alto}:force_original_aspect_ratio=increase,"
+                    f"crop={ancho}:{alto},fps={fps},"
+                    f"tpad=stop_mode=clone:stop_duration={falta:.3f}"),
+            "-t", f"{duracion:.3f}", "-an",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-pix_fmt", "yuv420p", str(salida),
+        ])
+        trozos.append(salida)
+
+    lista_clips = carpeta / "clips.txt"
+    lista_clips.write_text("\n".join(f"file '{c.name}'" for c in trozos) + "\n", encoding="utf-8")
+    lista_audio = carpeta / "audios.txt"
+    lista_audio.write_text("\n".join(f"file '{a.name}'" for a in audios) + "\n", encoding="utf-8")
+
+    mudo = carpeta / "mudo.mp4"
+    _ejecutar(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lista_clips), "-c", "copy", str(mudo)])
+    voz = carpeta / "voz.mp3"
+    _ejecutar(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lista_audio),
+               "-c:a", "libmp3lame", "-b:a", "192k", str(voz)])
+
+    filtros = []
+    if AJUSTES.get("video.subtitulos", True):
+        subs = carpeta / "subs.ass"
+        _ass(escenas, duraciones, subs)
+        filtros.append(f"subtitles={subs.name}")
+
+    final = AJUSTES.carpeta_videos / "short.mp4"
+    orden = ["ffmpeg", "-y", "-i", mudo.name, "-i", voz.name]
+    if filtros:
+        orden += ["-vf", ",".join(filtros), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20"]
+    else:
+        orden += ["-c:v", "copy"]
+    orden += ["-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(final.resolve())]
+    proceso = subprocess.run(orden, capture_output=True, text=True, cwd=carpeta)
+    if proceso.returncode != 0:
+        raise RuntimeError(f"montaje con clips fallido:\n{proceso.stderr[-1200:]}")
     di("editor", f"listo: {final} ({_duracion(final):.1f}s)")
     return final
 
