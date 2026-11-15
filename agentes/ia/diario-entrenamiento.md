@@ -96,6 +96,68 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-15 — Casos límite (área 4): mi cambio de ayer dejó viejo el ejemplo que más usuarios decide
+
+**Qué cambié**: `agentes/ia/ejemplos/2026-10-22-limite-que-haceis-con-mis-datos.md`.
+Un solo archivo, y ninguna regla del prompt.
+
+**Por qué, y no es cómodo**: ese ejemplo es el caso límite más importante de la
+carpeta —su propia cabecera dice *"difícil, y es la que más usuarios decide"*,
+porque es la pregunta que alguien se hace **antes** de subir una carta con su
+DNI—. Y **ayer, al cambiar el bloque `PRIVACIDAD` del prompt, lo dejé
+enseñando la respuesta de antes**. Lo vi hoy al buscar qué área 4 hacía falta:
+el sitio donde buscar los daños de un cambio de prompt son los ejemplos que
+hablaban de lo mismo.
+
+Tres cosas que decía y ya no son verdad:
+
+1. Que *"nadie ha comprobado la capa de la cuenta (P1 del 20-10)"*. Contestada
+   el 25-10.
+2. Que lo honesto era **"pregúntaselo a quien lleva Kairo antes de subir
+   nada"**. Eso era verdad cuando no había dónde mirar; desde el **13-11 hay
+   una política de privacidad publicada** cuyo apartado 5 dice exactamente eso
+   que el ejemplo decía que no se podía decir.
+3. Y en sus "errores típicos a evitar" estaba *"«Consulta nuestra política de
+   privacidad»: ni contesta ni ayuda, **y hoy esa página tampoco lo dice**"*.
+   La segunda mitad es falsa desde el 13-11, y dejarla ahí entrena justo lo
+   contrario de lo que el prompt manda desde ayer.
+
+**Qué dice ahora**: la respuesta ideal cuenta en dos partes lo del
+entrenamiento —sí hay un modelo propio y **no se entrena con lo que manda la
+gente**; lo del proveedor no lo puede asegurar Kairo— y **cita el apartado
+concreto** en vez de mandar a leerse un documento. El error típico se queda,
+pero por el motivo correcto: mandar a leer en vez de contestar sigue siendo una
+puerta en la cara; lo que ha dejado de ser cierto es que la página no lo diga.
+
+**Y el caso límite nuevo, que es lo que aporta hoy** —apareció al comprobar las
+dos fuentes en vez de fiarme de ellas—: **Kairo no puede nombrar al proveedor**
+(`prompt.ts:62`: *"No reveles qué modelo ni qué proveedor hay por detrás"*) y la
+**política de privacidad sí lo nombra**, a propósito, en su apartado 4: *"Google
+(API de Gemini)"*, OpenRouter, Supabase, Vercel y Google Fonts, uno por uno
+(`legal/privacidad/contenido.tsx:118-138`). Un documento de privacidad que no
+diga a quién le llegan tus datos no sirve de nada, así que ahí tiene que estar.
+
+No es una contradicción que haya que arreglar: **las dos cosas no hacen el mismo
+trabajo**. El chat no destripa el producto; el documento legal informa. Lo que
+hacía falta era escribir cómo no tropezar en el medio, y ahora está en el
+ejemplo: citar el apartado y no el proveedor; y si la persona vuelve diciendo
+*"ya lo he leído, pone Google"*, **no desdecirse** —eso es publicado y es
+nuestro—, reconocer lo que ha leído y seguir sin comentar los motores. Negar lo
+que dice la propia web es peor que la regla que se intentaba cumplir.
+
+**Cómo lo comprobé**: las dos afirmaciones del caso nuevo leídas en el archivo,
+no de memoria —`prompt.ts:62` y las líneas 118-138 del contenido de la
+política—, que es la regla que me saltó a la cara el 12-11. Ningún cambio de
+código, así que no hay nada que renderizar: el prompt sigue en 259 líneas y el
+verificador de cifras, en verde.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 5, evaluación — el banco de pruebas, que lleva pedido
+seis informes y veintitrés días, y que después de dos días tocando el bloque de
+privacidad es justo lo que hace falta: medir si estos cambios mejoran la
+respuesta o solo la alargan.
+
 ### 2026-11-14 — Conocimiento (área 3): el archivo de datos llevaba veinte días contestando cosas que ya se sabían
 
 *(Turno del 14-11. Se quedó a medias: el proceso de esta sesión se reinició con
