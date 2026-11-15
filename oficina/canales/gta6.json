@@ -8,14 +8,16 @@
     "zona_horaria": "Europe/Madrid"
   },
   "nicho": {
-    "principal": "GTA 6: todo lo que se sabe del juego, mapa, personajes, comparativas con GTA 5 y cuenta atras para el lanzamiento",
+    "principal": "GTA 6 con mirada española: como seria el juego ambientado en Espana, que se sabe de Leonida y comparativas con GTA 5 y San Andreas",
     "subtemas": [
-      "detalles del trailer fotograma a fotograma",
-      "mapa de Leonida y sitios reales de Florida en los que se basa",
-      "Jason y Lucia: lo que se sabe de la pareja protagonista",
-      "comparativa GTA 6 contra GTA 5 y contra GTA San Andreas",
-      "cosas de GTA 5 que no volveran",
-      "requisitos, consolas y fecha de salida"
+      "GTA 6 pero en Espana: como seria el mapa en Madrid, Barcelona, Sevilla o Benidorm",
+      "misiones que solo pasarian en Espana (la ITV, el bar del barrio, agosto en la playa)",
+      "personajes espanoles que saldrian en el juego y a que se dedicarian",
+      "coches, motos y radares: la version espanola del parque movil de GTA",
+      "detalles del trailer de GTA 6 fotograma a fotograma",
+      "mapa de Leonida y los sitios reales de Florida en los que se basa",
+      "comparativa GTA 6 contra GTA 5 y contra San Andreas",
+      "cosas de GTA 5 que no volveran"
     ],
     "publico": "jugadores de 16 a 30 anos esperando el lanzamiento, en movil",
     "prohibido": [
@@ -27,10 +29,12 @@
       "dar rumores por confirmados"
     ],
     "reglas": [
+      "Cuando el video sea del tipo 'GTA 6 pero en Espana', deja claro desde la primera frase que es imaginado: 'si GTA 6 fuera en Espana', nunca lo presentes como algo que Rockstar haya anunciado.",
       "Distingue SIEMPRE lo confirmado por Rockstar de lo que es rumor: si no sale en un trailer oficial o en una nota de Rockstar, la frase lleva 'se rumorea' o 'los fans creen'.",
       "Nunca des una fecha de salida como segura si Rockstar no la ha dicho.",
+      "El humor espanol es el gancho: sitios, costumbres y topicos reconocibles, sin meterte con regiones ni con politica.",
       "No prometas gameplay ni filtraciones exclusivas que el video no ensena.",
-      "El gancho puede ser una pregunta sobre el mapa o un detalle concreto del trailer, nunca 'GTA 6 es increible'."
+      "El gancho puede ser una pregunta sobre el mapa o un detalle concreto, nunca 'GTA 6 es increible'."
     ]
   },
   "publicacion": {
