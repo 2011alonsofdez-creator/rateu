@@ -1,0 +1,57 @@
+name: Oficina de Shorts - repaso semanal
+
+# Una vez por semana el analista mira la retención de los vídeos y el
+# agente de horarios recalcula a qué hora conviene publicar. Las dos
+# cosas escriben en oficina/datos (lecciones y mejores horas), que es lo
+# que el guionista y el reloj leen el resto de la semana.
+
+on:
+  schedule:
+    - cron: "37 9 * * 1"   # lunes por la mañana, minuto raro a propósito
+  workflow_dispatch:
+
+concurrency:
+  group: oficina-shorts
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  repaso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: oficina/requirements.txt
+
+      - run: pip install -r oficina/requirements.txt
+
+      - name: Retención y horas
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          python -m oficina.oficina retencion || true
+          python -m oficina.oficina horas || true
+          python -m oficina.oficina nichos || true
+          python -m oficina.oficina estado
+
+      - name: Guardar informes
+        if: always()
+        run: |
+          git config user.name "Oficina de Shorts"
+          git config user.email "actions@github.com"
+          git add oficina/datos
+          git diff --cached --quiet && echo "nada que guardar" && exit 0
+          git commit -m "Oficina: repaso semanal del $(date -u +%Y-%m-%d)"
+          git pull --rebase --autostash origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}

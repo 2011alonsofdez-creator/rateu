@@ -1,0 +1,64 @@
+{
+  "canal": {
+    "nombre": "",
+    "id": "",
+    "idioma": "es",
+    "pais": "ES",
+    "zona_horaria": "Europe/Madrid"
+  },
+  "nicho": {
+    "principal": "RELLENA AQUI TU NICHO EN UNA LINEA",
+    "subtemas": [],
+    "publico": "hispanohablantes 18-34 en movil",
+    "prohibido": [
+      "politica",
+      "salud o medicina con consejos concretos",
+      "finanzas con recomendaciones de inversion",
+      "contenido sexual",
+      "violencia grafica",
+      "menores"
+    ]
+  },
+  "publicacion": {
+    "hora_fija": "19:00",
+    "videos_por_dia": 1,
+    "privacidad": "public",
+    "hecho_para_ninos": false,
+    "categoria_youtube": "24",
+    "aprender_horas_desde_dia": 7,
+    "horas_a_probar": [
+      "13:00",
+      "15:00",
+      "17:00",
+      "19:00",
+      "20:00",
+      "21:00",
+      "22:00"
+    ],
+    "minimo_videos_para_decidir": 7,
+    "ventana_de_rescate_h": 2
+  },
+  "video": {
+    "duracion_objetivo_s": 32,
+    "duracion_maxima_s": 58,
+    "ancho": 1080,
+    "alto": 1920,
+    "fps": 30,
+    "escenas": 6,
+    "voz": "onyx",
+    "velocidad_voz": 1.06,
+    "subtitulos": true,
+    "musica": false
+  },
+  "ia": {
+    "modelo_texto": "claude-opus-5-5",
+    "esfuerzo": "medium",
+    "modelo_imagen": "gpt-image-1",
+    "modelo_voz": "gpt-4o-mini-tts"
+  },
+  "retencion": {
+    "caida_grave": 0.08,
+    "retencion_minima_3s": 0.75,
+    "lecciones_maximas": 12
+  }
+}

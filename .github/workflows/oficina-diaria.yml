@@ -1,0 +1,70 @@
+name: Oficina de Shorts - turno diario
+
+# Sube un short al día a la hora que toque.
+#
+# Suena cada 20 minutos A PROPÓSITO. GitHub aparca las tareas programadas
+# de las cuentas gratuitas cuando va cargado y deja huecos de horas; si
+# esto sonara una vez al día, el día que se retrase no sale vídeo.
+# El guion decide si toca o no (agentes/horario.py): publica desde la hora
+# prevista hasta dos horas después, y una sola vez al día.
+#
+# Secretos en Settings -> Secrets and variables -> Actions:
+#   ANTHROPIC_API_KEY, OPENAI_API_KEY,
+#   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+    inputs:
+      forzar:
+        description: "Publicar ahora aunque no sea la hora"
+        type: boolean
+        default: false
+
+concurrency:
+  group: oficina-shorts
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  turno:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: oficina/requirements.txt
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r oficina/requirements.txt
+          ffmpeg -version | head -1
+
+      - name: Pasar el turno
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          python -m oficina.oficina dia ${{ inputs.forzar && '--forzar' || '' }}
+
+      - name: Guardar lo que ha aprendido la oficina
+        if: always()
+        run: |
+          git config user.name "Oficina de Shorts"
+          git config user.email "actions@github.com"
+          git add oficina/datos
+          git diff --cached --quiet && echo "nada que guardar" && exit 0
+          git commit -m "Oficina: turno del $(date -u +%Y-%m-%d\ %H:%M) UTC"
+          git pull --rebase --autostash origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
