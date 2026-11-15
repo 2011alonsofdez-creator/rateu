@@ -118,7 +118,7 @@ export function SiteFooter() {
                 04-11 el documento existe. Los otros tres siguen en su ancla
                 de `/legal`, que es donde está su tarjeta. */}
             <Link href="/legal/cookies" className="transition hover:text-fg">{t("footer.cookies")}</Link>
-            <Link href="/legal#terminos" className="transition hover:text-fg">{t("footer.terms")}</Link>
+            <Link href="/legal/terminos" className="transition hover:text-fg">{t("footer.terms")}</Link>
           </nav>
         </div>
       </div>

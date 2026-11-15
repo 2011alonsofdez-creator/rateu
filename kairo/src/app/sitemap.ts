@@ -26,5 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
        se puede redactar entero leyendo el código. */
     { url: `${sitio}/legal/cookies`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
     { url: `${sitio}/legal/privacidad`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${sitio}/legal/terminos`, lastModified: hoy, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

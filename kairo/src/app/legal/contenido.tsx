@@ -26,24 +26,24 @@ const BLOCKS: Record<"es" | "en", [string, string, string, string | null][]> = {
     ["aviso", "Aviso legal", "Titular del servicio, datos de contacto y condiciones de uso.", null],
     ["privacidad", "Política de privacidad", "Qué datos se guardan y cuáles no, con quién se comparten, qué derechos tienes y qué no se puede afirmar todavía. Incluye un apartado específico para menores.", "/legal/privacidad"],
     ["cookies", "Política de cookies", "Qué cookies se usan, cuánto duran, qué guarda Kairo en tu navegador y cómo borrarlo.", "/legal/cookies"],
-    ["terminos", "Términos del servicio", "Planes, créditos, renovaciones, cancelaciones y límites de uso.", null],
+    ["terminos", "Términos de uso", "Qué hace Kairo y qué no, quién puede usarla, cómo funcionan los créditos y los planes, lo que no se puede hacer con ella y lo que no se promete. Empieza diciendo que no es un abogado.", "/legal/terminos"],
   ],
   en: [
     ["aviso", "Legal notice", "Service owner, contact details and terms of use.", null],
     ["privacidad", "Privacy policy", "What is stored and what is not, who else sees it, what rights you have and what cannot be claimed yet. Includes a dedicated section for minors.", "/legal/privacidad"],
     ["cookies", "Cookie policy", "Which cookies are used, how long they last, what Kairo stores in your browser and how to clear it.", "/legal/cookies"],
-    ["terminos", "Terms of service", "Plans, credits, renewals, cancellations and usage limits.", null],
+    ["terminos", "Terms of use", "What Kairo does and does not do, who can use it, how credits and plans work, what you cannot do with it and what is not promised. It opens by saying it is not a lawyer.", "/legal/terminos"],
   ],
 };
 
 const TEXTOS = {
   es: {
-    lead: "De los cuatro documentos necesarios ya están escritos dos: la política de cookies y la de privacidad. El aviso legal y los términos están pendientes de redactar antes del lanzamiento.",
+    lead: "De los cuatro documentos necesarios ya están escritos tres: la política de cookies, la de privacidad y los términos de uso. Falta el aviso legal, que es el que no se puede escribir sin los datos del titular: casi no es otra cosa.",
     leer: "Leer el documento",
     pendiente: "Pendiente de redactar",
   },
   en: {
-    lead: "Of the four required documents, two are written: the cookie policy and the privacy policy. The legal notice and the terms are still to be drafted before launch.",
+    lead: "Of the four required documents, three are written: the cookie policy, the privacy policy and the terms of use. The legal notice is the one left, and it is the one that cannot be written without the owner's details: it is barely anything else.",
     leer: "Read the document",
     pendiente: "Still to be drafted",
   },

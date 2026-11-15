@@ -517,7 +517,49 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   entero.
   Sigue siendo suyo: son tareas programadas y no están en el repositorio.
 
-- **Los cuatro textos legales: van dos de cuatro.** `[origen: constructor 2026-11-01 · cookies hecho 2026-11-04 · privacidad hecho 2026-11-13]`
+- **Los cuatro textos legales: van TRES de cuatro.** `[origen: constructor 2026-11-01 · cookies hecho 2026-11-04 · privacidad hecho 2026-11-13 · términos hecho 2026-11-15]`
+  **Al día 15-11: escritos y publicados los términos de uso** (`/legal/terminos`),
+  el tercero de los cuatro. Enteros, en los dos idiomas, sin un `[RELLENAR]`.
+
+  **Y se han podido escribir hoy por lo mismo que la privacidad**: unos términos
+  de uso son sobre todo *qué hace el servicio, qué puedes hacer tú con él y qué
+  no promete*, y eso está en el código. Lo único que depende del titular es la
+  ley y el fuero, y eso va en su apartado 10 diciendo qué falta.
+
+  **Lo que el documento dice y pocos dicen**:
+
+  - **El apartado 2 es "Kairo no es un abogado ni un asesor", y va el segundo,
+    no escondido al final.** Es el aviso que de verdad importa en un producto
+    que lee multas y contratos: lo que Kairo hace bien es traducir un papel a
+    lenguaje normal; lo que no hace es sustituir a un abogado, a un gestor o a
+    un médico; los datos concretos se comprueban en el papel; y si la decisión
+    es grande —recurrir, firmar, renunciar— se contrasta.
+  - **Un apartado 9 entero de "qué no se promete"**, con la disponibilidad
+    dicha como es: Kairo se apoya hoy en cuotas gratuitas de terceros, así que
+    **no hay un porcentaje de disponibilidad comprometido y poner uno sería
+    inventarlo**. Lo dice el informe de mercado de esta mañana con cifras.
+  - **"No hay un botón para borrar la cuenta"**, porque no lo hay: no existe
+    ninguna ruta ni componente que borre un perfil. Se pide por correo y el
+    apartado 8 lo dice tal cual, en vez de describir una pantalla que no está.
+  - **"El cobro lo hace una tienda externa y Kairo no ve tu tarjeta"**,
+    comprobable: en todo el repositorio no hay ni un campo de tarjeta.
+  - **Ninguna cifra escrita a mano.** Los créditos, los planes y los topes se
+    interpolan de `lib/planes.ts`, que es de donde los lee el servidor, así que
+    el día que cambien cambia el documento solo. Es la regla del verificador de
+    cifras, aplicada desde el primer día del documento en vez de a posteriori.
+
+  **Comprobado** en el HTML generado: 22 comprobaciones, de las que **dos
+  fallaron y tenían razón** —las cifras de miles salían "2000" en vez de
+  "2.000"—; el fallo era mío por escribir un ayudante nuevo con
+  `toLocaleString` cuando `lib/formato.ts` ya existía y su comentario avisa de
+  esa misma trampa con esas mismas cifras. Arreglado usándolo. `tsc` 0 y `next
+  build` 0, la página entra en el `sitemap.xml`, y el enlace del pie ya no va
+  al ancla de la tarjeta sino al documento, como el de cookies.
+
+  **Queda uno: el aviso legal**, y sigue bloqueado de verdad por los cinco
+  campos del titular, porque casi no es otra cosa que esos campos.
+
+  **Lo que decía esta entrada el 13-11, de histórico:**
   **Al día 13-11**: escrita y publicada la **política de privacidad**
   (`/legal/privacidad`), que era la más urgente de las tres que quedaban por
   dos motivos que no son de opinión: Kairo lee papeles con nombre, dirección
