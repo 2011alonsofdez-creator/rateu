@@ -96,6 +96,87 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-14 — Conocimiento (área 3): el archivo de datos llevaba veinte días contestando cosas que ya se sabían
+
+*(Turno del 14-11. Se quedó a medias: el proceso de esta sesión se reinició con
+el cambio escrito en el disco y sin commit. Terminado y comprobado el 15-11 a
+primera hora, antes del turno de hoy. Lo digo porque el archivo que arreglo es
+precisamente uno que se quedó viejo sin que nadie se diera cuenta.)*
+
+**Qué cambié**: `agentes/ia/conocimiento/datos-y-privacidad.md` y, como manda su
+propia cabecera, el bloque `PRIVACIDAD` de `kairo/src/lib/ia/prompt.ts`.
+
+**Por qué**: ese archivo dice de sí mismo *"este archivo es la fuente y el
+bloque es la copia: si cambias algo aquí, cámbialo allí"*, y su última revisión
+era del **24-10**. En veinte días se le habían quedado viejas tres cosas, y las
+tres eran de las que importan:
+
+1. Decía *"nadie ha comprobado todavía en qué capa está la cuenta de Gemini
+   `(sin confirmar)`"* y lo tenía como pregunta abierta para el dueño. Estaba
+   **contestada desde el 25-10**, por un commit suyo (`688ecb2`) que habla de
+   *"Gemini's free tier"*, y escrita en `CONTEXTO.md` desde entonces. La
+   pregunta llevaba tres semanas resuelta en un archivo y abierta en otro.
+2. Mandaba contestar *"no lo sé, está en los textos legales"* a las cuatro
+   preguntas de conservación, copias, acceso interno y cifrado — y **ahora sí
+   hay textos legales**: el apartado 7 de `/legal/privacidad`, publicado el
+   13-11, se titula "Cuatro cosas que hoy no te podemos decir" y las enumera.
+   La respuesta buena ya no es "no lo sé" sino **"no está establecido, y está
+   escrito que no lo está, aquí"**. No es un matiz: la primera suena a que
+   Kairo no se ha enterado, y la segunda es una casa que ha publicado sus
+   agujeros en vez de taparlos.
+3. No decía nada de que **se está entrenando un modelo propio**, que es de
+   `main` del 13 y 14-11 (`entrenamiento/entrenar.py`, un LoRA sobre Gemma 4
+   E4B) y que es justo la palabra que dispara la sospecha de "estáis entrenando
+   una IA con lo mío".
+
+**Lo que comprobé antes de escribir el punto 3**, porque hay una promesa
+publicada que depende de ello: el apartado 5 de la política afirma que Kairo
+*"no los usa para entrenar ningún modelo propio"*. Fui a ver si seguía siendo
+verdad ahora que existe la máquina de entrenar:
+
+- `entrenar.py:110` entrena con **un solo conjunto**, `alonsofg29/kairo-ejemplos`.
+- Ese conjunto lo fabrica `generar_ejemplos.py` con **preguntas escritas a mano**
+  (`preguntas.txt`) y lo sube **privado** (`private=True`, línea 204).
+- En toda la carpeta no hay `supabase`, ni `postgres`, ni una consulta a
+  `papeles`, `conversaciones`, `mensajes` ni `recuerdos`.
+- El workflow que lo ejecuta recibe **dos secretos**, `GEMINI_API_KEY` y
+  `HF_TOKEN`. Ninguna llave de Supabase.
+
+Es verdad, entonces. Y como es verdad por cómo está hecho hoy y no por una
+decisión escrita, el archivo se lleva el cable trampa: **deja de ser verdad el
+día que alguien meta conversaciones reales en `preguntas.txt`**, y ese día habrá
+una frase falsa en el documento donde menos se puede. No hace falta mala fe;
+basta con querer ejemplos más realistas.
+
+**Qué cambié en el prompt**: el párrafo de "hay cinco cosas que NO SABES" era
+falso en cuatro de las cinco desde el 13-11. Ahora dice que esas cuatro **no
+están establecidas y que está publicado que no lo están**, añade lo que sí se
+puede hacer (borrar un papel desde Paperwork), cuenta el modelo propio en dos
+líneas y deja intacta la frontera que importa: Kairo **no afirma** que el
+proveedor del motor no use lo que le mandan, porque eso depende de la capa
+contratada y desde ahí no se ve.
+
+**Cómo lo comprobé**: `npx tsc --noEmit` → **0**. Prompt renderizado con el
+arnés de stubs (los valores de `planes.ts` extraídos del archivo real con `awk`,
+no escritos a mano, y el cuerpo del `prompt.ts` copiado verificando que solo
+difiere en las líneas de `import`): **253 → 259 líneas**, +6, las que escribí, y
+leído el bloque entero en la salida real para ver que no se ha partido ningún
+literal.
+
+**Qué necesito del dueño**: nada para este cambio. Sigue pendiente lo de
+siempre, y ahora pesa más: mientras `/precios` diga "No" y la política diga "no
+se puede afirmar", hay **dos documentos publicados de Kairo que se contradicen**
+(van nueve días).
+
+**Aviso para el merge, que no es mío pero lo vi hoy**: en `main` el dueño
+reescribió la regla 3 de "LA FORMA DE UNA BUENA RESPUESTA" (tablas solo con
+celdas cortas) y su regla 4 sigue diciendo *"al final un bloque «Fuentes»"*, que
+es la que esta rama cambió el 12-11 porque la interfaz ya pinta ese bloque. Las
+dos reglas son líneas contiguas: el merge va a pedir que alguien elija. La
+elección buena es **quedarse su regla 3 nueva y la regla 4 de esta rama**.
+
+**Mañana toca**: área 4, casos límite.
+
 ### 2026-11-13 — Ejemplos (área 2): dos huecos de esta semana que no tenían ninguno
 
 **Qué añadí**: dos casos a `agentes/ia/ejemplos/`, los dos sobre cosas que
