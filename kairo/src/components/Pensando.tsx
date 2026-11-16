@@ -41,6 +41,7 @@ const FASES: Record<Level, TKey[]> = {
 /* Buscando en internet: lo que de verdad pasa, en orden. */
 const BUSCANDO: TKey[] = [
   "pensar.buscando",
+  "pensar.periodicos",
   "pensar.leyendoFuentes",
   "pensar.contrastando",
   "pensar.comprobandoDatos",

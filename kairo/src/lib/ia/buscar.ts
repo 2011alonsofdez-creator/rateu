@@ -101,8 +101,77 @@ const conPlazo = <T>(promesa: Promise<T>, ms: number): Promise<T | null> => {
   });
 };
 
-/** Busca en internet lo que haga falta para contestar la pregunta. */
+/** Busca en internet lo que haga falta para contestar la pregunta.
+ *
+ *  Dos búsquedas A LA VEZ: la de siempre (Gemini con Google, o el
+ *  repuesto) y las fuentes libres (Google Noticias y Wikipedia, que no
+ *  gastan cuota). Si la primera encuentra, las libres suman titulares y
+ *  fuentes; si no encuentra o no hay cuota, las libres son la respuesta
+ *  en vez de "no puedo confirmarlo". */
 export async function buscarHechos(
+  pregunta: string,
+  contexto: string,
+  modoEdad: ModoEdad | null,
+  diario?: Diario,
+): Promise<Hallazgo | null> {
+  const hoy = new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  /* Wikipedia solo para "quién es / qué es" o cuando se nombra algo con
+     mayúscula: para "huelga ferroviaria" traería un artículo genérico. */
+  const conWiki =
+    /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a)/i.test(pregunta) ||
+    /\s\p{Lu}\p{L}{2,}/u.test(pregunta);
+
+  const antes = Date.now();
+  const libres = Promise.all([
+    noticiasDe(pregunta, 5000).catch(() => []),
+    conWiki ? articulosDe(pregunta, "es", 5000).catch(() => []) : Promise.resolve([]),
+  ]);
+  const principal = await buscarConModelos(pregunta, contexto, modoEdad, diario);
+  const [noticias, articulos] = await libres;
+  if (diario) {
+    diario.intentos.push({
+      modelo: "noticias+wikipedia (en paralelo)",
+      ms: Date.now() - antes,
+      resultado: `${noticias.length} titular(es), ${articulos.length} artículo(s)`,
+    });
+  }
+  if (!noticias.length && !articulos.length) return principal;
+
+  const extra = [
+    noticias.length ? noticiasComoHechos(noticias, hoy) : "",
+    articulos.length ? comoHechos(articulos) : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const masFuentes = [...noticiasComoFuentes(noticias), ...comoFuentes(articulos)];
+
+  if (principal?.busco && principal.hechos.trim()) {
+    const vistas = new Set(principal.fuentes.map((f) => f.url));
+    return {
+      ...principal,
+      hechos: `${principal.hechos.trim()}\n\nAdemás, de otras fuentes:\n${extra}`,
+      fuentes: [...principal.fuentes, ...masFuentes.filter((f) => !vistas.has(f.url))].slice(0, 14),
+    };
+  }
+  /* El buscador principal no ha encontrado nada o no ha podido (sin
+     cuota): lo de los periódicos es la respuesta, en vez de "no puedo
+     confirmarlo" con todo publicado. */
+  return {
+    hechos: extra,
+    fuentes: masFuentes,
+    busquedas: principal?.busquedas?.length ? principal.busquedas : [consultaDe(pregunta)],
+    modelo: principal?.busco ? principal.modelo : "google-noticias",
+    busco: true,
+  };
+}
+
+async function buscarConModelos(
   pregunta: string,
   contexto: string,
   modoEdad: ModoEdad | null,
