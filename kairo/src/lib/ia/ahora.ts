@@ -185,19 +185,64 @@ function llevaAnioViejo(texto: string, hoy: Date): boolean {
   return false;
 }
 
-/** ¿Hay que buscar en internet antes de contestar esto? */
-export function esDeAhora(pregunta: string, hoy = new Date()): boolean {
+/* LO QUE ES DE PENSAR, NO DE BUSCAR.
+ *
+ * Escribir, calcular, programar, aconsejar, explicar algo de siempre o
+ * charlar: ahí la respuesta sale de la cabeza y buscar solo hace esperar.
+ * Van DESPUÉS de las pistas fuertes, así que "escríbeme un resumen de
+ * las noticias de hoy" sigue buscando (lo pilla "hoy"). */
+const PENSAR: RegExp[] = [
+  // Saludos y charla
+  palabra("(hola|holi|buenas|gracias|muchas gracias|vale|ok|okey|perfecto|genial|jaja+|jeje+|adios|buenas noches|buenos dias|que tal( estas)?|como estas)"),
+  // Escribir y crear
+  palabra("(escribe(me)?|redacta(me)?|hazme|haz un|haz una|crea(me)?|genera(me)?|inventa(te)?|imagina|cuentame un (chiste|cuento|historia)|un (poema|chiste|cuento|rap|cancion|eslogan|slogan)|ponme un nombre|nombres para|ideas (para|de))"),
+  // Recetas y cómo se hace algo de casa
+  palabra("(receta|como (hago|se hace|preparo|se prepara|cocino|se cocina)|ingredientes para)"),
+  // Calcular, razonar, estudiar
+  palabra("(calcula|resuelve|cuanto es|cuantos son|ecuacion|derivada|integral|porcentaje de|simplifica|demuestra|razona|ejercicio|problema de)"),
+  palabra("(\\d+ ?[-+*/x^] ?\\d+)"),
+  // Programar
+  palabra("(programa(me)?|codigo (en|de|para)|funcion (en|que|para)|script|javascript|python|html|css|sql|regex|api rest|bug)"),
+  // Consejo, opinión y lo personal
+  palabra("(que (me )?recomiendas|que opinas|que harias|aconsejame|consejos? (para|de|sobre)|como (puedo|hago para|deberia)|me siento|estoy (triste|agobiad[oa]|nervios[oa]|cansad[oa])|ayudame a (pensar|decidir|organizar))"),
+  // Explicar lo que no cambia
+  palabra("(explicame|explica(me)? (que|como|por que)|que significa|que diferencia hay|en que consiste|como funciona (el|la|un|una) (cuerpo|corazon|motor|fotosintesis|celula|atomo|cerebro))"),
+];
+
+export type Veredicto = "si" | "no" | "duda";
+
+/** Lo que dicen las reglas: buscar, no buscar, o no está claro (y
+ *  entonces decide un modelo rápido, ver decidir-busqueda.ts). */
+export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   const texto = sinTildes(pregunta.trim());
-  if (texto.length < 3) return false;
+  if (texto.length < 3) return "no";
   // Una pregunta larguísima suele ser un texto pegado para trabajar con
   // él, no una pregunta sobre el mundo.
-  if (texto.length > 2000) return false;
+  if (texto.length > 2000) return "no";
 
-  if (NUNCA.some((re) => re.test(texto))) return false;
-  if (llevaAnioReciente(texto, hoy)) return true;
-
-  if (PISTAS.some((re) => re.test(texto))) return true;
+  if (NUNCA.some((re) => re.test(texto))) return "no";
+  if (llevaAnioReciente(texto, hoy)) return "si";
+  if (PISTAS.some((re) => re.test(texto))) return "si";
 
   // Las flojas valen solo si no estamos hablando de hace décadas.
-  return !llevaAnioViejo(texto, hoy) && DEBILES.some((re) => re.test(texto));
+  if (!llevaAnioViejo(texto, hoy) && DEBILES.some((re) => re.test(texto))) return "si";
+
+  if (PENSAR.some((re) => re.test(texto))) return "no";
+  return "duda";
+}
+
+/** ¿Hay que buscar en internet antes de contestar esto? (solo reglas) */
+export function esDeAhora(pregunta: string, hoy = new Date()): boolean {
+  return veredicto(pregunta, hoy) === "si";
+}
+
+/** Para cuando el modelo no contesta a tiempo: ¿nombra algo concreto?
+ *  Una palabra en mayúscula que no abre la frase ("¿Quién es Ibai?",
+ *  "¿Qué es Kick?") suele ser una persona, una marca o un sitio: cosas
+ *  que se buscan, no que se piensan. */
+export function nombraAlgoConcreto(pregunta: string): boolean {
+  const palabras = pregunta.replace(/[¿?¡!.,;:()"«»]/g, " ").split(/\s+/).filter(Boolean);
+  if (palabras.slice(1).some((w) => /^\p{Lu}[\p{L}\d]{2,}/u.test(w) && !/^(Kairo|Yo|Tú|Tu)$/.test(w))) return true;
+  // Un modelo con número: "rtx 5070", "galaxy s24", "ryzen 9800x3d".
+  return /(?<![\p{L}\d])[a-z]{1,8} ?\d{2,5}[a-z\d]*(?![\p{L}\d])/iu.test(pregunta);
 }
