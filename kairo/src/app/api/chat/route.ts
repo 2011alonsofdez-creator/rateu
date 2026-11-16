@@ -21,7 +21,7 @@ import {
   partir,
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
-import { esDeAhora } from "@/lib/ia/ahora";
+import { decidirBusqueda } from "@/lib/ia/decidir-busqueda";
 import { hayQueBuscar, modoValido } from "@/lib/buscar-modo";
 import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memoria";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
@@ -549,14 +549,20 @@ export async function POST(req: Request) {
            falla el único que lo sabe es quien ha escrito la pregunta:
            por eso "siempre" manda sobre todo lo demás, archivos
            incluidos, y "nunca" también. */
-        if (hayQueBuscar(modoBusqueda, esDeAhora(ultima), conArchivos)) {
-          enviar({ t: "buscando" });
+        // De qué venían hablando, para que "¿y el horario?" se entienda.
+        const contexto = historial
+          .slice(-3, -1)
+          .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
+          .join("\n");
 
-          // De qué venían hablando, para que "¿y el horario?" se entienda.
-          const contexto = historial
-            .slice(-3, -1)
-            .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
-            .join("\n");
+        /* ¿Buscar en fuentes o pensarlo? Reglas primero (al instante) y,
+           si no está claro, un modelo rápido (máx. 1,5 s). Ni se pregunta
+           si Code ha dicho "nunca" o hay archivos delante. */
+        const pinta =
+          modoBusqueda === "nunca" || conArchivos ? false : await decidirBusqueda(ultima, contexto);
+
+        if (hayQueBuscar(modoBusqueda, pinta, conArchivos)) {
+          enviar({ t: "buscando" });
 
           /* El diario no es para depurar: es para poder DECIR por qué no
              se ha buscado. Sin él, "no he podido comprobarlo" y "no hay
