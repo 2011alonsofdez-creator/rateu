@@ -3,41 +3,35 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-13 ([informe](informes/2026-11-13-estado.md)),
-la undécima
-**Semáforo general**: 🔴 **décimo rojo, y hoy por una contradicción publicada: `/precios` dice "No. Ni las tuyas ni las de nadie" y la política de privacidad, publicada esta mañana, dice que eso no se puede afirmar**
+**Última revisión**: 2026-11-16 ([informe](informes/2026-11-16-estado.md)),
+la duodécima
+**Semáforo general**: 🔴 **undécimo rojo, y por primera vez no por algo mal escrito sino por algo bien escrito y sin publicar: hay tres documentos legales terminados y CERO publicados, y la web viva acepta cuentas y papeles sin una política de privacidad que se pueda leer**
+Lo de antes: 🔴 décimo rojo, por la contradicción entre `/precios` y la política de privacidad (sigue en pie, diez días)
 
-> **Lo que ha cambiado de verdad**: el producto y el sistema están mejor que
-> nunca —cuatro días sin perder un turno, el checklist de salud en su mejor
-> marca, dos P1 viejos cerrados por él y el segundo documento legal publicado—.
-> Lo que no se ha movido en nueve días son **las puertas de lanzamiento**, y lo
-> que bloquea son **dos frases** que dice la web y que no son verdad.
+> **Lo que ha cambiado de verdad**: han sido los tres días más productivos de
+> este sistema —el tercer documento legal escrito, el fallo que le daba a un
+> niño una tabla de precios arreglado el mismo día que se supo por qué, el banco
+> de pruebas puntuado entero por primera vez desde el 23-10 y 33 commits suyos
+> en `main`— **y Kairo está exactamente igual de lejos del lanzamiento que hace
+> doce días**: las puertas siguen en **2 de 22**. El trabajo está hecho y no
+> llega a la web.
+>
+> Lo de antes (13-11): el producto y el sistema mejor que nunca, y lo que
+> bloqueaba eran dos frases publicadas que no son verdad. Siguen ahí.
 
 ## Métricas
 
-| Métrica | Valor | Anterior (10-11) | Tendencia |
+| Métrica | Valor | Anterior (13-11) | Tendencia |
 |---|---|---|---|
-| **Documentos legales escritos** | **2 de 4**: cookies (04-11) y **privacidad (hoy)** | 1 de 4 | ↑ y sin esperar sus cinco campos |
-| **Las dos frases que bloquean** | **`/precios` contra la política de privacidad** (8 días) y **la portada prometiendo Claude y GPT** sin tenerlos en la cadena (desde el 11-11) | 1 de las 2 | ↓ ahora son dos, y una es contra un documento propio |
-| **Producción, vista de verdad** | **sí, hoy 06:14**: `revisar.yml` 40 (200 y "TODO CORRECTO") y `probar-portada` 11, cinco pasos en verde | sí, el 10-11 | = **cuatro días seguidos** |
-| Checklist de salud | **16 ✅ · 2 🟡 · 1 ⚪ · 1 ⬜** de 20 | 13 ✅ · 1 🔴 · 4 🟡 · 1 ⚪ · 1 ⬜ | ↑ **su mejor marca** |
-| **Puertas de lanzamiento** | **19**: 2 ✅ · 3 🟡 · 1 ⚪ · 13 ⬜ | igual | = **ninguna en nueve días** |
-| **Commits suyos en 3 días** | **26** | 2 | ↑↑ |
-| Commits nuestros en 3 días | **8** | 3 | ↑ |
-| Commits **sin fusionar** | **128** · 33 días | 116 · 30 días | ↑ **undécima vez** |
-| Conflictos de fusión | **6 en 7 días**; hoy el primero limpio | 0 | ↑ consecuencia de lo anterior |
-| **Cobertura del verificador** | **material + paneles vivos + copia de la app** | solo material | ↑ tres capas en tres días, y cada una cazó algo real |
-| Cerebros con clave directa | **1 de 3** | 1 de 3 | = **28 días** |
-| `laguna` en la cadena | **fuera** desde el 11-11 | dentro, 10.º día | ✅ cerrado por él |
-| Buscador de pago | **apagado y sustituido** por Google Noticias gratis | encendido, con coste por consulta | ✅ cerrado por él, 17 días |
-| Reloj de Co-Works | **suena**: 225 toques | 215 | = |
-| Banco de pruebas | **sin puntuar**, sexto informe | sin puntuar | = 21 días |
-| Tamaño del prompt (adulto + buscador) | **237** líneas | 208 | ↑ +29, **las 30 que suben son suyas** |
-| Tareas marcadas `[hecho]` | **48** | 28 | ↑ +20 |
-| P1 abiertos | **19** | 21 | ↓ por fin baja |
-| Turnos de agente perdidos | **0 en cuatro días** | 2 días enteros | ✅ |
-| `notas.md` | **vacío, 32 días** | vacío, 30 | ↑ |
-| Visitas · conversión · ingresos | **sin datos**, con la analítica 7 días recogiendo | sin datos | → |
+| **Documentos legales escritos** | **3 de 4**: cookies, privacidad y **términos (15-11)** | 2 de 4 | ↑ |
+| **Documentos legales PUBLICADOS** | **0 de 4.** En `main`, `app/legal/` tiene un solo archivo y dice "Pendiente de redactar" | 0 de 4, *pero nadie lo había medido* | **= y es el hallazgo del 16-11** |
+| **Puertas de lanzamiento** | **2 ✅ · 4 🟡 · 1 ⚪ · 15 ⬜** de 22 | 2 ✅ · 3 🟡 · 1 ⚪ · 16 ⬜ | = **ninguna abierta en doce días** |
+| Checklist de salud | **15 ✅ · 3 🟡 · 1 ⚪ · 1 ⬜** de 20 | 16 ✅ · 2 🟡 · 1 ⚪ · 1 ⬜ | ↓ por el medio día de agentes perdido el 14 |
+| **Banco de pruebas** | **25 / 28**, los catorce casos puntuados el 16-11 | sin puntuar desde el 23-10 | = en total, ↑ en método |
+| **Producción, vista de verdad** | **sí, hoy 06:14**: `revisar.yml` 43 (200, "TODO CORRECTO") y `probar-portada` 14, cinco pasos | sí, el 13-11 | ↑ **siete días seguidos** |
+| **Commits suyos en `main` en 3 días** | **33** | 26 | ↑ |
+| Entregas de agentes en 3 días | **8 commits**, con un día perdido (el 14) | 5 | ↑ |
+| Visitas, registros, usuarios | **sin datos** | sin datos | = falta analítica; decisión suya |
 
 ## Veredicto de la última revisión
 

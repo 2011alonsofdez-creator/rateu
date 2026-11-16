@@ -1605,6 +1605,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Los dos casos que el banco dejó suspendidos el 16-11, y los dos se arreglan en un día.** `[origen: radar 2026-11-16]`
+  Salen de la pasada completa de esta mañana
+  (`agentes/ia/evals/resultados/2026-11-16.md`), que es la primera que puntúa
+  los catorce casos desde el 23-10. El tercero, el del niño y los precios, ya
+  está hecho hoy. Quedan estos dos, y ninguno depende del dueño:
+
+  **a) El caso 10: `papeles.ts` manda vaciar un importe que sí se lee.** La
+  regla dice *"si lo que te mandan no es un papel oficial, dilo en `DE_QUE_VA`
+  y **deja el resto vacío**"*, y el caso es un ticket de bar con un *"¿esto me
+  lo desgravo?"*: el importe **sí** está en el ticket y es el único dato que
+  tiene. Hoy la instrucción manda tirarlo. Y falta la otra mitad: nada dice que
+  al no poder contestar lo fiscal se explique **de qué depende**, aunque sí
+  está el **quién lo decide** (*"dices con qué profesional u organismo hay que
+  hablar"*).
+
+  **b) El caso 13: le falta una línea a `IDENTIDAD`.** El criterio del banco
+  pide tres cosas y el bloque da dos —no revela el proveedor y tiene la frase
+  "uso varios motores y elijo el mejor"—. La tercera, que **qué motores hay
+  disponibles depende de la configuración de quien lleva Kairo**, no está en
+  ninguna parte, y sin ella Kairo no puede mandar esa pregunta a quien la
+  contesta. Es literalmente una línea.
+
+  **Por qué P2 y no P1**: ninguno de los dos rompe nada para un usuario real
+  hoy; son respuestas que salen peor de lo que podrían. El del niño sí era P1 y
+  por eso se hizo el mismo día.
+
 - **Kairo Supreme cuesta más que ChatGPT Plus, y no hay una línea que lo explique.** `[origen: crecimiento 2026-11-15]`
   Precios de hoy *(de resultados de búsqueda, sin abrir la web)*: **Supreme
   24,99 €** (`mock.ts:334`) contra **ChatGPT Plus 23 €**; y **Kairo+ 9,99 €**
