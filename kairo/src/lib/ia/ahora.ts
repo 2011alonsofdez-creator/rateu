@@ -95,6 +95,8 @@ const PISTAS: RegExp[] = [
      ninguna lista ni pueden estarlo. Lo que sí se repite es el verbo. */
   palabra("(como (quedo|quedaron|queda|quedan|va|van|iba|iban|acabo|acabaron|termino|terminaron))"),
   palabra("(noticia|noticias|que ha pasado|que esta pasando)"),
+  /* Lo que sale en el telediario: pasa hoy y mañana ya es otro. */
+  palabra("(huelga|huelgas|manifestacion|manifestaciones|protesta|protestas|paro|paros|retraso|retrasos|cancelad[oa]s?|cortes?|apagon|accidente|incendio|terremoto|inundacion|dana|alerta|evacuacion|atentado|detenid[oa]s?|juicio|condena|dimision|dimite)"),
   /* "el tiempo" estaba; "qué tiempo va a hacer mañana" no, que es como
      lo dice todo el mundo. Y el tiempo de mañana es el caso más claro
      de dato que Kairo no se puede saber de memoria. */
