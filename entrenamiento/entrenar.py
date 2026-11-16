@@ -17,6 +17,11 @@
 
 import json
 import sys
+
+try:  # Unsloth quiere ir el primero para acelerar todo lo demás
+    import unsloth  # noqa: F401
+except Exception:
+    pass
 import urllib.request
 
 from google.colab import userdata
@@ -34,6 +39,19 @@ SISTEMA = (
 LARGO = 2048  # tokens por ejemplo: de sobra para las respuestas de Kairo
 
 TOKEN = userdata.get("HF_TOKEN")
+
+
+def precision():
+    """La T4 gratis de Colab no sabe bf16, y Gemma 4 en fp16 se rompe:
+    ahí se entrena en fp32 (más lento, pero funciona). Con una GPU buena,
+    bf16."""
+    try:
+        from unsloth import is_bfloat16_supported
+
+        bf16 = bool(is_bfloat16_supported())
+    except Exception:
+        bf16 = False
+    return {"bf16": bf16, "fp16": False}
 
 
 def cargar(nombre_o_lista):
@@ -156,6 +174,7 @@ def entrenar():
         seed=3407,
         output_dir="salida",
         report_to="none",
+        **precision(),
     )
     try:
         config = SFTConfig(max_length=LARGO, **ajustes)
@@ -197,12 +216,19 @@ def todo():
     preguntas = preguntas_examen()
     modelo, tok = cargar(BASES)
 
-    print("\n▶ 1/4 · Examen ANTES de entrenar (unos 10 minutos)…")
-    FastModel.for_inference(modelo)
-    antes = []
-    for i, (p, _) in enumerate(preguntas, 1):
-        antes.append(contestar(modelo, tok, p, 300))
-        print(f"   {i}/{len(preguntas)}")
+    import os
+
+    if os.path.exists("examen-antes.json"):
+        print("\n▶ 1/4 · Examen ANTES: ya estaba hecho, lo reutilizo")
+        antes = json.load(open("examen-antes.json", encoding="utf-8"))
+    else:
+        print("\n▶ 1/4 · Examen ANTES de entrenar (unos 10 minutos)…")
+        FastModel.for_inference(modelo)
+        antes = []
+        for i, (p, _) in enumerate(preguntas, 1):
+            antes.append(contestar(modelo, tok, p, 300))
+            print(f"   {i}/{len(preguntas)}")
+        json.dump(antes, open("examen-antes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
     print("\n▶ 2/4 · Entrenando (20-40 minutos)…")
     FastModel.for_training(modelo)
@@ -222,6 +248,7 @@ def todo():
         dataset_text_field="text", per_device_train_batch_size=2, gradient_accumulation_steps=4,
         num_train_epochs=2, learning_rate=2e-4, warmup_steps=5, logging_steps=5, optim="adamw_8bit",
         weight_decay=0.01, lr_scheduler_type="linear", seed=3407, output_dir="salida", report_to="none",
+        **precision(),
     )
     try:
         config = SFTConfig(max_length=LARGO, **ajustes)
