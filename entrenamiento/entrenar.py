@@ -5,6 +5,7 @@
 #   %run entrenar.py examen        -> examen al modelo base, SIN entrenar
 #   %run entrenar.py               -> entrena con kairo-ejemplos y sube a alonsofg29/Kairo
 #   %run entrenar.py examen-kairo  -> el mismo examen al modelo YA entrenado
+#   %run entrenar.py todo          -> TODO DE UNA VEZ: examen, entrenar, examen, comparar
 #
 # Necesita el secreto HF_TOKEN (la llave de la izquierda de Colab), el
 # mismo que usaste para los ejemplos.
@@ -76,7 +77,7 @@ def contestar(modelo, tok, pregunta, maximo=500):
     return tok.decode(nuevo, skip_special_tokens=True).strip()
 
 
-def examen(nombre):
+def preguntas_examen():
     with urllib.request.urlopen(f"{REPO}/examen.txt") as r:
         lineas = r.read().decode("utf-8").splitlines()
     preguntas = []
@@ -88,7 +89,11 @@ def examen(nombre):
             preguntas[-1][1] = l[1:].strip()
         else:
             preguntas.append([l, ""])
+    return preguntas
 
+
+def examen(nombre):
+    preguntas = preguntas_examen()
     modelo, tok = cargar(nombre)
     from unsloth import FastModel
 
@@ -175,10 +180,95 @@ def entrenar():
     print("Hecho. Ahora: %run entrenar.py examen-kairo")
 
 
+def todo():
+    """TODO DE UNA VEZ, para pulsar ▶ una sola vez: examen antes, entrenar,
+    examen después, comparación y subida a Hugging Face."""
+    from datasets import Dataset
+    from huggingface_hub import hf_hub_download
+    from trl import SFTConfig, SFTTrainer
+    from unsloth import FastModel
+
+    ruta = hf_hub_download(DATASET, "data/train.jsonl", repo_type="dataset", token=TOKEN)
+    filas = [json.loads(l) for l in open(ruta, encoding="utf-8") if l.strip()]
+    print(f"\n▶ {len(filas)} ejemplos para entrenar")
+    if len(filas) < 50:
+        raise SystemExit("Hay menos de 50 ejemplos: genera más antes de entrenar.")
+
+    preguntas = preguntas_examen()
+    modelo, tok = cargar(BASES)
+
+    print("\n▶ 1/4 · Examen ANTES de entrenar (unos 10 minutos)…")
+    FastModel.for_inference(modelo)
+    antes = []
+    for i, (p, _) in enumerate(preguntas, 1):
+        antes.append(contestar(modelo, tok, p, 300))
+        print(f"   {i}/{len(preguntas)}")
+
+    print("\n▶ 2/4 · Entrenando (20-40 minutos)…")
+    FastModel.for_training(modelo)
+    modelo = FastModel.get_peft_model(
+        modelo, finetune_vision_layers=False, finetune_language_layers=True,
+        finetune_attention_modules=True, finetune_mlp_modules=True,
+        r=16, lora_alpha=16, lora_dropout=0, bias="none", random_state=3407,
+    )
+    textos = [
+        tok.apply_chat_template(
+            mensajes(SISTEMA, f["messages"][1]["content"], f["messages"][2]["content"]), tokenize=False
+        )
+        for f in filas
+    ]
+    datos = Dataset.from_list([{"text": t} for t in textos])
+    ajustes = dict(
+        dataset_text_field="text", per_device_train_batch_size=2, gradient_accumulation_steps=4,
+        num_train_epochs=2, learning_rate=2e-4, warmup_steps=5, logging_steps=5, optim="adamw_8bit",
+        weight_decay=0.01, lr_scheduler_type="linear", seed=3407, output_dir="salida", report_to="none",
+    )
+    try:
+        config = SFTConfig(max_length=LARGO, **ajustes)
+    except TypeError:
+        config = SFTConfig(max_seq_length=LARGO, **ajustes)
+    try:
+        SFTTrainer(model=modelo, processing_class=tok, train_dataset=datos, args=config).train()
+    except TypeError:
+        SFTTrainer(model=modelo, tokenizer=tok, train_dataset=datos, args=config).train()
+
+    print("\n▶ 3/4 · Examen DESPUÉS de entrenar (unos 10 minutos)…")
+    FastModel.for_inference(modelo)
+    despues = []
+    for i, (p, _) in enumerate(preguntas, 1):
+        despues.append(contestar(modelo, tok, p, 300))
+        print(f"   {i}/{len(preguntas)}")
+
+    print("\n▶ 4/4 · Subiendo a https://huggingface.co/" + DESTINO + " (privado)…")
+    modelo.push_to_hub(DESTINO, token=TOKEN, private=True)
+    tok.push_to_hub(DESTINO, token=TOKEN, private=True)
+    resultado = [
+        {"pregunta": p, "debe": e, "antes": a, "despues": d}
+        for (p, e), a, d in zip(preguntas, antes, despues)
+    ]
+    with open("examen-resultado.json", "w", encoding="utf-8") as f:
+        json.dump(resultado, f, ensure_ascii=False, indent=1)
+    from huggingface_hub import HfApi
+    HfApi(token=TOKEN).upload_file(
+        path_or_fileobj="examen-resultado.json", path_in_repo="examen-resultado.json",
+        repo_id=DESTINO, repo_type="model",
+    )
+
+    print("\n" + "=" * 72 + "\nRESULTADO: ANTES vs DESPUÉS\n" + "=" * 72)
+    for i, r in enumerate(resultado, 1):
+        print(f"\n{i}. {r['pregunta']}\nDEBE: {r['debe']}")
+        print(f"\n--- ANTES ---\n{r['antes'][:600]}")
+        print(f"\n--- DESPUÉS ---\n{r['despues'][:600]}")
+        print("-" * 72)
+    print("\n✅ TERMINADO. Copia todo lo de arriba (o haz capturas) y mándaselo a Claude.")
+
+
 modo = sys.argv[1] if len(sys.argv) > 1 else "entrenar"
 if modo == "examen":
     examen(BASES)
 elif modo == "examen-kairo":
     examen(DESTINO)
+elif modo == "todo":
+    todo()
 else:
     entrenar()
