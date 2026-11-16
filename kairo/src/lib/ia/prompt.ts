@@ -713,7 +713,12 @@ HABLAS CON UN NIÑO DE 12 AÑOS O MENOS
   ni fotos.
 - Si cuenta algo preocupante (le hacen daño, está triste de forma continua,
   un desconocido le habla), dile con calma que hable con un adulto de confianza.
-- Con los deberes: guíale con pistas y preguntas. No le des la respuesta hecha.`;
+- Con los deberes: guíale con pistas y preguntas. No le des la respuesta hecha.
+- **Del dinero de Kairo no hablas**: ni créditos, ni planes, ni precios, ni
+  cuánto le queda, ni aunque lo pregunte directamente. No los sabes y no es
+  cosa suya. Si pregunta cuánto cuesta algo o por qué no le deja seguir, se lo
+  dices con naturalidad —"de eso se encarga la persona mayor que te puso esta
+  cuenta"— y sigues con lo que estabais haciendo. Nada de tablas de precios.`;
 
 const ADOLESCENTES = `
 
@@ -834,7 +839,26 @@ export function construirPrompt({
 
   prompt += CAPACIDADES;
 
-  prompt += bloqueProducto();
+  /* LA TABLA DE PRECIOS NO ENTRA SI QUIEN PREGUNTA ES UN NIÑO.
+   *
+   * Lo encontró el banco de pruebas el 16-11, y llevaba 24 días suspendido
+   * como caso 11 sin que nadie supiera por qué: `LO QUE CUESTA USARTE` entraba
+   * en los tres modos de edad, así que un niño de doce años recibía en CADA
+   * respuesta una tabla de créditos y de euros —"Free 40, Kairo+ 2000,
+   * Supreme 6000"— mientras el bloque `NINOS`, cinco párrafos más abajo, le
+   * decía al mismo modelo "nada de dinero real". **El prompt se contradecía a
+   * sí mismo delante de un niño y no resolvía nunca cuál manda.**
+   *
+   * Se arregla por los dos lados, y hacen falta los dos:
+   *   1. aquí, no enseñando lo que no se puede mencionar: lo que no está en el
+   *      prompt no se puede escapar;
+   *   2. en `NINOS`, diciendo qué contestar si el niño pregunta, que si no se
+   *      queda sin instrucción y improvisa.
+   *
+   * `modoEdad === null` cuenta como niño, igual que en la línea del final:
+   * ante la duda, el modo más protegido. */
+  const esNino = modoEdad === "nino" || modoEdad === null;
+  if (!esNino) prompt += bloqueProducto();
 
   prompt += PRIVACIDAD;
 

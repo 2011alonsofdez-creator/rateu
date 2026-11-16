@@ -13,6 +13,28 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **~~🔴 Un niño de doce años recibía la tabla de precios en cada respuesta~~ — HECHO el mismo día que se supo por qué.** `[origen: evaluación 2026-11-16 · hecho 2026-11-16]`
+  **Lo encontró el banco de pruebas esta mañana**, y llevaba **veinticuatro
+  días** suspendido como caso 11 sin que nadie supiera la causa: el bloque
+  `LO QUE CUESTA USARTE` —créditos, planes y euros— entraba en **los tres modos
+  de edad**, así que un niño lo leía en **cada** respuesta mientras el bloque
+  `NINOS`, más abajo en el mismo prompt, decía *"nada de dinero real"*. El
+  prompt se contradecía a sí mismo delante de un niño y **no resolvía nunca
+  cuál manda**.
+
+  **Arreglado por los dos lados, porque hacen falta los dos**: la tabla ya no se
+  renderiza cuando el modo es niño —lo que no está no se puede escapar— y el
+  bloque de niños dice ahora **qué contestar** si pregunta, que si no se queda
+  sin instrucción e improvisa: *"de eso se encarga la persona mayor que te puso
+  esta cuenta"*, y a seguir. `modoEdad === null` cuenta como niño, igual que en
+  el resto del archivo.
+
+  **Comprobado renderizando los cuatro modos**: niño **259 → 239 líneas**, sin
+  tabla, sin cifras de planes y **sin un solo símbolo de euro**; adulto se queda
+  en 246 y adolescente en 257, los dos con su tabla intacta —un adolescente sí
+  puede hablar de dinero, y el caso 14 del banco lo pide así—. `tsc` 0 y
+  `next build` 0.
+
 - **🟡 Tres documentos legales escritos y cero publicados. Lo arregla una fusión.** `[origen: guardian 2026-11-16]`
   Comprobado hoy en `main`, que es lo que corre en producción: la carpeta
   `kairo/src/app/legal/` tiene **un solo archivo**, `page.tsx`, y esa página
