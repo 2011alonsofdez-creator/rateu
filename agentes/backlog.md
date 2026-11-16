@@ -13,6 +13,38 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 Tres documentos legales escritos y cero publicados. Lo arregla una fusión.** `[origen: guardian 2026-11-16]`
+  Comprobado hoy en `main`, que es lo que corre en producción: la carpeta
+  `kairo/src/app/legal/` tiene **un solo archivo**, `page.tsx`, y esa página
+  dice de sí misma *"Pendiente de redactar antes del lanzamiento"*.
+
+  O sea que **ningún visitante de Kairo puede leer ninguno de los tres**:
+
+  | Documento | Escrito | Días sin que nadie pueda leerlo |
+  |---|---|---|
+  | Política de cookies | 04-11 | **12** |
+  | Política de privacidad | 13-11 | **3** |
+  | Términos de uso | 15-11 | **1** |
+
+  **Y lo que esto convierte en urgente no es la fusión en abstracto, que ya
+  lleva su propio P1 desde el 31-10: es que la web viva acepta cuentas y
+  acepta papeles hoy**, con la caja de probar funcionando —lo comprueba
+  `probar-portada` cada mañana— y **sin una política de privacidad publicada**,
+  habiendo una escrita hace tres días. Un sitio que recoge papeles con DNI
+  dentro y no publica dónde acaban no es un detalle de maquetación.
+
+  **Y el aviso de método, que vale más que el hallazgo**: la fila del checklist
+  decía desde el 13-11 que la privacidad estaba *"escrita y publicada"*, y era
+  **falso en la segunda palabra**. Publicada en la rama no es publicada. Es la
+  tercera vez que esta casa se pilla midiendo el envoltorio en vez de la cosa:
+  el 01-11 fue **el enlace** en vez del documento, el 12-11 fueron las **frases
+  prohibidas** en vez del código, y hoy ha sido **el repositorio** en vez de la
+  web. Cuando una comprobación se hace desde dentro del repositorio, hay que
+  escribir *en qué rama*.
+
+  **Qué hace falta**: fusionar `claude/kairo-agentes`, hoy a **135 commits** de
+  `main`. Es suyo: el protocolo prohíbe a los agentes tocar `main`.
+
 - **Los dos números del suelo de Kairo que nadie ha mirado nunca, y uno cuesta 10 $.** `[origen: crecimiento 2026-11-15]`
   Las dos capas de las que vive Kairo son gratis, y hoy el proyecto **no sabe
   cuánto aguantan**. Las dos se contestan en cinco minutos cada una, en una
