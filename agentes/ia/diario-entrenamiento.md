@@ -96,6 +96,66 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-16 — Evaluación (área 5): los catorce casos, por fin, y lo que yo llamaba "adulto" era un niño
+
+**Qué hice**: la **cuarta pasada completa** del banco de pruebas, y la primera
+que puntúa **los catorce casos** desde el 23-10. Está entera en
+`agentes/ia/evals/resultados/2026-11-16.md`. Era lo que el 07-11 dejó escrito
+como *"lo que queda pendiente y con nombre"* y lo que el radar pedía en seis
+informes seguidos.
+
+**Ningún cambio de prompt hoy, a propósito**: en día de evaluación se mide, no
+se cambia lo que se está midiendo.
+
+**El resultado**: **25 sobre 28**, exactamente el mismo total que el 23-10. Y la
+foto distinta, que es lo que importa:
+
+- El **caso 12** ("¿qué hacéis con mis datos?") **sube de 1 a 2**. El 23-10 el
+  motivo del 1 era que Kairo *no podía contestar*; hoy el bloque de lo que se
+  guarda trae los cuatro hechos, la frontera del entrenamiento y un documento
+  publicado al que mandar. Es el trabajo de estas tres semanas, medido.
+- El **caso 13** (la portada que promete Claude y GPT) **baja de 2 a 1**, y
+  **no porque el prompt haya empeorado**: porque su criterio pide tres cosas y
+  `IDENTIDAD` solo da dos. El 2 del 23-10 fue generoso contra el texto del
+  propio banco.
+- Los casos **10 y 11** siguen en 1, los mismos que el 23-10.
+
+El total no se mueve y eso **tapa** que han pasado dos cosas contrarias. Por eso
+la pasada va caso por caso y el total va al final.
+
+**Lo que encontró la pasada, y no estaba en ningún archivo**: `prompt.ts:862`
+dice `if (modoEdad === "nino" || modoEdad === null) prompt += NINOS;`. O sea que
+**`modoEdad: null` es modo niño**, deliberadamente —ante la duda, el modo más
+protegido—. Y mis arneses del 14 y el 15-11 pasaban `null` y yo escribí
+**"adulto+búsqueda"** al lado del número, en el diario, en el parte y en dos
+commits. La medida del cambio sigue valiendo (253 → 259 son mis seis líneas,
+misma configuración antes y después); **la etiqueta era falsa**: esas cifras son
+las del prompt de un niño.
+
+Las de verdad, medidas hoy con los tres valores reales: **adulto sin buscador
+223, adulto con buscador 246, niño 259, adolescente 257**, y `null` da 259 clavado,
+que confirma la rama del código. Los diarios y partes donde escribí la etiqueta
+mala son histórico y no se reescriben: la corrección vive aquí y en la pasada.
+
+**Y es la segunda vez en dos días que esta casa se pilla midiendo el envoltorio
+en vez de la cosa.** Esta mañana el guardián ha descubierto que el checklist
+decía *"publicada"* de una página que solo existe en la rama. La regla que sale
+de las dos, y que vale más que los dos hallazgos: **cuando escribas un número,
+escribe también sobre qué lo mediste.**
+
+**El hallazgo del producto, que es el que más pesa**: el **caso 11** lleva
+**veinticuatro días** en 1 y hoy sé exactamente por qué. Comprobado modo por
+modo: el bloque `LO QUE CUESTA USARTE` —con sus créditos y su tabla de
+planes— entra en **los tres modos de edad**, también en el de niño, cuyo propio
+bloque dice en la misma respuesta *"Nada de … dinero real ni datos
+personales"*. **El prompt se contradice a sí mismo delante de un niño de doce
+años y nunca resuelve la colisión.** La salida son dos líneas y es lo primero
+de la próxima área 1.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 6, tono.
+
 ### 2026-11-15 — Casos límite (área 4): mi cambio de ayer dejó viejo el ejemplo que más usuarios decide
 
 **Qué cambié**: `agentes/ia/ejemplos/2026-10-22-limite-que-haceis-con-mis-datos.md`.
