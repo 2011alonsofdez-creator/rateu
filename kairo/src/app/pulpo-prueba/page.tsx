@@ -69,6 +69,49 @@ export default function PruebaPulpo() {
         </Marco>
       </div>
 
+      <h2 className="mt-12 text-xl font-semibold">Versión 2 · con boca y caras</h2>
+      <p className="mt-1 text-sm text-muted">
+        Simétrico, ojos iguales, tentáculos ordenados y cinco caras para cada momento.
+      </p>
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+        {(
+          [
+            ["quieto", "v1 (la de ahora)"],
+            ["v2-contento", "Contento · normal"],
+            ["v2-saluda", "Saludando · chat vacío"],
+            ["v2-pensando", "Pensando · mientras responde"],
+            ["v2-triste", "Triste · error"],
+            ["v2-sorprendido", "Sorprendido · 404"],
+          ] as const
+        ).map(([pose, texto]) => (
+          <div key={pose} className="flex flex-col items-center rounded-2xl border border-line bg-panel p-4 text-center">
+            <PulpoPixel pose={pose} tam={96} />
+            <span className="mt-2 text-[13px] text-muted">{texto}</span>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mt-12 text-xl font-semibold">Versión 3 · sobria, estilo Kairo</h2>
+      <p className="mt-1 text-sm text-muted">
+        Sin boca ni mejillas: las caras solo con los ojos, y colores más planos, como el logo.
+      </p>
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+        {(
+          [
+            ["v3-contento", "Normal"],
+            ["v3-saluda", "Saludando · chat vacío"],
+            ["v3-pensando", "Pensando · mientras responde"],
+            ["v3-triste", "Error"],
+            ["v3-sorprendido", "404"],
+          ] as const
+        ).map(([pose, texto]) => (
+          <div key={pose} className="flex flex-col items-center rounded-2xl border border-line bg-panel p-4 text-center">
+            <PulpoPixel pose={pose} tam={96} />
+            <span className="mt-2 text-[13px] text-muted">{texto}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="mt-8 flex flex-wrap items-end gap-6 text-sm text-muted">
         <span>Tamaños:</span>
         <PulpoPixel tam={32} /> <PulpoPixel tam={64} /> <PulpoPixel pose="saluda" tam={96} />

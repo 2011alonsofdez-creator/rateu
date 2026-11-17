@@ -9,8 +9,27 @@
  * (sin eso, el navegador lo suaviza y se ve borroso). Quien tenga puesto
  * "reducir movimiento" en su sistema lo ve quieto. */
 
+/* v1: "quieto" y "saluda". v2 (con boca y caras): "v2-contento",
+   "v2-saluda", "v2-pensando", "v2-triste", "v2-sorprendido". */
+export type PosePulpo =
+  | "quieto"
+  | "saluda"
+  | "v2-contento"
+  | "v2-saluda"
+  | "v2-pensando"
+  | "v2-triste"
+  | "v2-sorprendido"
+  | "v3-contento"
+  | "v3-saluda"
+  | "v3-pensando"
+  | "v3-triste"
+  | "v3-sorprendido";
+
+const archivo = (pose: PosePulpo) =>
+  /^v[23]-/.test(pose) ? `pulpo${pose[1]}-${pose.slice(3)}.png` : `pulpo-${pose}.png`;
+
 type Props = {
-  pose?: "quieto" | "saluda";
+  pose?: PosePulpo;
   /** Tamaño en píxeles de pantalla (múltiplo de 32 para que quede nítido). */
   tam?: number;
   className?: string;
@@ -25,7 +44,7 @@ export function PulpoPixel({ pose = "quieto", tam = 64, className = "" }: Props)
       style={{
         width: tam,
         height: tam,
-        backgroundImage: `url(/pulpo/pulpo-${pose}.png)`,
+        backgroundImage: `url(/pulpo/${archivo(pose)})`,
         backgroundSize: `${tam * 24}px ${tam}px`,
         // La animación necesita saber cuánto mide la tira a este tamaño.
         ["--pulpo-ancho" as string]: `-${tam * 24}px`,
