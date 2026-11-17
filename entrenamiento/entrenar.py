@@ -41,6 +41,13 @@ LARGO = 2048  # tokens por ejemplo: de sobra para las respuestas de Kairo
 TOKEN = userdata.get("HF_TOKEN")
 
 
+def pasadas(n):
+    """Cuántas veces lee los ejemplos. Con pocos (menos de 150), tres: con
+    dos apenas cambia nada. Con muchos, dos: con más se los aprende de
+    memoria en vez de aprender la forma de contestar."""
+    return 3 if n < 150 else 2
+
+
 def precision():
     """La T4 gratis de Colab no sabe bf16, y Gemma 4 en fp16 se rompe:
     ahí se entrena en fp32 (más lento, pero funciona). Con una GPU buena,
@@ -164,7 +171,7 @@ def entrenar():
         dataset_text_field="text",
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
-        num_train_epochs=2,  # dos pasadas: con más, se aprende las respuestas de memoria
+        num_train_epochs=pasadas(len(filas)),
         learning_rate=2e-4,
         warmup_steps=5,
         logging_steps=5,
@@ -246,7 +253,7 @@ def todo():
     datos = Dataset.from_list([{"text": t} for t in textos])
     ajustes = dict(
         dataset_text_field="text", per_device_train_batch_size=2, gradient_accumulation_steps=4,
-        num_train_epochs=2, learning_rate=2e-4, warmup_steps=5, logging_steps=5, optim="adamw_8bit",
+        num_train_epochs=pasadas(len(filas)), learning_rate=2e-4, warmup_steps=5, logging_steps=5, optim="adamw_8bit",
         weight_decay=0.01, lr_scheduler_type="linear", seed=3407, output_dir="salida", report_to="none",
         **precision(),
     )
