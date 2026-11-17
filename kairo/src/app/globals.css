@@ -436,3 +436,18 @@ body {
   .kairo-puntos.salta > span > i { animation: none; }
   .kairo-puntos.salta-siempre > span > i { animation-duration: 2.2s; }
 }
+
+/* El pulpo pixel: 24 fotogramas, un ciclo cada 3 segundos. */
+.pulpo-pixel {
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  animation: pulpo-pasa 3s steps(24) infinite;
+}
+@keyframes pulpo-pasa {
+  from { background-position: 0 0; }
+  to { background-position: var(--pulpo-ancho) 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulpo-pixel { animation: none; }
+}
