@@ -152,6 +152,14 @@ async function ejecutar(req: Request) {
      avisos fueran detrás, el día que haya cuatro encargos no saldrían
      —y un aviso que llega tarde no es un aviso tarde: es un recargo—.
      Avisar es una consulta y un mensaje: cuesta milisegundos. */
+  /* La recarga diaria del plan gratis, de respaldo por si pg_cron no
+     está activado en Supabase. Llamarla cada 10 minutos no regala nada:
+     cada perfil se recarga como mucho una vez al día (migración 0027). */
+  await supabase.rpc("recargar_creditos_free").then(
+    ({ error: e }) => e && console.error("[kairo] recarga diaria:", e.message),
+    () => {},
+  );
+
   const plazos = await avisarDePlazos({
     pendientes: async (limite) => {
       const { data, error: fallo } = await supabase.rpc("papeles_para_avisar", {

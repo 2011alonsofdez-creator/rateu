@@ -110,9 +110,23 @@ export async function POST(req: Request) {
 
     // ---- Se ha cobrado una mensualidad: se reponen los créditos ----
     if (evento === "subscription_payment_success") {
-      if (!que?.plan) return atendido("cobro de un producto desconocido");
+      /* El aviso de cobro es una FACTURA, no la suscripción: Lemon
+         Squeezy no manda el variant_id ahí. Sin esto, ningún cobro
+         mensual recargaba los créditos. El plan se saca de la
+         suscripción que ya tenemos apuntada (attrs.subscription_id). */
+      let plan: string | null = que?.plan ?? null;
+      if (!plan && attrs.subscription_id != null) {
+        const { data: sus } = await admin
+          .from("suscripciones")
+          .select("plan")
+          .eq("proveedor_id", String(attrs.subscription_id))
+          .eq("perfil_id", perfilId)
+          .maybeSingle<{ plan: string }>();
+        plan = sus?.plan ?? null;
+      }
+      if (!plan) return atendido("cobro de un producto desconocido");
 
-      await admin.rpc("recargar_plan", { p_perfil: perfilId, p_plan: que.plan });
+      await admin.rpc("recargar_plan", { p_perfil: perfilId, p_plan: plan });
       return atendido("créditos del mes repuestos");
     }
 
@@ -161,9 +175,12 @@ async function buscarPerfil(
     const { data } = await admin
       .from("perfiles")
       .select("id")
-      .ilike("email", correo.trim())
-      .maybeSingle<{ id: string }>();
-    if (data) return data.id;
+      /* ilike sin comodines: en un correo "_" es una letra más, pero
+         para ilike es "cualquier carácter", y juan_perez@ casaba con
+         juanXperez@. Se escapan, y si aun así salen dos, no se adivina. */
+      .ilike("email", correo.trim().replace(/[\\%_]/g, (c) => `\\${c}`))
+      .limit(2);
+    if (data?.length === 1) return data[0].id;
   }
 
   return null;

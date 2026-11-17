@@ -136,7 +136,19 @@ export default function AjustesPage() {
               </div>
             </div>
             {!perfil.demo && (
-              <form action={cerrarSesion}>
+              <form
+                action={cerrarSesion}
+                /* El borrador sin enviar se guarda en este navegador: al
+                   salir se borra, para que quien entre después con otra
+                   cuenta no vea lo que estabas escribiendo. */
+                onSubmit={() => {
+                  try {
+                    localStorage.removeItem("kairo.borrador");
+                  } catch {
+                    /* sin almacenamiento: no había nada que borrar */
+                  }
+                }}
+              >
                 <button
                   type="submit"
                   className="rounded-xl border border-line-hi px-4 py-2 text-[13.5px] font-medium transition hover:bg-panel-hi"

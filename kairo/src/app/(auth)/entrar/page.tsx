@@ -15,7 +15,11 @@ function Formulario() {
   const { t } = useUi();
   const router = useRouter();
   const params = useSearchParams();
-  const volver = params.get("volver") || "/chat";
+  /* Solo páginas de Kairo. Sin esto, un enlace con
+     ?volver=https://web-falsa.com te mandaba ahí justo después de entrar
+     (y esa web te pedía la contraseña "otra vez"). */
+  const pedido = params.get("volver") || "/chat";
+  const volver = /^\/(?![\/\\])/.test(pedido) ? pedido : "/chat";
 
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
