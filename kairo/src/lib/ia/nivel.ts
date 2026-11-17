@@ -27,6 +27,7 @@ export type Motivo =
   | "trabajo_a_fondo"
   | "cuentas"
   | "charla"
+  | "obra"
   | "por_defecto";
 
 export type Eleccion = { nivel: Level; motivo: Motivo };
@@ -101,6 +102,17 @@ const PIDE_EXPLICACION: RegExp[] = [
   palabra("(why|how does|how do|explain|tell me about)"),
 ];
 
+/* Resúmenes y reseñas de libros, series, pelis o juegos. Suelen ser
+   peticiones cortas ("resumen del Quijote por capítulos") y por eso caían
+   en Rápido, que es el modelo más flojo: salían resúmenes pobres y
+   desordenados. Van como mínimo a Normal. */
+const OBRAS: RegExp[] = [
+  palabra("(resumen|resumeme|resúmeme|resume|resumir|sinopsis|argumento|de que va|de qué va|trama)"),
+  palabra("(capitulo a capitulo|capítulo a capítulo|por capitulos|por capítulos|cada capitulo|cada capítulo|temporada|temporadas|episodio|episodios)"),
+  palabra("(reseña|resena|review|critica|crítica|opinion de|opinión de|vale la pena|merece la pena|analisis de|análisis de)"),
+  palabra("(summary|summarise|summarize|chapter by chapter|review of|is it worth)"),
+];
+
 /** Señales de que hay código pegado, aunque no lo diga con palabras. */
 function pareceCodigo(texto: string): boolean {
   if (/```/.test(texto)) return true;
@@ -147,6 +159,10 @@ export function elegirNivel(pregunta: string, ctx: Contexto = {}): Eleccion {
 
   if (CUENTAS.some((re) => re.test(texto))) {
     return { nivel: "forja", motivo: "cuentas" };
+  }
+
+  if (OBRAS.some((re) => re.test(texto))) {
+    return { nivel: "normal", motivo: "obra" };
   }
 
   /* Saludos y cortesías: Rápido, y sin pensárselo. Van después de lo
