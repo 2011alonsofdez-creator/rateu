@@ -69,6 +69,24 @@ export default function PruebaPulpo() {
         </Marco>
       </div>
 
+      <h2 className="mt-12 text-xl font-semibold">⭐ La elegida · cuerpo compacto, con boca, sin mejillas</h2>
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+        {(
+          [
+            ["v4-contento", "Normal"],
+            ["v4-saluda", "Saludando · chat vacío"],
+            ["v4-pensando", "Pensando · mientras responde"],
+            ["v4-triste", "Error"],
+            ["v4-sorprendido", "404"],
+          ] as const
+        ).map(([pose, texto]) => (
+          <div key={pose} className="flex flex-col items-center rounded-2xl border border-acento/40 bg-panel p-4 text-center">
+            <PulpoPixel pose={pose} tam={96} />
+            <span className="mt-2 text-[13px] text-muted">{texto}</span>
+          </div>
+        ))}
+      </div>
+
       <h2 className="mt-12 text-xl font-semibold">Versión 2 · con boca y caras</h2>
       <p className="mt-1 text-sm text-muted">
         Simétrico, ojos iguales, tentáculos ordenados y cinco caras para cada momento.
