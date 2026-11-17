@@ -1632,7 +1632,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **Los dos casos que el banco dejó suspendidos el 16-11, y los dos se arreglan en un día.** `[origen: radar 2026-11-16]`
+- **~~Los dos casos que el banco dejó suspendidos el 16-11~~ — HECHOS los dos, el 17-11.** `[origen: radar 2026-11-16 · hecho 2026-11-17]`
+  **a) El caso 10, en `papeles.ts`**: la regla del papel no oficial decía *"dilo
+  en `DE_QUE_VA` y deja el resto vacío"* y ahora dice que **se vacía solo lo que
+  de verdad no se lee, no todo** —*"un ticket con 14,60 € escrito es un ticket
+  del que SÍ se sabe el importe"*—. Y la segunda mitad, que era la que de verdad
+  faltaba: cuando la pregunta no se puede contestar, **no quedarse en el "no
+  puedo"** sino decir **de qué depende** (la actividad, si el gasto es del
+  negocio, cómo se declare) y **quién lo decide** (su asesor o la Agencia
+  Tributaria). *"Dejar a alguien con un «no es un papel oficial» y nada más es
+  cumplir la regla y fallarle a quien pregunta."*
+
+  **b) El caso 13, en `IDENTIDAD`**: le faltaba la tercera de las tres cosas que
+  pide el banco. Ahora, si insisten con una marca —*"¿eres Claude?"*, *"en la web
+  pone GPT"*—, ni lo confirma ni lo niega y añade lo que sí es verdad y además
+  es útil: **qué motores hay disponibles depende de la configuración de quien
+  lleva Kairo**, así que esa pregunta se contesta ahí. Con una coletilla que
+  hacía falta: **no repitas la lista de la web como si la vieras**, porque desde
+  el prompt no se ve.
+
+  **Comprobado renderizando**: las tres cosas del caso 13 presentes en el prompt
+  de adulto y las cinco del caso 10 en el `SISTEMA` de papeles. `tsc` 0 y `next
+  build` 0. **La nota la pone el entrenador el próximo día de evaluación**: aquí
+  solo consta que lo que el banco pedía ya está escrito.
+
+  **Lo que decía esta entrada, de histórico:**
+  - **Los dos casos que el banco dejó suspendidos el 16-11, y los dos se arreglan en un día.** `[origen: radar 2026-11-16]`
   Salen de la pasada completa de esta mañana
   (`agentes/ia/evals/resultados/2026-11-16.md`), que es la primera que puntúa
   los catorce casos desde el 23-10. El tercero, el del niño y los precios, ya
