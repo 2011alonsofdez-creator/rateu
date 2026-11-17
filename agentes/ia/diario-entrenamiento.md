@@ -96,6 +96,61 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-17 — Tono (área 6): hay gente que no lee a Kairo, la escucha
+
+**Qué cambié**: una línea —bueno, siete— al final del bloque `LA FORMA DE UNA
+BUENA RESPUESTA` de `kairo/src/lib/ia/prompt.ts`. Nada más.
+
+**De dónde sale, y no de mi gusto**: el dueño ha terminado estos días el leer
+en voz alta, con voz propia de Gemini. Así que por primera vez hay respuestas de
+Kairo que **nadie lee**: se oyen. Y eso cambia qué es una buena respuesta, que
+es justo lo que mide el área 6.
+
+**Lo primero que hice fue comprobar si ya estaba resuelto**, porque la mitad de
+las veces lo está y escribir una regla de más es peor que no escribirla.
+**Y estaba, casi entero**: `chat/page.tsx` pasa el texto por `paraLeer()` antes
+de hablar, y esa función es minuciosa —cambia un bloque de código por *"aquí hay
+un bloque de código"*, se come los asteriscos, los títulos, las comillas de
+cita, las viñetas y las imágenes, y deja el texto de los enlaces—. El dueño ya
+había pensado en esto.
+
+**Lo que queda, y es una línea de esa función**: `.replace(/\|/g, " ")`. Las
+barras de una tabla se convierten en **espacios**. O sea que una tabla dicha en
+voz alta suena así:
+
+> *"Plan Créditos Precio Free 40 0 Kairo+ 2000 9,99 Supreme 6000 24,99"*
+
+Una ristra de palabras sin estructura, y **la tabla es justo lo que la regla 3
+manda usar para comparar precios y fechas**, que es el contenido que peor
+suena. No es un fallo de `paraLeer`: una tabla no se puede decir en voz alta de
+ninguna manera razonable.
+
+**Y por eso el arreglo no es tocar el código ni prohibir las tablas** —se ven
+muy bien, y en la pantalla son lo correcto—. Lo que el prompt no podía saber es
+que el mismo texto va a dos sitios. La regla nueva dice: **antes de una tabla,
+una línea que diga qué compara y, si hay un ganador o una cifra que importe,
+dila ahí en prosa**. Esa línea es lo único que oye quien escucha, y es lo que
+lee quien va con prisa en el móvil. La tabla se queda igual para quien la ve.
+
+**Dónde la puse, que esta vez importa**: al **final** del bloque, después de
+*"La estructura es para cuando hay algo que ordenar, no un uniforme"*, y **no
+dentro de la lista numerada**. Motivo práctico: la regla 3 ya está escrita
+distinta en `main` y en esta rama —él la reescribió el 15-11 para pedir tablas
+solo con celdas cortas, y aquí dice otra cosa—, así que meter texto ahí habría
+engordado un conflicto que ya existe. Al final del bloque no estorba a nadie.
+
+**Cómo lo comprobé**: `tsc --noEmit` → **0**. Renderizado con el arnés en los
+tres modos de edad, y esta vez con las etiquetas buenas, que es la lección de
+ayer: **adulto 246 → 253, niño 239 → 246, adolescente 257 → 264**, +7 en los
+tres, y la regla leída entera en la salida real para ver que no se ha partido
+ningún literal.
+
+**Qué necesito del dueño**: nada.
+
+**Mañana toca**: área 7, recorte. Y llega en buen momento: el prompt de un
+adulto ha pasado de 223 a 253 líneas en cuatro días, y tres de esos cambios son
+míos.
+
 ### 2026-11-16 — Evaluación (área 5): los catorce casos, por fin, y lo que yo llamaba "adulto" era un niño
 
 **Qué hice**: la **cuarta pasada completa** del banco de pruebas, y la primera
