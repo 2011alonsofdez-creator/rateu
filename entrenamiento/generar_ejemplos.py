@@ -80,20 +80,33 @@ def preguntas():
 
 def rehacer():
     """Quita de kairo.jsonl las respuestas de las preguntas de rehacer.txt,
-    para que se vuelvan a generar (por ejemplo, si cambió el prompt)."""
-    if not os.path.exists(SALIDA):
-        return
+    para que se vuelvan a generar (por ejemplo, si cambió el prompt).
+
+    UNA SOLA VEZ por pregunta: la respuesta nueva se guarda con la marca
+    "rehecha", y esas ya no se tocan. Antes se borraban y se repetían
+    CADA DÍA, gastando la cuota en hacer lo mismo una y otra vez.
+    Devuelve la lista, para marcar las nuevas."""
     try:
         lista = {l.strip() for l in bajar("rehacer.txt").splitlines()
                  if l.strip() and not l.strip().startswith("#")}
     except Exception:
-        return
+        return set()
+    if not os.path.exists(SALIDA):
+        return lista
     filas = open(SALIDA, encoding="utf-8").read().splitlines()
-    quedan = [f for f in filas if f.strip() and json.loads(f)["messages"][1]["content"] not in lista]
+    quedan = []
+    for f in filas:
+        if not f.strip():
+            continue
+        d = json.loads(f)
+        if d["messages"][1]["content"] in lista and not d.get("rehecha"):
+            continue
+        quedan.append(f)
     if len(quedan) != len(filas):
         with open(SALIDA, "w", encoding="utf-8") as f:
             f.write("\n".join(quedan) + ("\n" if quedan else ""))
         print(f"Quitadas {len(filas) - len(quedan)} respuestas para rehacerlas.")
+    return lista
 
 
 def ya_hechas():
@@ -284,7 +297,7 @@ def main():
         return
 
     recuperar()
-    rehacer()
+    a_rehacer = rehacer()
     hechas = ya_hechas()
     pendientes = [p for p in todas if p not in hechas]
     print(f"{len(todas)} preguntas · {len(hechas)} ya hechas · faltan {len(pendientes)}")
@@ -303,6 +316,8 @@ def main():
                         {"role": "assistant", "content": texto},
                     ]
                 }
+                if p in a_rehacer:
+                    fila["rehecha"] = True
                 f.write(json.dumps(fila, ensure_ascii=False) + "\n")
                 f.flush()
                 buenas += 1
