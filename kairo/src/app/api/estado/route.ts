@@ -216,6 +216,17 @@ async function contestaSupabase() {
 }
 
 export async function GET() {
+  /* Preguntar a los proveedores qué modelos hay, solo con sesión. Abierto
+     a cualquiera, se podía machacar esta página para gastar los límites
+     de las claves. Sin sesión se enseña lo demás (Supabase, migraciones),
+     que es lo que hace falta para diagnosticar un "no puedo entrar". */
+  let conSesion = !hasSupabase;
+  if (hasSupabase) {
+    const sesion = await clienteServidor().catch(() => null);
+    const { data } = sesion ? await sesion.auth.getUser() : { data: { user: null } };
+    conSesion = Boolean(data.user);
+  }
+
   const crudaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const crudaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
   const claves = {
@@ -234,13 +245,15 @@ export async function GET() {
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
   const [gem, cla, gpt, ext, claveOk, migra, salud] = await Promise.all([
-    claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
-    claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
-    claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
-    claves.extra && EXTRA_URL()
+    conSesion && claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
+    conSesion && claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
+    conSesion && claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
+    conSesion && claves.extra && EXTRA_URL()
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
-    pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const),
+    conSesion
+      ? pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const)
+      : ("no_comprobable" as const),
     migraciones().catch((e) => ({ estado: corto(e) })),
     contestaSupabase().catch((e) => ({ probado: true, responde: false, detalle: corto(e) })),
   ]);

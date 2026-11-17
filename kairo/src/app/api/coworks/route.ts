@@ -57,7 +57,9 @@ export async function GET() {
     .from("coworks")
     .select(COLUMNAS)
     .order("creado_el", { ascending: true })
-    .limit(20);
+    // Por encima del tope más alto (Supreme: 25): con 20, los últimos
+    // se ejecutaban pero no salían en la lista.
+    .limit(40);
 
   // Sin la migración 0009 la tabla no existe. No es un error rojo: es
   // que esto todavía no está montado en tu base de datos.

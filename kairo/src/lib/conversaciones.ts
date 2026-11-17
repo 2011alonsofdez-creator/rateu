@@ -134,7 +134,10 @@ export async function leerConversacion(
         .from("mensajes")
         .select(columnas)
         .eq("conversacion_id", id)
-        .order("creado_el", { ascending: true })
+        /* Los 400 ÚLTIMOS, no los 400 primeros: en un chat largo se
+           perdían justo los mensajes nuevos. Se piden al revés y se les
+           da la vuelta abajo. */
+        .order("creado_el", { ascending: false })
         .limit(400);
 
     const BASE = "id, rol, contenido, modelo_usado, nivel, creditos_gastados";
@@ -161,7 +164,7 @@ export async function leerConversacion(
         menteId: (c.mente_id as string | null) ?? null,
         actualizadaEl: (c.actualizada_el ?? c.creada_el) as string,
       },
-      mensajes: ((filas ?? []) as unknown as Record<string, unknown>[]).map((m) => ({
+      mensajes: ((filas ?? []) as unknown as Record<string, unknown>[]).reverse().map((m) => ({
         id: m.id as string,
         rol: m.rol as "user" | "kairo",
         contenido: (m.contenido as string) || "",
