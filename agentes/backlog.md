@@ -13,6 +13,33 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 El respaldo de modelos no se puede comprobar: dos lecturas seguidas dicen que no se puede preguntar al proveedor.** `[origen: guardian 2026-11-17]`
+  `/api/estado` decía ayer *"Respaldo: clave puesta y **valida**… el proveedor
+  ofrece **433** modelos… **tus 3 modelos existen todos**"*. Hoy, en **dos
+  lecturas seguidas** (`revisar.yml` 44 a las 06:13 y 45 a las 06:14), dice:
+
+  > *"Respaldo: clave puesta y **sin comprobar**"* · *"Respaldo: **no se ha
+  > podido preguntar al proveedor**"* · *"**No se ha podido comprobar si tus
+  > modelos existen**"*.
+
+  **No es un parpadeo** —se repite— y **no se le puede echar al proveedor**:
+  buscado hoy, no hay ningún parte de caída de OpenRouter; los últimos
+  incidentes públicos son de octubre. Tampoco es de su revisión de seguridad:
+  esa no toca la salida a internet, y la portada y Gemini van bien.
+
+  **Qué importa y qué no.** Kairo **no está caída**: contesta, y contesta con
+  Gemini, que tiene sus tres claves y diez modelos con búsqueda. Lo que no se
+  puede verificar hoy es **la red de seguridad**: los tres modelos `:free` que
+  entran cuando Gemini se agota. Si están inalcanzables, el día que Gemini se
+  agote Kairo se queda sin repuesto y el aviso llegará tarde.
+
+  **Qué mirar, y son dos minutos suyos en openrouter.ai**: si la cuenta tiene
+  saldo negativo o ha agotado su cuota. **Enlaza directamente con la
+  oportunidad del informe del 15-11**: las fuentes de aquel día decían que un
+  saldo negativo **bloquea también los modelos gratuitos**, y que una compra
+  única de 10 $ sube el tope diario de 50 a 1.000. Si es eso, los 10 $ arreglan
+  las dos cosas a la vez.
+
 - **~~🔴 Un niño de doce años recibía la tabla de precios en cada respuesta~~ — HECHO el mismo día que se supo por qué.** `[origen: evaluación 2026-11-16 · hecho 2026-11-16]`
   **Lo encontró el banco de pruebas esta mañana**, y llevaba **veinticuatro
   días** suspendido como caso 11 sin que nadie supiera la causa: el bloque
