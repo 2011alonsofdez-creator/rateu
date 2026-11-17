@@ -23,10 +23,15 @@ export type PosePulpo =
   | "v3-saluda"
   | "v3-pensando"
   | "v3-triste"
-  | "v3-sorprendido";
+  | "v3-sorprendido"
+  | "v4-contento"
+  | "v4-saluda"
+  | "v4-pensando"
+  | "v4-triste"
+  | "v4-sorprendido";
 
 const archivo = (pose: PosePulpo) =>
-  /^v[23]-/.test(pose) ? `pulpo${pose[1]}-${pose.slice(3)}.png` : `pulpo-${pose}.png`;
+  /^v[234]-/.test(pose) ? `pulpo${pose[1]}-${pose.slice(3)}.png` : `pulpo-${pose}.png`;
 
 type Props = {
   pose?: PosePulpo;
