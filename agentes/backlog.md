@@ -13,6 +13,37 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **Las cinco páginas hechas para captar búsquedas mandan a un registro, y la caja que convierte está solo en la portada.** `[origen: crecimiento 2026-11-17]`
+  Leído del código, no supuesto. Los botones principales:
+
+  | Página | Dónde manda |
+  |---|---|
+  | `/multas`, `/cartas-de-hacienda`, `/contratos` | **`/paperwork`**, dentro de la cuenta |
+  | `/crear-una-app` | **`/code`**, dentro de la cuenta |
+  | `/sin-suscripcion` | **`/registro`** |
+
+  Y `components/Probar.tsx` —la caja que contesta **sin cuenta**— se pinta
+  **solo en `app/page.tsx:101`**. En `/sin-suscripcion` lo que hay es un botón
+  de texto que dice "Probarla gratis" y lleva al registro, no la caja.
+
+  **Por qué es P1 y no una mejora**: esa caja es lo único que un desconocido
+  puede usar sin dar nada, y **funciona de verdad** —el guardián lo comprueba
+  cada mañana con `probar-portada`, cinco pasos en verde—. Las cinco páginas son
+  las que están en el `sitemap.xml` para captar a quien busca su problema. Hoy,
+  quien llegue a cualquiera de ellas lee un buen texto y, al pulsar, se topa con
+  una puerta cerrada. **El camino de una búsqueda a una primera respuesta no
+  existe si no se pasa por la portada.**
+
+  **Lo que cuesta**: `<Probar />` **no lleva ni una propiedad**. Es un `import` y
+  una etiqueta, en tres archivos para empezar (`/multas`,
+  `/cartas-de-hacienda`, `/contratos`). **No depende del dueño.**
+
+  **Y una segunda parte de dos frases**, que sale del mismo informe: decir en
+  `/cartas-de-hacienda` **por qué no hay un número de días**. Las guías de los
+  despachos dicen 10, 15 o 30 y se contradicen entre ellas; esa página se calla
+  el plazo por honestidad y resulta que ese silencio, explicado, es lo que la
+  separa de diez artículos escritos para vender una consulta.
+
 - **🟡 El respaldo de modelos no se puede comprobar: dos lecturas seguidas dicen que no se puede preguntar al proveedor.** `[origen: guardian 2026-11-17]`
   `/api/estado` decía ayer *"Respaldo: clave puesta y **valida**… el proveedor
   ofrece **433** modelos… **tus 3 modelos existen todos**"*. Hoy, en **dos
