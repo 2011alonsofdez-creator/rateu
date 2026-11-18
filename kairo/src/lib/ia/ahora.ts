@@ -95,6 +95,9 @@ const PISTAS: RegExp[] = [
      ninguna lista ni pueden estarlo. Lo que sí se repite es el verbo. */
   palabra("(como (quedo|quedaron|queda|quedan|va|van|iba|iban|acabo|acabaron|termino|terminaron))"),
   palabra("(noticia|noticias|que ha pasado|que esta pasando)"),
+  /* Reseñas y críticas: la nota de un juego, una peli o un disco es de
+     los medios, y de lo reciente el modelo no sabe nada. */
+  palabra("(resena|resenas|review|reviews|critica|criticas|que nota tiene|nota de|notas de|metacritic|opiniones de|que tal esta)"),
   /* Lo que sale en el telediario: pasa hoy y mañana ya es otro. */
   palabra("(huelga|huelgas|manifestacion|manifestaciones|protesta|protestas|paro|paros|retraso|retrasos|cancelad[oa]s?|cortes?|apagon|accidente|incendio|terremoto|inundacion|dana|alerta|evacuacion|atentado|detenid[oa]s?|juicio|condena|dimision|dimite)"),
   /* "el tiempo" estaba; "qué tiempo va a hacer mañana" no, que es como
@@ -141,7 +144,7 @@ const DEBILES: RegExp[] = [
      Fortnite, un iPhone nuevo, una función de ChatGPT, el precio del
      bitcoin—, y lo que el modelo recuerda es de hace meses. "¿Qué es el
      token de Fortnite?" contestaba de memoria. */
-  palabra("(fortnite|fornite|roblox|minecraft|gta|clash royale|clash of clans|brawl stars|valorant|league of legends|fifa|ea fc|call of duty|warzone|pokemon|genshin)"),
+  palabra("(fortnite|fornite|roblox|minecraft|gta ?(v|vi|\\d{1,2})?|clash royale|clash of clans|brawl stars|valorant|league of legends|fifa|ea fc|call of duty|warzone|pokemon|genshin)"),
   palabra("(iphone|ios|android|samsung|galaxy|xiaomi|pixel|whatsapp|instagram|chatgpt|openai|gemini|claude|grok|tesla|bitcoin|ethereum|cripto|criptomonedas?)"),
 
   /* Deporte: un resultado, una plantilla o un calendario de hace dos
@@ -243,6 +246,10 @@ export function esDeAhora(pregunta: string, hoy = new Date()): boolean {
  *  "¿Qué es Kick?") suele ser una persona, una marca o un sitio: cosas
  *  que se buscan, no que se piensan. */
 export function nombraAlgoConcreto(pregunta: string): boolean {
+  /* Una o dos palabras sueltas que no son charla ni un encargo ("djmario",
+     "ibai", "kick streamer") casi siempre son un nombre: se busca. */
+  const limpias = pregunta.replace(/[¿?¡!.,;:()"«»]/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (limpias.length > 0 && limpias.length <= 3) return true;
   const palabras = pregunta.replace(/[¿?¡!.,;:()"«»]/g, " ").split(/\s+/).filter(Boolean);
   if (palabras.slice(1).some((w) => /^\p{Lu}[\p{L}\d]{2,}/u.test(w) && !/^(Kairo|Yo|Tú|Tu)$/.test(w))) return true;
   // Un modelo con número: "rtx 5070", "galaxy s24", "ryzen 9800x3d".
