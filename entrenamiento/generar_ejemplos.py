@@ -284,6 +284,27 @@ def revisar():
     print(f"{len(tabla)} ejemplos en revisar.csv")
 
 
+# Solo para escribir los EJEMPLOS de entrenamiento. El primer modelo
+# entrenado (17 nov) copió muy bien la forma, pero también copió la manía
+# de añadir apartados de relleno ("¿Qué pasa si…?") con datos dudosos, y
+# en un modelo pequeño eso se convierte en inventarse cosas. Los ejemplos
+# tienen que enseñar a ser exacto y a parar a tiempo.
+REGLAS_DE_EJEMPLO = """
+
+ESTA RESPUESTA SE USA PARA ENSEÑAR A OTRO MODELO
+- Cada dato concreto (cifra, plazo, porcentaje, ley, fecha, nombre) solo si
+  estás COMPLETAMENTE seguro y es el vigente en España. Si dudas de un
+  dato, no lo pongas: explica dónde se comprueba.
+- Contesta lo que se pregunta y para. Nada de apartados de relleno del
+  tipo "¿Qué pasa si…?", "¿Cómo lo hago?" o "Consejos extra" salvo que
+  la pregunta lo pida o sean imprescindibles.
+- Una pregunta corta, respuesta corta: 2-6 líneas. Solo los encargos
+  (resúmenes, planes, reseñas, cartas, explicaciones para estudiar)
+  llevan estructura larga.
+- Nunca repitas un apartado ni una idea.
+"""
+
+
 def mostrar():
     """Imprime todos los ejemplos guardados, numerados, para revisarlos
     desde el registro de GitHub. No gasta cuota: no llama a Gemini."""
@@ -304,7 +325,7 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "mostrar":
         return mostrar()
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    sistema = bajar("prompt_kairo.txt")
+    sistema = bajar("prompt_kairo.txt") + REGLAS_DE_EJEMPLO
     todas = preguntas()
     cliente = genai.Client(
         api_key=secreto("GEMINI_API_KEY"),
