@@ -13,7 +13,18 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **El prompt lo están escribiendo dos a la vez, y hoy el entrenador tiene que recortarlo.** `[origen: guardian 2026-11-18]`
+- **El prompt lo están escribiendo dos a la vez.** `[origen: guardian 2026-11-18 · atendido el mismo día]`
+  **Atendido el 18-11 por el entrenador, y sin tocar nada suyo**: su área 7 de
+  hoy leyó el diff contra `origin/main` antes de cortar, midió las 250 frases
+  del prompt todas contra todas y recortó **solo los dos duplicados probados, los
+  dos de su propia cosecha**. Dejó escrito lo que importa: la duplicación medible
+  son dos frases, así que el crecimiento de 223 a 259 líneas **no es grasa**, son
+  reglas nuevas; y **el recorte serio no se puede hacer sin fusionar**, porque las
+  54 líneas de sus bloques no están en esta rama y la grasa probable está
+  justamente entre sus reglas y las nuestras.
+
+  **Lo que sigue abierto es lo de siempre y es suyo**: fusionar. La parte de los
+  agentes está hecha.
   Anoche metió en `main` **54 líneas de prompt** en dos bloques nuevos:
   `CALIDAD: QUE SE NOTE QUE SABES` y `SEGÚN LO QUE TE PIDAN` —estructuras por
   encargo: resumen de un libro o una serie, resumen por capítulos, reseña con
@@ -39,7 +50,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Y lo que sí es del dueño**: esto se arregla de verdad fusionando. Van **18
   días** y dos personas escribiendo el mismo archivo sin verse.
 
-- **Las cinco páginas hechas para captar búsquedas mandan a un registro, y la caja que convierte está solo en la portada.** `[origen: crecimiento 2026-11-17]`
+- **~~Las cinco páginas hechas para captar búsquedas mandan a un registro~~ — HECHAS LAS TRES DE PAPELES, el 18-11.** `[origen: crecimiento 2026-11-17 · hecho 2026-11-18]`
+  **`<Probar />` ya está en `/multas`, `/cartas-de-hacienda` y `/contratos`**, con
+  una entradilla en cada una que dice la frontera exacta: **subir el papel sí
+  necesita cuenta; preguntar, no**. En `/contratos`, además, *"pégala aquí o
+  descríbela"*, que es lo que alguien con una cláusula delante puede hacer sin
+  subir nada.
+
+  **Y la segunda parte, las dos frases de `/cartas-de-hacienda`**, en los dos
+  idiomas: *"Busca «plazo para contestar a Hacienda» y encontrarás 10 días en una
+  web, 15 en otra y 30 en una tercera. No es que se equivoquen: es que depende de
+  qué carta te hayan mandado. Por eso en esta página no vas a encontrar ningún
+  número, y en tu carta sí."* El silencio de esa página, explicado, es lo que la
+  separa de diez artículos escritos para vender una consulta.
+
+  **Comprobado en el HTML generado de las tres páginas**: 18 comprobaciones en
+  verde —la caja con su campo de escribir, la entradilla, la frontera dicha, el
+  botón de subir intacto— y las dos frases nuevas presentes sin que la página se
+  invente un plazo propio. El inglés viaja al bundle del cliente, comprobado.
+  `tsc` 0, `next build` 0, verificador de cifras en verde.
+
+  **Lo que queda de esta entrada, y no es poco**: `/crear-una-app` y
+  `/sin-suscripcion` siguen mandando a `/code` y a `/registro`. La primera
+  necesita algo más que una etiqueta —la caja de probar no escribe apps— y la
+  segunda es la página que **vende** no tener suscripción, así que ahí la caja
+  encaja sola. Queda como **P2**, ya sin el P1: las tres que valían el 80 % del
+  tráfico previsto están hechas.
   Leído del código, no supuesto. Los botones principales:
 
   | Página | Dónde manda |

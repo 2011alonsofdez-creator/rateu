@@ -3,6 +3,24 @@
 import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Probar } from "@/components/Probar";
+
+/* LA CAJA DE PROBAR, TAMBIÉN AQUÍ. AÑADIDA EL 18-11.
+ *
+ * Lo encontró el informe de mercado del 17-11, leyendo el código: esta
+ * página está en el `sitemap.xml` para que alguien llegue buscando su
+ * problema, y su botón principal lleva a `/paperwork`, que está detrás de
+ * la cuenta. O sea que el visitante que viene de una búsqueda —el único
+ * que esta página existe para atender— se encontraba una puerta cerrada.
+ *
+ * Y la caja que contesta SIN cuenta existía, funciona —el guardián la
+ * comprueba verde cada mañana con `probar-portada`— y se pintaba en un
+ * solo sitio: la portada, que es justo donde no aterriza quien busca
+ * "recurrir una multa".
+ *
+ * `<Probar />` no lleva ni una propiedad, así que esto es un `import` y
+ * una etiqueta. Subir el papel sigue necesitando cuenta, y eso se dice:
+ * lo que no necesita cuenta es preguntar. */
 
 /* El texto, en los dos idiomas, como lo hace /precios con su FAQ: aquí
    dentro y no en lib/i18n.tsx, porque es de esta página y de ninguna
@@ -22,6 +40,8 @@ const T = {
       "Le haces una foto o subes el PDF y te lo cuenta en castellano normal: qué te reclaman, cuánto, para cuándo y qué pasa si no haces nada. Sin tener que descifrar el reverso del papel.",
     ctaPrincipal: "Subir mi multa",
     ctaSecundario: "Ver qué cuesta",
+    pruebaTitulo: "O pruébalo ahora mismo, sin cuenta.",
+    pruebaPie: "Para que Kairo lea la foto de tu multa sí hace falta una cuenta. Para preguntarle, no: escribe aquí lo que quieras saber y te contesta. Las dudas de multas son de las que mejor lleva.",
     sacaTitulo: "Qué saca Kairo de tu multa",
     saca: [
       {
@@ -77,6 +97,8 @@ const T = {
       "Take a photo or upload the PDF and it explains it in plain words: what they want, how much, by when, and what happens if you do nothing. No need to decipher the back of the page.",
     ctaPrincipal: "Upload my fine",
     ctaSecundario: "See what it costs",
+    pruebaTitulo: "Or try it right now, no account.",
+    pruebaPie: "Kairo does need an account to read the photo of your fine. To answer a question it does not: type whatever you want to know and it replies. Questions about fines are among the ones it handles best.",
     sacaTitulo: "What Kairo pulls out of your fine",
     saca: [
       {
@@ -162,6 +184,15 @@ export function MultasContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* La caja de probar: preguntar no necesita cuenta. */}
+          <div className="mt-14">
+            <p className="text-[15px] font-semibold">{c.pruebaTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.pruebaPie}</p>
+            <div className="mt-6">
+              <Probar />
+            </div>
           </div>
 
           <h2 className="mt-16 text-[24px] font-semibold tracking-tight">{c.sacaTitulo}</h2>

@@ -3,6 +3,24 @@
 import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Probar } from "@/components/Probar";
+
+/* LA CAJA DE PROBAR, TAMBIÉN AQUÍ. AÑADIDA EL 18-11.
+ *
+ * Lo encontró el informe de mercado del 17-11, leyendo el código: esta
+ * página está en el `sitemap.xml` para que alguien llegue buscando su
+ * problema, y su botón principal lleva a `/paperwork`, que está detrás de
+ * la cuenta. O sea que el visitante que viene de una búsqueda —el único
+ * que esta página existe para atender— se encontraba una puerta cerrada.
+ *
+ * Y la caja que contesta SIN cuenta existía, funciona —el guardián la
+ * comprueba verde cada mañana con `probar-portada`— y se pintaba en un
+ * solo sitio: la portada, que es justo donde no aterriza quien busca
+ * "recurrir una multa".
+ *
+ * `<Probar />` no lleva ni una propiedad, así que esto es un `import` y
+ * una etiqueta. Subir el papel sigue necesitando cuenta, y eso se dice:
+ * lo que no necesita cuenta es preguntar. */
 
 /* El texto, en los dos idiomas y aquí dentro, como /multas y
    /cartas-de-hacienda.
@@ -25,6 +43,8 @@ const T = {
       "Alquiler, trabajo, el gimnasio, la luz, un préstamo. Súbelo y te dice cuánto pagas, cuánto dura, cómo se renueva y qué pasa si te quieres ir —en tus palabras, no en las del contrato—. Mejor antes de firmar que después.",
     ctaPrincipal: "Subir mi contrato",
     ctaSecundario: "Ver qué cuesta",
+    pruebaTitulo: "O pruébalo ahora mismo, sin cuenta.",
+    pruebaPie: "Para que Kairo lea el contrato entero sí hace falta una cuenta. Para preguntarle por una cláusula que no entiendes, no: pégala aquí o descríbela y te la explica.",
     antesTitulo: "Por qué antes y no después",
     antesCuerpo: [
       "Una multa y una carta de Hacienda ya han pasado: cuando las abres, lo único que queda es reaccionar bien. Un contrato no ha pasado todavía. Está encima de la mesa, sin tu firma, y hasta que la pongas eres tú quien decide.",
@@ -95,6 +115,8 @@ const T = {
       "A lease, a job, the gym, your electricity, a loan. Upload it and it tells you how much you pay, how long it lasts, how it renews and what happens if you want out — in your words, not the contract's. Better before you sign than after.",
     ctaPrincipal: "Upload my contract",
     ctaSecundario: "See what it costs",
+    pruebaTitulo: "Or try it right now, no account.",
+    pruebaPie: "Kairo does need an account to read the whole contract. To ask about a clause you do not understand it does not: paste it here or describe it and it explains.",
     antesTitulo: "Why before, not after",
     antesCuerpo: [
       "A fine and a letter from the tax office have already happened: by the time you open them, all that is left is reacting well. A contract has not happened yet. It is on the table without your signature, and until you put it there, you are the one deciding.",
@@ -195,6 +217,15 @@ export function ContratosContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* La caja de probar: preguntar no necesita cuenta. */}
+          <div className="mt-14">
+            <p className="text-[15px] font-semibold">{c.pruebaTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.pruebaPie}</p>
+            <div className="mt-6">
+              <Probar />
+            </div>
           </div>
 
           <h2 className="mt-16 text-[24px] font-semibold tracking-tight">{c.antesTitulo}</h2>

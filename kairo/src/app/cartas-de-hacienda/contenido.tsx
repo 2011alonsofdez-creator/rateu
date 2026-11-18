@@ -3,6 +3,24 @@
 import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Probar } from "@/components/Probar";
+
+/* LA CAJA DE PROBAR, TAMBIÉN AQUÍ. AÑADIDA EL 18-11.
+ *
+ * Lo encontró el informe de mercado del 17-11, leyendo el código: esta
+ * página está en el `sitemap.xml` para que alguien llegue buscando su
+ * problema, y su botón principal lleva a `/paperwork`, que está detrás de
+ * la cuenta. O sea que el visitante que viene de una búsqueda —el único
+ * que esta página existe para atender— se encontraba una puerta cerrada.
+ *
+ * Y la caja que contesta SIN cuenta existía, funciona —el guardián la
+ * comprueba verde cada mañana con `probar-portada`— y se pintaba en un
+ * solo sitio: la portada, que es justo donde no aterriza quien busca
+ * "recurrir una multa".
+ *
+ * `<Probar />` no lleva ni una propiedad, así que esto es un `import` y
+ * una etiqueta. Subir el papel sigue necesitando cuenta, y eso se dice:
+ * lo que no necesita cuenta es preguntar. */
 
 /* El texto, en los dos idiomas y aquí dentro, como /precios y /multas.
 
@@ -21,6 +39,8 @@ const T = {
       "Porque no todas son lo mismo, y es lo primero que hay que saber: una te pide un papel, otra te reclama un importe y la tercera solo te avisa de un error. Súbela y te lo dice, con lo que te piden y para cuándo según tu propia carta.",
     ctaPrincipal: "Subir mi carta",
     ctaSecundario: "Ver qué cuesta",
+    pruebaTitulo: "O pruébalo ahora mismo, sin cuenta.",
+    pruebaPie: "Para que Kairo lea tu carta sí hace falta una cuenta. Para preguntarle qué significa lo que pone, no: escribe aquí tu duda y te contesta.",
     tiposTitulo: "Las tres cartas, y qué cambia en cada una",
     tipos: [
       {
@@ -65,6 +85,7 @@ const T = {
     ],
     fechaTitulo: "Lo que más gente pilla tarde",
     fechaCuerpo: [
+      "Busca \"plazo para contestar a Hacienda\" y encontrarás 10 días en una web, 15 en otra y 30 en una tercera. No es que se equivoquen: es que depende de qué carta te hayan mandado. Por eso en esta página no vas a encontrar ningún número, y en tu carta sí.",
       "El plazo no empieza cuando abres el sobre: empieza cuando la notificación se te considera entregada. Y si no llegaste a recibirla, puede haber empezado sin que te enteraras.",
       "Por eso Kairo lee la fecha de tu carta y no te recita un plazo de memoria: te señala dónde está en el papel, te cuenta los días que quedan desde hoy y te dice que lo confirmes en la Agencia Tributaria, que es quien lo sabe. Si tu carta no trae la fecha legible, te lo dice en vez de rellenar el hueco.",
       "También conviene saber esto: el buzón electrónico de la Agencia Tributaria tiene la misma validez que el papel. Una notificación que solo está ahí cuenta igual.",
@@ -91,6 +112,8 @@ const T = {
       "Because they are not the same thing, and that is the first thing to know: one asks you for a document, another claims an amount, and the third just flags an error. Upload it and it tells you which, what they want, and by when according to your own letter.",
     ctaPrincipal: "Upload my letter",
     ctaSecundario: "See what it costs",
+    pruebaTitulo: "Or try it right now, no account.",
+    pruebaPie: "Kairo does need an account to read your letter. To ask what something means it does not: type your question here and it answers.",
     tiposTitulo: "The three letters, and what changes in each",
     tipos: [
       {
@@ -135,6 +158,7 @@ const T = {
     ],
     fechaTitulo: "What most people catch too late",
     fechaCuerpo: [
+      "Search for \"deadline to reply to the tax office\" and you will find 10 days on one site, 15 on another and 30 on a third. They are not wrong: it depends on which letter you were sent. That is why you will not find a single number on this page, and you will find one on your letter.",
       "The clock does not start when you open the envelope: it starts when the notice counts as delivered. And if it never reached you, it may have started without you knowing.",
       "That is why Kairo reads the date off your letter instead of reciting a deadline from memory: it points to where it is on the page, counts the days left from today, and tells you to confirm it with the tax office, who are the ones who know. If your letter does not carry the date legibly, it says so instead of filling the gap.",
       "One more thing worth knowing: the tax office's electronic mailbox has the same legal weight as paper. A notice that only lives there counts just the same.",
@@ -191,6 +215,15 @@ export function CartasContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* La caja de probar: preguntar no necesita cuenta. */}
+          <div className="mt-14">
+            <p className="text-[15px] font-semibold">{c.pruebaTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.pruebaPie}</p>
+            <div className="mt-6">
+              <Probar />
+            </div>
           </div>
 
           <h2 className="mt-16 text-[24px] font-semibold tracking-tight">{c.tiposTitulo}</h2>
