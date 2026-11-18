@@ -13,6 +13,32 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **El prompt lo están escribiendo dos a la vez, y hoy el entrenador tiene que recortarlo.** `[origen: guardian 2026-11-18]`
+  Anoche metió en `main` **54 líneas de prompt** en dos bloques nuevos:
+  `CALIDAD: QUE SE NOTE QUE SABES` y `SEGÚN LO QUE TE PIDAN` —estructuras por
+  encargo: resumen de un libro o una serie, resumen por capítulos, reseña con
+  nota sobre 10—. Son buenos y no chocan con nada nuestro: piden `###` y
+  negritas, igual que las reglas que ya hay.
+
+  **El problema no es el contenido, es la aritmética.** El entrenador midió
+  ayer que el prompt de un adulto había pasado de **223 a 259 líneas en cuatro
+  días**, y hoy le toca **área 7, recorte**. Pero en producción el prompt es
+  **54 líneas más largo** de lo que esta rama cree, así que:
+
+  - Recortar aquí mirando solo esta rama es **cortar a ciegas**: se puede quitar
+    algo que él acaba de reforzar, o dejar dos reglas que ya dicen lo mismo con
+    otras palabras.
+  - Y el merge, que ya tenía la regla 3 escrita distinta en los dos lados, ahora
+    tiene **dos bloques enteros** más de su parte.
+
+  **Qué haría yo, y es para el entrenador de hoy, no para el dueño**: antes de
+  recortar una línea, leer `git diff` de `prompt.ts` entre esta rama y
+  `origin/main`, y recortar **lo que sobra en los dos lados** o lo que es
+  nuestro; nunca lo suyo de anoche, que no ha pasado por ninguna medida todavía.
+
+  **Y lo que sí es del dueño**: esto se arregla de verdad fusionando. Van **18
+  días** y dos personas escribiendo el mismo archivo sin verse.
+
 - **Las cinco páginas hechas para captar búsquedas mandan a un registro, y la caja que convierte está solo en la portada.** `[origen: crecimiento 2026-11-17]`
   Leído del código, no supuesto. Los botones principales:
 
@@ -44,7 +70,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   el plazo por honestidad y resulta que ese silencio, explicado, es lo que la
   separa de diez artículos escritos para vender una consulta.
 
-- **🟡 El respaldo de modelos no se puede comprobar: dos lecturas seguidas dicen que no se puede preguntar al proveedor.** `[origen: guardian 2026-11-17]`
+- **🟡 El respaldo de modelos no se puede comprobar: SEGUNDO DÍA, cuatro lecturas en 24 horas.** `[origen: guardian 2026-11-17 · al día 2026-11-18]`
+  **Al día 18-11**: `revisar.yml` 46 de esta mañana dice lo mismo que las tres
+  lecturas de ayer —*"no se ha podido preguntar al proveedor"*, *"no se ha
+  podido comprobar si tus modelos existen"*—. Ya no es "hoy no se puede": es un
+  día entero sin poder verificar la red de seguridad. Gemini sigue con sus tres
+  claves y diez modelos con búsqueda, así que **Kairo contesta**; lo que no se
+  sabe es qué pasa el día que se agote.
   `/api/estado` decía ayer *"Respaldo: clave puesta y **valida**… el proveedor
   ofrece **433** modelos… **tus 3 modelos existen todos**"*. Hoy, en **dos
   lecturas seguidas** (`revisar.yml` 44 a las 06:13 y 45 a las 06:14), dice:
