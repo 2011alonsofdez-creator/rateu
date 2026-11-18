@@ -1,4 +1,22 @@
 # Preguntas cuyas respuestas ya generadas hay que tirar y volver a hacer.
-# Al arrancar, generar_ejemplos.py las quita de kairo.jsonl y las repite.
-# Estas se hicieron antes de que el prompt llevara los datos de Kairo.
-# (vacío: las de la última tanda ya se rehicieron el 15-17 nov)
+# Al arrancar, generar_ejemplos.py las quita y las repite UNA sola vez.
+#
+# Revisión del 18 nov (74 ejemplos), por qué se rehace cada una:
+# - cita previa SS: teléfonos y app que no se pueden comprobar
+# - multa aparcamiento: "6 meses y silencio positivo" es falso
+# - renta si gano poco: el límite con dos pagadores es 15.876 €, no 15.000
+# - coche segunda mano: IVTM del año en curso, no del anterior; tasa dudosa
+# - alta autónomo: el modelo 037 ya no existe desde 2025
+# - cuota autónomo: cifras de 2024, desfasadas
+# - buscar en internet: decía que Kairo no puede buscar (sí puede)
+# - gastos autónomo: dietas con pernocta son 53,34 €, no 48,08 €
+# - Euríbor: el método de cálculo que cuenta es el antiguo
+¿Cómo pido cita previa en la Seguridad Social?
+¿Cómo recurro una multa de aparcamiento?
+¿Tengo que hacer la declaración de la renta si gano poco?
+¿Cómo transfiero un coche de segunda mano?
+¿Qué tengo que hacer para darme de alta como autónomo?
+¿Cuánto paga un autónomo de cuota?
+¿Puedes buscar en internet?
+¿Qué gastos puede deducirse un autónomo?
+¿Qué es el Euríbor?
