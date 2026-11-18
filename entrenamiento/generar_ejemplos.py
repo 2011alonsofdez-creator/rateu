@@ -284,9 +284,25 @@ def revisar():
     print(f"{len(tabla)} ejemplos en revisar.csv")
 
 
+def mostrar():
+    """Imprime todos los ejemplos guardados, numerados, para revisarlos
+    desde el registro de GitHub. No gasta cuota: no llama a Gemini."""
+    recuperar()
+    if not os.path.exists(SALIDA):
+        print("Todavía no hay ejemplos.")
+        return
+    filas = [json.loads(l) for l in open(SALIDA, encoding="utf-8") if l.strip()]
+    print(f"{len(filas)} ejemplos\n")
+    for i, f in enumerate(filas, 1):
+        m = f["messages"]
+        print(f"===== #{i} =====\nP: {m[1]['content']}\nR: {m[2]['content']}\n")
+
+
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "revisar":
         return revisar()
+    if len(sys.argv) > 1 and sys.argv[1] == "mostrar":
+        return mostrar()
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     sistema = bajar("prompt_kairo.txt")
     todas = preguntas()
