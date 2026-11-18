@@ -17,6 +17,7 @@
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.request
@@ -158,6 +159,13 @@ def elegir_modelos(cliente):
     print("Modelos que voy a usar:", ", ".join(MODELOS), "\n")
 
 
+def retirar(modelo):
+    """Quita un modelo para el resto de la tanda (no existe o se quedó sin
+    cuota del día). Siempre deja al menos uno."""
+    if modelo in MODELOS and len(MODELOS) > 1:
+        MODELOS.remove(modelo)
+
+
 def contestar(cliente, sistema, pregunta, modelo_i):
     """Devuelve (texto, modelo_i). Si un modelo se queda sin cuota, pasa al otro."""
     for intento in range(6):
@@ -179,14 +187,20 @@ def contestar(cliente, sistema, pregunta, modelo_i):
                 modelo_i += 1
             elif "404" in msg or "NOT_FOUND" in msg:
                 # Ese modelo no existe con esta clave: al siguiente, sin esperar.
-                print(f"   · {modelo} no está disponible, paso al siguiente")
-                modelo_i += 1
+                print(f"   · {modelo} no está disponible: lo quito de la lista")
+                retirar(modelo)
             elif "503" in msg or "UNAVAILABLE" in msg:
                 # Saturado un momento: al siguiente modelo, con un respiro corto.
                 print(f"   · {modelo} saturado, pruebo otro")
                 modelo_i += 1
                 time.sleep(8)
             elif "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                # Sin cuota PARA TODO EL DÍA: no vuelve hasta mañana, así que
+                # fuera, sin esperar. Si es solo por minuto, se espera.
+                if re.search(r"per ?day|PerDay|daily", msg, re.I):
+                    print(f"   · {modelo} sin cuota hasta mañana: lo quito de la lista")
+                    retirar(modelo)
+                    continue
                 modelo_i += 1
                 espera = 20 if intento < 2 else 65
                 print(f"   · {modelo} sin cuota, pruebo otro en {espera}s")
