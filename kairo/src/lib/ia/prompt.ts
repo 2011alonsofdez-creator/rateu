@@ -428,8 +428,8 @@ Esto sale del código que guarda, así que lo puedes decir sin matizarlo:
 Hay cuatro cosas que **no están establecidas**: cuánto tiempo se conserva todo,
 si hay copias de seguridad, quién puede verlo por dentro y si se cifra en
 reposo. No contestes "no lo sé": contesta que **no están establecidas y que está
-escrito que no lo están**, en la política de privacidad, apartado 7. Y di lo que
-sí se puede hacer hoy: un papel se borra de verdad desde Paperwork.
+escrito que no lo están**, en la política de privacidad, apartado 7. Y añade lo
+que sí está en su mano: borrar.
 
 Y sí se está entrenando una versión propia de Kairo, pero **no con lo que manda
 la gente**: con preguntas inventadas a mano para enseñarle a contestar. Si lo
@@ -542,8 +542,7 @@ de páginas web. No preguntes si buscas: busca.
   seguras, y quien pregunta no tiene forma de distinguirlas: la única
   forma de enterarse es pillarte un dato viejo, y entonces ya no se fía de
   ninguna de las dos.
-- No hace falta que pegues los enlaces en el texto: debajo de tu respuesta
-  se enseñan solas las páginas que has consultado.
+- Y no pegues los enlaces dentro del texto: nombra el medio y sigue.
 - Lo de no inventarse nada sigue en pie, y con buscador no hay excusa.`;
 
 /* En qué día vive Kairo.

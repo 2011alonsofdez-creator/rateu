@@ -96,6 +96,79 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-18 — Recorte (área 7): medí todo el prompt buscando grasa y solo encontré dos frases mías
+
+**Qué cambié**: dos frases de `kairo/src/lib/ia/prompt.ts`. **−1 línea, −16
+palabras, −94 caracteres** en el prompt de un adulto con buscador (259 → 258).
+
+**Y el resultado honesto del día es ese número pequeño**, con lo que lo explica.
+
+**Cómo busqué, que esta vez no fue a ojo.** El prompt de producción tiene **250
+frases**. Las comparé **todas contra todas** —normalizando a minúsculas, sin
+tildes ni formato, y midiendo el solape de palabras largas— y marqué los pares
+que comparten más de un tercio del vocabulario. Salieron **tres**:
+
+1. **63 %** — *"Un papel guardado se puede borrar, desde Paperwork, y se borra
+   de verdad"* (viñeta del bloque de lo que se guarda) contra *"un papel se
+   borra de verdad desde Paperwork"*, **diez líneas más abajo, en el mismo
+   bloque**. La segunda la escribí yo el 14-11.
+2. **50 %** — *"las páginas que has leído se enseñan solas debajo de tu
+   respuesta, en un apartado que ya se llama «Fuentes»"* (mi regla 4, del 12-11)
+   contra *"debajo de tu respuesta se enseñan solas las páginas que has
+   consultado"*, en el bloque de buscar.
+3. 50 % — *"las instrucciones te las da la persona con la que hablas"* contra
+   *"asistentes con instrucciones propias que crea la persona"*. **Este no lo
+   toqué**: están en bloques distintos y hacen trabajos distintos —uno explica
+   la función en el catálogo, el otro instruye cuando hay una Mente activa—.
+   Parecerse no es repetirse.
+
+**Los dos primeros son míos y son de esta semana.** Eso es lo que hay que
+apuntar: el prompt no se llena de grasa por los cambios viejos, se llena cuando
+alguien añade una frase sin mirar si el dato ya estaba doce líneas arriba. Y el
+alguien he sido yo, dos veces en seis días.
+
+**Qué corté, y qué me cuidé de no perder**:
+
+- La primera: en vez de repetir el dato, la frase ahora **manda hacer lo mismo
+  sin contarlo otra vez** —*"Y añade lo que sí está en su mano: borrar"*—. La
+  viñeta de arriba sigue entera, y comprobado que sigue.
+- La segunda: el **por qué** ya lo explica la regla 4, así que en el bloque de
+  buscar queda solo la orden, en una línea en vez de dos: *"Y no pegues los
+  enlaces dentro del texto: nombra el medio y sigue"*.
+
+Comprobado renderizando que las cuatro cosas que esas frases decían **siguen
+dichas** una vez cada una.
+
+**Y ahora lo que de verdad importa de hoy, que no es el recorte: hoy no se
+puede recortar en serio, y hay que decirlo en vez de fingir un resultado.**
+
+El prompt de un adulto ha pasado de 223 a 259 líneas en cinco días. Fui a
+buscar el exceso y **la duplicación medible son dos frases**. O sea que el
+crecimiento **no es grasa**: son reglas nuevas que no estaban. Pero falta la
+mitad del cuadro: anoche el dueño metió en `main` **54 líneas de prompt** en dos
+bloques —`CALIDAD: QUE SE NOTE QUE SABES` y `SEGÚN LO QUE TE PIDAN`— **que esta
+rama no tiene**. Así que:
+
+- Mi medición de 250 frases está hecha sobre **un prompt que no es el de
+  producción**, y lo digo antes de que alguien use el número.
+- Si hay grasa de verdad, lo más probable es que esté **entre sus bloques
+  nuevos y los nuestros** —su *"el largo, el que pida la pregunta"* y nuestro
+  *"respuesta corta para preguntas cortas"* dicen lo mismo con otras palabras—,
+  y eso **solo se ve con los dos lados delante**.
+- Recortar hoy lo nuestro apostando a que lo suyo llegue sería cortar a ciegas,
+  que es justo lo que el guardián dejó avisado esta mañana.
+
+**Así que el área 7 de hoy entrega lo que se puede entregar con lo que hay: la
+duplicación probada, cortada; y el hallazgo de que el recorte serio está
+bloqueado por la fusión.** Es un argumento nuevo para los dieciocho días: no es
+solo que el trabajo no llegue a la web, es que **ya no se puede medir el prompt
+sin fusionar**.
+
+**Qué necesito del dueño**: nada que no esté pedido. Pero si fusiona, el
+próximo área 7 vale cinco veces más que el de hoy.
+
+**Mañana toca**: área 1, prompt maestro.
+
 ### 2026-11-17 — Tono (área 6): hay gente que no lee a Kairo, la escucha
 
 **Qué cambié**: una línea —bueno, siete— al final del bloque `LA FORMA DE UNA
