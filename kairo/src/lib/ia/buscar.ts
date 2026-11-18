@@ -127,10 +127,18 @@ export async function buscarHechos(
     /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a)/i.test(pregunta) ||
     /\s\p{Lu}\p{L}{2,}/u.test(pregunta);
 
+  /* Una pregunta de seguimiento corta ("el youtuber", "¿y la fecha?")
+     buscada sola trae cualquier cosa: con "youtuber" salían Rubius y
+     Dross en vez de DJMario. Se le pega delante lo último que preguntó
+     la persona, que es de lo que va. */
+  const anterior = [...contexto.matchAll(/^Persona: (.*)$/gm)].pop()?.[1] ?? "";
+  const corta = pregunta.trim().split(/\s+/).length <= 4;
+  const consulta = corta && anterior ? `${anterior.slice(0, 120)} ${pregunta}` : pregunta;
+
   const antes = Date.now();
   const libres = Promise.all([
-    noticiasDe(pregunta, 5000).catch(() => []),
-    conWiki ? articulosDe(pregunta, "es", 5000).catch(() => []) : Promise.resolve([]),
+    noticiasDe(consulta, 5000).catch(() => []),
+    conWiki || corta ? articulosDe(consulta, "es", 5000).catch(() => []) : Promise.resolve([]),
   ]);
   const principal = await buscarConModelos(pregunta, contexto, modoEdad, diario);
   const [noticias, articulos] = await libres;

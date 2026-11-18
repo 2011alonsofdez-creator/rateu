@@ -69,6 +69,23 @@ export default function PruebaPulpo() {
         </Marco>
       </div>
 
+      <h2 className="mt-12 text-xl font-semibold">🐙 Pequeñito · así quedaría en Kairo</h2>
+      <p className="mt-1 text-sm text-muted">El elegido, a 40 píxeles: discreto, al lado del texto.</p>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-4">
+          <PulpoPixel pose="v4-saluda" tam={40} />
+          <span className="text-[17px] font-semibold">Buenas noches, Alonso.</span>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-4">
+          <PulpoPixel pose="v4-pensando" tam={40} />
+          <span className="text-[15px] text-muted">Pensando…</span>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-4">
+          <PulpoPixel pose="v4-triste" tam={40} />
+          <span className="text-[15px]">Uy, se me ha liado algo. Dale a Reintentar.</span>
+        </div>
+      </div>
+
       <h2 className="mt-12 text-xl font-semibold">⭐ La elegida · cuerpo compacto, con boca, sin mejillas</h2>
       <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
         {(
