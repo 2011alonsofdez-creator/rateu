@@ -1802,6 +1802,23 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **El verificador de cifras no vigila las páginas de intención, que ya son cuatro y llevan copia del producto.** `[origen: radar 2026-11-19 · lo vio el constructor ayer y lo dejó anotado]`
+  `agentes/comprobar/cifras.py` compara el material con el código y tiene una
+  lista de **cuatro archivos** de copia del producto: `i18n.tsx`, `mock.ts`,
+  `precios/contenido.tsx` y `ElegirPlan.tsx`. **Las páginas de intención no están
+  en esa lista**, y desde ayer tres de ellas llevan texto que habla del producto
+  —la frontera de qué necesita cuenta y qué no— y una lleva cifras, aunque sean
+  de terceros y estén puestas para contradecirse.
+
+  Hoy no miente ninguna. El problema es el de siempre en esta casa: **lo que no
+  se vigila se queda viejo sin que nadie se entere**, y estas cuatro páginas son
+  justo las que verá quien llegue de una búsqueda. El día que una escriba un
+  crédito o un precio a mano, nadie lo sabrá.
+
+  **Qué cuesta**: añadir cuatro rutas a la lista `COPIA` y pasar el verificador
+  para ver si salta algo. Media hora, y la mitad es leer lo que salte.
+
+
 - **~~Los dos casos que el banco dejó suspendidos el 16-11~~ — HECHOS los dos, el 17-11.** `[origen: radar 2026-11-16 · hecho 2026-11-17]`
   **a) El caso 10, en `papeles.ts`**: la regla del papel no oficial decía *"dilo
   en `DE_QUE_VA` y deja el resto vacío"* y ahora dice que **se vacía solo lo que

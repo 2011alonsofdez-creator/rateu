@@ -3,36 +3,37 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-16 ([informe](informes/2026-11-16-estado.md)),
-la duodécima
-**Semáforo general**: 🔴 **undécimo rojo, y por primera vez no por algo mal escrito sino por algo bien escrito y sin publicar: hay tres documentos legales terminados y CERO publicados, y la web viva acepta cuentas y papeles sin una política de privacidad que se pueda leer**
-Lo de antes: 🔴 décimo rojo, por la contradicción entre `/precios` y la política de privacidad (sigue en pie, diez días)
+**Última revisión**: 2026-11-19 ([informe](informes/2026-11-19-estado.md)),
+la decimotercera
+**Semáforo general**: 🔴 **duodécimo rojo, y el motivo ya no se puede decir más corto: no falta trabajo, falta él. Todo lo que los agentes pueden tocar se está arreglando; todo lo que necesita una decisión suya está congelado, y lo más viejo lleva diecinueve días**
+Lo de antes: 🔴 undécimo rojo, por tres documentos legales terminados y cero publicados (sigue igual, quince días la política de cookies)
 
-> **Lo que ha cambiado de verdad**: han sido los tres días más productivos de
-> este sistema —el tercer documento legal escrito, el fallo que le daba a un
-> niño una tabla de precios arreglado el mismo día que se supo por qué, el banco
-> de pruebas puntuado entero por primera vez desde el 23-10 y 33 commits suyos
-> en `main`— **y Kairo está exactamente igual de lejos del lanzamiento que hace
-> doce días**: las puertas siguen en **2 de 22**. El trabajo está hecho y no
-> llega a la web.
+> **Lo que ha cambiado de verdad**: en tres días, **10 commits de agentes —6 de
+> ellos tocando el producto— y 19 suyos en `main`**, incluida la revisión de
+> seguridad que cerró el agujero más grave que ha tenido Kairo. Se arregló el
+> fallo que daba a un niño una tabla de precios, los tres suspensos del banco de
+> pruebas, la caja de probar en las tres páginas de papeles y la viñeta que le
+> faltaba al plan gratis. **Y las puertas de lanzamiento siguen en 2 de 22,
+> símbolo por símbolo iguales que el 16-11.** Quince días sin que se abra
+> ninguna.
 >
-> Lo de antes (13-11): el producto y el sistema mejor que nunca, y lo que
-> bloqueaba eran dos frases publicadas que no son verdad. Siguen ahí.
+> Lo de antes (16-11): los tres días más productivos del sistema, y Kairo igual
+> de lejos del lanzamiento. Sigue siendo verdad, y ahora con quince días.
 
 ## Métricas
 
-| Métrica | Valor | Anterior (13-11) | Tendencia |
+| Métrica | Valor | Anterior (16-11) | Tendencia |
 |---|---|---|---|
-| **Documentos legales escritos** | **3 de 4**: cookies, privacidad y **términos (15-11)** | 2 de 4 | ↑ |
-| **Documentos legales PUBLICADOS** | **0 de 4.** En `main`, `app/legal/` tiene un solo archivo y dice "Pendiente de redactar" | 0 de 4, *pero nadie lo había medido* | **= y es el hallazgo del 16-11** |
-| **Puertas de lanzamiento** | **2 ✅ · 4 🟡 · 1 ⚪ · 15 ⬜** de 22 | 2 ✅ · 3 🟡 · 1 ⚪ · 16 ⬜ | = **ninguna abierta en doce días** |
-| Checklist de salud | **15 ✅ · 3 🟡 · 1 ⚪ · 1 ⬜** de 20 | 16 ✅ · 2 🟡 · 1 ⚪ · 1 ⬜ | ↓ por el medio día de agentes perdido el 14 |
-| **Banco de pruebas** | **25 / 28**, los catorce casos puntuados el 16-11 | sin puntuar desde el 23-10 | = en total, ↑ en método |
-| **Producción, vista de verdad** | **sí, hoy 06:14**: `revisar.yml` 43 (200, "TODO CORRECTO") y `probar-portada` 14, cinco pasos | sí, el 13-11 | ↑ **siete días seguidos** |
-| **Commits suyos en `main` en 3 días** | **33** | 26 | ↑ |
-| Entregas de agentes en 3 días | **8 commits**, con un día perdido (el 14) | 5 | ↑ |
-| Visitas, registros, usuarios | **sin datos** | sin datos | = falta analítica; decisión suya |
-
+| **Puertas de lanzamiento** | **2 ✅ · 4 🟡 · 1 ⚪ · 15 ⬜** de 22 | igual, símbolo por símbolo | = **quince días sin abrirse ninguna** |
+| Checklist de salud | **15 ✅ · 3 🟡 · 1 ⚪ · 1 ⬜** de 20 | igual | = |
+| Documentos legales escritos / **publicados** | **3 de 4 / 0 de 4** | 3 / 0 | = la política de cookies lleva **15 días** escrita y sin publicar |
+| **Producción, vista de verdad** | **sí, hoy 06:13**: `revisar.yml` 47 (200, "TODO CORRECTO") y `probar-portada` 17 | sí, el 16-11 | ↑ **décimo día seguido** |
+| **Señales de salud que ya no se pueden ver** | **3**, desde el 16-11, con la causa encontrada el 19-11 | 0 | ↓ nuevo |
+| Commits de agentes en 3 días | **10**, de los que **6 tocan el producto** | 8 | ↑ |
+| **Commits suyos en `main` en 3 días** | **19** | 33 | ↓ |
+| **Camino de una búsqueda a una respuesta** | **existe**, en las tres páginas de papeles | no existía | ↑ lo mejor de estos tres días |
+| Banco de pruebas | 25 / 28, y sus tres suspensos ya arreglados | 25 / 28 | = la nota la pone la próxima área 5 |
+| Visitas, registros, usuarios | **sin datos** | sin datos | = trece informes |
 ## Veredicto de la última revisión
 
 **Kairo se contradice a sí misma en dos documentos publicados, y lo ha hecho hoy
