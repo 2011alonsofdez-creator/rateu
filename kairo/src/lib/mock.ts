@@ -5,6 +5,7 @@ import {
   CREDITOS_NIVEL,
   CREDITOS_PLAN,
   MENTES_POR_PLAN,
+  NIVELES_POR_PLAN,
 } from "./planes";
 import type { Producto } from "./pagos/config";
 
@@ -294,6 +295,27 @@ export const plans: Plan[] = [
         `${MENTES_POR_PLAN.free} Mentes propias`,
         "Todo tu historial, sin caducidad",
         "PDF de cualquier tamaño · fotos hasta 3 MB",
+      /* LA SÉPTIMA, Y ES LA ÚNICA QUE DICE QUÉ PUEDES HACER.
+       *
+       * Las seis de arriba son todas de CUÁNTO —créditos, Co-Works,
+       * Mentes, tamaños— y están bien. Lo que faltaba, y lo marcó el
+       * guardián el 11-11, es que ninguna dice qué se puede HACER con
+       * eso: el plan gratis llega al nivel Normal, y Normal es lo que
+       * hace funcionar Paperwork, Gist y Código. O sea que leer una multa
+       * gratis y sin tarjeta entra en el plan gratis, que es justo lo que
+       * vende la portada y lo que trae a la gente. Ocho días sin decirlo.
+       *
+       * No se toca ninguna de las seis suyas: esto se añade, y se quita
+       * borrando una línea.
+       *
+       * Y NO ESTÁ ESCRITA A MANO, que es lo que importa: la viñeta
+       * aparece solo si `NIVELES_POR_PLAN.free` sigue incluyendo
+       * `normal`. El día que el plan gratis se quede en Rápido, esta
+       * promesa desaparece sola en vez de quedarse mintiendo, que es
+       * exactamente lo que pasó con los 15 créditos durante un día. */
+      ...(NIVELES_POR_PLAN.free.includes("normal")
+        ? ["Rápido y Normal: con Normal van Paperwork, Gist y Código"]
+        : []),
       ],
       en: [
         `${CREDITOS_PLAN.free} credits a day, back every morning`,
@@ -302,6 +324,9 @@ export const plans: Plan[] = [
         `${MENTES_POR_PLAN.free} Minds of your own`,
         "All your history, no expiry",
         "PDFs of any size · photos up to 3 MB",
+        ...(NIVELES_POR_PLAN.free.includes("normal")
+          ? ["Fast and Normal: Normal is what powers Paperwork, Gist and Code"]
+          : []),
       ],
     },
   },

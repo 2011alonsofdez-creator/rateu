@@ -449,7 +449,36 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   propia página afirma, porque el bloque `PRIVACIDAD` del prompt está escrito
   desde el 24-10 para no decirlo.
 
-- **🟡 El plan gratis ha dejado de contar su mejor argumento: que trae rápido y normal.** `[origen: guardian 2026-11-11]`
+- **~~🟡 El plan gratis ha dejado de contar su mejor argumento~~ — HECHO el 19-11, y la decisión la he tomado yo.** `[origen: guardian 2026-11-11 · hecho 2026-11-19]`
+  **Lo que había**: el guardián lo encontró el 11-11 y lo dejó esperando una
+  línea suya —*"o se añade una séptima viñeta, o se cambia una de las de
+  cuánto"*—. **Ocho días sin contestar**, y la tarjeta que vende el plan gratis
+  sin decir qué se puede hacer con él.
+
+  **Lo que he hecho, y por qué me he atrevido a elegir**: la **séptima viñeta**,
+  que era la opción que **no toca nada suyo**. Sus seis se quedan exactamente
+  como las escribió; esto se añade al final y **se quita borrando una línea**. Si
+  prefería la otra salida, cambiarlo cuesta menos que haberlo preguntado otra
+  vez. Lo que no era defendible era un noveno día con la tarjeta callada.
+
+  > *"Rápido y Normal: con Normal van Paperwork, Gist y Código"*
+  > *"Fast and Normal: Normal is what powers Paperwork, Gist and Code"*
+
+  **Y no está escrita a mano**, que es lo que de verdad la hace distinta de la
+  viñeta que se perdió el 11-11: aparece **solo si `NIVELES_POR_PLAN.free` sigue
+  incluyendo `normal`**. El día que el plan gratis se quede en Rápido, la promesa
+  **desaparece sola** en vez de quedarse mintiendo —que es exactamente lo que
+  pasó con los 15 créditos durante un día—.
+
+  **Por qué importa**: el plan gratis llega al nivel Normal desde el 29-10, y
+  Normal es lo que hace funcionar Paperwork, Gist y Código. O sea que **leer una
+  multa gratis y sin tarjeta entra en el plan gratis**, que es justo lo que vende
+  la portada y lo que trae a la gente. La tarjeta no lo decía en ninguna parte.
+
+  **Comprobado**: la viñeta en el HTML generado de `/precios`, las seis suyas
+  intactas, las cifras sin tocar (40 al día leídos del código), el inglés en el
+  bundle del cliente, `tsc` 0, `next build` 0 y el verificador de cifras en
+  verde.
   En el repaso de anoche la tarjeta del plan gratis se rehízo entera y perdió
   una viñeta que pusimos el 30-10: **"Modelos rápido y normal: chat, Paperwork,
   Gist y Código"**. Las seis que tiene ahora son buenas —40 al día que vuelven
