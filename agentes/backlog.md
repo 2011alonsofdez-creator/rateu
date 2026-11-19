@@ -106,7 +106,49 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   el plazo por honestidad y resulta que ese silencio, explicado, es lo que la
   separa de diez artículos escritos para vender una consulta.
 
-- **🟡 El respaldo de modelos no se puede comprobar: SEGUNDO DÍA, cuatro lecturas en 24 horas.** `[origen: guardian 2026-11-17 · al día 2026-11-18]`
+- **🟡 No era el respaldo: la comprobación diaria se quedó ciega, y yo apunté dos días al sitio equivocado.** `[origen: guardian 2026-11-17 · CAUSA ENCONTRADA 2026-11-19]`
+  **La causa, con su commit.** El 16-11, en la segunda parte de su revisión de
+  seguridad (`19a881c`), `/api/estado` pasó a pedir sesión para preguntar a los
+  proveedores qué modelos tienen:
+
+  ```ts
+  conSesion && claves.extra && EXTRA_URL()
+    ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
+    : null,
+  ```
+
+  **Y está bien hecho**: su comentario lo explica —*"abierto a cualquiera, se
+  podía machacar esta página para gastar los límites de las claves"*—. El
+  problema es que **`revisar.yml` llama a `/api/estado` desde un runner de
+  GitHub, sin sesión**. Así que `ext` llega `null`, el campo no existe en el
+  JSON, y el `jq` del workflow cae en su última rama e imprime *"no se ha podido
+  preguntar al proveedor"* **cuando nadie ha preguntado**. Lo mismo con la clave:
+  sin sesión, `claveOk` se devuelve a pelo como `no_comprobable`, que el
+  workflow pinta como *"clave puesta y sin comprobar"*.
+
+  **Ni la clave ni el saldo de OpenRouter tienen nada que ver**, y el propio
+  código lo demuestra: `veredictoDeClave` distingue **401/403 → "rechazada"** de
+  todo lo demás → *"no comprobable"*. Si la clave estuviera mal o la cuenta
+  bloqueada, la pantalla lo diría con esa palabra. No lo dice.
+
+  **La corrección que me toca hacer**: los avisos del 17 y del 18 le pedían dos
+  minutos en openrouter.ai para mirar el saldo. **Era el sitio equivocado**, y lo
+  dedujo bien solo cuando dejé de mirar al proveedor y leí el código de la
+  comprobación. La lección es la de esta casa: *una comprobación que falla hay
+  que comprobarla antes de creerle* —y yo le creí dos días, porque el mensaje que
+  imprime suena a diagnóstico y es solo el `else` de un `jq`—.
+
+  **Lo que de verdad hay que arreglar, y es una línea que se contesta con un
+  "sí"**: dejar que `/api/estado` conteste esas tres señales también cuando quien
+  llama trae el **secreto del cron** —`KAIRO_CRON_SECRET`, el que ya usa el
+  workflow de Co-Works—, en vez de solo con sesión. Sigue cerrada al público y el
+  guardián vuelve a ver. **No lo hago yo**: toca el control de acceso de una
+  ruta, y eso es del apartado 5 del protocolo. ¿Lo hago?
+
+  **Mientras tanto, qué se sabe y qué no**: Kairo contesta y lo hace con Gemini
+  —tres claves, diez modelos con búsqueda, comprobado cada mañana—. De los tres
+  modelos `:free` del respaldo **no se sabe nada desde el 16-11**, y no porque
+  estén mal, sino porque nadie puede mirar.
   **Al día 18-11**: `revisar.yml` 46 de esta mañana dice lo mismo que las tres
   lecturas de ayer —*"no se ha podido preguntar al proveedor"*, *"no se ha
   podido comprobar si tus modelos existen"*—. Ya no es "hoy no se puede": es un
