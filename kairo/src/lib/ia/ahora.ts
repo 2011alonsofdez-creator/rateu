@@ -95,6 +95,8 @@ const PISTAS: RegExp[] = [
      ninguna lista ni pueden estarlo. Lo que sí se repite es el verbo. */
   palabra("(como (quedo|quedaron|queda|quedan|va|van|iba|iban|acabo|acabaron|termino|terminaron))"),
   palabra("(noticia|noticias|que ha pasado|que esta pasando)"),
+  /* Creadores de contenido: lo que hacen cambia cada semana. */
+  palabra("(youtuber|youtubers|streamer|streamers|tiktoker|influencer|influencers|canal de youtube|en twitch|en kick)"),
   /* Reseñas y críticas: la nota de un juego, una peli o un disco es de
      los medios, y de lo reciente el modelo no sabe nada. */
   palabra("(resena|resenas|review|reviews|critica|criticas|que nota tiene|nota de|notas de|metacritic|opiniones de|que tal esta)"),

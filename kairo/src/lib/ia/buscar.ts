@@ -127,21 +127,32 @@ export async function buscarHechos(
     /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a)/i.test(pregunta) ||
     /\s\p{Lu}\p{L}{2,}/u.test(pregunta);
 
-  /* Una pregunta de seguimiento corta ("el youtuber", "¿y la fecha?")
-     buscada sola trae cualquier cosa: con "youtuber" salían Rubius y
-     Dross en vez de DJMario. Se le pega delante lo último que preguntó
-     la persona, que es de lo que va. */
+  /* PREGUNTAS DE SEGUIMIENTO. "el youtuber", "¿y la fecha?", "pero se le
+     conoce por el fifa, no?": buscadas solas traen cualquier cosa (con
+     la última salieron un club de fútbol, la selección de México y
+     Beckham en vez de DjMario). Si la pregunta es corta o se refiere a
+     algo de antes ("le", "eso", "su", "pero…", "y…"), se busca junto
+     con lo último que preguntó la persona, que es de quién o de qué va. */
   const anterior = [...contexto.matchAll(/^Persona: (.*)$/gm)].pop()?.[1] ?? "";
+  const seguimiento = Boolean(anterior) && esSeguimiento(pregunta);
+  const consulta = seguimiento ? `${anterior.slice(0, 120)} ${pregunta}` : pregunta;
   const corta = pregunta.trim().split(/\s+/).length <= 4;
-  const consulta = corta && anterior ? `${anterior.slice(0, 120)} ${pregunta}` : pregunta;
+  // De qué tienen que hablar las fuentes para valer: del tema de antes si
+  // es un seguimiento, si no de la propia pregunta.
+  const clave = palabrasClave(seguimiento ? anterior : pregunta);
 
   const antes = Date.now();
   const libres = Promise.all([
     noticiasDe(consulta, 5000).catch(() => []),
-    conWiki || corta ? articulosDe(consulta, "es", 5000).catch(() => []) : Promise.resolve([]),
+    conWiki || corta || seguimiento ? articulosDe(consulta, "es", 5000).catch(() => []) : Promise.resolve([]),
   ]);
-  const principal = await buscarConModelos(pregunta, contexto, modoEdad, diario);
-  const [noticias, articulos] = await libres;
+  const principal = await buscarConModelos(consulta, contexto, modoEdad, diario);
+  const [todasNoticias, todosArticulos] = await libres;
+  /* Fuera lo que no habla de lo que se pregunta: un artículo de Beckham
+     no responde nada sobre DjMario, y si llega al prompt el modelo saca
+     conclusiones de él ("no aparece por FIFA"). */
+  const noticias = todasNoticias.filter((n) => habla(n.titular, clave));
+  const articulos = todosArticulos.filter((a) => habla(`${a.titulo} ${a.extracto}`, clave));
   if (diario) {
     diario.intentos.push({
       modelo: "noticias+wikipedia (en paralelo)",
@@ -177,6 +188,41 @@ export async function buscarHechos(
     modelo: principal?.busco ? principal.modelo : "google-noticias",
     busco: true,
   };
+}
+
+const VACIAS_CLAVE = new Set(
+  "pero porque para como cuando donde quien quienes cual cuales sobre desde hasta entre tiene tienen tenia esta estan este esto eso esos esas aquel mucho muchos poco mayormente conoce conocen conocido sabes dime cuentame verdad entonces tambien solo muy mas menos todo todos nada algo alguien".split(" "),
+);
+
+/** Las palabras que dicen de qué va algo: 4+ letras, sin las vacías. */
+function palabrasClave(texto: string): string[] {
+  return [
+    ...new Set(
+      texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .split(/[^a-z0-9ñ]+/)
+        .filter((w) => w.length >= 4 && !VACIAS_CLAVE.has(w)),
+    ),
+  ];
+}
+
+/** ¿Habla este texto de alguna de las palabras clave? Sin claves, sí. */
+function habla(texto: string, clave: string[]): boolean {
+  if (!clave.length) return true;
+  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return clave.some((w) => t.includes(w));
+}
+
+/** ¿Es una pregunta que se apoya en lo anterior? */
+function esSeguimiento(pregunta: string): boolean {
+  const t = pregunta.trim().toLowerCase();
+  if (t.split(/\s+/).length <= 4) return true;
+  if (/^(y|pero|entonces|vale|ok|osea|o sea)\b/.test(t)) return true;
+  // Pronombres y "su": se refieren a alguien o algo de antes. Sin los
+  // artículos (el, la…), que salen en cualquier frase.
+  return /(^|[^a-zñ])(le|les|lo|él|ella|ellos|ellas|eso|esto|ese|esa|aquel|aquello|su|sus)([^a-zñ]|$)/.test(t);
 }
 
 async function buscarConModelos(
