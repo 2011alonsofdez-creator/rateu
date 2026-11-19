@@ -111,6 +111,8 @@ const OBRAS: RegExp[] = [
   palabra("(capitulo a capitulo|capítulo a capítulo|por capitulos|por capítulos|cada capitulo|cada capítulo|temporada|temporadas|episodio|episodios)"),
   palabra("(reseña|resena|review|critica|crítica|opinion de|opinión de|vale la pena|merece la pena|analisis de|análisis de)"),
   palabra("(summary|summarise|summarize|chapter by chapter|review of|is it worth)"),
+  // Quién es alguien: el modelo flojo se inventa biografías.
+  palabra("(quien es|quién es|quienes son|quiénes son|que sabes de|qué sabes de|conoces a|youtubers?|streamers?|tiktokers?|influencers?)"),
 ];
 
 /** Señales de que hay código pegado, aunque no lo diga con palabras. */
