@@ -13,6 +13,57 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 KAIRO NO CONTESTA A UN DESCONOCIDO, Y LA WEB NO LO APARENTA.** `[origen: guardian 2026-11-20]`
+  **Lo medido, dos veces con un minuto de diferencia** (`probar-portada` 18 a las
+  06:14 y 19 a las 06:15, las dos en rojo; es la primera vez que esa prueba
+  falla):
+
+  - La portada responde **200** y trae la caja de probar. Impecable por fuera.
+  - Al preguntar:
+    `{"error":"sin_cerebros","intentos":["gemini:429","gemini:429","extra:429","extra:429"]}`
+  - **Los cuatro intentos, agotados**: los dos cerebros y las dos pasadas por el
+    respaldo.
+
+  **Por qué es lo más grave que hemos encontrado**: quien solo mire la web la ve
+  perfecta. Esta es exactamente la avería que el guardián existe para cazar, y
+  llevaba once días dando ✅ en la fila *"la web responde"* porque esa fila mide
+  que el **servidor** conteste, no que **Kairo** conteste. Hoy la fila baja a 🟡
+  y la del desconocido a 🔴.
+
+  **Y de paso contesta el misterio de tres días**: `extra:429` prueba que al
+  respaldo **sí se llega** y que la clave **sí vale** —un 429 no es un 401—.
+  Está **agotado**. Lo que `/api/estado` no podía decirme porque se quedó ciego,
+  lo ha dicho una petición de verdad.
+
+  **La causa, como hipótesis con pruebas y no como corazonada:**
+
+  | Prueba | Dónde |
+  |---|---|
+  | El generador de entrenamiento ha corrido **cinco días seguidos** —16, 17, 18, 18 y 19-11— entre **35 y 66 minutos** cada vez | `generar-ejemplos.yml`, ejecuciones 4 a 8 |
+  | Y usa la **misma clave que producción** | ese workflow recibe `GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}` |
+  | Su propio código ya sabe que la cuota se agota | commit del 18-11: *"drop unavailable or **daily-exhausted** models for the rest of the run"* |
+  | El respaldo tiene **50 peticiones al día** en la capa gratis | informe de mercado del 15-11 |
+
+  O sea: **la tubería de entrenamiento y la web viva se reparten una sola cuota
+  gratuita**, y cuando Gemini empieza a devolver 429 todo cae al respaldo, que
+  aguanta cincuenta.
+
+  **Los tres arreglos, y los tres son suyos** (claves y pagos, apartado 5):
+
+  1. **Una clave aparte para el generador.** Es la que separa "entrenar" de
+     "atender a quien entra". Gratis, cinco minutos en AI Studio.
+  2. **Los 10 $ de OpenRouter**, que suben el respaldo de 50 a 1.000 al día.
+     Pedido desde el 15-11; hoy ya no es una mejora.
+  3. **La capa de pago de Gemini**, que además cierra el `"No."` de `/precios` y
+     el apartado 5 de la política de privacidad. Pedido desde el 06-11.
+
+  **Lo que puedo hacer yo y haré mañana**: mirar esta prueba a primera hora y
+  decir si sigue roto. **Y una cosa que me toca confesar**: cada ejecución de
+  `probar-portada` gasta peticiones de esa misma cuota —una por la pregunta y
+  cuatro más si llega al paso del tope—. Hoy la he lanzado dos veces para
+  descartar un parpadeo. No es la causa de una cuota agotada a las seis de la
+  mañana, pero sale de la misma bolsa y hay que decirlo.
+
 - **El prompt lo están escribiendo dos a la vez.** `[origen: guardian 2026-11-18 · atendido el mismo día]`
   **Atendido el 18-11 por el entrenador, y sin tocar nada suyo**: su área 7 de
   hoy leyó el diff contra `origin/main` antes de cortar, midió las 250 frases
