@@ -38,6 +38,16 @@ const dict = {
     "try.none":
       "Se acabaron las pruebas gratis. Crea una cuenta y te llevas {n} créditos de regalo, que dan para un Mega-Prompt entero.",
     "try.error": "No he podido contestar. Prueba otra vez en un momento.",
+    /* CUANDO NO QUEDA NINGÚN MOTOR, Y NO ES LO MISMO QUE UN FALLO SUELTO.
+       El 20-11 la prueba de la portada se cayó con los cuatro intentos
+       agotados —gemini:429 dos veces y el respaldo otras dos— y el
+       visitante veía "prueba otra vez en un momento", que ese día era
+       FALSO: una cuota diaria agotada no vuelve en un momento. Quien lo
+       leyó reintentó dos veces, falló dos veces y se fue pensando que
+       Kairo no funciona. El chat con cuenta ya distinguía este caso
+       (`err.cuotaDia`); la caja de la portada, no. */
+    "try.saturado":
+      "Ahora mismo estoy a tope y no puedo contestar: no es tu pregunta, es que se ha agotado la cuota de hoy. Vuelve dentro de un rato o mañana, que se renueva sola.",
     "try.cta": "Seguir en Kairo · {n} créditos de regalo",
     "try.s1": "¿Puedo recurrir una multa de 200 € por exceso de velocidad?",
     "try.s2": "Explícame la fotosíntesis como si tuviera 15 años",
@@ -687,6 +697,8 @@ const dict = {
     "try.none":
       "That's the free goes used up. Create an account and you get {n} credits, enough for a whole Mega-Prompt.",
     "try.error": "I couldn't answer that. Try again in a moment.",
+    "try.saturado":
+      "I'm maxed out right now and can't answer: it's not your question, today's quota is used up. Come back in a while or tomorrow, it resets on its own.",
     "try.cta": "Carry on in Kairo · {n} free credits",
     "try.s1": "Can I appeal a 200 euro speeding fine?",
     "try.s2": "Explain photosynthesis like I'm 15",

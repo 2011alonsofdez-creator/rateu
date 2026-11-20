@@ -57,7 +57,33 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   3. **La capa de pago de Gemini**, que además cierra el `"No."` de `/precios` y
      el apartado 5 de la política de privacidad. Pedido desde el 06-11.
 
-  **Lo que puedo hacer yo y haré mañana**: mirar esta prueba a primera hora y
+  **HECHO HOY lo único que era mío (20-11, constructor)**: la caja de probar ya
+  **no miente** cuando pasa esto. Hasta hoy, con los cuatro motores agotados, el
+  visitante leía *"No he podido contestar. Prueba otra vez en un momento"* —el
+  mismo texto para cualquier fallo—, y ese día es **falso**: una cuota diaria
+  agotada no vuelve en un momento. Quien lo leyó reintentó, falló y se fue
+  pensando que Kairo no funciona. Ahora, solo para `sin_cerebros` y
+  `sin_modelos`, dice:
+
+  > *"Ahora mismo estoy a tope y no puedo contestar: no es tu pregunta, es que se
+  > ha agotado la cuota de hoy. Vuelve dentro de un rato o mañana, que se renueva
+  > sola."*
+
+  No culpa al visitante, no promete minutos y no le manda a crear una cuenta,
+  que no arreglaría nada porque la cuota agotada es la del proveedor. El chat con
+  cuenta ya distinguía este caso (`err.cuotaDia`) desde antes; la caja de la
+  portada, no. Y **las tres páginas de papeles heredan el arreglo**, porque
+  pintan el mismo componente. Siete comprobaciones sobre el bundle del cliente,
+  `tsc` 0 y `next build` 0.
+
+  **Esto no arregla la avería**: Kairo sigue sin contestar hasta que haya cuota.
+  Arregla que el visitante se entere de qué pasa en vez de pensar que el producto
+  está roto.
+
+  **Lo que sigo sin poder hacer yo, y es lo que hace falta**: las tres de arriba
+  —clave aparte para el generador, los 10 $, la capa de pago—.
+
+  **Y lo que haré mañana**: mirar esta prueba a primera hora y
   decir si sigue roto. **Y una cosa que me toca confesar**: cada ejecución de
   `probar-portada` gasta peticiones de esa misma cuota —una por la pregunta y
   cuatro más si llega al paso del tope—. Hoy la he lanzado dos veces para

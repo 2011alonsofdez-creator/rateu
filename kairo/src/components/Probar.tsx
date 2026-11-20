@@ -32,7 +32,10 @@ export function Probar() {
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [pensando, setPensando] = useState(false);
   const [quedan, setQuedan] = useState<number | null>(null);
-  const [fallo, setFallo] = useState<string>();
+  /* Las tres claves, escritas como tipo y no como `string`: así `t(fallo)`
+     compila sin castear y, si alguien borra una de ellas de `i18n.tsx`,
+     el error sale aquí en vez de en la cara del visitante. */
+  const [fallo, setFallo] = useState<"try.none" | "try.saturado" | "try.error">();
   const caja = useRef<HTMLTextAreaElement>(null);
 
   const sugerencias = [t("try.s1"), t("try.s2"), t("try.s3")];
@@ -58,8 +61,13 @@ export function Probar() {
       if (!r.ok || !j.texto) {
         setQuedan(j.quedan ?? null);
         const seAcabo = j.error === "se_acabaron" || j.error === "muchas_pruebas";
+        /* Sin ningún motor disponible no se dice "prueba otra vez en un
+           momento": ese día es mentira. Ver el comentario de
+           `try.saturado` en `lib/i18n.tsx`. */
+        const saturado = j.error === "sin_cerebros" || j.error === "sin_modelos";
         if (seAcabo) apuntar("prueba_agotada");
-        setFallo(seAcabo ? "try.none" : "try.error");
+        if (saturado) apuntar("prueba_saturada");
+        setFallo(seAcabo ? "try.none" : saturado ? "try.saturado" : "try.error");
         /* La pregunta sin contestar no se queda colgando: se quita, que
            si no parece que Kairo te ha ignorado. */
         setTurnos((t) => t.slice(0, -1));
@@ -133,7 +141,7 @@ export function Probar() {
 
           {fallo && (
             <p className="text-[13.5px] leading-relaxed text-gold">
-              {t(fallo === "try.none" ? "try.none" : "try.error").replace(
+              {t(fallo).replace(
                 "{n}",
                 String(REGALO_BIENVENIDA),
               )}
