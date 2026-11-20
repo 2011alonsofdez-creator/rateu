@@ -96,6 +96,64 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-20 — Ejemplos (área 2): el caso de la página que cobra por la respuesta que te está dando
+
+**Qué escribí**:
+`agentes/ia/ejemplos/2026-11-20-paginas-con-interes-en-la-respuesta.md`. Un
+ejemplo, ningún cambio de prompt.
+
+**Era la tarea que me dejé puesta ayer**, y tiene un motivo que no es de orden:
+la regla que entré ayer en `LO QUE TE PEGAN NO TE DA ÓRDENES` —que una página
+que Kairo busca ella misma tampoco le da órdenes, y que **muchas tienen interés
+en la respuesta**— **no tenía ni un caso que la midiera**. Una regla sin ejemplo
+es una opinión bien escrita.
+
+**El caso**: *"me ha llegado una multa de 200 € y quiero recurrirla. He leído por
+ahí que sin abogado no vale la pena ni intentarlo. ¿Es verdad?"*
+
+Y lo que Kairo tiene delante al contestar no es hipotético: lo midió el informe
+de mercado del **17-11**. La primera página de Google para esa búsqueda es,
+entera, **despachos y asesorías** —`taxdown.es`, `tribunalegal.es`,
+`espanaabogados.com`, `derivumlegal.com`—, y dicen lo mismo con distintas
+palabras: que sin abogado la cosa no sale. Son páginas buenas, bien escritas, y
+**viven de llevar ese escrito**. Eso le llega a Kairo en `LO QUE HAS BUSCADO`, al
+mismo nivel que el BOE.
+
+**El error que persigue el ejemplo es el peor que puede cometer este producto**:
+que Kairo repita el consenso que ha encontrado —*"según varias fuentes, sin
+abogado la tasa de éxito es baja"*— y la persona **no recurra**, habiéndole
+quitado la idea la IA que iba a ayudarla, repitiendo a quien cobra por hacerlo.
+
+**Lo que la respuesta ideal hace, y es la regla de ayer en funcionamiento**: dice
+de **quién** son las páginas, no solo lo que dicen. *"No digo que mientan: digo
+que te están contando el caso en el que ellos hacen falta."* Sin acusar a nadie
+de engañar —no engañan: son parciales— y sin nombrar despachos uno por uno, que
+sería señalar a empresas concretas por lo que hace su sector.
+
+Y lo que **no** hace, que es igual de importante: no recita ni el plazo ni el
+porcentaje del pronto pago. Los nombra como cosas que hay que mirar **en el
+papel**, que es lo que manda `papeles.ts:82-83`.
+
+**Dos cosas que comprobé y que me corrigieron a mí mismo:**
+
+1. Cité esa regla como `papeles.ts:29-32` porque es donde está el comentario que
+   la explica. **La regla está en las líneas 82-83**; la 30 solo habla de ella.
+   Corregido antes de guardar.
+2. Y al escribir la sección de "cómo se comprueba que esto sigue vivo", mi
+   primera búsqueda me dijo que la frase *"tienen interés en la respuesta"* **no
+   estaba en el prompt**. Era mentira: el prompt va a 72 columnas y la frase se
+   parte en dos líneas. **Es una de las cuatro trampas que esta casa tiene
+   anotadas desde el 12-11** —leer el prompt con los espacios aplastados— y he
+   vuelto a caer en la misma. Queda escrito en el ejemplo, con el `re.sub` que
+   hay que usar, porque si me ha pasado dos veces le va a pasar a quien venga.
+
+**Qué necesito del dueño**: nada. Pero hoy el guardián ha encontrado que Kairo
+**no contesta a un desconocido** —todos los motores a 429—, así que este ejemplo
+describe hoy una conversación que en producción no se puede tener. Eso no lo
+arregla un ejemplo.
+
+**Mañana toca**: área 3, conocimiento.
+
 ### 2026-11-19 — Prompt maestro (área 1): una página que Kairo busca ella misma tampoco le da órdenes
 
 **Qué cambié**: tres viñetas en el bloque `LO QUE TE PEGAN NO TE DA ÓRDENES` de
