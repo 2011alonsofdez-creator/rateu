@@ -13,6 +13,131 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Cuarto día sin contestar a un desconocido, y hoy me corrijo dos veces.** `[origen: guardian 2026-11-24 · corrige el P1 del 2026-11-20]`
+
+  **Lo medido hoy** (`probar-portada` 20, lanzado a las 06:15): los pasos 2 y 3
+  en verde —el despliegue publicado es el último, la portada carga, la caja de
+  probar está— y el paso 4 en rojo con el error **literalmente idéntico** al del
+  20-11:
+
+  `{"error":"sin_cerebros","intentos":["gemini:429","gemini:429","extra:429","extra:429"]}`
+
+  La promesa del parte del 20-11 era *"mañana a primera hora miro esta misma
+  prueba y te digo si sigue roto"*. Mirado: **sigue roto**, cuatro días.
+
+  **CORRECCIÓN 1: mi hipótesis del 20-11 ya no explica el 429.**
+
+  El 20-11 escribí que la causa era su generador de entrenamiento compartiendo
+  `GEMINI_API_KEY` con producción, y lo apoyé en que había corrido cinco días
+  seguidos. Medido hoy: **`generar-ejemplos.yml` no ha corrido desde el 19-11 a
+  las 08:21** —ejecución 8, la última de 8, cinco días atrás—. La cuota sigue
+  agotada **sin** el generador, así que el consumidor es otro y **no sé cuál**.
+  Lo dejo escrito así en vez de estirar una causa que ya no sostiene el peso,
+  que es exactamente el error que cometí del 17 al 19-11 con el respaldo.
+
+  Lo que la hipótesis sí deja en pie: el generador y la web viva **comparten una
+  sola cuota gratis**, y eso sigue siendo verdad y sigue siendo mala idea el día
+  que vuelva a correr.
+
+  **CORRECCIÓN 2, y esta es peor, porque el defecto está en mi propia prueba.**
+
+  La cuota gratuita de Gemini se renueva **a medianoche del Pacífico**, o sea a
+  las **08:00 UTC**. El guardián dispara a las **06:12**. Llevo midiendo a Kairo
+  **1 h 48 min antes de que le renueven el día**: el peor minuto de las 24 h, el
+  final de la jornada de cuota, cuando lleva ~22 h gastándose. **Nunca la hemos
+  medido a una hora normal.**
+
+  Eso **no borra el 🔴** —a las 06:15 está muda de verdad, y un desconocido que
+  llegue a esa hora se va sin respuesta— pero cambia lo que la prueba demuestra:
+  demuestra que **está muda al final del día de cuota**, no que lo esté todo el
+  día. Y una avería de doce horas al día y una de veinticuatro se arreglan
+  distinto.
+
+  **Lo que hace falta, y es suyo:**
+
+  1. **Una clave de Gemini aparte para el generador** (pedido el 20-11, cuarto
+     día). Barato y cierra el riesgo del día que vuelva a generar.
+  2. **Los 10 $ en OpenRouter**, que suben el cupo gratis de 50 a 1.000
+     peticiones al día y quitan el `extra:429` del medio. Pedido desde el 15-11.
+  3. **Mover la hora del guardián**, que es lo único nuevo de hoy: a las 06:12
+     mide el peor momento del día. Entre las **09:00 y las 10:00 UTC** mediría
+     una Kairo con el día de cuota recién empezado. Es un cambio en las rutinas,
+     que son suyas: **no lo toco**, lo pido.
+
+  Comprobado después en esta misma sesión, pasadas las 08:00 UTC: ver la nota al
+  final de esta entrada.
+
+- **🔴 Tres días de agentes perdidos —21, 22 y 23-11—, y las rutinas no tuvieron culpa.** `[origen: guardian 2026-11-24]`
+
+  Sin parte ninguno de los tres días. El radar debía entregar el 22-11 y su
+  último informe es del **19-11**; crecimiento debía entregar el 20 y el 23-11 y
+  su último informe de mercado es del **17-11**, o sea **siete días** con una
+  cadencia de tres. Los **13** avisos acumulados llegaron hoy de golpe a las
+  06:13.
+
+  **Y la parte que importa para arreglarlo**: las rutinas **dispararon
+  puntuales**. Los 13 avisos traen su hora de disparo y es la correcta —06:12,
+  07:04 y 07:47 los tres días; 08:38 el radar del 22; 09:21 crecimiento el 23—.
+  Lo que estuvo caído tres días no es el reloj de los agentes: es **la entrega a
+  esta sesión**. Sexta vez (02, 06, 08, 09 y 14-11).
+
+  El contraste que lo deja claro, y es el mismo de todas las veces anteriores:
+  el reloj de Co-Works, que vive en GitHub y no en esta sesión, **no perdió un
+  toque** en esos tres días (ejecuciones 255 a 265, todas en verde). **Lo que
+  corre en GitHub aguanta; lo que depende de esta sesión, no.**
+
+  Lo que pedí el 10-11 y sigue sin hacerse: **que los cinco agentes tengan cron
+  diario**. Con cadencia de tres días, un turno perdido no se recupera —de ahí
+  los siete días sin mirar el mercado—. Las rutinas son suyas: lo pido, no lo
+  toco.
+
+- **🟡 El reloj suena, está verde, y hoy —medido entero— resulta que el arreglo del 16-10 no funcionó.** `[origen: guardian 2026-11-24]`
+
+  Primera medición completa: **las 265 ejecuciones una por una**, no cuatro
+  muestras como se venía haciendo. Tres hallazgos.
+
+  **(a) Pedir el triple ha dado menos.** El 16-10 se subió el cron de una vez
+  por hora a **tres veces por hora** (`7,27,47 * * * *`) para cerrar los huecos,
+  y el razonamiento del comentario es bueno. Lo que nadie comprobó es el
+  resultado:
+
+  | Cron | Pedido al día | Entregado al día |
+  |---|---|---|
+  | cada hora (antes del 16-10) | 24 | **4,92** |
+  | tres veces por hora (desde el 16-10) | 72 | **4,59** |
+  | tres veces por hora (últimos 7 días) | 72 | **3,29** |
+
+  GitHub entrega lo que quiere —un 6,4 % de lo pedido— y **pedir más no lo
+  mueve**. El arreglo del 16-10 no hizo daño, pero no hizo nada.
+
+  **(b) Lo que salva los encargos es su migración `0026`, no el reloj.** La
+  cobertura de ventanas-hora es del **18,9 %**: sin la gracia de 8 h que dio la
+  0026, se perdería la mayoría de los Co-Works en silencio. Con ella se cubre el
+  **98,3 %** del tiempo. Fue el arreglo bueno.
+
+  **(c) Pero la gracia se queda corta, y va a peor.** Juntando los **dos**
+  relojes —las 174 ejecuciones verdes de GitHub y el cron diario de Vercel de
+  las 06:00— quedan **16 huecos de más de 8 h en 38 días**, y **12 de los 16
+  están en los últimos 14 días**. El peor es **de ayer**:
+
+  - **23-11 12:14 → 24-11 00:07, 11,9 h**, o sea **3,9 h por encima de la
+    gracia**. Un Co-Work de ayer por la tarde ahí dentro **no salió**, y nadie
+    se enteró.
+  - **13 de los 16** huecos malos empiezan entre las **06:00 y las 09:00 UTC**,
+    que es la mañana española: los encargos de primera hora son los que caen.
+
+  **Propuesta, escrita y lista, y es suya porque es una migración**: subir la
+  gracia de **8 a 12 h** cubre el peor hueco medido con margen. Está en
+  `kairo/supabase/migrations/PROPUESTA_gracia_de_doce_horas.sql`, que es la 0026
+  **con un solo número cambiado** —comprobado con un `diff` de los dos cuerpos:
+  81 líneas cada uno, difieren en la línea del `make_interval` y en su
+  comentario—. Va **sin número de serie** a propósito para no pisarle el 0028.
+  **No la aplico ni toco la 0026**: apartado 5 del protocolo.
+
+  Y lo que esta medición **no** dice, para no leerla de más: no mide si los
+  Co-Works que sí salen se hacen bien. Mide cuándo suena el reloj. Medir el
+  trabajo hecho sigue pendiente desde el 28-10.
+
 - **🔴 KAIRO NO CONTESTA A UN DESCONOCIDO, Y LA WEB NO LO APARENTA.** `[origen: guardian 2026-11-20]`
   **Lo medido, dos veces con un minuto de diferencia** (`probar-portada` 18 a las
   06:14 y 19 a las 06:15, las dos en rojo; es la primera vez que esa prueba
