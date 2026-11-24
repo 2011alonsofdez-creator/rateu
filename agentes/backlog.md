@@ -2004,6 +2004,39 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **La caja de probar en las dos páginas que mandan al visitante detrás del registro.** `[origen: radar 2026-11-24]`
+  `/sin-suscripcion` y `/crear-una-app` son las dos únicas páginas de intención
+  sin caja de probar. Las tres de papeles la tienen desde el 18-11 y el camino
+  de "una búsqueda lleva a una respuesta" existe gracias a eso.
+
+  **Y la ironía de hoy**: son justo las dos páginas donde acabo de arreglar el
+  precio falso. O sea que llevan dieciocho días vendiendo Kairo Código a mitad
+  de precio **y** sin dejar probarlo. `/sin-suscripcion` es, encima, la página
+  que *vende* no tener suscripción: mandar de ahí a un registro es lo contrario
+  de lo que promete.
+
+  **Qué cuesta**: un import y una etiqueta en cada una, con los dos textos de
+  i18n en los dos idiomas, igual que las tres de papeles. Media hora, y es mío.
+
+- **Un tope de gasto y una señal de cuota, porque hoy el 429 solo se ve cuando ya es tarde.** `[origen: radar 2026-11-24]`
+  Lo que esta avería ha dejado claro: **ni `/api/estado` ni ningún log dicen
+  cuánta cuota queda**. El 429 aparece cuando se agotó, y entonces ya hay cuatro
+  días de visitantes sin respuesta. El guardián solo lo caza porque lanza una
+  prueba de verdad, y encima a la peor hora del día.
+
+  Lo que haría falta, por orden de lo que cuesta:
+
+  1. **Que `/api/estado` diga, de cada cerebro, si su última llamada fue un 429**
+     y cuándo. No hace falta preguntar a Google: basta con recordar el último
+     código que devolvió cada proveedor. Eso convierte el diagnóstico diario en
+     algo que ve venir la avería en vez de certificarla.
+  2. **Un aviso** cuando dos cerebros seguidos devuelven 429, por el mismo canal
+     de Telegram que ya está puesto y aceptado.
+
+  **Lo segundo es suyo** (toca claves y configuración); **lo primero puede ser
+  mío** si me da el permiso de tocar `api/estado/route.ts`, que hoy no tengo
+  porque está pegado a la autenticación.
+
 - **~~El verificador de cifras no vigila las páginas de intención~~ — HECHO el 24-11, y al encenderlo había una cifra falsa publicada desde el 06-11.** `[origen: radar 2026-11-19 · hecho 2026-11-24]`
 
   El radar lo pidió en futuro: *"el día que una escriba un crédito o un precio a
@@ -2386,7 +2419,19 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   un repaso de un día. Lo escribe quien abre el hallazgo, que es quien mejor
   sabe dónde está la costura.
 
-- **Las tipografías vienen de Google, así que Google ve la IP de cada visitante.** `[origen: constructor 2026-11-04]`
+- **Las tipografías vienen de Google, así que Google ve la IP de cada visitante.** — **BAJADA A P3 el 24-11: 18 días y 4 informes, y nadie la ha querido hacer.** `[origen: constructor 2026-11-04 · bajada a P3 2026-11-24]`
+
+  **Por qué baja, y lo digo en vez de arrastrarla un informe más.** La ficha del
+  radar manda: *"si una tarea lleva más de 4 informes sin tocarse, bájala a P3 o
+  pásala a Descartado diciendo que nadie la ha querido hacer en 12 días"*. Esta
+  lleva **18 días y cuatro informes** citándola como P2. No está hecha y no es
+  por falta de claridad: está medida, tiene el arreglo escrito y es mía, sin
+  permisos. Simplemente **nunca ha sido lo más urgente**, y con un 🔴 abierto
+  sobre que Kairo no contesta, seguir llamándola P2 es mentirle a la cola.
+
+  Sigue siendo verdad y sigue valiendo la pena. Lo que cambia es el sitio: P3,
+  para cuando haya hueco, y se sube otra vez el día que la privacidad vuelva a
+  ser lo que bloquea.
   Salió al escribir la política de cookies, que obliga a mirar una por una las
   peticiones que hace la web al abrirse. `layout.tsx:73-77` carga Inter y
   JetBrains Mono desde `fonts.googleapis.com` con un `preconnect` delante. No
