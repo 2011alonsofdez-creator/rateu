@@ -64,8 +64,11 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
      una Kairo con el día de cuota recién empezado. Es un cambio en las rutinas,
      que son suyas: **no lo toco**, lo pido.
 
-  Comprobado después en esta misma sesión, pasadas las 08:00 UTC: ver la nota al
-  final de esta entrada.
+  **Programada la comprobación que lo decide**, en esta sesión, para las **08:12
+  UTC de hoy** —pasada la renovación de la cuota—. El resultado se escribe aquí,
+  en la fila del desconocido del checklist y en el parte. Si no llegara a
+  ejecutarse, es lo primero del próximo guardián, y entonces esta entrada se
+  queda como está: con el 🔴 abierto y la pregunta sin contestar.
 
 - **🔴 Tres días de agentes perdidos —21, 22 y 23-11—, y las rutinas no tuvieron culpa.** `[origen: guardian 2026-11-24]`
 
