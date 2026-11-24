@@ -64,11 +64,46 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
      una Kairo con el día de cuota recién empezado. Es un cambio en las rutinas,
      que son suyas: **no lo toco**, lo pido.
 
-  **Programada la comprobación que lo decide**, en esta sesión, para las **08:12
-  UTC de hoy** —pasada la renovación de la cuota—. El resultado se escribe aquí,
-  en la fila del desconocido del checklist y en el parte. Si no llegara a
-  ejecutarse, es lo primero del próximo guardián, y entonces esta entrada se
-  queda como está: con el 🔴 abierto y la pregunta sin contestar.
+  **RESULTADO DE LA PRUEBA DE LAS 08:12 (hecha): SIGUE FALLANDO, y eso cambia el
+  diagnóstico a peor.** `probar-portada` 21, lanzada a las 08:12:48 —doce minutos
+  después de que a Gemini se le renueve la cuota del día— devuelve el error
+  **idéntico byte a byte** al de las 06:15:
+  `{"error":"sin_cerebros","intentos":["gemini:429","gemini:429","extra:429","extra:429"]}`.
+  Los pasos 2 y 3 en verde otra vez: la página carga y el despliegue es el último.
+  
+  **Lo que esto descarta, y una de las cosas descartadas es mía de esta mañana:**
+  
+  - **La cuota del día NO es la explicación.** Mi corrección de las 06:15 —que el
+    guardián mide 1 h 48 min antes de la renovación— era **cierta como crítica del
+    método y falsa como causa**. Hice la prueba en vez de suponerla, y la prueba
+    dice que recién renovada la cuota Kairo tampoco contesta.
+  - **Y ya no es "se queda muda por la tarde": no tiene cuota en ningún momento.**
+  - **Tampoco es un identificador de modelo retirado.** Comprobado hoy contra el
+    catálogo público de OpenRouter (`modelos-gratis` 08:15, sin clave y sin gastar
+    cuota de nadie): **los cuatro** modelos que tiene puestos están en la lista de
+    gratis de hoy — `google/gemma-4-31b-it:free`,
+    `google/gemma-4-26b-a4b-it:free`, `nvidia/nemotron-3.5-lightning:free` y
+    `nvidia/nemotron-3.5-super-vl:free`—. La configuración está bien.
+  - **Y las claves valen**: un 429 no es un 401. La petición llega y el proveedor
+    la acepta; lo que niega es el cupo.
+  
+  **Lo que queda, y son dos causas distintas para las dos mitades:**
+  
+  1. **Gemini**: si a los doce minutos de renovarse ya no hay cupo, lo que encaja
+     no es "se ha gastado" sino **que ese proyecto no tiene cupo gratis para el
+     modelo que usa el nivel normal**. Eso se ve en su consola de Google Cloud, y
+     enlaza con la pregunta de hoy: **¿las tres claves están en un proyecto o en
+     tres?**
+  2. **OpenRouter**: con los modelos correctos y la clave aceptada, lo que queda es
+     **el tope de su cuenta**, que es justo lo que levantan los **10 $** pedidos
+     desde el 15-11.
+  
+  **Y una tercera corrección mía del día, que toca decir**: esta mañana pedí
+  **mover la hora del guardián** a las 09:00-10:00 UTC como si arreglara el
+  diagnóstico. **No lo arregla**: a las 08:12 falla igual. Sigue valiendo la pena
+  por higiene de medición —medir en el peor minuto del día es una mala costumbre—
+  pero **no es lo que destapa esto**, y pedirlo como si lo fuera habría mandado el
+  esfuerzo al sitio equivocado.
 
 - **🔴 Tres días de agentes perdidos —21, 22 y 23-11—, y las rutinas no tuvieron culpa.** `[origen: guardian 2026-11-24]`
 
