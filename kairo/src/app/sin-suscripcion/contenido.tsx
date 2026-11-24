@@ -59,7 +59,7 @@ const T = {
       "Los números de arriba son los que cobra Kairo de verdad: esta página los lee del mismo sitio que la caja, así que no pueden quedarse viejos.",
     ejemploTitulo: "El caso que lo explica mejor",
     ejemploCuerpo:
-      "Pedirle una herramienta a Kairo Código —un contador de gastos, una calculadora de notas— cuesta cuatro créditos. Cuatro. Las herramientas que hacen eso y viven de una suscripción empiezan en veinte euros al mes. Si lo que querías era una hojita con dos campos, no tienes por qué entrar en una cuota mensual para conseguirla.",
+      `Pedirle una herramienta a Kairo Código —un contador de gastos, una calculadora de notas— cuesta ${CREDITOS.normal} créditos. Nada más. Las herramientas que hacen eso y viven de una suscripción empiezan en veinte euros al mes. Si lo que querías era una hojita con dos campos, no tienes por qué entrar en una cuota mensual para conseguirla.`,
     sinceroTitulo: "Lo que no te vamos a contar",
     sincero: [
       "Que seamos los únicos. No lo somos: hay productos que venden análisis sueltos sin suscripción y otros con plan gratuito. Lo que Kairo tiene no es la novedad, es la amplitud: el mismo saldo sirve para el chat, para leer un papel, para resumir un vídeo, para una herramienta y para un encargo programado.",
@@ -103,7 +103,7 @@ const T = {
       "The numbers above are what Kairo actually charges: this page reads them from the same place the till does, so they cannot go stale.",
     ejemploTitulo: "The case that explains it best",
     ejemploCuerpo:
-      "Asking Kairo Code for a tool — a spending tracker, a grade calculator — costs four credits. Four. The tools that do that and live on a subscription start at twenty euros a month. If what you wanted was a little sheet with two fields, you should not have to enter a monthly fee to get it.",
+      `Asking Kairo Code for a tool — a spending tracker, a grade calculator — costs ${CREDITOS.normal} credits. That is all. The tools that do that and live on a subscription start at twenty euros a month. If what you wanted was a little sheet with two fields, you should not have to enter a monthly fee to get it.`,
     sinceroTitulo: "What we are not going to tell you",
     sincero: [
       "That we are the only ones. We are not: there are products selling one-off analyses without a subscription, and others with a free tier. What Kairo has is not the novelty, it is the breadth: the same balance works for the chat, for reading a document, for summarising a video, for a tool and for a scheduled job.",

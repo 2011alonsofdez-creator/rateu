@@ -96,6 +96,97 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-24 — Conocimiento (área 3): las tres claves de Gemini puede que sean una sola cuota, y llevamos 39 días apuntándolas como tres
+
+**Lo que he hecho**: un archivo nuevo,
+`agentes/ia/conocimiento/limites-y-cuotas.md`, el tercero de la carpeta. No he
+tocado el prompt. Es un solo cambio y es de los que esta carpeta existe para
+hacer: poner por escrito un dato verificado **antes** de que alguien lo escriba
+mal en `prompt.ts`.
+
+**Por qué este tema y no otro.** Venía a tocar conocimiento por rotación, con el
+20-11 en ejemplos. Y el turno del guardián de esta misma mañana ha dejado una
+pregunta sin dueño: Kairo lleva cuatro días sin contestar a un desconocido por
+cuota agotada, y en toda la carpeta **no había una línea sobre cuotas**. Los dos
+archivos que hay son de créditos (los de dentro, los del usuario) y de
+privacidad. Las cuotas de los motores —los de fuera, los que paga él— no estaban
+en ningún sitio, y son la causa de las dos averías más largas que ha tenido
+Kairo: la del 26-10 y la del 20-11.
+
+**El hallazgo, que no esperaba y es el que paga el turno.**
+
+Fui a comprobar una cosa que yo había escrito en un correo esta mañana —que la
+cuota de Gemini se renueva a medianoche del Pacífico— porque la había afirmado
+de memoria y eso ya me costó una metedura de pata el 20-11. La frase era
+correcta. Pero en la misma página había otra, que no buscaba:
+
+> los límites se aplican **por proyecto, no por clave de API**
+
+Comprobado con dos búsquedas independientes y coincidiendo varias fuentes
+secundarias: crear más claves dentro de un proyecto **no multiplica la cuota**.
+Son varias llaves de la misma puerta. Para tener cuotas separadas hacen falta
+**proyectos** separados.
+
+Y ahí está el problema nuestro. `/api/estado` dice *"Gemini: 3 clave(s)"* y el
+registro del guardián lo lleva apuntando **39 días** como si fuera cuota
+repartida. El propio código lo dice sin rodeos en `cerebros.ts:101-108`: *"el
+único trabajo de esa pantalla es decir si de verdad hay cuota repartida"*. Pues
+**contar claves no contesta esa pregunta**. Tres claves son tres cuotas si están
+en tres proyectos; si están en uno, son una.
+
+**Y no se puede saber desde aquí.** No sale en `/api/estado`, no está en el
+código, hace falta la consola de Google Cloud. Es suya. Queda en el backlog y en
+el parte de hoy como una pregunta que se contesta con una frase.
+
+**La consecuencia que más me importa: llevábamos cuatro días pidiéndole lo
+equivocado.** Desde el 20-11 el aviso pide *"una clave de Gemini aparte para el
+generador de entrenamiento"*. Si esa clave sale del mismo proyecto, **no arregla
+nada**: el generador seguiría comiéndose la cuota de producción. Lo que hay que
+pedir es un **proyecto aparte**. Corregido en el archivo nuevo y en el parte.
+
+**Lo segundo, y por poco no lo escribo mal yo también.**
+
+Estuve a punto de redactar que el error del 24-11 —`["gemini:429","gemini:429",
+"extra:429","extra:429"]`— probaba que *las tres claves* estaban agotadas. Fui a
+mirar quién construye esa lista antes de escribirlo, y no es eso: cada elemento
+es `proveedor:código`, *"ni el modelo exacto ni el mensaje del servidor"*
+(`api/probar/route.ts:183-185`), y la cadena son **dos modelos con filtro de edad
+y dos sin él** (`178-180`). Así que `gemini:429` dos veces son **dos modelos**,
+no dos claves. Ese JSON dice que no hay cupo; **no dice cuántas cuotas se han
+agotado**. Lo he escrito en el archivo como trampa señalizada, porque el que
+venga detrás la va a pisar: yo la pisé con el pie en el aire.
+
+**Lo que he dejado marcado como no confirmado**, para no repetir el pecado de
+dar un número con cara de real:
+
+- La página de Google **no se ha podido abrir desde la sede** (esta máquina no
+  sale a internet). Lo de "por proyecto" viene del resumen del buscador citando
+  esa página y de fuentes secundarias que coinciden. Queda la advertencia escrita
+  y la petición de que alguien que pueda abrirla confirme la frase exacta.
+- El cupo gratis de OpenRouter —los 10 $ para pasar de 50 a 1.000 peticiones al
+  día— sale del backlog del 15-11 y **no lo he vuelto a comprobar hoy**. Marcado
+  `(sin confirmar)` con el motivo, que es que esos cupos cambian de mes a mes.
+
+**Lo que vi de paso**, sin prometer nada:
+
+- La cadena de respaldo de producción **se configura en Vercel, no en el
+  repositorio**: hoy son cuatro modelos y el 12-11 eran tres distintos, con
+  `main` quieto desde el 19-11. Para cualquier agente eso significa que **mirar
+  el código no te dice qué motores tiene Kairo hoy**. La viñeta del prompt del
+  19-11 ya protege a Kairo de recitar la lista de la web; lo que no hay es nada
+  que nos proteja a nosotros de hacerlo en un informe.
+- `claveDeGemini()` (singular, `claves.ts:75`) devuelve **siempre la primera**
+  clave, y la usan `proveedores.ts:81`, `gist.ts:334` y `papeles.ts:177`. Las
+  rutas que sí recorren todas son `buscar.ts:139` y el contador de
+  `cerebros.ts:109`. No digo que esté mal —no he medido qué ruta sirve qué— pero
+  si las tres claves estuvieran en tres proyectos, **Paperwork y Gist estarían
+  usando una sola cuota de las tres**. Eso sí es un área 4 o una pregunta para
+  él, y no lo toco: `claves.ts` y `proveedores.ts` están en la lista de lo que
+  no toco sin permiso escrito.
+- Falta por comprobar qué ve un usuario **con cuenta** cuando se agota el cupo
+  dentro del chat. La caja de probar de la portada ya dice la verdad desde el
+  20-11; el chat no lo ha mirado nadie.
+
 ### 2026-11-20 — Ejemplos (área 2): el caso de la página que cobra por la respuesta que te está dando
 
 **Qué escribí**:

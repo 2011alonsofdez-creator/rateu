@@ -2004,7 +2004,62 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **El verificador de cifras no vigila las páginas de intención, que ya son cuatro y llevan copia del producto.** `[origen: radar 2026-11-19 · lo vio el constructor ayer y lo dejó anotado]`
+- **~~El verificador de cifras no vigila las páginas de intención~~ — HECHO el 24-11, y al encenderlo había una cifra falsa publicada desde el 06-11.** `[origen: radar 2026-11-19 · hecho 2026-11-24]`
+
+  El radar lo pidió en futuro: *"el día que una escriba un crédito o un precio a
+  mano, nadie lo sabrá"*. **Ese día ya había pasado hace dieciocho.**
+
+  **Lo que había publicado**: `/crear-una-app` y `/sin-suscripcion` decían que
+  pedirle una herramienta a Kairo Código cuesta **4 créditos**. Cuesta **8**:
+  genera con nivel `normal` (`(app)/code/page.tsx:39`) y `normal` son 8 desde que
+  la escala se dobló el **06-11**. Cuatro era el precio de antes. Estaba en
+  **cinco sitios** de dos páginas y en los dos idiomas:
+
+  | Dónde | Cómo lo decía |
+  |---|---|
+  | `crear-una-app/page.tsx` `description` | "Cuesta 4 créditos" |
+  | `crear-una-app/page.tsx` `openGraph` | "cuesta 4 créditos" |
+  | `crear-una-app/contenido.tsx` | "**Cuatro** créditos la herramienta" |
+  | `sin-suscripcion/contenido.tsx` (es) | "cuesta **cuatro** créditos. **Cuatro**." |
+  | `sin-suscripcion/contenido.tsx` (en) | "costs **four** credits. **Four**." |
+
+  Las dos primeras son los metadatos, o sea **lo que enseña Google**. Y la de
+  `/sin-suscripcion` es peor que un número mal: **el argumento de la página se
+  apoya en él** —"cuesta cuatro créditos, Cuatro, y las que viven de suscripción
+  empiezan en veinte euros al mes"—, así que la comparación que da sentido a la
+  página se hacía con la mitad del precio real.
+
+  **Arreglado leyendo la cifra del código**, no cambiando un número por otro: las
+  cinco frases interpolan `CREDITOS_NIVEL.normal` (en `/sin-suscripcion`, su alias
+  `CREDITOS.normal`, que es el que esa página ya importaba). Si la escala vuelve a
+  moverse, cambian solas. Comprobado en el HTML generado: las dos páginas dicen
+  **8** en el cuerpo y en los metadatos.
+
+  **Y el verificador necesitaba DOS redes nuevas, no solo la lista de archivos.**
+  Esto es lo que casi se me cuela: añadí las cinco páginas a `COPIA`, pasé el
+  verificador y dijo **"todo cuadra"** con la mentira delante. Por poco escribo
+  que la tarea estaba hecha.
+
+  - **No la cazaba por diseño.** `cifras_pegadas` busca *un nombre de cifra pegado
+    a un número* —"normal 4" salta—. Estas páginas **no nombran el nivel en ningún
+    sitio**: dicen lo que cuesta y punto. Una red que empareja nombre con cifra no
+    puede ver una cifra sola. Red nueva: **toda cantidad de créditos tiene que ser
+    una de las que existen en el código** (niveles, planes, regalo y paquetes); si
+    no, salta. Cero falsos positivos sobre los 14 archivos.
+  - **Y en letra se escondía igual.** Esa red busca dígitos, y tres de los cinco
+    sitios escribían "Cuatro"/"four". Segunda red: los números en letra, con `un`,
+    `uno` y `una` **fuera** a propósito, que en español son el artículo —
+    `/precios:85` pregunta "¿Qué es un crédito?" y eso no es una cifra—.
+
+  **Probado reintroduciendo las tres formas reales** (dígito en metadatos, letra
+  en cuerpo, letra repetida) y comprobando que las caza las tres con su archivo y
+  su línea; y con el arreglo puesto, `cifras.py` 0, `tsc` 0 y `next build` 0.
+
+  Dos correcciones a la nota del 19-11, de paso: son **cinco** páginas de
+  intención, no cuatro, y hay que vigilar el `page.tsx` además del
+  `contenido.tsx`, porque la cifra que mintió estaba en los metadatos.
+
+- **Lo que decía esta entrada cuando se abrió:** `[origen: radar 2026-11-19]`
   `agentes/comprobar/cifras.py` compara el material con el código y tiene una
   lista de **cuatro archivos** de copia del producto: `i18n.tsx`, `mock.ts`,
   `precios/contenido.tsx` y `ElegirPlan.tsx`. **Las páginas de intención no están

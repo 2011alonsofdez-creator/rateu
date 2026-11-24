@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useUi } from "@/lib/i18n";
+import { CREDITOS_NIVEL } from "@/lib/planes";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 
 /* El texto, en los dos idiomas y aquí dentro, como las tres páginas de
@@ -14,8 +15,21 @@ import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
    `lib/ejecutar.ts`; los diez segundos de corte, en `LIMITE_MS`; el
    botón de descarga, en `code/page.tsx:293`; la vista previa aislada,
    en el `iframe` con `sandbox` de la línea 330; los tres lenguajes, en
-   `lib/resaltar.ts:17`; y los 4 créditos, de que genera con nivel
-   `normal`.
+   `lib/resaltar.ts:17`; y lo que cuesta, de que genera con nivel
+   `normal` (`code/page.tsx:39`).
+
+   Y AQUÍ DECÍA "CUATRO", QUE ES LO QUE COSTABA ANTES DEL 06-11.
+
+   Este comentario ya decía que la cifra sale de que genera en nivel
+   `normal`, y aun así estaba escrita a mano. Cuando la escala se dobló el
+   06-11, `normal` pasó de 4 a 8 y esta página se quedó diciendo la mitad,
+   en el cuerpo y en los metadatos, dieciocho días. Nadie se enteró porque
+   el verificador de cifras no miraba las páginas de intención.
+
+   Así que ahora la cifra se lee de `CREDITOS_NIVEL.normal` y la frase se
+   construye con ella. Si mañana vuelve a cambiar, cambia sola. Escrita en
+   letra —"cuatro"— se le escapaba incluso a la red nueva del verificador,
+   que busca dígitos: por eso va en número.
 
    Los tres ejemplos son los de su propia pantalla (`code.ex1`, `ex2` y
    `ex3` de `i18n.tsx`), a propósito: si la página promete algo que la
@@ -60,7 +74,7 @@ const T = {
     ],
     costeTitulo: "Lo que cuesta",
     costeCuerpo:
-      "Cuatro créditos la herramienta. Y cada arreglo cuesta otros cuatro, porque se escribe otra vez: si le pides tres cambios seguidos, son tres. El plan gratuito trae créditos cada día, así que para probar no hace falta pagar nada. Lo que cuesta cada cosa está en la página de precios.",
+      `${CREDITOS_NIVEL.normal} créditos la herramienta. Y cada arreglo cuesta otros ${CREDITOS_NIVEL.normal}, porque se escribe otra vez: si le pides tres cambios seguidos, son tres. El plan gratuito trae créditos cada día, así que para probar no hace falta pagar nada. Lo que cuesta cada cosa está en la página de precios.`,
     movilTitulo: "Y una cosa que casi nadie espera",
     movilCuerpo:
       "Funciona en el móvil. Le pides la herramienta desde el teléfono, la ves funcionando en el teléfono y te la descargas en el teléfono. Los generadores que viven en tu ordenador no llegan ahí.",
@@ -108,7 +122,7 @@ const T = {
     ],
     costeTitulo: "What it costs",
     costeCuerpo:
-      "Four credits for the tool. And each fix costs another four, because it is written again: ask for three changes in a row and that is three. The free plan comes with credits every day, so trying it costs you nothing. What each thing costs is on the pricing page.",
+      `${CREDITOS_NIVEL.normal} credits for the tool. And each fix costs another ${CREDITOS_NIVEL.normal}, because it is written again: ask for three changes in a row and that is three. The free plan comes with credits every day, so trying it costs you nothing. What each thing costs is on the pricing page.`,
     movilTitulo: "And one thing almost nobody expects",
     movilCuerpo:
       "It works on your phone. You ask for the tool on the phone, watch it running on the phone and download it on the phone. Generators that live on your computer do not reach there.",

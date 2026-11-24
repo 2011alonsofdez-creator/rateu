@@ -102,6 +102,24 @@ NIVELES = {k: constante(planes, "CREDITOS_NIVEL", k) for k in ("fast", "normal",
 PLANES = {k: constante(planes, "CREDITOS_PLAN", k) for k in ("free", "plus", "supreme")}
 REGALO = sql_default("0020_escala_x2.sql", "creditos_extra")
 
+# Los paquetes de créditos que se venden sueltos. No son el precio de un nivel
+# ni el saldo de un plan, así que hay que leerlos aparte: `/sin-suscripcion`
+# nombra "paquetes de 1.000 y 4.000 créditos" y los interpola de `mock.ts`, así
+# que hoy no hay literal que cazar. Van en la lista de cifras legítimas para
+# que el día que alguien escriba "4.000 créditos" a mano no salte una falsa
+# alarma: un verificador con falsos positivos se apaga solo, y eso ya lo dice
+# el comentario de `sin_comentarios_ts`.
+# Solo del bloque `creditPacks`: un `credits:\s*\d+` a secas pescaba también el
+# `credits: 1680` de la cuenta de demostración (`mock.ts:175`), y colar ese 1680
+# entre las cifras legítimas dejaría pasar una página que lo escribiera a mano.
+PAQUETES = re.findall(
+    r"credits:\s*(\d+)",
+    # Hasta el `];` que cierra la lista, no hasta el primer `;`: la anotación de
+    # tipo (`{ producto: Producto; credits: number; ... }`) lleva puntos y coma
+    # dentro, y cortar ahí dejaba el bloque vacío y la lista de paquetes a cero.
+    re.search(r"export const creditPacks.*?\n\];", leer("src/lib/mock.ts"), re.S).group(0),
+)
+
 # Los topes, por plan desde el 10-11. La migración manda; `planes.ts` se
 # comprueba contra ella, porque la pantalla lee el TypeScript y el servidor
 # corta con el disparador: si bailan, la página vende algo que no se cumple.
@@ -165,11 +183,38 @@ PANELES = [
 #
 # Es el mismo agujero dos pisos más abajo: primero el material, luego los
 # paneles, y debajo la copia que de verdad lee el usuario.
+#
+# Y LAS CINCO PÁGINAS DE INTENCIÓN, AÑADIDAS EL 24-11 PORQUE AHÍ YA HABÍA UNA
+# CIFRA FALSA PUBLICADA.
+#
+# El radar lo pidió el 19-11 —"lo que no se vigila se queda viejo sin que nadie
+# se entere"— y lo pidió en futuro: "el día que una escriba un crédito o un
+# precio a mano, nadie lo sabrá". Ese día ya había pasado. Al añadirlas, la
+# primera pasada encontró `/crear-una-app` diciendo "Cuesta 4 créditos" en la
+# `description` y en la de Open Graph, o sea en las dos que enseña Google.
+# Cuatro era el precio del nivel normal ANTES de que la escala se doblara el
+# 06-11. Llevaba DIECIOCHO DÍAS publicando la mitad.
+#
+# Dos correcciones a la nota del 19-11, de paso: son CINCO páginas, no cuatro
+# (`/sin-suscripcion` también), y se vigila el `page.tsx` además del
+# `contenido.tsx`, porque la cifra que mintió estaba en los metadatos —lo que
+# sale en Google— y no en el cuerpo de la página.
 COPIA = [
     "src/lib/i18n.tsx",
     "src/lib/mock.ts",
     "src/app/precios/contenido.tsx",
     "src/components/ElegirPlan.tsx",
+    # Las cinco de intención: cuerpo y metadatos.
+    "src/app/multas/contenido.tsx",
+    "src/app/multas/page.tsx",
+    "src/app/cartas-de-hacienda/contenido.tsx",
+    "src/app/cartas-de-hacienda/page.tsx",
+    "src/app/contratos/contenido.tsx",
+    "src/app/contratos/page.tsx",
+    "src/app/crear-una-app/contenido.tsx",
+    "src/app/crear-una-app/page.tsx",
+    "src/app/sin-suscripcion/contenido.tsx",
+    "src/app/sin-suscripcion/page.tsx",
 ]
 
 
@@ -382,6 +427,102 @@ def cifras_pegadas(linea: str) -> list[str]:
     return malas
 
 
+# --------------------------------------------------------------------------
+# LA TERCERA RED, Y LA ENCONTRÓ UN FALLO DE LA SEGUNDA (24-11).
+#
+# `cifras_pegadas` busca **un nombre de cifra pegado a un número**: "normal 4"
+# salta, "rápido 1" salta. Es la red que de verdad hacía falta el 11-11 y sigue
+# siéndolo. Pero tiene una forma ciega, y hoy se ha visto cuál.
+#
+# `/crear-una-app` publicaba *"Cuesta 4 créditos"* en la `description` y en la
+# de Open Graph —las dos que enseña Google— desde antes de que la escala se
+# doblara el 06-11. Dieciocho días. Y al añadir esa página a `COPIA`, el
+# verificador siguió diciendo **"todo cuadra"**.
+#
+# No por un fallo del patrón: por el diseño. La página **no nombra el nivel en
+# ningún sitio**. Dice lo que cuesta y punto. No hay "normal" al lado del 4, así
+# que no hay nada a lo que pegar el número, y una red que empareja nombre con
+# cifra no puede ver una cifra sola.
+#
+# Esa forma —un precio en créditos sin decir de qué— es justo la que más fácil
+# se queda vieja, porque quien la escribe no está pensando en niveles: está
+# escribiendo una frase de venta.
+#
+# Así que esta red no empareja nada. Comprueba lo contrario: **toda cantidad de
+# créditos que aparezca tiene que ser una de las que existen**. Las del código y
+# ninguna más. Si una página dice "4 créditos" y 4 no es el precio de ningún
+# nivel ni el saldo de ningún plan ni el regalo, está diciendo algo que no
+# existe, y da igual si se le olvidó el nombre o si el nombre nunca estuvo.
+#
+# Comprobado contra los 14 archivos de `COPIA` el día que se escribió: las 19
+# cantidades que hay son 13 huecos `{n}` —que los rellena quien sabe el plan— y
+# 6 cifras de plan correctas. **Cero falsos positivos, y un solo acierto**: el 4
+# de `/crear-una-app`. El `[ \t]*` en vez de `\s*` es para no cruzar saltos de
+# línea: con `\s*` cazaba `credits: 1680,` de `mock.ts:175`, que es el saldo de
+# la cuenta de demostración y no el precio de nada.
+# --------------------------------------------------------------------------
+NUMERO_EN_LETRA = {
+    "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7,
+    "ocho": 8, "nueve": 9, "diez": 10, "once": 11, "doce": 12, "quince": 15,
+    "veinte": 20, "treinta": 30, "cuarenta": 40, "cien": 100,
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+    "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+    "fifteen": 15, "twenty": 20, "thirty": 30, "forty": 40, "hundred": 100,
+}
+LETRAS_CIFRA = r"\b(" + "|".join(sorted(NUMERO_EN_LETRA, key=len, reverse=True)) + r")"
+
+
+def creditos_que_no_existen(linea: str) -> list[str]:
+    """Una cantidad de créditos que no es ninguna de las del código."""
+    legitimas = {
+        _n(NIVELES["fast"]), _n(NIVELES["normal"]),
+        _n(NIVELES["forja"]), _n(NIVELES["mega"]),
+        _n(PLANES["free"]), _n(PLANES["plus"]), _n(PLANES["supreme"]),
+        _n(REGALO),
+        *(int(p) for p in PAQUETES),
+    }
+    malas = []
+    for m in re.finditer(r"(\d[\d.,]*)[ \t]*(?:créditos?|credits?)\b", linea):
+        crudo = m.group(1).rstrip(".,")
+        # "2,000 credits" en inglés y "2.000 créditos" en español son el mismo
+        # número escrito con la costumbre de cada idioma.
+        try:
+            valor = int(crudo.replace(".", "").replace(",", ""))
+        except ValueError:
+            continue
+        if valor not in legitimas:
+            malas.append(
+                f"«{m.group(0).strip()}» y no hay ninguna cifra así: "
+                f"los niveles son {NIVELES['fast']}/{NIVELES['normal']}/"
+                f"{NIVELES['forja']}/{NIVELES['mega']}, los planes "
+                f"{PLANES['free']}/{PLANES['plus']}/{PLANES['supreme']} "
+                f"y el regalo {REGALO}"
+            )
+
+    # Y EN LETRA, QUE ES COMO SE ESCONDIÓ EN DOS PÁGINAS A LA VEZ.
+    #
+    # La red de arriba busca dígitos, y el mismo 24-11 se le escaparon tres
+    # sitios más con la misma cifra vieja escrita con letras: el cuerpo de
+    # `/crear-una-app` decía "Cuatro créditos la herramienta" y
+    # `/sin-suscripcion` decía "cuesta cuatro créditos. Cuatro." en los dos
+    # idiomas, repetido para dar énfasis. Una cifra en letra se lee igual que
+    # una en número y envejece igual.
+    #
+    # `un`, `uno` y `una` NO están en la lista a propósito: en español son el
+    # artículo, no el número. `/precios:85` pregunta "¿Qué es un crédito?" y
+    # eso no es una cifra. En inglés `one` sí vale, porque "one credit" sí es
+    # una cantidad.
+    for m in re.finditer(LETRAS_CIFRA + r"[ \t]+(?:créditos?|credits?)\b", linea, re.I):
+        valor = NUMERO_EN_LETRA[m.group(1).lower()]
+        if valor not in legitimas:
+            malas.append(
+                f"«{m.group(0).strip()}» en letra son {valor}, y no hay "
+                f"ninguna cifra así: los niveles son {NIVELES['fast']}/"
+                f"{NIVELES['normal']}/{NIVELES['forja']}/{NIVELES['mega']}"
+            )
+    return malas
+
+
 CONTEXTO = dict(
     fast=NIVELES["fast"], normal=NIVELES["normal"], forja=NIVELES["forja"], mega=NIVELES["mega"],
     free=PLANES["free"], plus=miles(PLANES["plus"]), supreme=miles(PLANES["supreme"]),
@@ -482,6 +623,8 @@ def main() -> int:
             for mala in sorted(set(cifras_pegadas(cruda))):
                 fallos.append(f"kairo/{rel}:{n} dice {mala}")
             for mala in topes_sin_plan(cruda):
+                fallos.append(f"kairo/{rel}:{n} dice {mala}")
+            for mala in creditos_que_no_existen(cruda):
                 fallos.append(f"kairo/{rel}:{n} dice {mala}")
     print(f"Copia del producto: {len(COPIA)} archivos, comentarios aparte.")
 
