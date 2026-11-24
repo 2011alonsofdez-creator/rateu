@@ -10,6 +10,7 @@ import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
 import { comoFuentes as noticiasComoFuentes, comoHechos as noticiasComoHechos, consultaDe, noticiasDe } from "./noticias";
 import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
+import { buscarYLeer, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -142,12 +143,34 @@ export async function buscarHechos(
   const clave = palabrasClave(seguimiento ? anterior : pregunta);
 
   const antes = Date.now();
+  const quiereWiki = conWiki || corta || seguimiento;
   const libres = Promise.all([
     noticiasDe(consulta, 5000).catch(() => []),
-    conWiki || corta || seguimiento ? articulosDe(consulta, "es", 5000).catch(() => []) : Promise.resolve([]),
+    /* Wikipedia en español y, si no tiene nada, en inglés: de muchos
+       youtubers, juegos y productos solo hay artículo en inglés. */
+    quiereWiki
+      ? articulosDe(consulta, "es", 5000)
+          .catch(() => [])
+          .then(async (es) =>
+            es.some((a) => habla(`${a.titulo} ${a.extracto}`, clave))
+              ? es
+              : [...es, ...(await articulosDe(consulta, "en", 4000).catch(() => []))],
+          )
+      : Promise.resolve([]),
+    // Buscadores web con clave (Tavily/Brave) + leer las mejores páginas.
+    hayBuscadorLibre() ? buscarYLeer(consulta, clave, 9000).catch(() => []) : Promise.resolve([]),
   ]);
   const principal = await buscarConModelos(consulta, contexto, modoEdad, diario);
-  const [todasNoticias, todosArticulos] = await libres;
+  const [todasNoticias, todosArticulos, todasWeb] = await libres;
+  /* Sin buscador con clave, al menos se LEEN las 2 primeras páginas que
+     ha encontrado el buscador principal (3 s como mucho): un fragmento
+     dice que hay algo; el párrafo dice qué. */
+  const webs = todasWeb.length
+    ? todasWeb
+    : principal?.busco && principal.fuentes.length
+      ? await buscarYLeer(consulta, clave, 3000, principal.fuentes.filter((f) => f.tipo === "web").map((f) => f.url).slice(0, 2)).catch(() => [])
+      : [];
+  const web = webs.filter((w) => w.leida || habla(`${w.titulo} ${w.texto}`, clave));
   /* Fuera lo que no habla de lo que se pregunta: un artículo de Beckham
      no responde nada sobre DjMario, y si llega al prompt el modelo saca
      conclusiones de él ("no aparece por FIFA"). */
@@ -157,25 +180,26 @@ export async function buscarHechos(
     diario.intentos.push({
       modelo: "noticias+wikipedia (en paralelo)",
       ms: Date.now() - antes,
-      resultado: `${noticias.length} titular(es), ${articulos.length} artículo(s)`,
+      resultado: `${noticias.length} titular(es), ${articulos.length} artículo(s), ${web.length} página(s) web (${web.filter((w) => w.leida).length} leída(s))`,
     });
   }
-  if (!noticias.length && !articulos.length) return principal;
+  if (!noticias.length && !articulos.length && !web.length) return principal;
 
   const extra = [
+    web.length ? webComoHechos(web, hoy) : "",
     noticias.length ? noticiasComoHechos(noticias, hoy) : "",
     articulos.length ? comoHechos(articulos) : "",
   ]
     .filter(Boolean)
     .join("\n\n");
-  const masFuentes = [...noticiasComoFuentes(noticias), ...comoFuentes(articulos)];
+  const masFuentes = [...webComoFuentes(web.filter((w) => !w.leida || !principal?.fuentes.some((f) => f.url === w.url))), ...noticiasComoFuentes(noticias), ...comoFuentes(articulos)];
 
   if (principal?.busco && principal.hechos.trim()) {
     const vistas = new Set(principal.fuentes.map((f) => f.url));
     return {
       ...principal,
       hechos: `${principal.hechos.trim()}\n\nAdemás, de otras fuentes:\n${extra}`,
-      fuentes: [...principal.fuentes, ...masFuentes.filter((f) => !vistas.has(f.url))].slice(0, 14),
+      fuentes: [...principal.fuentes, ...masFuentes.filter((f) => !vistas.has(f.url))].slice(0, 16),
     };
   }
   /* El buscador principal no ha encontrado nada o no ha podido (sin
