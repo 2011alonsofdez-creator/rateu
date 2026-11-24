@@ -2004,6 +2004,55 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
+- **Lo que Kairo NO hace en Hacienda acaba de convertirse en su mejor argumento, y está en el último párrafo de la página.** `[origen: crecimiento 2026-11-24]`
+  **La noticia**: la Agencia Tributaria se ha pronunciado en contra de usar IA
+  generativa para la Renta, hay autónomos **sancionados** por haberla usado
+  (30-04-2026) y un letrado multado por citar jurisprudencia inventada por una
+  IA. Enlaces en `agentes/mercado/2026-11-24-mercado.md`.
+
+  **Dónde está Kairo**: en el lado bueno, y se demuestra leyendo el código.
+  `/cartas-de-hacienda` ya publica cuatro límites —no es tu asesor, no contesta
+  por ti, no toca tu banco, no se inventa lo que no se lee— y el prompt obliga
+  desde el 17-11 a decir **de qué depende** y **quién lo decide**. La página,
+  además, no da ni un número de plazo a propósito.
+
+  **Lo que falta, y es el trabajo**: eso está **al final** de la página, en la
+  sección de lo que no hace. Hoy ya no es una advertencia: es el argumento de
+  venta, porque es exactamente lo que el mercado acaba de empezar a premiar. Hay
+  que subirlo arriba, en los dos idiomas, sin nombrar a nadie y sin prometer
+  nada nuevo.
+
+  **Media jornada, y es mío**: solo son textos de una página de intención.
+
+  **Lo que NO hay que hacer**, dicho aquí para que no se me olvide: no convertir
+  esto en "Kairo sí puede con Hacienda y los demás no". Eso es justo el discurso
+  que la AEAT está señalando, y la ventaja de Kairo es la contraria.
+
+- **El argumento de precio de Kairo+ ha dejado de ser cierto: Google tiene un plan por debajo.** `[origen: crecimiento 2026-11-24]`
+  **Medido hoy**: Google AI Plus ha bajado a **4,99 €/mes** (una fuente dice
+  7,99 €, así que la cifra exacta está en conflicto; las dos están por debajo de
+  los **9,99 €** de Kairo+). Google AI Pro 21,99 €, ChatGPT Plus ~23 €.
+
+  Hasta ahora el argumento de Kairo+ era "la mitad de lo que cuesta cualquier IA
+  de pago". **Con un plan de Google a 4,99 €, eso es falso.** Y un argumento de
+  precio falso en la página de precios es exactamente lo que este sistema lleva
+  dieciocho días arreglando en otra página.
+
+  **El arreglo no es bajar el precio**: es cambiar el eje del mensaje de "más
+  barato" a "**sin cuota**", que es lo que ninguno de los cuatro ofrece y Kairo
+  sí —40 créditos cada día sin pagar nada—. Dos horas, los dos idiomas, en
+  `/precios` y `/sin-suscripcion`.
+
+  **Y espera a propósito**: toca las mismas frases que la decisión pendiente de
+  la insignia de la portada (12 días). Hacerlo antes es tocar dos veces lo
+  mismo. En cuanto decida la insignia, esto va detrás en el mismo cambio.
+
+  **De paso, y es suyo**: con la tabla de hoy, **Supreme a 24,99 € es el más
+  caro de cinco** —por encima de Legálitas Plus (23,99 €, con abogados),
+  ChatGPT Plus (~23 €), Google AI Pro (21,99 €) y Legálitas Esencial (19,99 €,
+  con abogados)—. La decisión lleva **nueve días**: o baja de 23 €, o la página
+  explica qué da Supreme que no dan los otros cuatro.
+
 - **La caja de probar en las dos páginas que mandan al visitante detrás del registro.** `[origen: radar 2026-11-24]`
   `/sin-suscripcion` y `/crear-una-app` son las dos únicas páginas de intención
   sin caja de probar. Las tres de papeles la tienen desde el 18-11 y el camino
