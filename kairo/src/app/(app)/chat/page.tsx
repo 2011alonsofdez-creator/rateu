@@ -838,8 +838,28 @@ function Chat() {
                 ? "err.cuotaDia"
                 : v === "cuota_minuto"
                   ? "err.cuotaMinuto"
+                /* UNA CUOTA SIN GRADUAR SE CUENTA COMO LA DEL DÍA, igual
+                   que en Paperwork y en Gist.
+ 
+                   `cuota_agotada` es el cajón de `tipoDeCuota`: un 429 en
+                   el que el proveedor NO ha dicho "per day" ni "per
+                   minute" y NO ha pedido esperar unos segundos. Y esa
+                   última parte es la que decide: si hubiera pedido una
+                   espera corta, el clasificador ya habría devuelto
+                   `cuota_minuto`. O sea que el silencio del proveedor es
+                   una pista CONTRA que sea un límite por minuto.
+ 
+                   Hasta hoy el chat lo contaba como `err.cuota`, que dice
+                   "vuelve a probar dentro de un rato", y es el mismo error
+                   que se arregló en la caja de la portada el 20-11:
+                   mandar a reintentar justo cuando reintentar no puede
+                   funcionar. `api/paperwork/route.ts:98` y
+                   `api/gist/route.ts:111` ya lo tenían decidido al
+                   revés, con el motivo escrito en Gist: "la del minuto se
+                   arregla esperando, la del día no se arregla hoy". El
+                   chat era el único de los tres que seguía blando. */
                 : v === "cuota_agotada"
-                ? "err.cuota"
+                ? "err.cuotaDia"
                 : v === "sobrecargado"
                   ? "err.sobrecargado"
                 : v === "bloqueado"

@@ -96,6 +96,82 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-24 (segunda entrada del día) — Casos límite (área 4): el chat ya decía la verdad, menos en el cajón donde más falta hacía
+
+**Por qué hay dos entradas con la misma fecha, que es lo primero que chirría.**
+La cola traía **cuatro** turnos de entrenador —los del 21, 22 y 23, que se
+perdieron, y el de hoy—. Esta mañana recuperé uno (área 3, conocimiento) y lo
+fechué hoy porque hoy se hizo. A las 07:04 ha llegado el turno de verdad del
+24-11, así que esta es la siguiente de la rotación, **área 4**. No renumero la
+otra ni finjo que fue de otro día: dos entradas, dos áreas, un solo cambio cada
+una.
+
+**Qué cambié**: una línea del mapa de errores de `(app)/chat/page.tsx`, más un
+comentario en `i18n.tsx`. Ninguna regla del prompt.
+
+**Por qué este caso y no otro.** Lo dejé yo mismo escrito esta mañana en
+`conocimiento/limites-y-cuotas.md` como hueco declarado: *"qué ve un usuario con
+cuenta cuando pasa lo mismo dentro del chat. Es una pregunta abierta para un área
+4"*. Y es el caso que Kairo está viviendo hoy: cuarto día con los cuatro motores
+a 429. Un caso límite que está pasando de verdad vale más que uno inventado.
+
+**Y lo primero que encontré fue que me equivocaba de sospecha.** Iba buscando el
+mismo fallo que arreglamos en la portada el 20-11 —mandar a reintentar cuando no
+se puede— y **el chat ya lo hacía bien**, mejor de lo que yo iba a proponer:
+
+- Prueba todos los modelos una vez y da **tres vueltas** con esperas de 0, 1.200
+  y 3.000 ms (`route.ts:747`), en vez de insistir con el mismo.
+- **Si ningún modelo escribe pero la búsqueda trajo enlaces, no devuelve un
+  error**: enseña los enlaces, dice *"todos mis modelos están saturados"* y **no
+  cobra**.
+- Y gradúa el 429 en tres con `tipoDeCuota`, cada uno con su texto en los dos
+  idiomas: el del minuto manda esperar, el del día dice que se renueva mañana y
+  que la pregunta queda guardada.
+
+Nada de eso culpa a la persona. Está bien y lo dejo escrito para que nadie lo
+"arregle".
+
+**Lo que sí estaba mal es el tercer caso, y es un cajón.** `cuota_agotada` no es
+"otra cuota": es el 429 en el que el proveedor **no** dijo `per day`, **no** dijo
+`per minute` y **no** pidió esperar unos segundos. Y esa última parte decide,
+porque `tipoDeCuota` mira la espera primero (`errores.ts:82`): si hubiera pedido
+esperar ≤120 s ya habría devuelto `cuota_minuto`. **El silencio del proveedor es
+una pista contra que sea un límite por minuto** — y el texto del chat apostaba
+justo a eso: *"Vuelve a probar dentro de un rato"*.
+
+**Lo que lo hace defendible en una línea y no una opinión mía: la casa ya lo
+tenía decidido al revés, en dos sitios de tres.** `api/paperwork/route.ts:98` y
+`api/gist/route.ts:111` cuentan `cuota_agotada` como `cuota_dia`, y Gist lleva el
+motivo escrito al lado: *"la del minuto se arregla esperando, **la del día no se
+arregla hoy**"*. El chat era el único de los tres que seguía blando. El cambio es
+alinearlo, no inventar una cuarta redacción.
+
+`err.cuota` se queda en `i18n.tsx` sin cablear y con el motivo al lado, no
+borrada, por si algún día hace falta un grado que de verdad se arregle esperando.
+
+**Comprobado en el paquete que se sirve al navegador**, no solo en el fuente:
+`cuota_agotada"===e?"err.cuotaDia"`, una sola aparición y sin rastro del
+emparejamiento viejo. `tsc` 0, `next build` 0.
+
+**El caso queda escrito** en
+`agentes/ia/ejemplos/2026-11-24-limite-se-acabo-la-cuota-con-cuenta.md`, con la
+traza entera para que nadie la vuelva a seguir a mano.
+
+**Lo que vi de paso**, sin tocarlo:
+
+- **`err.cuotaDia` dice "se renueva sola mañana" y eso no siempre es verdad.**
+  La cuota de Gemini se renueva a medianoche del Pacífico, o sea a las **09:00
+  en España**. Para quien se queda sin cuota a las 23:00, "mañana" es correcto;
+  para quien se queda a las 08:00, la renovación es **en una hora** y "mañana" le
+  quita las ganas de volver. Ventana estrecha, arreglo honesto: no dar plazo.
+  Candidato a la próxima área 4, y no lo hago hoy porque es otro cambio.
+- **Qué ve quien no tiene sesión dentro del chat** (`fallo(401, "sin_sesion")`):
+  no lo he seguido hasta la pantalla.
+- Y lo que hay que decir aunque incomode: **nada de esto se ha probado contra
+  producción**, porque el chat pide cuenta y desde la sede no se abre la web.
+  Trazado en el código y verificado en el paquete compilado, que es el estándar
+  de esta casa, pero no es lo mismo que haberlo visto en pantalla.
+
 ### 2026-11-24 — Conocimiento (área 3): las tres claves de Gemini puede que sean una sola cuota, y llevamos 39 días apuntándolas como tres
 
 **Lo que he hecho**: un archivo nuevo,

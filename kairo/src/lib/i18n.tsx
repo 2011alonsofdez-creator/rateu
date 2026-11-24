@@ -518,6 +518,10 @@ const dict = {
 
     "theme.toggle": "Cambiar tema",
     "lang.toggle": "Cambiar idioma",
+    /* Sin cablear desde el 24-11: el chat era el único sitio que la usaba y
+       ahora cuenta `cuota_agotada` como la del día, igual que Paperwork y
+       Gist. Se queda escrita, no borrada, por si algún día hace falta un
+       tercer grado de cuota que de verdad se arregle esperando un rato. */
     "err.cuota": "Se ha agotado la cuota gratuita. Vuelve a probar dentro de un rato.",
     "err.cuotaMinuto":
       "Has llegado al límite de mensajes por minuto de la capa gratuita. No se ha perdido nada: espera un poco y dale a Reintentar.",
@@ -1140,6 +1144,7 @@ const dict = {
 
     "theme.toggle": "Toggle theme",
     "lang.toggle": "Switch language",
+    /* Not wired since 24-11: see the Spanish side. */
     "err.cuota": "The free quota is used up. Try again in a while.",
     "err.cuotaMinuto":
       "You hit the free tier's per-minute message limit. Nothing is lost: wait a moment and press Try again.",
