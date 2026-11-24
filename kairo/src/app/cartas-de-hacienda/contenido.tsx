@@ -39,6 +39,9 @@ const T = {
       "Porque no todas son lo mismo, y es lo primero que hay que saber: una te pide un papel, otra te reclama un importe y la tercera solo te avisa de un error. Súbela y te lo dice, con lo que te piden y para cuándo según tu propia carta.",
     ctaPrincipal: "Subir mi carta",
     ctaSecundario: "Ver qué cuesta",
+    limiteTitulo: "Lo que Kairo hace con tu carta, y lo que no",
+    limiteCuerpo:
+      "Kairo te explica tu carta: cuál de las tres es, qué te piden y para cuándo según tu propio papel. No presenta nada por ti, no entra en la sede electrónica, no toca tu banco y no se inventa lo que no se lee. Y cuando el asunto pide un profesional, te lo dice en vez de disimularlo. Lo que decidas hacer con tu carta sigue siendo tuyo.",
     pruebaTitulo: "O pruébalo ahora mismo, sin cuenta.",
     pruebaPie: "Para que Kairo lea tu carta sí hace falta una cuenta. Para preguntarle qué significa lo que pone, no: escribe aquí tu duda y te contesta.",
     tiposTitulo: "Las tres cartas, y qué cambia en cada una",
@@ -112,6 +115,9 @@ const T = {
       "Because they are not the same thing, and that is the first thing to know: one asks you for a document, another claims an amount, and the third just flags an error. Upload it and it tells you which, what they want, and by when according to your own letter.",
     ctaPrincipal: "Upload my letter",
     ctaSecundario: "See what it costs",
+    limiteTitulo: "What Kairo does with your letter, and what it doesn't",
+    limiteCuerpo:
+      "Kairo explains your letter: which of the three it is, what they are asking for and by when, according to your own paper. It does not file anything for you, it does not log in to the tax office, it does not touch your bank and it does not invent what it cannot read. And when the matter calls for a professional, it says so instead of papering over it. What you decide to do with your letter stays yours.",
     pruebaTitulo: "Or try it right now, no account.",
     pruebaPie: "Kairo does need an account to read your letter. To ask what something means it does not: type your question here and it answers.",
     tiposTitulo: "The three letters, and what changes in each",
@@ -215,6 +221,29 @@ export function CartasContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* LA FRONTERA, ARRIBA Y NO AL FINAL (24-11).
+ 
+              Esto mismo estaba escrito —y mejor desglosado— en la sección
+              `no`, que es la penúltima de la página: por debajo de los tipos
+              de carta, de lo que saca y de las fechas. Quien llega con un
+              sobre en la mano no baja hasta ahí.
+ 
+              Y desde este mes no es una advertencia, es el argumento: la
+              Agencia Tributaria se ha pronunciado en contra de usar IA
+              generativa para la Renta y hay autónomos sancionados por
+              haberla usado (informe de mercado del 24-11). Lo que separa a
+              Kairo de lo que están señalando es exactamente esto, así que va
+              donde se lee.
+ 
+              Se queda ARRIBA pero DESPUÉS de los botones, a propósito: quien
+              ya ha decidido subir su carta no se encuentra un párrafo de
+              peros entre el titular y el botón. La lista detallada sigue
+              abajo, con los casos concretos que este resumen no cabe. */}
+          <div className="mt-12 rounded-2xl border border-line bg-panel p-5">
+            <p className="text-[15px] font-semibold">{c.limiteTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.limiteCuerpo}</p>
           </div>
 
           {/* La caja de probar: preguntar no necesita cuenta. */}

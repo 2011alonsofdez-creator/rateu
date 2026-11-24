@@ -2007,7 +2007,38 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **Lo que Kairo NO hace en Hacienda acaba de convertirse en su mejor argumento, y está en el último párrafo de la página.** `[origen: crecimiento 2026-11-24]`
+- **~~Lo que Kairo NO hace en Hacienda acaba de convertirse en su mejor argumento, y está en el último párrafo de la página~~ — HECHO el mismo día, 24-11.** `[origen: crecimiento 2026-11-24 · hecho 2026-11-24]`
+
+  **Qué se ha hecho**: un bloque nuevo en `/cartas-de-hacienda`, en los dos
+  idiomas, titulado *"Lo que Kairo hace con tu carta, y lo que no"*. Dice en
+  cuatro líneas que Kairo explica la carta, que **no presenta nada por ti, no
+  entra en la sede electrónica, no toca tu banco y no se inventa lo que no se
+  lee**, y que cuando el asunto pide un profesional lo dice en vez de
+  disimularlo.
+
+  **Dónde se ha puesto, que era el trabajo**: justo **debajo de los botones** y
+  **encima de la caja de probar**. Medido en el HTML generado: el texto pasa del
+  carácter **3.759** —donde vivía la sección `no`, penúltima de la página, por
+  debajo de los tipos de carta, de lo que saca y de las fechas— al **791**.
+  Quien llega con un sobre en la mano ya no tiene que bajar media página para
+  saber qué va a recibir.
+
+  **Y por qué debajo de los botones y no encima, que fue la única decisión de
+  diseño**: quien ya ha decidido subir su carta no se merece un párrafo de peros
+  entre el titular y el botón. Arriba, pero sin estorbar la acción.
+
+  **No se ha añadido ninguna promesa nueva**: las cuatro cosas ya estaban
+  escritas en la sección `no`, que **se queda donde está** con sus casos
+  concretos (la foto cortada, el PDF a medias) que el resumen no cabe. Es
+  resumen arriba y detalle abajo, no una mudanza.
+
+  **Lo que NO se ha hecho, a propósito** y lo dejó dicho el propio informe de
+  mercado: no se nombra a la Agencia Tributaria, no se compara con nadie y no se
+  insinúa que Kairo sí puede con Hacienda y los demás no. Eso es justo el
+  discurso que la AEAT está señalando.
+
+  `tsc` 0, `next build` 0, y comprobado en el HTML generado y en el paquete del
+  navegador que las dos versiones de idioma viajan.
   **La noticia**: la Agencia Tributaria se ha pronunciado en contra de usar IA
   generativa para la Renta, hay autónomos **sancionados** por haberla usado
   (30-04-2026) y un letrado multado por citar jurisprudencia inventada por una
