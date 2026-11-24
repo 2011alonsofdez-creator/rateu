@@ -221,6 +221,7 @@ function Editor({
   onBorrada: (id: string) => void;
 }) {
   const { t, lang } = useUi();
+  const perfil = usePerfil();
   const [campos, setCampos] = useState(borrador);
   const [ocupado, setOcupado] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
@@ -248,7 +249,7 @@ function Editor({
               : r.motivo === "instrucciones"
                 ? "mente.errInstr"
                 : "mente.errSave",
-      ),
+      ).replace("{n}", String(MENTES_POR_PLAN[perfil.plan as PlanId] ?? MENTES_POR_PLAN.free)),
     );
   };
 

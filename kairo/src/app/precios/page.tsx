@@ -25,7 +25,7 @@ const FAQ = {
     },
     {
       q: "¿Se usan mis conversaciones para entrenar modelos?",
-      a: "No. Ni las tuyas ni las de nadie, y tampoco se venden.",
+      a: "Kairo no las vende ni las usa para entrenar su propio modelo. Para contestarte, tu mensaje pasa por proveedores de IA (como Google), y en sus planes gratuitos el proveedor puede usarlo para mejorar sus productos. Lo tienes explicado en la política de privacidad.",
     },
   ],
   en: [
@@ -47,7 +47,7 @@ const FAQ = {
     },
     {
       q: "Are my conversations used to train models?",
-      a: "No. Not yours, not anyone's, and they are not sold either.",
+      a: "Kairo doesn't sell them or use them to train its own model. To answer you, your message goes through AI providers (such as Google), and on their free tiers the provider may use it to improve its products. The privacy policy explains it.",
     },
   ],
 };

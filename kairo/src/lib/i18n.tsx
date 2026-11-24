@@ -426,7 +426,7 @@ const dict = {
     "mente.templatesSub": "Se abren rellenadas. Cámbialas a tu gusto antes de guardar.",
     "mente.errName": "Ponle un nombre.",
     "mente.errInstr": "Escríbele unas instrucciones: es lo que la hace distinta.",
-    "mente.errLimit": "Has llegado al máximo de 30 Mentes. Borra alguna para crear otra.",
+    "mente.errLimit": "Has llegado al máximo de {n} Mentes de tu plan. Borra alguna para crear otra.",
     "mente.errDemo": "Esto es la demo: aquí no se guarda nada. Entra con tu cuenta.",
     "mente.errSave": "No se ha podido guardar.",
 
@@ -997,7 +997,7 @@ const dict = {
     "mente.templatesSub": "They open pre-filled. Change them however you like before saving.",
     "mente.errName": "Give it a name.",
     "mente.errInstr": "Write it some instructions: that is what makes it different.",
-    "mente.errLimit": "You have reached the maximum of 30 Minds. Delete one to create another.",
+    "mente.errLimit": "You have reached the maximum of {n} Minds on your plan. Delete one to create another.",
     "mente.errDemo": "This is the demo: nothing is saved here. Sign in with your account.",
     "mente.errSave": "Could not save.",
 
