@@ -3,13 +3,27 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-24 ([informe](informes/2026-11-24-estado.md)),
-la decimocuarta
-**Semáforo general**: 🔴 **decimotercer rojo, y por primera vez en catorce revisiones Kairo ha ido HACIA ATRÁS: una puerta de lanzamiento que estaba abierta se ha cerrado. Las puertas pasan de 2 a 1 de 22, porque la que medía que un desconocido recibe su primera respuesta —la única que mide lo que convierte— lleva cuatro días en rojo**
+**Última revisión**: 2026-11-25 ([informe](informes/2026-11-25-estado.md)),
+la decimoquinta
+**Semáforo general**: 🔴 **decimocuarto rojo, y por primera vez el motivo no son preguntas sin contestar sino UNA SOLA ACCIÓN sin hacer. El retroceso de ayer está deshecho —las puertas vuelven a 2 de 22 porque Kairo contesta otra vez— y lo más viejo del backlog quedó cerrado anoche. Lo que bloquea el lanzamiento es que producción no tiene ni un documento legal publicado, no tiene la defensa contra inyección, y su propia FAQ de anoche manda a una política de privacidad que en producción NO EXISTE. Las tres se arreglan con una fusión que desde hoy no tiene conflictos**
+Lo de antes: 🔴 decimotercer rojo, y por primera vez en catorce revisiones Kairo ha ido HACIA ATRÁS: una puerta de lanzamiento que estaba abierta se ha cerrado. Las puertas pasan de 2 a 1 de 22, porque la que medía que un desconocido recibe su primera respuesta —la única que mide lo que convierte— lleva cuatro días en rojo**
 Lo de antes: 🔴 duodécimo rojo, y el motivo ya no se puede decir más corto: no falta trabajo, falta él. Todo lo que los agentes pueden tocar se está arreglando; todo lo que necesita una decisión suya está congelado, y lo más viejo lleva diecinueve días**
 Lo de antes: 🔴 undécimo rojo, por tres documentos legales terminados y cero publicados (sigue igual, quince días la política de cookies)
 
-> **Lo que ha cambiado de verdad, y esta vez no es bueno**: en cinco días
+> **Lo que ha cambiado de verdad, y hoy sí es bueno**: volvió tras cinco días
+> sin empujar una línea y en **tres commits** cerró el 🔴 del desconocido, el
+> *"No."* de `/precios` (**19 días**), la contradicción sobre datos personales
+> (12) y el tope de Mentes (11). Kairo **contesta otra vez**: `probar-portada`
+> 22 pasa los cinco pasos. Y los agentes dejaron la fusión **sin un solo
+> conflicto**: `main` es ya ancestro de la rama, así que fusionarla es un
+> *fast-forward*.
+>
+> **Y el hallazgo del día nace de algo bien hecho**: su FAQ nueva acaba en *"lo
+> tienes explicado en la política de privacidad"*, y en producción esa política
+> **no existe** —`/legal` dice "Pendiente de redactar"—. Su cambio está a medias
+> en producción y la otra mitad la tiene presa la fusión.
+>
+> Lo de antes (24-11), que ya no es verdad: en cinco días
 > (la revisión llega dos días tarde, con el aviso tres días en la cola),
 > **5 commits de agentes —2 tocando el producto— y 2 suyos en `main`, los dos
 > del 19-11 a las 23:56**. O sea: **lleva 4 días y 7 horas sin empujar una línea
@@ -35,6 +49,19 @@ Lo de antes: 🔴 undécimo rojo, por tres documentos legales terminados y cero 
 > de lejos del lanzamiento. Sigue siendo verdad, y ahora con quince días.
 
 ## Métricas
+
+| Métrica | Valor | Anterior (24-11) | Tendencia |
+|---|---|---|---|
+| **Puertas de lanzamiento** | **2 ✅ · 4 🟡 · 1 ⚪ · 15 ⬜** de 22 | 1 ✅ · 4 🟡 · 1 🔴 · 1 ⚪ · 15 ⬜ | ↑ **el retroceso, deshecho** |
+| Checklist de salud | **15 ✅ · 3 🟡 · 1 ⚪ · 1 ⬜** de 20 | 14 ✅ · 3 🟡 · 1 🔴 | ↑ |
+| **Días que Kairo lleva sin contestar** | **0** | 4 | ↑ |
+| **Banco de pruebas en PRODUCCIÓN** | **20 / 30** | sin medir | **nuevo, y es la cifra que importa** |
+| **Conflictos de la fusión** | **0** · `main` es ancestro | 5 archivos | ↑ **hecho hoy** |
+| Rama sin fusionar | **165 commits, 25 días** | 153, 24 días | ↓ |
+| Documentos legales escritos / **publicados** | **3 de 4 / 0 de 4** | 3 / 0 | = cookies, **21 días** |
+| Visitas, registros, usuarios | **sin datos** | sin datos | = **quince informes** |
+
+Lo de antes (24-11):
 
 | Métrica | Valor | Anterior (19-11) | Tendencia |
 |---|---|---|---|
@@ -64,6 +91,15 @@ Lo de antes (19-11):
 | Banco de pruebas | 25 / 28, y sus tres suspensos ya arreglados | 25 / 28 | = la nota la pone la próxima área 5 |
 | Visitas, registros, usuarios | **sin datos** | sin datos | = trece informes |
 ## Veredicto de la última revisión
+
+**El retroceso de ayer está deshecho y lo más viejo del backlog está cerrado. Lo
+que queda es una sola acción, y hoy además su propio arreglo de anoche depende
+de ella.** Volvió tras cinco días y cerró cuatro cosas; los agentes dejaron la
+fusión sin conflictos. Y apareció lo que nadie buscaba: su FAQ veraz de
+`/precios` manda a una política de privacidad que en producción no existe,
+porque lleva doce días escrita en esta rama.
+
+Lo de antes (24-11):
 
 **Por primera vez en catorce revisiones, Kairo ha ido hacia atrás: una puerta de
 lanzamiento que estaba abierta se ha cerrado.** El 19-11 las puertas estaban en

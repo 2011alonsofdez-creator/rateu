@@ -13,6 +13,40 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Su FAQ de `/precios` manda a una política de privacidad que en producción NO EXISTE.** `[origen: radar 2026-11-25]`
+  **Y esto nace de algo que él hizo bien**, así que conviene leerlo entero antes
+  de sacar conclusiones.
+
+  Anoche dejó veraz la respuesta de *"¿se usan mis conversaciones para entrenar
+  modelos?"*, cerrando un P1 de diecinueve días. La respuesta, ya publicada,
+  acaba así:
+
+  > *"Lo tienes explicado en la política de privacidad."*
+
+  **Medido hoy sobre `origin/main`**: `kairo/src/app/legal/` tiene **un solo
+  archivo** (`page.tsx`, 53 líneas), **no existe la ruta `/legal/privacidad`**, y
+  lo que `/legal` dice literalmente es:
+
+  > *"Pendiente de redactar antes del lanzamiento. Estos son los cuatro
+  > documentos necesarios."*
+
+  O sea: **la página donde se decide pagar manda a quien pregunta por sus datos
+  a un documento que no está escrito.** Y sí lo está: lleva **doce días**
+  escrito, en esta rama, junto con los términos y la política de cookies (que
+  cumple **21 días** escrita y sin publicar).
+
+  **No es un fallo de su cambio.** Es que su cambio está **a medias en
+  producción** y la otra mitad la tiene presa la fusión. Lo que ayer era "tres
+  documentos escritos y cero publicados" hoy es peor: ahora hay una página
+  pública que **promete** uno de ellos.
+
+  **Lo arregla la fusión, y desde hoy no tiene conflictos.** `main` es ancestro
+  de la rama: es un *fast-forward*. No hay nada que escribir.
+
+  **Lo que NO voy a hacer**: quitar esa frase de la FAQ para que deje de
+  apuntar a nada. La frase es correcta y el documento existe; lo que falta es
+  publicarlo.
+
 - **🔴 PRODUCCIÓN NO TIENE DEFENSA CONTRA INYECCIÓN DE INSTRUCCIONES, y el banco llevaba cinco pasadas sin verlo.** `[origen: evaluación 2026-11-25]`
   **Medido hoy renderizando los dos prompts** —el de esta rama y el de
   `origin/main`, que es el que contesta— en la configuración de producción
