@@ -228,6 +228,7 @@ const dict = {
     "chat.empty": "Tus chats aparecerán aquí en cuanto escribas el primero.",
     "app.placeholder": "Escribe aquí...",
     "app.placeholderChat": "Pregunta a Kairo",
+    "app.unlimited": "Sin límite",
     "codeBar.back": "Volver a Kairo",
     "codeBar.new": "Nueva app",
     "codeBar.title": "Tus apps",
@@ -380,7 +381,6 @@ const dict = {
     "file.notKept": "Los archivos no se guardan: se leen para responder y ya está.",
     "app.cancel": "Cancelar",
     "app.saveAsk": "Guardar y preguntar",
-    "app.editHint": "Se borra la respuesta de antes y te contesta a lo nuevo",
     "app.moreSources": "Ver {n} más",
     "app.searched": "Buscó:",
     "app.stopRead": "Parar",
@@ -554,6 +554,17 @@ const dict = {
     "pensar.comparando": "Comparando respuestas",
     "pensar.combinando": "Combinando lo mejor de cada una",
     "pensar.eligiendo": "Eligiendo el mejor modelo",
+    "pensar.entendiendo": "Entendiendo lo que me pides",
+    "pensar.ordenando": "Ordenando las ideas",
+    "pensar.repasando": "Repasando la respuesta",
+    "pensar.atando": "Atando cabos",
+    "pensar.leyendoFuentes": "Leyendo las fuentes",
+    "pensar.periodicos": "Mirando periódicos y webs",
+    "pensar.contrastando": "Contrastando lo que dicen",
+    "pensar.comprobandoDatos": "Comprobando los datos",
+    "pensar.unaVuelta": "Dándole una vuelta más",
+    "pensar.afinando": "Afinando los detalles",
+    "pensar.casi": "Ya casi está",
     "menu.open": "Abrir menú",
     "menu.close": "Cerrar menú",
     "cw.lead":
@@ -857,6 +868,7 @@ const dict = {
     "chat.empty": "Your chats will show up here as soon as you write the first one.",
     "app.placeholder": "Type here...",
     "app.placeholderChat": "Ask Kairo",
+    "app.unlimited": "Unlimited",
     "codeBar.back": "Back to Kairo",
     "codeBar.new": "New app",
     "codeBar.title": "Your apps",
@@ -1009,7 +1021,6 @@ const dict = {
     "file.notKept": "Files are not stored: they are read to answer and that is it.",
     "app.cancel": "Cancel",
     "app.saveAsk": "Save and ask",
-    "app.editHint": "The old answer goes away and it answers the new question",
     "app.moreSources": "Show {n} more",
     "app.searched": "Searched:",
     "app.stopRead": "Stop",
@@ -1127,7 +1138,14 @@ const dict = {
     "mente.templatesSub": "They open pre-filled. Change them however you like before saving.",
     "mente.errName": "Give it a name.",
     "mente.errInstr": "Write it some instructions: that is what makes it different.",
-    "mente.errLimit": "You have reached your plan's maximum of {n} Minds. Delete one to create another.",
+    /* RESUELTO EN LA FUSIÓN DEL 25-11: se queda la suya.
+ 
+       Las dos ramas arreglaron el mismo 🟡 por separado —el aviso prometía 30
+       Mentes a todo el mundo— y las dos pusieron el hueco `{n}`. Son la misma
+       frase con otro orden de palabras, así que gana la del dueño: es la que
+       está publicada y la que sus usuarios ya han leído, y dejarla igual hace
+       su próxima fusión más pequeña. */
+    "mente.errLimit": "You have reached the maximum of {n} Minds on your plan. Delete one to create another.",
     "mente.errDemo": "This is the demo: nothing is saved here. Sign in with your account.",
     "mente.errSave": "Could not save.",
 
@@ -1177,6 +1195,17 @@ const dict = {
     "pensar.comparando": "Comparing answers",
     "pensar.combinando": "Merging the best of each",
     "pensar.eligiendo": "Picking the best model",
+    "pensar.entendiendo": "Understanding what you need",
+    "pensar.ordenando": "Organising the ideas",
+    "pensar.repasando": "Reviewing the answer",
+    "pensar.atando": "Connecting the dots",
+    "pensar.leyendoFuentes": "Reading the sources",
+    "pensar.periodicos": "Checking news sites and the web",
+    "pensar.contrastando": "Cross-checking them",
+    "pensar.comprobandoDatos": "Checking the facts",
+    "pensar.unaVuelta": "Giving it one more pass",
+    "pensar.afinando": "Polishing the details",
+    "pensar.casi": "Almost there",
     "menu.open": "Open menu",
     "menu.close": "Close menu",
     "cw.lead":

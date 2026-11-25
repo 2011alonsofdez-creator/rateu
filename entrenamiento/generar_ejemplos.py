@@ -8,6 +8,7 @@
 # Uso en Colab (ver README.md):
 #   %run generar_ejemplos.py 5    -> prueba: 5 preguntas, las enseña y no sube nada
 #   %run generar_ejemplos.py      -> todas; si se corta, vuelve a lanzarlo y sigue
+#   %run generar_ejemplos.py revisar -> descarga revisar.csv para revisarlas
 #
 # Las claves NO van aquí: se leen de los "Secretos" de Colab (la llave
 # de la izquierda): GEMINI_API_KEY y HF_TOKEN.
@@ -16,13 +17,27 @@
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.request
 
 from google import genai
 from google.genai import types
-from google.colab import userdata
+try:
+    from google.colab import userdata  # en Colab: la llave de "Secretos"
+except ImportError:
+    userdata = None  # fuera de Colab (GitHub): variables de entorno
+
+
+def secreto(nombre):
+    """Lee una clave de los Secretos de Colab o, fuera de Colab, del entorno."""
+    if userdata is not None:
+        try:
+            return userdata.get(nombre)
+        except Exception:
+            return None
+    return os.environ.get(nombre) or None
 
 REPO = "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento"
 DATASET = "alonsofg29/kairo-ejemplos"
@@ -62,6 +77,37 @@ def bajar(nombre):
 def preguntas():
     lineas = bajar("preguntas.txt").splitlines()
     return [l.strip() for l in lineas if l.strip() and not l.strip().startswith("#")]
+
+
+def rehacer():
+    """Quita de kairo.jsonl las respuestas de las preguntas de rehacer.txt,
+    para que se vuelvan a generar (por ejemplo, si cambió el prompt).
+
+    UNA SOLA VEZ por pregunta: la respuesta nueva se guarda con la marca
+    "rehecha", y esas ya no se tocan. Antes se borraban y se repetían
+    CADA DÍA, gastando la cuota en hacer lo mismo una y otra vez.
+    Devuelve la lista, para marcar las nuevas."""
+    try:
+        lista = {l.strip() for l in bajar("rehacer.txt").splitlines()
+                 if l.strip() and not l.strip().startswith("#")}
+    except Exception:
+        return set()
+    if not os.path.exists(SALIDA):
+        return lista
+    filas = open(SALIDA, encoding="utf-8").read().splitlines()
+    quedan = []
+    for f in filas:
+        if not f.strip():
+            continue
+        d = json.loads(f)
+        if d["messages"][1]["content"] in lista and not d.get("rehecha"):
+            continue
+        quedan.append(f)
+    if len(quedan) != len(filas):
+        with open(SALIDA, "w", encoding="utf-8") as f:
+            f.write("\n".join(quedan) + ("\n" if quedan else ""))
+        print(f"Quitadas {len(filas) - len(quedan)} respuestas para rehacerlas.")
+    return lista
 
 
 def ya_hechas():
@@ -105,10 +151,19 @@ def elegir_modelos(cliente):
 
         nombres = sorted(set(nombres), key=orden)
         if nombres:
-            MODELOS = nombres[:5]
+            # Los Flash primero; los "lite" al final, para cuando los
+            # otros estén todos sin cuota y no quedarse parado.
+            MODELOS = nombres[:8]
     except Exception as e:
         print(f"(no he podido pedir la lista de modelos: {str(e)[:120]})")
     print("Modelos que voy a usar:", ", ".join(MODELOS), "\n")
+
+
+def retirar(modelo):
+    """Quita un modelo para el resto de la tanda (no existe o se quedó sin
+    cuota del día). Siempre deja al menos uno."""
+    if modelo in MODELOS and len(MODELOS) > 1:
+        MODELOS.remove(modelo)
 
 
 def contestar(cliente, sistema, pregunta, modelo_i):
@@ -127,16 +182,25 @@ def contestar(cliente, sistema, pregunta, modelo_i):
             return (r.text or "").strip(), modelo_i
         except Exception as e:
             msg = str(e)
-            if "404" in msg or "NOT_FOUND" in msg:
-                # Ese modelo no existe con esta clave: al siguiente, sin esperar.
-                print(f"   · {modelo} no está disponible, paso al siguiente")
+            if "timed out" in msg.lower() or "timeout" in msg.lower() or "deadline" in msg.lower():
+                print(f"   · {modelo} no contesta, pruebo otro")
                 modelo_i += 1
+            elif "404" in msg or "NOT_FOUND" in msg:
+                # Ese modelo no existe con esta clave: al siguiente, sin esperar.
+                print(f"   · {modelo} no está disponible: lo quito de la lista")
+                retirar(modelo)
             elif "503" in msg or "UNAVAILABLE" in msg:
                 # Saturado un momento: al siguiente modelo, con un respiro corto.
                 print(f"   · {modelo} saturado, pruebo otro")
                 modelo_i += 1
                 time.sleep(8)
             elif "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                # Sin cuota PARA TODO EL DÍA: no vuelve hasta mañana, así que
+                # fuera, sin esperar. Si es solo por minuto, se espera.
+                if re.search(r"per ?day|PerDay|daily", msg, re.I):
+                    print(f"   · {modelo} sin cuota hasta mañana: lo quito de la lista")
+                    retirar(modelo)
+                    continue
                 modelo_i += 1
                 espera = 20 if intento < 2 else 65
                 print(f"   · {modelo} sin cuota, pruebo otro en {espera}s")
@@ -147,34 +211,127 @@ def contestar(cliente, sistema, pregunta, modelo_i):
     return "", modelo_i
 
 
-def subir():
-    try:
-        token = userdata.get("HF_TOKEN")
-    except Exception:
-        token = None
+def token_hf():
+    return secreto("HF_TOKEN")
+
+
+def subir(callado=False):
+    """Sube kairo.jsonl a tu dataset privado. Se llama cada 5 ejemplos y al
+    final: si Colab se desconecta (y borra sus archivos), lo hecho ya está
+    a salvo en Hugging Face."""
+    token = token_hf()
     if not token:
-        print("\nNo hay HF_TOKEN en los Secretos: no se sube. El archivo está en kairo.jsonl.")
+        if not callado:
+            print("\nNo hay HF_TOKEN en los Secretos: no se sube. El archivo está en kairo.jsonl.")
         return
     from huggingface_hub import HfApi
 
-    api = HfApi(token=token)
-    api.create_repo(DATASET, repo_type="dataset", private=True, exist_ok=True)
-    api.upload_file(
-        path_or_fileobj=SALIDA,
-        path_in_repo="data/train.jsonl",
-        repo_id=DATASET,
-        repo_type="dataset",
+    try:
+        api = HfApi(token=token)
+        api.create_repo(DATASET, repo_type="dataset", private=True, exist_ok=True)
+        api.upload_file(
+            path_or_fileobj=SALIDA,
+            path_in_repo="data/train.jsonl",
+            repo_id=DATASET,
+            repo_type="dataset",
+        )
+        if not callado:
+            print(f"\nSubido a https://huggingface.co/datasets/{DATASET}")
+    except Exception as e:
+        print(f"   · no se ha podido subir ahora ({str(e)[:100]}); se reintenta luego")
+
+
+def recuperar():
+    """Si en este Colab no está kairo.jsonl (se desconectó y lo borró), lo
+    baja de Hugging Face para seguir por donde iba."""
+    if os.path.exists(SALIDA):
+        return
+    token = token_hf()
+    if not token:
+        return
+    try:
+        from huggingface_hub import hf_hub_download
+
+        ruta = hf_hub_download(
+            DATASET, "data/train.jsonl", repo_type="dataset", token=token
+        )
+        with open(ruta, encoding="utf-8") as origen, open(SALIDA, "w", encoding="utf-8") as destino:
+            destino.write(origen.read())
+        print("Recuperado de Hugging Face lo que ya estaba hecho.")
+    except Exception:
+        pass  # todavía no hay nada subido: se empieza de cero
+
+
+def revisar():
+    """Crea revisar.csv (pregunta, respuesta, columna "quitar") y lo descarga."""
+    import pandas as pd
+    from google.colab import files
+
+    recuperar()
+    if not os.path.exists(SALIDA):
+        print("Todavía no hay ejemplos. Primero: %run generar_ejemplos.py")
+        return
+    filas = [json.loads(l)["messages"] for l in open(SALIDA, encoding="utf-8")]
+    tabla = pd.DataFrame(
+        {
+            "pregunta": [f[1]["content"] for f in filas],
+            "respuesta": [f[2]["content"] for f in filas],
+            "quitar": "",
+        }
     )
-    print(f"\nSubido a https://huggingface.co/datasets/{DATASET}")
+    tabla.to_csv("revisar.csv", index=False)
+    files.download("revisar.csv")
+    print(f"{len(tabla)} ejemplos en revisar.csv")
+
+
+# Solo para escribir los EJEMPLOS de entrenamiento. El primer modelo
+# entrenado (17 nov) copió muy bien la forma, pero también copió la manía
+# de añadir apartados de relleno ("¿Qué pasa si…?") con datos dudosos, y
+# en un modelo pequeño eso se convierte en inventarse cosas. Los ejemplos
+# tienen que enseñar a ser exacto y a parar a tiempo.
+REGLAS_DE_EJEMPLO = """
+
+ESTA RESPUESTA SE USA PARA ENSEÑAR A OTRO MODELO
+- Cada dato concreto (cifra, plazo, porcentaje, ley, fecha, nombre) solo si
+  estás COMPLETAMENTE seguro y es el vigente en España. Si dudas de un
+  dato, no lo pongas: explica dónde se comprueba.
+- Contesta lo que se pregunta y para. Nada de apartados de relleno del
+  tipo "¿Qué pasa si…?", "¿Cómo lo hago?" o "Consejos extra" salvo que
+  la pregunta lo pida o sean imprescindibles.
+- Una pregunta corta, respuesta corta: 2-6 líneas. Solo los encargos
+  (resúmenes, planes, reseñas, cartas, explicaciones para estudiar)
+  llevan estructura larga.
+- Nunca repitas un apartado ni una idea.
+"""
+
+
+def mostrar():
+    """Imprime todos los ejemplos guardados, numerados, para revisarlos
+    desde el registro de GitHub. No gasta cuota: no llama a Gemini."""
+    recuperar()
+    if not os.path.exists(SALIDA):
+        print("Todavía no hay ejemplos.")
+        return
+    filas = [json.loads(l) for l in open(SALIDA, encoding="utf-8") if l.strip()]
+    print(f"{len(filas)} ejemplos\n")
+    for i, f in enumerate(filas, 1):
+        m = f["messages"]
+        print(f"===== #{i} =====\nP: {m[1]['content']}\nR: {m[2]['content']}\n")
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "revisar":
+        return revisar()
+    if len(sys.argv) > 1 and sys.argv[1] == "mostrar":
+        return mostrar()
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    sistema = bajar("prompt_kairo.txt")
+    sistema = bajar("prompt_kairo.txt") + REGLAS_DE_EJEMPLO
     todas = preguntas()
     cliente = genai.Client(
-        api_key=userdata.get("GEMINI_API_KEY"),
-        http_options=types.HttpOptions(api_version="v1beta"),
+        api_key=secreto("GEMINI_API_KEY"),
+        # 90 s como mucho por respuesta. Sin esto, con Gemini saturado una
+        # sola pregunta se quedó colgada 50 minutos esperando.
+        http_options=types.HttpOptions(api_version="v1beta", timeout=90_000),
     )
     elegir_modelos(cliente)
 
@@ -190,12 +347,14 @@ def main():
             time.sleep(PAUSA)
         return
 
+    recuperar()
+    a_rehacer = rehacer()
     hechas = ya_hechas()
     pendientes = [p for p in todas if p not in hechas]
     print(f"{len(todas)} preguntas · {len(hechas)} ya hechas · faltan {len(pendientes)}")
     print(f"Tardará unos {round(len(pendientes) * (PAUSA + 4) / 60)} minutos.\n")
 
-    buenas = descartadas = 0
+    buenas = descartadas = seguidas_malas = 0
     modelo_i = 0
     with open(SALIDA, "a", encoding="utf-8") as f:
         for i, p in enumerate(pendientes, 1):
@@ -208,12 +367,24 @@ def main():
                         {"role": "assistant", "content": texto},
                     ]
                 }
+                if p in a_rehacer:
+                    fila["rehecha"] = True
                 f.write(json.dumps(fila, ensure_ascii=False) + "\n")
                 f.flush()
                 buenas += 1
+                seguidas_malas = 0
+                if buenas % 5 == 0:
+                    subir(callado=True)
             else:
                 descartadas += 1
+                seguidas_malas += 1
                 print(f"   · descartada: {p}")
+                # Cinco seguidas sin respuesta: no es la pregunta, es que la
+                # clave se ha quedado sin cuota por hoy. Se guarda y se para.
+                if seguidas_malas >= 5:
+                    print("\nCinco seguidas sin respuesta: la cuota de hoy está agotada.")
+                    print("Lo hecho queda guardado. Vuelve a lanzarlo mañana y sigue por aquí.")
+                    break
             if i % 10 == 0:
                 print(f"{i}/{len(pendientes)} · buenas {buenas} · descartadas {descartadas}")
             time.sleep(PAUSA)

@@ -109,7 +109,8 @@ export function fuentesDesdeJson(valor: unknown): Fuente[] {
   for (const f of valor) {
     if (!f || typeof f !== "object") continue;
     const o = f as Record<string, unknown>;
-    if (typeof o.url !== "string" || !o.url) continue;
+    // Solo enlaces web: un "javascript:" guardado se ejecutaría al pulsarlo.
+    if (typeof o.url !== "string" || !/^https?:\/\//i.test(o.url)) continue;
     salida.push({
       titulo: typeof o.titulo === "string" ? o.titulo : o.url,
       url: o.url,

@@ -1,6 +1,7 @@
 import { cadenaDe, ESFUERZO, MAX_SALIDA, RAZONAMIENTO } from "@/lib/ia/config";
 import { TONOS } from "@/lib/ia/prompt";
 import { arrancar, partir } from "@/lib/ia/proveedores";
+import { apartar, disponible } from "@/lib/ia/cuarentena";
 
 /** El código HTTP que traía el fallo, si lo traía. Solo el número: el
  *  mensaje entero no sale de aquí. */
@@ -175,9 +176,25 @@ export async function POST(request: Request) {
    * Dos de cada uno. Cuatro intentos son ya quince segundos de espera, y
    * quien está probando esto no ha prometido esperar nada.
    */
-  const conFiltro = cadenaDe("normal", null);
-  const sinFiltro = cadenaDe("normal", "adulto").filter((id) => !conFiltro.includes(id));
-  const cadena = [...conFiltro.slice(0, 2), ...sinFiltro.slice(0, 2)];
+  /* Y CON DEPÓSITOS DE CUOTA DISTINTOS (arreglo del 24-11).
+ 
+     Los "dos de cada uno" de antes eran dos Flash de la misma familia
+     —el alias y su modelo, que comparten cupo— y dos gratis de
+     OpenRouter, que comparten el tope de la cuenta. Del 20 al 24-11 los
+     cuatro devolvieron 429 cada mañana: un desconocido no recibía nada.
+     Ahora se prueban hasta seis, saltando de depósito: un Flash, un
+     Flash-Lite (otra cuota, y el que más cupo gratis tiene), otro Flash
+     de otra generación, y luego los de repuesto. Los que ya se sabe que
+     están agotados (cuarentena) ni se intentan, y un 429 tarda
+     milisegundos en volver, así que seis no son seis esperas. */
+  const conFiltro = [...cadenaDe("normal", null), ...cadenaDe("fast", null)];
+  const sinFiltro = cadenaDe("normal", "adulto").filter((id) => partir(id).proveedor !== "gemini");
+  const gemini = [conFiltro[0], conFiltro.find((id) => /lite/.test(id)), ...conFiltro.slice(1)]
+    .filter((id, i, l): id is string => Boolean(id) && l.indexOf(id) === i)
+    .filter(disponible);
+  const cadena = [...gemini.slice(0, 3), ...sinFiltro.filter(disponible).slice(0, 3)];
+  // Si la cuarentena lo ha tapado todo, se prueba igual lo primero.
+  if (!cadena.length) cadena.push(...[...conFiltro, ...sinFiltro].slice(0, 2));
   let texto = "";
 
   /* Qué le pasó a cada uno, para poder contarlo si fallan los tres.
@@ -235,6 +252,8 @@ export async function POST(request: Request) {
          los tres de la cadena fallan solo queda un "sin_cerebros" que
          no dice nada, y averiguar por qué cuesta una noche. */
       console.warn("[probar] %s no contestó: %s", id, String(fallo).slice(0, 300));
+      // Agotado o caído: el siguiente visitante no pierde tiempo con él.
+      apartar(id, fallo);
       intentos.push(`${partir(id).proveedor}:${codigoDe(fallo)}`);
     }
   }

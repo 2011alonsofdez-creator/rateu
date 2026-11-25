@@ -249,6 +249,7 @@ function Editor({
   onBorrada: (id: string) => void;
 }) {
   const { t, lang } = useUi();
+  const perfil = usePerfil();
   const [campos, setCampos] = useState(borrador);
   const [ocupado, setOcupado] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
@@ -279,6 +280,13 @@ function Editor({
               : r.motivo === "instrucciones"
                 ? "mente.errInstr"
                 : "mente.errSave",
+      /* RESUELTO EN LA FUSIÓN DEL 25-11: se queda el de la rama.
+ 
+         Las dos versiones hacen lo mismo —el tope del plan—, pero esta
+         componente ya recibe ese número como prop `tope`, calculado una vez
+         arriba en `topeMentes`. La de `main` repetía el `MENTES_POR_PLAN[...]`
+         aquí dentro, donde `perfil` ni está en el ámbito. Misma cifra, una
+         sola fuente. */
       ).replace("{n}", String(tope)),
     );
   };

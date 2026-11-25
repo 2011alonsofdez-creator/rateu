@@ -35,20 +35,68 @@ Pega esto en una celda y pulsa ▶:
 Te enseña 5 respuestas. Léelas: ¿contesta como Kairo? Si algo no te gusta,
 dímelo y se cambia el prompt antes de hacer las 220.
 
-## Paso 3 · Hacerlas todas (unos 40 minutos)
+## Paso 3 (recomendado) · Que lo haga GitHub, sin que se desconecte
 
-En una celda nueva:
+1. GitHub → el repositorio → Settings → Secrets and variables → Actions →
+   New repository secret: `GEMINI_API_KEY` y `HF_TOKEN` (los mismos valores
+   que en Colab).
+2. Pestaña Actions → "Generar ejemplos de Kairo" → Run workflow.
+
+Tarda entre 40 minutos y un par de horas (según lo saturado que esté
+Gemini) y no hace falta tener nada abierto. Si se para, se lanza otra vez y
+sigue por donde iba.
+
+## Paso 3 (alternativa) · Hacerlas todas en Colab (unos 40 minutos)
+
+En una celda nueva (si Colab dice "Volver a conectar", pulsa ahí primero):
 
 ```
+!pip -q install -U google-genai huggingface_hub
+!wget -q -O generar_ejemplos.py "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento/generar_ejemplos.py?v=4"
 %run generar_ejemplos.py
 ```
 
-Si se corta (Colab se duerme, se acaba la cuota…), vuelve a pulsar ▶: sigue
-por donde iba. Al acabar lo sube solo a
-`huggingface.co/datasets/alonsofg29/kairo-ejemplos`.
+Cada 5 ejemplos se guardan en tu Hugging Face. Si Colab se desconecta (lo
+hace solo si no lo usas un rato y borra sus archivos), vuelve a lanzar la
+misma celda: recupera lo hecho y sigue.
 
 ## Paso 4 · Revisarlas
 
-En esa página de Hugging Face sale una tabla con todas. Lee una buena parte:
-si una respuesta está mal o tiene un dato inventado, apúntala y se quita.
+```
+%run generar_ejemplos.py revisar
+```
+
+Descarga `revisar.csv`. Ábrelo con Google Sheets y pon una X en la columna
+"quitar" de las que estén mal o tengan algo inventado.
 **Los ejemplos malos enseñan cosas malas.** Es la parte más importante.
+
+## Entrenar (cuando los ejemplos estén revisados)
+
+En un cuaderno NUEVO de Colab:
+
+1. Entorno de ejecución → Cambiar tipo de entorno de ejecución → **T4 GPU** → Guardar.
+2. La llave de la izquierda: el secreto `HF_TOKEN` con "Acceso al cuaderno" activado.
+3. Primera celda (instala, unos 3 minutos):
+
+```
+!pip -q install unsloth
+!wget -q -O entrenar.py "https://raw.githubusercontent.com/2011alonsofdez-creator/rateu/main/entrenamiento/entrenar.py?v=1"
+```
+
+4. Examen ANTES de entrenar (apunta qué tal lo hace):
+
+```
+%run entrenar.py examen
+```
+
+5. Entrenar (20-40 minutos; sube el resultado a `alonsofg29/Kairo`):
+
+```
+%run entrenar.py
+```
+
+6. Examen DESPUÉS, para comparar:
+
+```
+%run entrenar.py examen-kairo
+```

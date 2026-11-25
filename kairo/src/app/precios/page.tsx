@@ -25,6 +25,17 @@ import { CREDITOS_PLAN } from "@/lib/planes";
  * ninguna otra página: un precio viejo en el resultado de búsqueda es una
  * promesa que la página de al lado desmiente. */
 
+/* RESUELTO EN LA FUSIÓN DEL 25-11: aquí se quedan los metadatos, no la FAQ.
+ 
+   Conflicto de estructura, no de contenido. El 05-11 esta página se partió en
+   dos —`page.tsx` de servidor con los metadatos, `contenido.tsx` de cliente con
+   el texto— porque Next no deja exportar `metadata` desde un componente de
+   cliente. En `main` la FAQ sigue viviendo en este archivo, así que git la pegó
+   aquí como "lo suyo".
+ 
+   Su pregunta nueva de anoche —la de entrenar modelos, que cierra un P1 de
+   diecinueve días— NO se pierde: se ha llevado a `contenido.tsx`, que es donde
+   esta rama pinta la FAQ. Comprobado renderizando la página después. */
 const PLUS = plans.find((p) => p.id === "plus");
 const SUPREME = plans.find((p) => p.id === "supreme");
 

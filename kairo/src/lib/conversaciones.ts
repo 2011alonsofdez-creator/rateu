@@ -2,6 +2,7 @@ import { clienteServidor } from "./supabase/server";
 import { hasSupabase } from "./supabase/config";
 import { busquedasDesdeJson, fuentesDesdeJson } from "./ia/grounding";
 import { faltaColumna } from "./supabase/compat";
+import { pareceCrudo, tituloChat } from "./titulo-chat";
 import type { Conversacion, MensajeGuardado } from "./tipos";
 
 /* Lectura del historial. Solo servidor: usa cookies.
@@ -56,7 +57,42 @@ export async function listarConversaciones(): Promise<Conversacion[]> {
 
     if (error || !data) return [];
 
-    return (data as unknown as Record<string, unknown>[]).map((c) => ({
+    /* LOS CHATS VIEJOS: los que aún tienen de título la pregunta en
+       bruto se resumen aquí y se guardan, una sola vez (ya resumidos, no
+       vuelven a parecer en bruto). Si guardar falla, se enseña igual. */
+    const filas = data as unknown as Record<string, unknown>[];
+    const crudas = filas.filter((c) => pareceCrudo((c.titulo as string) || ""));
+    if (crudas.length) {
+      /* El título viejo está cortado ("Hazme una app web d…"): se resume
+         mejor desde tu primer mensaje entero. */
+      /* Uno por chat: pedirlos todos juntos con un límite dejaba fuera
+         los de los chats largos (sus 400 mensajes llenaban el cupo). */
+      const primero = new Map<string, string>();
+      await Promise.all(
+        crudas.map(async (c) => {
+          const { data: m } = await supabase
+            .from("mensajes")
+            .select("contenido")
+            .eq("conversacion_id", c.id as string)
+            .eq("rol", "user")
+            .order("creado_el", { ascending: true })
+            .limit(1)
+            .maybeSingle<{ contenido: string }>();
+          if (m?.contenido) primero.set(c.id as string, m.contenido);
+        }),
+      );
+      await Promise.all(
+        crudas.map(async (c) => {
+          const base = primero.get(c.id as string) || ((c.titulo as string) ?? "").replace(/(…|\.\.\.)$/, "");
+          const nuevo = [...tituloChat(base)].slice(0, 60).join("");
+          if (pareceCrudo(nuevo)) return; // no ha salido mejor: se deja
+          c.titulo = nuevo;
+          await supabase.from("conversaciones").update({ titulo: nuevo }).eq("id", c.id as string);
+        }),
+      );
+    }
+
+    return filas.map((c) => ({
       id: c.id as string,
       titulo: (c.titulo as string) || "",
       menteId: (c.mente_id as string | null) ?? null,
@@ -98,7 +134,10 @@ export async function leerConversacion(
         .from("mensajes")
         .select(columnas)
         .eq("conversacion_id", id)
-        .order("creado_el", { ascending: true })
+        /* Los 400 ÚLTIMOS, no los 400 primeros: en un chat largo se
+           perdían justo los mensajes nuevos. Se piden al revés y se les
+           da la vuelta abajo. */
+        .order("creado_el", { ascending: false })
         .limit(400);
 
     const BASE = "id, rol, contenido, modelo_usado, nivel, creditos_gastados";
@@ -125,7 +164,7 @@ export async function leerConversacion(
         menteId: (c.mente_id as string | null) ?? null,
         actualizadaEl: (c.actualizada_el ?? c.creada_el) as string,
       },
-      mensajes: ((filas ?? []) as unknown as Record<string, unknown>[]).map((m) => ({
+      mensajes: ((filas ?? []) as unknown as Record<string, unknown>[]).reverse().map((m) => ({
         id: m.id as string,
         rol: m.rol as "user" | "kairo",
         contenido: (m.contenido as string) || "",

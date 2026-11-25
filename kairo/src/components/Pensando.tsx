@@ -11,9 +11,23 @@ import { IconoNivel } from "./IconoNivel";
    es el recordatorio constante de por qué Kairo no es un chat más. */
 
 const FASES: Record<Level, TKey[]> = {
-  fast: ["pensar.pensando"],
-  normal: ["pensar.leyendo", "pensar.pensando", "pensar.redactando"],
-  forja: ["pensar.analizando", "pensar.forjando", "pensar.verificando", "pensar.redactando"],
+  fast: ["pensar.pensando", "pensar.ordenando", "pensar.redactando"],
+  normal: [
+    "pensar.leyendo",
+    "pensar.entendiendo",
+    "pensar.pensando",
+    "pensar.ordenando",
+    "pensar.redactando",
+    "pensar.repasando",
+  ],
+  forja: [
+    "pensar.analizando",
+    "pensar.atando",
+    "pensar.forjando",
+    "pensar.verificando",
+    "pensar.redactando",
+    "pensar.repasando",
+  ],
   /* MEGA no adivina por dónde va: el servidor lo dice (`paso`), porque
      es el único que sabe si está esperando a los modelos o juntando lo
      que han escrito. Esto es solo el primer segundo, hasta que llega el
@@ -24,6 +38,19 @@ const FASES: Record<Level, TKey[]> = {
 /* Lo que se enseña en cada paso del Mega-Prompt. Comparar y combinar es
    una sola espera —la del modelo que escribe la respuesta final—, así
    que van juntos y se van pasando solos. */
+/* Buscando en internet: lo que de verdad pasa, en orden. */
+const BUSCANDO: TKey[] = [
+  "pensar.buscando",
+  "pensar.periodicos",
+  "pensar.leyendoFuentes",
+  "pensar.contrastando",
+  "pensar.comprobandoDatos",
+];
+
+/* Cuando la espera se alarga y ya no quedan fases, en vez de quedarse
+   clavado en la última frase (parece colgado), van rotando estas. */
+const ESPERA_LARGA: TKey[] = ["pensar.unaVuelta", "pensar.afinando", "pensar.casi"];
+
 const PASOS: Record<"consultando" | "comparando", TKey[]> = {
   consultando: ["pensar.consultando"],
   comparando: ["pensar.comparando", "pensar.combinando"],
@@ -219,7 +246,7 @@ export function Pensando({
   const fases = fasesPropias
     ? fasesPropias
     : buscando
-      ? (["pensar.buscando"] as TKey[])
+      ? BUSCANDO
       : paso
         ? PASOS[paso]
         : FASES[nivel];
@@ -233,16 +260,25 @@ export function Pensando({
      sin parar, volviendo a poner `i` a cero, y la frase no pasaría de la
      primera nunca. */
   const clave = fases.join("|");
+  /* Las propias de quien llama (Code) no se alargan con frases de
+     responder: "ya casi está" en una app a medias sería mentir. */
+  const largas = !fasesPropias;
   useEffect(() => {
     setI(0);
-    const lista = clave.split("|");
-    if (lista.length < 2) return;
+    const total = clave.split("|").length + (largas ? ESPERA_LARGA.length : 0);
+    if (total < 2) return;
     const id = window.setInterval(
-      () => setI((v) => (v + 1 < lista.length ? v + 1 : v)),
-      1900,
+      () =>
+        setI((v) => {
+          if (v + 1 < total) return v + 1;
+          // Ya ha pasado por todas: rota entre las de espera larga.
+          return largas ? total - ESPERA_LARGA.length : v;
+        }),
+      2200,
     );
     return () => window.clearInterval(id);
-  }, [clave]);
+  }, [clave, largas]);
+  const todas = largas ? [...fases, ...ESPERA_LARGA] : fases;
 
   return (
     <div className="flex gap-3">
@@ -254,7 +290,7 @@ export function Pensando({
 
       <div className={puntos ? "flex min-h-8 flex-col justify-center" : "pt-1"}>
         <span className="texto-brillo text-[15px] font-medium">
-          {t(fases[i])}…
+          {t(todas[Math.min(i, todas.length - 1)])}…
         </span>
 
         {(modelo || elegido) && (

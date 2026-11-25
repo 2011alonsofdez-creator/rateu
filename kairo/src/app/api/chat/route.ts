@@ -21,15 +21,18 @@ import {
   partir,
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
-import { esDeAhora } from "@/lib/ia/ahora";
+import { decidirBusqueda } from "@/lib/ia/decidir-busqueda";
 import { hayQueBuscar, modoValido } from "@/lib/buscar-modo";
 import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memoria";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { correrMega } from "@/lib/ia/mega";
+import { tamanoFusion } from "@/lib/ia/fusion";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
+import { apartar, disponible } from "@/lib/ia/cuarentena";
 import { construirPrompt } from "@/lib/ia/prompt";
 import { tituloDesde } from "@/lib/conversaciones";
+import { tituloChat } from "@/lib/titulo-chat";
 import { recortar } from "@/lib/texto";
 import { faltaColumna } from "@/lib/supabase/compat";
 import type { Level } from "@/lib/mock";
@@ -88,49 +91,8 @@ function permitePeticion(id: string, max = 20, ventanaMs = 60_000) {
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/* Cuarentena de modelos. Si uno falla por algo que no se arregla solo
-   (no tienes acceso, no existe, cuota agotada), no tiene sentido volver a
-   pedírselo en cada mensaje: se aparta un rato y se pasa al siguiente.
-   Vive en memoria, así que cada instancia aprende por su cuenta. */
-const enfriando = new Map<string, number>();
-const disponible = (m: string) => (enfriando.get(m) ?? 0) < Date.now();
-const enfriar = (m: string, ms: number) => enfriando.set(m, Date.now() + ms);
-
-/* Aparta un modelo que acaba de fallar, el tiempo que toque según por qué.
- *
- * Cada fallo dura lo suyo, y apartar un modelo más tiempo del necesario es
- * tan malo como no apartarlo: en la capa gratuita cada intento que se tira
- * a la basura es cuota que te comes.
- *
- * Devuelve si además hay que descartarlo para el RESTO de esta petición:
- * un saturado vuelve a estar libre en segundos y merece otra vuelta, pero
- * al que se le ha acabado la cuota del minuto ya no se le pregunta más. */
-function apartar(modelo: string, fallo: unknown): boolean {
-  switch (clasificarError(fallo)) {
-    case "sobrecargado":
-      enfriar(modelo, 30_000);
-      return false;
-    case "cuota_minuto":
-      // El límite por minuto se pasa solo; dentro de esta petición ya no.
-      enfriar(modelo, 70_000);
-      return true;
-    case "cuota_dia":
-      // Hasta mañana. Seguir preguntándole es tirar peticiones.
-      enfriar(modelo, 60 * 60_000);
-      return true;
-    case "modelo_no_sirve":
-    case "modelo_vetado":
-      /* Este no vuelve. No es que esté ocupado: es que a una web no se
-         le sirve, y mañana tampoco. Apartarlo diez minutos sería gastar
-         una petición cada diez minutos en algo que no puede salir. */
-      enfriar(modelo, 24 * 60 * 60_000);
-      return true;
-    default:
-      // No existe, no tienes acceso o lo han retirado.
-      enfriar(modelo, 10 * 60_000);
-      return true;
-  }
-}
+/* La cuarentena de modelos (disponible, apartar) vive en lib/ia/cuarentena.ts:
+   la comparte con la búsqueda, que gasta la misma cuota. */
 
 /* ¿Está puesta la migración 0007, la que añade las columnas de las
    fuentes? Se averigua a la primera y no se vuelve a preguntar. Sin
@@ -201,7 +163,8 @@ async function abrirConversacion(
     }
   }
 
-  const titulo = tituloDesde(textoUsuario);
+  // El título, resumido con reglas (sin IA): "q es el token d fornite" → "Token de Fortnite".
+  const titulo = recortar(tituloChat(textoUsuario), 60) || tituloDesde(textoUsuario);
   const { data, error } = await supabase
     .from("conversaciones")
     .insert({ perfil_id: perfilId, titulo, mente_id: menteId })
@@ -539,7 +502,12 @@ export async function POST(req: Request) {
       /* Se abre la conversación a la vez que se llama al modelo, no antes.
          Así guardar el historial no añade ni un milisegundo de espera:
          mientras la base de datos escribe, el modelo ya está pensando. */
-      const abriendo = abrirConversacion(
+      /* Lo que pide Code no es una conversación: va a su propio historial
+         ("Tus apps"). Guardarlo aquí llenaba la lista de chats de
+         "Hazme una app web de…" y "Estabas escribiendo un…". */
+      const abriendo = cuerpo?.para === "code"
+        ? Promise.resolve(null)
+        : abrirConversacion(
         supabase,
         perfil.id,
         conversacionPedida,
@@ -582,14 +550,20 @@ export async function POST(req: Request) {
            falla el único que lo sabe es quien ha escrito la pregunta:
            por eso "siempre" manda sobre todo lo demás, archivos
            incluidos, y "nunca" también. */
-        if (hayQueBuscar(modoBusqueda, esDeAhora(ultima), conArchivos)) {
-          enviar({ t: "buscando" });
+        // De qué venían hablando, para que "¿y el horario?" se entienda.
+        const contexto = historial
+          .slice(-3, -1)
+          .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
+          .join("\n");
 
-          // De qué venían hablando, para que "¿y el horario?" se entienda.
-          const contexto = historial
-            .slice(-3, -1)
-            .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
-            .join("\n");
+        /* ¿Buscar en fuentes o pensarlo? Reglas primero (al instante) y,
+           si no está claro, un modelo rápido (máx. 1,5 s). Ni se pregunta
+           si Code ha dicho "nunca" o hay archivos delante. */
+        const pinta =
+          modoBusqueda === "nunca" || conArchivos ? false : await decidirBusqueda(ultima, contexto);
+
+        if (hayQueBuscar(modoBusqueda, pinta, conArchivos)) {
+          enviar({ t: "buscando" });
 
           /* El diario no es para depurar: es para poder DECIR por qué no
              se ha buscado. Sin él, "no he podido comprobarlo" y "no hay
@@ -671,7 +645,11 @@ export async function POST(req: Request) {
          * —incluida la de combinarlas, que la escribe alguno de los que sí
          * contestaron—. Solo si no contesta NINGUNO se lanza el fallo, y
          * entonces lo recoge el catch de abajo como cualquier otro. */
-        if (nivel === "mega") {
+        /* La fusión por modos (ver fusion.ts): Normal y Forja también
+           pueden juntar a 2 o 3 modelos. Apagada hasta que se encienda
+           en Vercel; MEGA va siempre. */
+        const fusion = nivel === "mega" ? 3 : tamanoFusion(nivel, perfil.plan);
+        if (fusion >= 2) {
           conversacion = await abriendo;
           avisarConversacion();
 
@@ -698,9 +676,11 @@ export async function POST(req: Request) {
                modelo sin cuota tiene que quedarse fuera del equipo en el
                mensaje siguiente en vez de llevarse un sitio otra vez. */
             alFallar: apartar,
+            tamano: fusion,
+            profundo: nivel !== "normal",
           })) {
             if (paso.t === "equipo") {
-              etiqueta = `Mega · ${paso.modelos.join(" + ")}`;
+              etiqueta = `${nivel === "mega" ? "Mega" : "Fusión"} · ${paso.modelos.join(" + ")}`;
               enviar({
                 t: "meta",
                 modelo: etiqueta,

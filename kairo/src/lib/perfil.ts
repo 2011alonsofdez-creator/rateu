@@ -64,7 +64,23 @@ export async function obtenerPerfil(): Promise<Perfil | null> {
   // está, devolvemos null y la app manda a completar el registro.
   if (!data) return null;
 
+  /* La marca de "sin límite" va en una consulta aparte y sin romper nada
+     si falla: si la migración 0025 no está pegada, la columna no existe,
+     y meterla en la consulta de arriba dejaría a todo el mundo fuera. */
+  let ilimitado = false;
+  try {
+    const { data: marca } = await supabase
+      .from("perfiles")
+      .select("ilimitado")
+      .eq("id", data.id)
+      .maybeSingle<{ ilimitado: boolean | null }>();
+    ilimitado = Boolean(marca?.ilimitado);
+  } catch {
+    /* sin la columna: cuenta normal */
+  }
+
   return {
+    ilimitado,
     id: data.id,
     nombre: data.nombre || data.email?.split("@")[0] || "",
     email: data.email || "",

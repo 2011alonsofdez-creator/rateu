@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { apartar, disponible } from "./cuarentena";
 import Anthropic from "@anthropic-ai/sdk";
 import { ajustesSeguridad } from "./seguridad";
 import { recolectorDeFuentes } from "./grounding";
@@ -9,6 +10,7 @@ import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
 import { comoFuentes as noticiasComoFuentes, comoHechos as noticiasComoHechos, consultaDe, noticiasDe } from "./noticias";
 import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
+import { buscarYLeer, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -100,8 +102,154 @@ const conPlazo = <T>(promesa: Promise<T>, ms: number): Promise<T | null> => {
   });
 };
 
-/** Busca en internet lo que haga falta para contestar la pregunta. */
+/** Busca en internet lo que haga falta para contestar la pregunta.
+ *
+ *  Dos búsquedas A LA VEZ: la de siempre (Gemini con Google, o el
+ *  repuesto) y las fuentes libres (Google Noticias y Wikipedia, que no
+ *  gastan cuota). Si la primera encuentra, las libres suman titulares y
+ *  fuentes; si no encuentra o no hay cuota, las libres son la respuesta
+ *  en vez de "no puedo confirmarlo". */
 export async function buscarHechos(
+  pregunta: string,
+  contexto: string,
+  modoEdad: ModoEdad | null,
+  diario?: Diario,
+): Promise<Hallazgo | null> {
+  const hoy = new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  /* Wikipedia solo para "quién es / qué es" o cuando se nombra algo con
+     mayúscula: para "huelga ferroviaria" traería un artículo genérico. */
+  const conWiki =
+    /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a)/i.test(pregunta) ||
+    /\s\p{Lu}\p{L}{2,}/u.test(pregunta);
+
+  /* PREGUNTAS DE SEGUIMIENTO. "el youtuber", "¿y la fecha?", "pero se le
+     conoce por el fifa, no?": buscadas solas traen cualquier cosa (con
+     la última salieron un club de fútbol, la selección de México y
+     Beckham en vez de DjMario). Si la pregunta es corta o se refiere a
+     algo de antes ("le", "eso", "su", "pero…", "y…"), se busca junto
+     con lo último que preguntó la persona, que es de quién o de qué va. */
+  const anterior = [...contexto.matchAll(/^Persona: (.*)$/gm)].pop()?.[1] ?? "";
+  const seguimiento = Boolean(anterior) && esSeguimiento(pregunta);
+  const consulta = seguimiento ? `${anterior.slice(0, 120)} ${pregunta}` : pregunta;
+  const corta = pregunta.trim().split(/\s+/).length <= 4;
+  // De qué tienen que hablar las fuentes para valer: del tema de antes si
+  // es un seguimiento, si no de la propia pregunta.
+  const clave = palabrasClave(seguimiento ? anterior : pregunta);
+
+  const antes = Date.now();
+  const quiereWiki = conWiki || corta || seguimiento;
+  const libres = Promise.all([
+    noticiasDe(consulta, 5000).catch(() => []),
+    /* Wikipedia en español y, si no tiene nada, en inglés: de muchos
+       youtubers, juegos y productos solo hay artículo en inglés. */
+    quiereWiki
+      ? articulosDe(consulta, "es", 5000)
+          .catch(() => [])
+          .then(async (es) =>
+            es.some((a) => habla(`${a.titulo} ${a.extracto}`, clave))
+              ? es
+              : [...es, ...(await articulosDe(consulta, "en", 4000).catch(() => []))],
+          )
+      : Promise.resolve([]),
+    // Buscadores web con clave (Tavily/Brave) + leer las mejores páginas.
+    hayBuscadorLibre() ? buscarYLeer(consulta, clave, 9000).catch(() => []) : Promise.resolve([]),
+  ]);
+  const principal = await buscarConModelos(consulta, contexto, modoEdad, diario);
+  const [todasNoticias, todosArticulos, todasWeb] = await libres;
+  /* Sin buscador con clave, al menos se LEEN las 2 primeras páginas que
+     ha encontrado el buscador principal (3 s como mucho): un fragmento
+     dice que hay algo; el párrafo dice qué. */
+  const webs = todasWeb.length
+    ? todasWeb
+    : principal?.busco && principal.fuentes.length
+      ? await buscarYLeer(consulta, clave, 3000, principal.fuentes.filter((f) => f.tipo === "web").map((f) => f.url).slice(0, 2)).catch(() => [])
+      : [];
+  const web = webs.filter((w) => w.leida || habla(`${w.titulo} ${w.texto}`, clave));
+  /* Fuera lo que no habla de lo que se pregunta: un artículo de Beckham
+     no responde nada sobre DjMario, y si llega al prompt el modelo saca
+     conclusiones de él ("no aparece por FIFA"). */
+  const noticias = todasNoticias.filter((n) => habla(n.titular, clave));
+  const articulos = todosArticulos.filter((a) => habla(`${a.titulo} ${a.extracto}`, clave));
+  if (diario) {
+    diario.intentos.push({
+      modelo: "noticias+wikipedia (en paralelo)",
+      ms: Date.now() - antes,
+      resultado: `${noticias.length} titular(es), ${articulos.length} artículo(s), ${web.length} página(s) web (${web.filter((w) => w.leida).length} leída(s))`,
+    });
+  }
+  if (!noticias.length && !articulos.length && !web.length) return principal;
+
+  const extra = [
+    web.length ? webComoHechos(web, hoy) : "",
+    noticias.length ? noticiasComoHechos(noticias, hoy) : "",
+    articulos.length ? comoHechos(articulos) : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const masFuentes = [...webComoFuentes(web.filter((w) => !w.leida || !principal?.fuentes.some((f) => f.url === w.url))), ...noticiasComoFuentes(noticias), ...comoFuentes(articulos)];
+
+  if (principal?.busco && principal.hechos.trim()) {
+    const vistas = new Set(principal.fuentes.map((f) => f.url));
+    return {
+      ...principal,
+      hechos: `${principal.hechos.trim()}\n\nAdemás, de otras fuentes:\n${extra}`,
+      fuentes: [...principal.fuentes, ...masFuentes.filter((f) => !vistas.has(f.url))].slice(0, 16),
+    };
+  }
+  /* El buscador principal no ha encontrado nada o no ha podido (sin
+     cuota): lo de los periódicos es la respuesta, en vez de "no puedo
+     confirmarlo" con todo publicado. */
+  return {
+    hechos: extra,
+    fuentes: masFuentes,
+    busquedas: principal?.busquedas?.length ? principal.busquedas : [consultaDe(pregunta)],
+    modelo: principal?.busco ? principal.modelo : "google-noticias",
+    busco: true,
+  };
+}
+
+const VACIAS_CLAVE = new Set(
+  "pero porque para como cuando donde quien quienes cual cuales sobre desde hasta entre tiene tienen tenia esta estan este esto eso esos esas aquel mucho muchos poco mayormente conoce conocen conocido sabes dime cuentame verdad entonces tambien solo muy mas menos todo todos nada algo alguien".split(" "),
+);
+
+/** Las palabras que dicen de qué va algo: 4+ letras, sin las vacías. */
+function palabrasClave(texto: string): string[] {
+  return [
+    ...new Set(
+      texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .split(/[^a-z0-9ñ]+/)
+        .filter((w) => w.length >= 4 && !VACIAS_CLAVE.has(w)),
+    ),
+  ];
+}
+
+/** ¿Habla este texto de alguna de las palabras clave? Sin claves, sí. */
+function habla(texto: string, clave: string[]): boolean {
+  if (!clave.length) return true;
+  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return clave.some((w) => t.includes(w));
+}
+
+/** ¿Es una pregunta que se apoya en lo anterior? */
+function esSeguimiento(pregunta: string): boolean {
+  const t = pregunta.trim().toLowerCase();
+  if (t.split(/\s+/).length <= 4) return true;
+  if (/^(y|pero|entonces|vale|ok|osea|o sea)\b/.test(t)) return true;
+  // Pronombres y "su": se refieren a alguien o algo de antes. Sin los
+  // artículos (el, la…), que salen en cualquier frase.
+  return /(^|[^a-zñ])(le|les|lo|él|ella|ellos|ellas|eso|esto|ese|esa|aquel|aquello|su|sus)([^a-zñ]|$)/.test(t);
+}
+
+async function buscarConModelos(
   pregunta: string,
   contexto: string,
   modoEdad: ModoEdad | null,
@@ -170,10 +318,21 @@ export async function buscarHechos(
    * entonces Kairo contesta de memoria.
    *
    * Ocho intentos fallidos son poco más de un segundo. Vale la pena. */
-  const modelos = cadenaDe("normal", modoEdad)
+  /* Los que están en cuarentena —agotados hace un rato, en esta búsqueda
+     o en el chat, que gasta la misma cuota— se saltan. Sin esto cada
+     búsqueda volvía a preguntar a los diez, con las tres claves, para
+     enterarse otra vez de que no hay cuota. */
+  const todos = cadenaDe("normal", modoEdad)
     .filter((id) => partir(id).proveedor === "gemini")
-    .map((id) => partir(id).modelo)
-    .slice(0, 8);
+    .map((id) => partir(id).modelo);
+  const modelos = todos.filter(disponible).slice(0, 8);
+  if (diario && todos.length > modelos.length) {
+    diario.intentos.push({
+      modelo: "cuarentena",
+      ms: 0,
+      resultado: `${todos.length - modelos.length} modelo(s) saltados: sin cuota hace un rato`,
+    });
+  }
 
   if (diario) diario.modelos = [...modelos];
 
@@ -388,6 +547,8 @@ export async function buscarHechos(
         busco: true,
       };
     } catch (e) {
+      // Que la próxima búsqueda (y el chat) no lo vuelva a intentar en balde.
+      apartar(modelo, e);
       /* Se prueba con el siguiente modelo de la cadena. El fallo se
          apunta si alguien está mirando: un identificador de modelo que
          ya no existe, o una cuenta sin buscador, fallan aquí los tres y

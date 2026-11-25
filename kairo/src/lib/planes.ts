@@ -105,6 +105,9 @@ export type Perfil = {
   renuevaEl: string | null;
   /** true cuando no hay Supabase configurado y son datos de ejemplo. */
   demo: boolean;
+  /** Cuenta sin límite de créditos (la del creador). Se marca solo desde
+   *  Supabase: ver la migración 0025. */
+  ilimitado?: boolean;
 };
 
 /** Qué niveles del selector ⚡ puede usar cada plan. */

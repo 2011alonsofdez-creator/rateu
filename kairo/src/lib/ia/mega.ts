@@ -68,6 +68,11 @@ export type OpcionesMega = {
    * esto, un modelo con la cuota del día agotada se lleva un sitio del
    * equipo en CADA mensaje y el usuario nunca sabe por qué. */
   alFallar?: (id: string, error: unknown) => void;
+  /** Cuántos modelos en el equipo. MEGA usa 3; la fusión de Normal, 2. */
+  tamano?: number;
+  /** false en la fusión de Normal: el que junta piensa poco, para que no
+   *  tarde como un MEGA. Por defecto, a fondo. */
+  profundo?: boolean;
 };
 
 /* Lo que se le dice al que combina. Va pegado al prompt de siempre, así
@@ -256,7 +261,7 @@ function unir(respuestas: Respuesta[]) {
 
 /** Lanza el Mega-Prompt y va soltando lo que pasa. */
 export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
-  const equipo = elegirEquipo(op.cadena);
+  const equipo = elegirEquipo(op.cadena, op.tamano ?? 3);
   if (!equipo.length) throw new Error("mega: no hay ningún modelo disponible");
 
   const maxSalida = op.maxSalida ?? 16000;
@@ -428,9 +433,9 @@ export async function* correrMega(op: OpcionesMega): AsyncGenerator<PasoMega> {
         sistema: op.prompt(juez) + COMBINAR,
         mensajes: conversacion,
         maxSalida,
-        esfuerzo: "maximo",
+        esfuerzo: op.profundo === false ? "medio" : "maximo",
         modoEdad: op.modoEdad,
-        pensar: 16384,
+        pensar: op.profundo === false ? 2048 : 16384,
       });
     } catch (e) {
       op.alFallar?.(juez, e);
@@ -495,9 +500,9 @@ async function* soloUno(
     sistema: op.prompt(id),
     mensajes: op.mensajes,
     maxSalida,
-    esfuerzo: "maximo",
+    esfuerzo: op.profundo === false ? "medio" : "maximo",
     modoEdad: op.modoEdad,
-    pensar: 24576,
+    pensar: op.profundo === false ? -1 : 24576,
   });
 
   yield* soltar(arranque, plazo);

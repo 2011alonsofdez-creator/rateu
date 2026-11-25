@@ -293,6 +293,17 @@ async function contestaSupabase() {
 }
 
 export async function GET() {
+  /* Preguntar a los proveedores qué modelos hay, solo con sesión. Abierto
+     a cualquiera, se podía machacar esta página para gastar los límites
+     de las claves. Sin sesión se enseña lo demás (Supabase, migraciones),
+     que es lo que hace falta para diagnosticar un "no puedo entrar". */
+  let conSesion = !hasSupabase;
+  if (hasSupabase) {
+    const sesion = await clienteServidor().catch(() => null);
+    const { data } = sesion ? await sesion.auth.getUser() : { data: { user: null } };
+    conSesion = Boolean(data.user);
+  }
+
   const crudaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const crudaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
   const claves = {
@@ -310,18 +321,41 @@ export async function GET() {
   }
 
   // Los tres a la vez: si uno tarda, no retrasa a los demás.
+  /* RESUELTO EN LA FUSIÓN DEL 25-11, Y SE QUEDAN LAS DOS COSAS.
+ 
+     Choque de verdad: la rama añadió el 31-10 la consulta de precios del
+     respaldo ("el respaldo, vigilado en euros y no en fe", commit 280b183) y
+     él reescribió este mismo bloque el 16-11 en su revisión de seguridad,
+     poniendo todas las consultas al proveedor detrás de `conSesion` —porque
+     abierto a cualquiera se podía machacar la página para gastar los límites
+     de las claves—. Su versión no trae los precios.
+ 
+     Se conserva su cierre Y la consulta de precios, **gateada igual**. Para
+     quien llega sin sesión el resultado es idéntico a `main`: no se pregunta
+     nada y `precios` llega `null`. Para quien tiene sesión, vuelve el dato
+     que la rama quería. No se afloja nada: el motivo por el que él cerró
+     estas llamadas aplica igual a los precios, así que gatearlos es seguir su
+     criterio, no esquivarlo.
+ 
+     Si prefiere que los precios desaparezcan del todo, como en su versión,
+     se quitan estas cuatro líneas y la función `preciosDeLosMios`. Está
+     pedido en el parte de hoy en una línea. */
   const [gem, cla, gpt, ext, claveOk, precios, migra, salud] = await Promise.all([
-    claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
-    claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
-    claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
-    claves.extra && EXTRA_URL()
+    conSesion && claves.gemini ? modelosDeGemini(claves.gemini).catch(corto) : null,
+    conSesion && claves.claude ? modelosDeClaude(claves.claude).catch(corto) : null,
+    conSesion && claves.gpt ? modelosDeGpt(claves.gpt).catch(corto) : null,
+    conSesion && claves.extra && EXTRA_URL()
       ? modelosDelExtra(claves.extra, EXTRA_URL()).catch(corto)
       : null,
-    pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const),
-    preciosDeLosMios(
-      EXTRA_URL(),
-      modelosExtra().map((m) => m.replace(/^extra:/, "")),
-    ).catch(() => null),
+    conSesion
+      ? pruebaLaClaveExtra(claveExtra(), EXTRA_URL()).catch(() => "no_comprobable" as const)
+      : ("no_comprobable" as const),
+    conSesion
+      ? preciosDeLosMios(
+          EXTRA_URL(),
+          modelosExtra().map((m) => m.replace(/^extra:/, "")),
+        ).catch(() => null)
+      : null,
     migraciones().catch((e) => ({ estado: corto(e) })),
     contestaSupabase().catch((e) => ({ probado: true, responde: false, detalle: corto(e) })),
   ]);

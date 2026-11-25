@@ -122,14 +122,56 @@ export function prepararVoces() {
  *      instaladas en el aparato).
  *   3. La que haya, antes que no leer.
  */
-export function mejorVoz(idioma: "es" | "en"): SpeechSynthesisVoice | null {
+/* LA VOZ QUE HAS ELEGIDO TÚ (Ajustes → Voz para leer).
+   Se guarda en este navegador: las voces son del aparato, y la que hay
+   en tu móvil no tiene por qué existir en tu ordenador. */
+const claveVoz = (idioma: "es" | "en") => `kairo-voz-${idioma}`;
+
+export function vozElegida(idioma: "es" | "en"): string | null {
+  try {
+    return localStorage.getItem(claveVoz(idioma));
+  } catch {
+    return null;
+  }
+}
+
+export function elegirVoz(idioma: "es" | "en", nombre: string | null) {
+  try {
+    if (nombre) localStorage.setItem(claveVoz(idioma), nombre);
+    else localStorage.removeItem(claveVoz(idioma));
+  } catch {
+    /* sin almacenamiento: se usará la automática */
+  }
+}
+
+/** Las voces de este navegador para un idioma, para elegir en Ajustes. */
+export function vocesDe(idioma: "es" | "en"): SpeechSynthesisVoice[] {
   if (!vocesGuardadas.length && hayVozParaLeer()) {
     vocesGuardadas = window.speechSynthesis.getVoices();
   }
-
   const prefijo = idioma === "es" ? "es" : "en";
-  const delIdioma = vocesGuardadas.filter((v) => v.lang?.toLowerCase().startsWith(prefijo));
+  return vocesGuardadas.filter((v) => v.lang?.toLowerCase().startsWith(prefijo));
+}
+
+export function mejorVoz(idioma: "es" | "en"): SpeechSynthesisVoice | null {
+  const delIdioma = vocesDe(idioma);
   if (!delIdioma.length) return null;
+
+  const elegida = vozElegida(idioma);
+  const tuya = elegida ? delIdioma.find((v) => v.name === elegida) : undefined;
+  if (tuya && (idioma !== "es" || /^es[-_]ES$/i.test(tuya.lang))) return tuya;
+
+  /* Español DE ESPAÑA primero: Chrome trae también "Google español de
+     Estados Unidos", y si se cuela esa suena sudamericana. */
+  const deEspana = delIdioma.filter((v) => /^es[-_]ES$/i.test(v.lang));
+  const buena = (lista: SpeechSynthesisVoice[]) =>
+    lista.find((v) => /google/i.test(v.name)) ??
+    lista.find((v) => v.localService === false) ??
+    lista.find((v) => /natural|neural|premium|enhanced/i.test(v.name));
+  if (idioma === "es") {
+    const espanola = buena(deEspana) ?? deEspana[0];
+    if (espanola) return espanola;
+  }
 
   return (
     delIdioma.find((v) => /google/i.test(v.name)) ??
@@ -160,24 +202,107 @@ export function trocear(texto: string, max = 200): string[] {
 }
 
 let empujon: number | undefined;
+/* Cada lectura tiene su número. PARAR NO PARABA por esto: `cancel()`
+   corta la frase que suena, pero el navegador lo cuenta como "frase
+   terminada" y dispara su `onend`/`onerror`, que leía LA SIGUIENTE. Con
+   el número, una lectura cancelada sabe que ya no es la de ahora y no
+   sigue. */
+let lectura = 0;
+
+/* LA VOZ DE KAIRO: una de Gemini (masculina, joven, natural), la que
+   suena como cuando Gemini te lee algo. Si no llega —sin cuota, sin red,
+   modo demo—, se lee con la voz del navegador, como antes. */
+let sonando: HTMLAudioElement | null = null;
+
+/* Si Gemini no ha podido (sin cuota, sin red), no se le vuelve a
+   preguntar en un rato: así el siguiente "Leer" suena al instante con la
+   voz del navegador en vez de quedarse unos segundos callado. */
+let sinVozHasta = 0;
+const ESPERA_VOZ = 8000;
+
+/** Pide a Kairo el audio de un trozo con esa voz. null si no se puede. */
+export async function audioDe(
+  texto: string,
+  idioma: "es" | "en",
+  espera = ESPERA_VOZ,
+): Promise<string | null> {
+  if (Date.now() < sinVozHasta) return null;
+  const corte = new AbortController();
+  const reloj = window.setTimeout(() => corte.abort(), espera);
+  try {
+    const r = await fetch("/api/voz", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ texto, idioma }),
+      signal: corte.signal,
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    const blob = await r.blob();
+    if (!blob.size) throw new Error("vacío");
+    return URL.createObjectURL(blob);
+  } catch {
+    sinVozHasta = Date.now() + 10 * 60_000;
+    return null;
+  } finally {
+    window.clearTimeout(reloj);
+  }
+}
 
 export function callar() {
+  lectura++;
+  if (sonando) {
+    sonando.pause();
+    sonando = null;
+  }
   if (!hayVozParaLeer()) return;
   window.clearInterval(empujon);
   empujon = undefined;
   window.speechSynthesis.cancel();
 }
 
-export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
-  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
+async function leerConKairo(trozos: string[], idioma: "es" | "en", alTerminar: () => void) {
+  const esta = lectura;
+  let siguiente = audioDe(trozos[0], idioma);
+  for (let i = 0; i < trozos.length; i++) {
+    const url = await siguiente;
+    if (esta !== lectura) return;
+    if (!url) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+    if (i + 1 < trozos.length) siguiente = audioDe(trozos[i + 1], idioma, 25_000);
+    const audio = new Audio(url);
+    sonando = audio;
+    const ok = await new Promise<boolean>((fin) => {
+      audio.onended = () => fin(true);
+      audio.onerror = () => fin(false);
+      audio.play().catch(() => fin(false));
+    });
+    URL.revokeObjectURL(url);
+    if (esta !== lectura) return;
+    if (!ok) return leerConNavegador(trozos.slice(i).join(" "), idioma, alTerminar);
+  }
+  sonando = null;
+  alTerminar();
+}
 
+export function leerEnVozAlta(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!texto.trim()) return alTerminar();
   callar();
+  /* El primer trozo, corto: cuanto menos texto, antes lo tiene Gemini y
+     antes empieza a sonar. Los demás, largos, se preparan mientras. */
+  const [primero, ...resto] = trocear(texto, 220);
+  void leerConKairo([primero, ...trocear(resto.join(" "), 600)].filter(Boolean), idioma, alTerminar);
+}
+
+function leerConNavegador(texto: string, idioma: "es" | "en", alTerminar: () => void) {
+  if (!hayVozParaLeer() || !texto.trim()) return alTerminar();
+  const esta = lectura;
 
   const voz = mejorVoz(idioma);
   const trozos = trocear(texto);
   let i = 0;
 
   const siguiente = () => {
+    // La han parado (o ha empezado otra): no se lee nada más.
+    if (esta !== lectura) return;
     if (i >= trozos.length) {
       window.clearInterval(empujon);
       empujon = undefined;

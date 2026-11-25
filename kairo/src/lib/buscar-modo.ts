@@ -76,5 +76,10 @@ export function hayQueBuscar(
    * Kairo decide solo, que es lo que hacía bien el 88% de las veces, y
    * cuando se equivoca se arregla la lista de pistas, que beneficia a
    * todo el mundo en vez de a quien supo encontrar el botón. */
+  /* La única excepción: "nunca" sí se respeta, porque ya no lo pone una
+     persona con un botón sino Kairo mismo —Code, que escribe una app y
+     no necesita internet—. Sin esto, una app con la palabra "precio"
+     se ponía a buscar y perdía hasta 18 segundos antes de escribir. */
+  if (_modo === "nunca") return false;
   return pinta && !conArchivos;
 }

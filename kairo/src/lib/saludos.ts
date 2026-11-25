@@ -32,20 +32,58 @@ export function tramoDe(hora: number): Tramo {
   return "noche";
 }
 
-/* "¿Por dónde seguimos?" vale a cualquier hora del día, así que es la
-   misma línea en los tres tramos despiertos. De madrugada no: ahí la
-   segunda es la que reconoce la hora que es. */
-const SEGUIMOS: Saludo = { es: "¿Por dónde seguimos, {n}?", en: "Where were we, {n}?", vuelta: true };
+/* "¿Por dónde seguimos?" y compañía: solo para quien ya tiene chats. */
+const VUELTA: Saludo[] = [
+  { es: "¿Por dónde seguimos, {n}?", en: "Where were we, {n}?", vuelta: true },
+  { es: "¿Seguimos, {n}?", en: "Shall we continue, {n}?", vuelta: true },
+  { es: "De vuelta, {n}.", en: "Welcome back, {n}.", vuelta: true },
+];
 
-const SALUDOS: Record<Tramo, Saludo[]> = {
+/* CORTOS a propósito: van encima de la caja de texto y una frase larga
+   se parte en dos líneas y empuja la caja. Tres o cuatro palabras y el
+   nombre. Algunos solo valen en un trozo del tramo (`desde`/`hasta`). */
+type ConHora = Saludo & { desde?: number; hasta?: number };
+
+const SALUDOS: Record<Tramo, ConHora[]> = {
   madrugada: [
     { es: "Buenas noches, {n}.", en: "Good night, {n}." },
     { es: "¿Trasnochando, {n}?", en: "Still up, {n}?" },
+    { es: "¿Sin sueño, {n}?", en: "Can't sleep, {n}?" },
+    { es: "Noche larga, {n}.", en: "Long night, {n}." },
+    { es: "¿Madrugando, {n}?", en: "Up early, {n}?", desde: 4 },
   ],
-  manana: [{ es: "Buenos días, {n}.", en: "Good morning, {n}." }, SEGUIMOS],
-  tarde: [{ es: "Buenas tardes, {n}.", en: "Good afternoon, {n}." }, SEGUIMOS],
-  noche: [{ es: "Buenas noches, {n}.", en: "Good evening, {n}." }, SEGUIMOS],
+  manana: [
+    { es: "Buenos días, {n}.", en: "Good morning, {n}." },
+    { es: "¿Ya despierto, {n}?", en: "Up already, {n}?", hasta: 8 },
+    { es: "¿Café y a ello, {n}?", en: "Coffee time, {n}?", hasta: 10 },
+    { es: "¿Qué toca hoy, {n}?", en: "What's on today, {n}?" },
+    { es: "Buena mañana, {n}.", en: "Good morning, {n}." },
+    { es: "Casi hora de comer, {n}.", en: "Almost lunchtime, {n}.", desde: 13 },
+  ],
+  tarde: [
+    { es: "Buenas tardes, {n}.", en: "Good afternoon, {n}." },
+    { es: "¿Qué tal la sobremesa, {n}?", en: "Good lunch, {n}?", hasta: 16 },
+    { es: "¿Qué hacemos, {n}?", en: "What are we doing, {n}?" },
+    { es: "¿Qué tal el día, {n}?", en: "How's your day, {n}?" },
+  ],
+  noche: [
+    { es: "Buenas noches, {n}.", en: "Good evening, {n}." },
+    { es: "¿Qué tal el día, {n}?", en: "How was your day, {n}?" },
+    { es: "¿Lo último del día, {n}?", en: "One last thing, {n}?" },
+    { es: "Noche tranquila, {n}.", en: "Quiet evening, {n}." },
+  ],
 };
+
+/* Y unas pocas según el día. */
+const POR_DIA: Record<number, ConHora[]> = {
+  1: [{ es: "Lunes otra vez, {n}.", en: "Monday again, {n}.", desde: 6, hasta: 20 }],
+  5: [{ es: "¡Por fin viernes, {n}!", en: "Finally Friday, {n}!", desde: 6 }],
+  6: [{ es: "Buen sábado, {n}.", en: "Happy Saturday, {n}.", desde: 8 }],
+  0: [{ es: "Buen domingo, {n}.", en: "Happy Sunday, {n}.", desde: 8 }],
+};
+
+const valeAhora = (s: ConHora, hora: number) =>
+  (s.desde === undefined || hora >= s.desde) && (s.hasta === undefined || hora <= s.hasta);
 
 /** Los saludos de un tramo. Para las pruebas. */
 export function saludosDe(tramo: Tramo): Saludo[] {
@@ -65,7 +103,14 @@ export function saludarA(
   lang: Lang,
   ahora: Date = new Date(),
 ): string {
-  const lista = SALUDOS[tramoDe(ahora.getHours())].filter((s) => vuelve || !s.vuelta);
+  const hora = ahora.getHours();
+  const tramo = tramoDe(hora);
+  const lista = [
+    ...SALUDOS[tramo],
+    ...(POR_DIA[ahora.getDay()] ?? []),
+    // "¿Por dónde seguimos?" no a las 3 de la mañana.
+    ...(tramo === "madrugada" ? [] : VUELTA),
+  ].filter((s) => valeAhora(s, hora) && (vuelve || !s.vuelta));
   const elegido = lista[Math.floor(Math.random() * lista.length)];
   const texto = lang === "en" ? elegido.en : elegido.es;
   return nombre ? texto.replace("{n}", nombre) : texto.replace(/,?\s*\{n\}/, "");

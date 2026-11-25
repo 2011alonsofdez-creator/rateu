@@ -56,7 +56,10 @@ const PISTAS: RegExp[] = [
   palabra("(now|today|currently|latest|recent|this year|just (released|launched))"),
 
   // Dinero y disponibilidad
-  palabra("(precio|precios|cuesta|cuestan|vale|valen|tarifa|tarifas|cuota)"),
+  /* Sin "vale" a secas: en España es "de acuerdo", y "vale, gracias" se
+     ponía a buscar en internet. El precio con "vale" ya lo pilla la de
+     abajo ("cuánto vale"), y "vale X euros" casi nunca se pregunta así. */
+  palabra("(precio|precios|cuesta|cuestan|tarifa|tarifas|cuota)"),
   palabra("(cuanto (cuesta|vale|sale)|que precio)"),
   palabra("(oferta|ofertas|descuento|rebajas|gratis|de pago)"),
   palabra("(stock|disponible|disponibles|agotado|en venta)"),
@@ -82,13 +85,23 @@ const PISTAS: RegExp[] = [
   palabra("(release|version|update|season|episode|premiere)"),
 
   // Resultados, noticias y tiempo atmosférico
-  palabra("(resultado|resultados|marcador|clasificacion|partido|elecciones)"),
+  palabra("(resultado|resultados|marcador|clasificacion|partido|partidos|elecciones)"),
+  /* La política cambia con cada encuesta y cada pacto: lo que el modelo
+     recuerda de un programa o de un gobierno puede tener años. */
+  palabra("(gobierno|congreso|senado|votar|votacion|encuesta|encuestas|programa electoral|pacto|investidura|moción de censura|mocion de censura)"),
   /* "¿Cómo quedó el Madrid-Barça?" es como se pregunta un resultado de
      verdad, y no casaba con nada: la frase no lleva ni "resultado" ni
      "partido", lleva los nombres de los dos equipos, que no están en
      ninguna lista ni pueden estarlo. Lo que sí se repite es el verbo. */
   palabra("(como (quedo|quedaron|queda|quedan|va|van|iba|iban|acabo|acabaron|termino|terminaron))"),
   palabra("(noticia|noticias|que ha pasado|que esta pasando)"),
+  /* Creadores de contenido: lo que hacen cambia cada semana. */
+  palabra("(youtuber|youtubers|streamer|streamers|tiktoker|influencer|influencers|canal de youtube|en twitch|en kick)"),
+  /* Reseñas y críticas: la nota de un juego, una peli o un disco es de
+     los medios, y de lo reciente el modelo no sabe nada. */
+  palabra("(resena|resenas|review|reviews|critica|criticas|que nota tiene|nota de|notas de|metacritic|opiniones de|que tal esta)"),
+  /* Lo que sale en el telediario: pasa hoy y mañana ya es otro. */
+  palabra("(huelga|huelgas|manifestacion|manifestaciones|protesta|protestas|paro|paros|retraso|retrasos|cancelad[oa]s?|cortes?|apagon|accidente|incendio|terremoto|inundacion|dana|alerta|evacuacion|atentado|detenid[oa]s?|juicio|condena|dimision|dimite)"),
   /* "el tiempo" estaba; "qué tiempo va a hacer mañana" no, que es como
      lo dice todo el mundo. Y el tiempo de mañana es el caso más claro
      de dato que Kairo no se puede saber de memoria. */
@@ -96,7 +109,10 @@ const PISTAS: RegExp[] = [
   palabra("(news|weather|score|standings)"),
 
   // Normas que cambian
-  palabra("(ley|leyes|normativa|plazo|multa|impuesto|iva|irpf|subvencion|ayuda)"),
+  /* "ayuda" sola no: "necesito ayuda con mates" no es una subvención.
+     Solo cuando es una ayuda pública. */
+  palabra("(ley|leyes|normativa|plazo|multa|impuesto|iva|irpf|subvencion|subvenciones|beca|becas)"),
+  palabra("(ayudas?|bono|bonos|prestacion|prestaciones) (de|del|para|al|publicas?|estatal(es)?|por)"),
 
   palabra("(han (puesto|sacado|subido|anunciado|publicado|estrenado)|acaban de)"),
 
@@ -125,6 +141,13 @@ const DEBILES: RegExp[] = [
   /* Un sitio donde el catálogo cambia cada semana: lo que se pregunta es
      qué hay AHORA, no qué hubo. */
   palabra("(netflix|hbo( ?max)?|disney\\+?|prime video|movistar|filmin|skyshowtime|twitch|youtube|tiktok|spotify|steam|epic games|game ?pass|play ?station|xbox|nintendo)"),
+
+  /* Juegos, móviles, apps y criptos: cambian cada semana —un evento de
+     Fortnite, un iPhone nuevo, una función de ChatGPT, el precio del
+     bitcoin—, y lo que el modelo recuerda es de hace meses. "¿Qué es el
+     token de Fortnite?" contestaba de memoria. */
+  palabra("(fortnite|fornite|roblox|minecraft|gta ?(v|vi|\\d{1,2})?|clash royale|clash of clans|brawl stars|valorant|league of legends|fifa|ea fc|call of duty|warzone|pokemon|genshin)"),
+  palabra("(iphone|ios|android|samsung|galaxy|xiaomi|pixel|whatsapp|instagram|chatgpt|openai|gemini|claude|grok|tesla|bitcoin|ethereum|cripto|criptomonedas?)"),
 
   /* Deporte: un resultado, una plantilla o un calendario de hace dos
      años es igual de inútil que un precio de hace dos años. */
@@ -169,19 +192,68 @@ function llevaAnioViejo(texto: string, hoy: Date): boolean {
   return false;
 }
 
-/** ¿Hay que buscar en internet antes de contestar esto? */
-export function esDeAhora(pregunta: string, hoy = new Date()): boolean {
+/* LO QUE ES DE PENSAR, NO DE BUSCAR.
+ *
+ * Escribir, calcular, programar, aconsejar, explicar algo de siempre o
+ * charlar: ahí la respuesta sale de la cabeza y buscar solo hace esperar.
+ * Van DESPUÉS de las pistas fuertes, así que "escríbeme un resumen de
+ * las noticias de hoy" sigue buscando (lo pilla "hoy"). */
+const PENSAR: RegExp[] = [
+  // Saludos y charla
+  palabra("(hola|holi|buenas|gracias|muchas gracias|vale|ok|okey|perfecto|genial|jaja+|jeje+|adios|buenas noches|buenos dias|que tal( estas)?|como estas)"),
+  // Escribir y crear
+  palabra("(escribe(me)?|redacta(me)?|hazme|haz un|haz una|crea(me)?|genera(me)?|inventa(te)?|imagina|cuentame un (chiste|cuento|historia)|un (poema|chiste|cuento|rap|cancion|eslogan|slogan)|ponme un nombre|nombres para|ideas (para|de))"),
+  // Recetas y cómo se hace algo de casa
+  palabra("(receta|como (hago|se hace|preparo|se prepara|cocino|se cocina)|ingredientes para)"),
+  // Calcular, razonar, estudiar
+  palabra("(calcula|resuelve|cuanto es|cuantos son|ecuacion|derivada|integral|porcentaje de|simplifica|demuestra|razona|ejercicio|problema de)"),
+  palabra("(\\d+ ?[-+*/x^] ?\\d+)"),
+  // Programar
+  palabra("(programa(me)?|codigo (en|de|para)|funcion (en|que|para)|script|javascript|python|html|css|sql|regex|api rest|bug)"),
+  // Consejo, opinión y lo personal
+  palabra("(que (me )?recomiendas|que opinas|que harias|aconsejame|consejos? (para|de|sobre)|como (puedo|hago para|deberia)|me siento|estoy (triste|agobiad[oa]|nervios[oa]|cansad[oa])|ayudame a (pensar|decidir|organizar))"),
+  // Explicar lo que no cambia
+  palabra("(explicame|explica(me)? (que|como|por que)|que significa|que diferencia hay|en que consiste|como funciona (el|la|un|una) (cuerpo|corazon|motor|fotosintesis|celula|atomo|cerebro))"),
+];
+
+export type Veredicto = "si" | "no" | "duda";
+
+/** Lo que dicen las reglas: buscar, no buscar, o no está claro (y
+ *  entonces decide un modelo rápido, ver decidir-busqueda.ts). */
+export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   const texto = sinTildes(pregunta.trim());
-  if (texto.length < 3) return false;
+  if (texto.length < 3) return "no";
   // Una pregunta larguísima suele ser un texto pegado para trabajar con
   // él, no una pregunta sobre el mundo.
-  if (texto.length > 2000) return false;
+  if (texto.length > 2000) return "no";
 
-  if (NUNCA.some((re) => re.test(texto))) return false;
-  if (llevaAnioReciente(texto, hoy)) return true;
-
-  if (PISTAS.some((re) => re.test(texto))) return true;
+  if (NUNCA.some((re) => re.test(texto))) return "no";
+  if (llevaAnioReciente(texto, hoy)) return "si";
+  if (PISTAS.some((re) => re.test(texto))) return "si";
 
   // Las flojas valen solo si no estamos hablando de hace décadas.
-  return !llevaAnioViejo(texto, hoy) && DEBILES.some((re) => re.test(texto));
+  if (!llevaAnioViejo(texto, hoy) && DEBILES.some((re) => re.test(texto))) return "si";
+
+  if (PENSAR.some((re) => re.test(texto))) return "no";
+  return "duda";
+}
+
+/** ¿Hay que buscar en internet antes de contestar esto? (solo reglas) */
+export function esDeAhora(pregunta: string, hoy = new Date()): boolean {
+  return veredicto(pregunta, hoy) === "si";
+}
+
+/** Para cuando el modelo no contesta a tiempo: ¿nombra algo concreto?
+ *  Una palabra en mayúscula que no abre la frase ("¿Quién es Ibai?",
+ *  "¿Qué es Kick?") suele ser una persona, una marca o un sitio: cosas
+ *  que se buscan, no que se piensan. */
+export function nombraAlgoConcreto(pregunta: string): boolean {
+  /* Una o dos palabras sueltas que no son charla ni un encargo ("djmario",
+     "ibai", "kick streamer") casi siempre son un nombre: se busca. */
+  const limpias = pregunta.replace(/[¿?¡!.,;:()"«»]/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (limpias.length > 0 && limpias.length <= 3) return true;
+  const palabras = pregunta.replace(/[¿?¡!.,;:()"«»]/g, " ").split(/\s+/).filter(Boolean);
+  if (palabras.slice(1).some((w) => /^\p{Lu}[\p{L}\d]{2,}/u.test(w) && !/^(Kairo|Yo|Tú|Tu)$/.test(w))) return true;
+  // Un modelo con número: "rtx 5070", "galaxy s24", "ryzen 9800x3d".
+  return /(?<![\p{L}\d])[a-z]{1,8} ?\d{2,5}[a-z\d]*(?![\p{L}\d])/iu.test(pregunta);
 }

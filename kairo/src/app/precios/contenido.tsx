@@ -97,6 +97,22 @@ const FAQ = {
       q: "¿Mis hijos pueden usarlo?",
       a: "De 13 a 17 años sí: se registran con su fecha de nacimiento real y Kairo les aplica una moderación bastante más estricta que la de un adulto. Por debajo de 13 todavía no — los perfiles que crea y supervisa un adulto están en camino, y mientras no estén preferimos decirlo a prometerlo.",
     },
+    /* SU PREGUNTA, TRAÍDA DE `main` EN LA FUSIÓN DEL 25-11.
+ 
+       Las dos ramas resolvieron lo mismo de forma distinta y la suya es mejor.
+       Esta rama QUITÓ esta pregunta el 21-10, porque la respuesta de entonces
+       —un "No." a secas— era falsa en la capa gratuita de Gemini, y la cambió
+       por la de "qué se guarda". Él, anoche, hizo lo que de verdad hacía falta:
+       **la mantuvo y la contestó con la verdad**, y con eso cerró un P1 de
+       diecinueve días.
+ 
+       Se queda SU redacción, palabra por palabra, y se quedan LAS DOS
+       preguntas: no se contradicen —una dice qué se guarda, la otra si se
+       entrena— y la gente pregunta las dos. */
+    {
+      q: "¿Se usan mis conversaciones para entrenar modelos?",
+      a: "Kairo no las vende ni las usa para entrenar su propio modelo. Para contestarte, tu mensaje pasa por proveedores de IA (como Google), y en sus planes gratuitos el proveedor puede usarlo para mejorar sus productos. Lo tienes explicado en la política de privacidad.",
+    },
     {
       q: "¿Qué se guarda de lo que le mando a Kairo?",
       a: "De un papel que subes a Paperwork se guarda lo que Kairo ha leído —de qué va, el importe, la fecha límite, los pasos— y el nombre del archivo. El archivo en sí no se guarda, y el papel lo puedes borrar cuando quieras. Las conversaciones sí se guardan, para que puedas volver a ellas. Y en la memoria solo entra lo que tú le pidas que recuerde.",
@@ -118,6 +134,11 @@ const FAQ = {
     {
       q: "Can my kids use it?",
       a: "Between 13 and 17, yes: they sign up with their real date of birth and Kairo applies considerably stricter moderation than an adult's. Under 13 not yet — profiles created and supervised by an adult are on the way, and until they exist we would rather say so than promise it.",
+    },
+    /* Igual que en español: su redacción, traída de `main` el 25-11. */
+    {
+      q: "Are my conversations used to train models?",
+      a: "Kairo doesn't sell them or use them to train its own model. To answer you, your message goes through AI providers (such as Google), and on their free tiers the provider may use it to improve its products. The privacy policy explains it.",
     },
     {
       q: "What does Kairo keep of what I send it?",
