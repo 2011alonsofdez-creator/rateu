@@ -13,7 +13,81 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
-- **🔴 Cuarto día sin contestar a un desconocido, y hoy me corrijo dos veces.** `[origen: guardian 2026-11-24 · corrige el P1 del 2026-11-20]`
+- **🟡 La fusión ya tiene CINCO archivos en conflicto, y cada día que pasa son más.** `[origen: guardian 2026-11-25]`
+  **Medido hoy** con una fusión de prueba, abortada en el momento (la rama queda
+  intacta, comprobado con `git status` después). `origin/main` sobre
+  `claude/kairo-agentes` da **conflicto en cinco archivos**:
+
+  | Archivo | Quién lo tocó |
+  |---|---|
+  | `lib/ia/prompt.ts` | **los dos**, y es el de siempre |
+  | `lib/i18n.tsx` | él (tope de Mentes) y yo (el `try.saturado` y lo de la cuota) |
+  | `app/precios/page.tsx` | él (la FAQ de entrenamiento) y la rama |
+  | `app/(app)/mentes/MentesCliente.tsx` | él |
+  | `app/api/estado/route.ts` | él |
+
+  **Por qué esto sube a P1 hoy y no es "la fusión de siempre"**: hasta ahora el
+  argumento era la antigüedad —**25 días**, 153 commits—. Hoy hay además un coste
+  que crece solo: **ayer él tocó cuatro archivos que la rama también tiene
+  tocados**, y anteayer eran menos. Cada día que la fusión espera, la fusión se
+  encarece, y la encarece sobre todo en `prompt.ts`, que es donde el daño de
+  resolver mal no se ve hasta que Kairo contesta raro.
+
+  **Lo que puedo hacer yo y no he hecho hoy**: traerme `main` a la rama de
+  agentes y resolver los cinco aquí. Eso es trabajo de constructor, no de
+  guardián, y no es un rato: `prompt.ts` lo están escribiendo dos a la vez y los
+  dos lados tienen razón en lo suyo. **Queda como primer P1 para el constructor
+  de hoy**, y lo digo aquí para que no se pierda.
+
+  **Lo que no voy a hacer en ningún caso**: fusionar a `main`. Eso es suyo.
+
+- **🟡 El reloj: TRES huecos por encima de la gracia en 24 horas, y dos sin cubrir ni con el cron de Vercel.** `[origen: guardian 2026-11-25 · el hallazgo es del 2026-11-24]`
+  Ayer medí las 265 ejecuciones y salieron 16 huecos mayores de 8 h en 38 días,
+  12 de ellos en los últimos 14. **Hoy, en un solo día, van tres:**
+
+  | Hueco | Duración | ¿Lo tapa el cron de Vercel de las 06:00? |
+  |---|---|---|
+  | 23-11 12:14 → 24-11 00:07 | **11,9 h** | **no**, cae fuera |
+  | 24-11 00:07 → 24-11 10:10 | **10,0 h** | sí, lo parte en 5,9 + 4,2 |
+  | 24-11 10:10 → 24-11 20:43 | **10,6 h** | **no**, es de tarde |
+  | 24-11 20:43 → 25-11 03:46 | 7,1 h | no hace falta |
+
+  O sea **dos ventanas en 48 horas** en las que un Co-Work pedido ahí dentro no
+  sale y nadie se entera. El reloj está en verde —268 toques, los 8 últimos
+  correctos— y eso es exactamente lo que lo hace peligroso.
+
+  **La propuesta sigue escrita y sin aplicar**, con un número cambiado:
+  `kairo/supabase/migrations/PROPUESTA_gracia_de_doce_horas.sql`, que sube la
+  gracia de la `0026` de 8 a 12 h y cubre el peor hueco medido (11,9 h) con
+  margen. **Es una migración, así que es suya**: yo no la aplico.
+
+- **~~🔴 Cuarto día sin contestar a un desconocido~~ — ARREGLADO POR EL DUEÑO el 24-11 por la noche, y comprobado hoy. Cinco días.** `[origen: guardian 2026-11-24 · hecho por el dueño 2026-11-24, comprobado 2026-11-25]`
+
+  **Medido hoy** (`probar-portada` 22, 06:13, sobre su head `fdf56e9`): **los
+  cinco pasos en verde**. El paso que llevaba cinco días cayéndose devuelve
+  `{"texto":"FUNCIONA","quedan":2}` y el tope por visitante corta a la cuarta
+  (200, 200, 429, 429). **Un desconocido vuelve a recibir su primera respuesta.**
+
+  **Y su diagnóstico es más fino que el mío, así que queda escrito el suyo**
+  (comentario de `api/probar/route.ts`): los cuatro intentos de antes no eran
+  cuatro depósitos de cuota, eran **dos** — *"dos Flash de la misma familia —el
+  alias y su modelo, que comparten cupo— y dos gratis de OpenRouter, que
+  comparten el tope de la cuenta"*. Por eso daba igual la hora: no había cuatro
+  puertas, había dos, y las dos estaban cerradas.
+
+  Eso explica lo que yo medí ayer sin saber explicarlo: que a las 06:15 y a las
+  08:12 —doce minutos después de renovarse la cuota— el error fuera idéntico
+  byte a byte. Yo descarté la causa; él encontró la buena.
+
+  **Su arreglo**: hasta seis intentos **saltando de depósito** —un Flash, un
+  Flash-Lite (otra cuota, y la que más cupo gratis tiene), otro Flash de otra
+  generación, y luego los de repuesto— más **cuarentena**, para que el visitante
+  siguiente no pierda tiempo con uno que ya se sabe agotado.
+
+  **Lo que queda de esto, y no es poco**: el arreglo reparte mejor una cuota que
+  sigue siendo pequeña. Los **10 $ de OpenRouter** (pedidos el 15-11) y la
+  pregunta de **si las tres claves de Gemini están en un proyecto o en tres**
+  siguen en pie: hoy hay más puertas, no más cupo.
 
   **Lo medido hoy** (`probar-portada` 20, lanzado a las 06:15): los pasos 2 y 3
   en verde —el despliegue publicado es el último, la portada carga, la caja de
@@ -518,7 +592,12 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   que fue así en vez de inventarlo, y el turno del entrenador terminado y
   comprobado.
 
-- **🟡 Arregló media pantalla de Mentes: la intro ya dice el tope real, el aviso del tope sigue diciendo 30.** `[origen: guardian 2026-11-14]`
+- **~~🟡 Arregló media pantalla de Mentes: el aviso del tope seguía diciendo 30~~ — HECHO POR EL DUEÑO el 24-11. Once días.** `[origen: guardian 2026-11-14 · hecho por el dueño 2026-11-24, comprobado 2026-11-25]`
+
+  Comprobado en el diff de `i18n.tsx`: `mente.errLimit` pasa de *"Has llegado al
+  máximo de **30** Mentes"* a *"Has llegado al máximo de **{n}** Mentes **de tu
+  plan**"*, en los dos idiomas. Ya no promete el tope de Kairo+ a quien está en
+  gratis.
   **Primero lo bueno, que es mucho**: anoche a las 17:45 arregló él mismo la
   intro de Mentes (`89cc3be`), **leyendo el parte de la mañana**, y con la misma
   redacción que había escrito el constructor seis horas antes: *"Con tu plan
@@ -545,7 +624,26 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   dos `mente.errLimit`— más la que ya escribió él en el componente. Diez
   minutos, y así la mitad que falta no espera a la rama.
 
-- **🔴 Dos páginas publicadas de Kairo dicen cosas distintas sobre datos personales.** `[origen: radar 2026-11-13]`
+- **~~🔴 Dos páginas publicadas de Kairo dicen cosas distintas sobre datos personales~~ — ARREGLADO POR EL DUEÑO el 24-11. Doce días.** `[origen: radar 2026-11-13 · hecho por el dueño 2026-11-24, comprobado 2026-11-25]`
+
+  **Y lo arregló por donde había que arreglarlo**: no quitando la respuesta ni
+  tocando la política de privacidad, sino **escribiendo la verdad en
+  `/precios`**. La FAQ decía *"No. Ni las tuyas ni las de nadie, y tampoco se
+  venden."* y ahora dice, en los dos idiomas:
+
+  > *"Kairo no las vende ni las usa para entrenar su propio modelo. Para
+  > contestarte, tu mensaje pasa por proveedores de IA (como Google), y en sus
+  > planes gratuitos el proveedor puede usarlo para mejorar sus productos. Lo
+  > tienes explicado en la política de privacidad."*
+
+  Comprobado en el diff de `precios/page.tsx`. **Las dos páginas ya dicen lo
+  mismo**, y con esto se cierran de golpe las dos entradas que llevaban más
+  tiempo abiertas de todo este backlog: esta y el **"No." de `/precios`**, que
+  cumplía **diecinueve días**.
+
+  Era la decisión de una línea que llevaba pidiéndose desde el 06-11, y de las
+  dos salidas posibles eligió la buena: la que no obliga a mentir en ningún
+  documento.
   Esto ya no es la línea pendiente de `/precios`: es una **contradicción
   publicada**, y nació hoy al escribir la verdad en el sitio donde no se puede
   escribir otra cosa.
