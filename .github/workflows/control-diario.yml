@@ -1,0 +1,43 @@
+name: Control diario de Kairo
+
+# Cada mañana, Kairo se hace unas preguntas de control (famosos, juegos,
+# noticias, y dos que NO deben buscar) y se comprueba en la web de
+# verdad que decide bien si buscar y que lo que encuentra habla de lo
+# preguntado. Si algo falla, esto sale en rojo y GitHub te manda correo.
+#
+# Usa los mismos secretos que el reloj de los Co-Works: KAIRO_URL y
+# KAIRO_CRON_SECRET. No contesta con ninguna IA: no gasta créditos.
+
+on:
+  schedule:
+    - cron: "47 8 * * *"   # 09:47 en invierno en España, con la cuota de Gemini recién renovada
+  workflow_dispatch:
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Preguntas de control
+        env:
+          KAIRO_URL: ${{ secrets.KAIRO_URL }}
+          KAIRO_CRON_SECRET: ${{ secrets.KAIRO_CRON_SECRET }}
+        run: |
+          set -uo pipefail
+          url="${KAIRO_URL#http://}"; url="${url#https://}"; url="https://${url%/}"
+          SECRETO="$(printf '%s' "${KAIRO_CRON_SECRET}" | tr -d '[:space:]')"
+          codigo=$(curl -sS --max-time 90 -o control.json -w "%{http_code}" -H "Authorization: Bearer ${SECRETO}" "${url}/api/control" || echo 000)
+          echo "HTTP ${codigo}"
+          if [ "${codigo}" != "200" ]; then
+            head -c 400 control.json; echo
+            echo "::error::La web no ha contestado al control (${codigo}). Si es 404, aún no está desplegado."
+            exit 1
+          fi
+          jq -r '.resultados[] | "\(if .ok then "✅" else "❌" end) \(.pregunta) · busca: \(.busca) (debería: \(.deberia_buscar)) · encontrado: \(.encontrado) · \(.ms) ms · \(.modelo) · \(.fuentes | join(", "))"' control.json
+          echo
+          jq -r '.resultados[] | select(.ok | not) | "── \(.pregunta)\n" + ((.intentos // []) | map("   \(.modelo): \(.resultado) (\(.ms) ms)") | join("\n"))' control.json
+          if [ "$(jq -r .ok control.json)" != "true" ]; then
+            echo "::error::Han fallado $(jq -r .fallos control.json) de $(jq -r .total control.json) preguntas de control."
+            exit 1
+          fi
+          echo "::notice::Todo bien: $(jq -r .total control.json) de $(jq -r .total control.json)."

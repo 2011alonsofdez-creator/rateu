@@ -1,6 +1,6 @@
 import { arrancar } from "./proveedores";
 import { cadenaDe } from "./config";
-import { disponible } from "./cuarentena";
+import { apartar, disponible } from "./cuarentena";
 import { nombraAlgoConcreto, veredicto } from "./ahora";
 
 /* ¿BUSCAR EN FUENTES O PENSARLO?
@@ -58,7 +58,9 @@ async function preguntarAlModelo(pregunta: string, contexto: string): Promise<bo
       const s = salida.trim().toUpperCase();
       if (s.startsWith("BUSCAR")) return true;
       if (s.startsWith("PENSAR")) return false;
-    } catch {
+    } catch (e) {
+      // Sin cuota o caído: apartado, para no volver a esperarle en un rato.
+      apartar(id, e);
       /* el siguiente, o la regla de reserva */
     }
   }
@@ -71,6 +73,10 @@ async function preguntarAlModelo(pregunta: string, contexto: string): Promise<bo
 export async function decidirBusqueda(pregunta: string, contexto = ""): Promise<boolean> {
   const v = veredicto(pregunta);
   if (v !== "duda") return v === "si";
+
+  /* Si los modelos rápidos están apartados (sin cuota), ni se espera:
+     la regla de reserva decide al momento en vez de 1,5 s después. */
+  if (!cadenaDe("fast", "adulto").some(disponible)) return nombraAlgoConcreto(pregunta);
 
   const modelo = await Promise.race([
     preguntarAlModelo(pregunta, contexto),
