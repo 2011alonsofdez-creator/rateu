@@ -57,14 +57,16 @@ jobs:
           echo "════ Kairo de verdad: buscarYLeer + canalesDe"
           cd kairo && npm i --no-save tsx@4 >/dev/null 2>&1
           cat > p.ts <<'TS'
-          import { buscarYLeer, canalesDe, comoHechos } from "./src/lib/ia/web-libre";
+          import { buscarYLeer, canalesDe, wikiDeYoutubers, comoHechos } from "./src/lib/ia/web-libre";
+          import { noticiasDe } from "./src/lib/ia/noticias";
           const q = process.env.Q || "quién es djmario";
           const clave = q.toLowerCase().split(/\s+/).filter((w) => w.length >= 4 && !["quien","quién","youtuber","sabes"].includes(w));
           (async () => {
             const t = Date.now();
-            const [web, canales] = await Promise.all([buscarYLeer(q, clave, 9000), canalesDe(clave.join(" "), clave, 5000)]);
+            const [web, canales, wiki, news] = await Promise.all([buscarYLeer(q, clave, 9000), canalesDe(clave.join(" "), clave, 5000), wikiDeYoutubers(clave, 5000), noticiasDe(q, 5000, 30)]);
+            console.log("noticias", news.length, news.slice(0, 3).map((n) => n.titular));
             console.log("ms", Date.now() - t, "web", web.length, "leídas", web.filter((w) => w.leida).length, "canales", canales.length);
-            console.log(comoHechos([...canales, ...web], "hoy").slice(0, 4000));
+            console.log(comoHechos([...wiki, ...canales, ...web], "hoy").slice(0, 4000));
           })();
           TS
           npx tsx p.ts

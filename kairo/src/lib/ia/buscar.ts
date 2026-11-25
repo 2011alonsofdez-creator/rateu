@@ -10,7 +10,7 @@ import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
 import { comoFuentes as noticiasComoFuentes, comoHechos as noticiasComoHechos, consultaDe, noticiasDe } from "./noticias";
 import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
-import { buscarYLeer, canalesDe, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
+import { buscarYLeer, canalesDe, wikiDeYoutubers, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -148,7 +148,7 @@ export async function buscarHechos(
     /(qui[eé]n(es)? (es|son|era|fue)|youtuber|streamer|tiktoker|influencer|canal|subs\b|suscriptores|seguidores|sabes (de|qui[eé]n)|conoces a|cu[eé]ntame de|h[aá]blame de)/i.test(consulta) ||
     (corta && Boolean(clave.length));
   const libres = Promise.all([
-    noticiasDe(consulta, 5000).catch(() => []),
+    noticiasDe(consulta, 5000, sobreAlguien ? 30 : 3).catch(() => []),
     /* Wikipedia en español y, si no tiene nada, en inglés: de muchos
        youtubers, juegos y productos solo hay artículo en inglés. */
     quiereWiki
@@ -164,7 +164,12 @@ export async function buscarHechos(
     hayBuscadorLibre() ? buscarYLeer(consulta, clave, 9000).catch(() => []) : Promise.resolve([]),
     /* Si es sobre una persona (o un creador), su canal de YouTube: nombre,
        suscriptores y de qué va, que es lo que más se pregunta. */
-    sobreAlguien ? canalesDe(clave.join(" ") || consulta, clave, 5000).catch(() => []) : Promise.resolve([]),
+    sobreAlguien
+      ? Promise.all([
+          canalesDe(clave.join(" ") || consulta, clave, 5000).catch(() => []),
+          wikiDeYoutubers(clave, 5000).catch(() => []),
+        ]).then(([c, w]) => [...w, ...c])
+      : Promise.resolve([]),
   ]);
   const principal = await buscarConModelos(consulta, contexto, modoEdad, diario);
   const [todasNoticias, todosArticulos, webSola, canales] = await libres;

@@ -266,6 +266,45 @@ export async function canalesDe(consulta: string, clave: string[], plazo: number
   }
 }
 
+/* ---------- La wiki de youtubers (Fandom) ---------- */
+
+/* Muchos youtubers y streamers españoles no tienen artículo en
+   Wikipedia, pero sí en la Wiki YouTube Pedia de Fandom (DjMaRiiO:
+   nombre real, de dónde es, de qué va su canal). Su API contesta desde
+   un servidor sin clave (probado el 25-11). */
+export async function wikiDeYoutubers(clave: string[], plazo: number): Promise<Resultado[]> {
+  if (!clave.length || (process.env.KAIRO_SIN_FANDOM ?? "").trim()) return [];
+  const base = "https://youtube.fandom.com/es/api.php";
+  const ua = { "user-agent": "Kairo/1.0 (+https://github.com/2011alonsofdez-creator/rateu)" };
+  const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(.)\1+/g, "$1");
+  try {
+    const q = new URLSearchParams({ action: "query", list: "search", format: "json", srlimit: "3", srsearch: clave.join(" ") });
+    const r = await fetch(`${base}?${q}`, { signal: AbortSignal.timeout(plazo), headers: ua, cache: "no-store" });
+    if (!r.ok) return [];
+    const titulos = (((await r.json()) as { query?: { search?: { title: string }[] } }).query?.search ?? [])
+      .map((x) => x.title)
+      .filter((t) => clave.some((w) => norm(t).includes(norm(w)) || norm(w).includes(norm(t))));
+    const titulo = titulos[0];
+    if (!titulo) return [];
+    const p = new URLSearchParams({ action: "parse", page: titulo, prop: "text", format: "json", section: "0", redirects: "1" });
+    const r2 = await fetch(`${base}?${p}`, { signal: AbortSignal.timeout(plazo), headers: ua, cache: "no-store" });
+    if (!r2.ok) return [];
+    const html = ((await r2.json()) as { parse?: { text?: { "*"?: string } } }).parse?.text?.["*"] ?? "";
+    const texto = parrafosDe(html, [], 1400);
+    if (!texto) return [];
+    return [{
+      titulo: `${titulo} · Wiki YouTube Pedia`,
+      url: `https://youtube.fandom.com/es/wiki/${encodeURIComponent(titulo.replace(/ /g, "_"))}`,
+      dominio: "youtube.fandom.com",
+      texto,
+      fecha: null,
+      leida: true,
+    }];
+  } catch {
+    return [];
+  }
+}
+
 /* ---------- Leer una página ---------- */
 
 /** Los párrafos de un HTML que hablan del tema. Separado para probarlo sin red. */

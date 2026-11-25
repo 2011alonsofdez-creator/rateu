@@ -31,7 +31,7 @@ const VACIAS = new Set([
   "por", "que", "qué", "porq", "porque", "porqué", "es", "son", "la", "el", "lo", "los", "las",
   "de", "d", "del", "un", "una", "y", "o", "a", "al", "en", "me", "mi", "se", "te", "q", "k",
   "hoy", "ahora", "cual", "cuál", "como", "cómo", "dime", "sabes", "explicame", "explícame",
-  "hay", "ha", "han", "pasa", "pasado", "pasando", "va", "sobre", "para", "con",
+  "hay", "ha", "han", "quien", "quién", "quienes", "conoces", "cosas", "cuentame", "cuéntame", "hablame", "háblame", "pasa", "pasado", "pasando", "va", "sobre", "para", "con",
 ]);
 
 /** De la pregunta, solo lo que sirve para buscar un titular. */
@@ -88,12 +88,13 @@ export function leerRss(xml: string, max = 8): Noticia[] {
 }
 
 /** Busca titulares de los últimos días. Nunca lanza: si falla, lista vacía. */
-export async function noticiasDe(pregunta: string, plazo: number): Promise<Noticia[]> {
+/** `dias`: de cuántos días atrás. 3 para "qué pasa"; 30 para una persona. */
+export async function noticiasDe(pregunta: string, plazo: number, dias = 3): Promise<Noticia[]> {
   const q = consultaDe(pregunta);
   if (!q) return [];
   const url =
     "https://news.google.com/rss/search?q=" +
-    encodeURIComponent(`${q} when:3d`) +
+    encodeURIComponent(`${q} when:${dias}d`) +
     "&hl=es&gl=ES&ceid=ES:es";
   try {
     const r = await fetch(url, {
