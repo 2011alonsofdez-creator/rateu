@@ -220,6 +220,26 @@ export type Veredicto = "si" | "no" | "duda";
 
 /** Lo que dicen las reglas: buscar, no buscar, o no está claro (y
  *  entonces decide un modelo rápido, ver decidir-busqueda.ts). */
+/* PREGUNTAS SOBRE ALGUIEN O ALGO CONCRETO: SIEMPRE SE BUSCA (25-11).
+ *
+ * "quién es djmario", "q sabes de auronplay", "cuántos subs tiene X":
+ * antes caían en "duda", la duda la resolvía un modelo rápido y, cuando
+ * ese modelo estaba sin cuota (casi siempre), decidía si había una
+ * palabra en MAYÚSCULA. Escribiendo en minúscula, como escribe todo el
+ * mundo, no buscaba y contestaba de memoria otra persona. Con estas
+ * frases no hay duda posible: se busca. */
+const SOBRE_ALGUIEN: RegExp[] = [
+  /(^|[^a-z])(quien|quienes) (es|son|era|eran|fue|fueron)\b/,
+  /\b(sabes|conoces) (quien|quienes|a|al|de|del)\b/,
+  /\b(que|q|k) (sabes|me dices|me cuentas) (de|del|sobre)\b/,
+  /\b(hablame|cuentame|dime( cosas)?|info|informacion|biografia) (de|del|sobre|acerca)\b/,
+  /\b(cuantos|cuantas) (subs|suscriptores|seguidores|followers|visitas|views|anos|años|hijos|titulos|goles|premios)\b/,
+  /\b(que|q|cuanta|cuantos) (edad|anos|años) (tiene|tenia)\b/,
+  /\b(donde|de donde) (vive|es|nacio|juega|trabaja)\b/,
+  /\b(nombre real|patrimonio|cuanto (gana|cobra|dinero tiene)|novia|novio|pareja de|esposa de|marido de)\b/,
+  /\b(a que se dedica|por que es (famoso|famosa|conocido|conocida)|de que (va|trata) (su|el) canal)\b/,
+];
+
 export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   const texto = sinTildes(pregunta.trim());
   if (texto.length < 3) return "no";
@@ -230,6 +250,7 @@ export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   if (NUNCA.some((re) => re.test(texto))) return "no";
   if (llevaAnioReciente(texto, hoy)) return "si";
   if (PISTAS.some((re) => re.test(texto))) return "si";
+  if (SOBRE_ALGUIEN.some((re) => re.test(texto.toLowerCase()))) return "si";
 
   // Las flojas valen solo si no estamos hablando de hace décadas.
   if (!llevaAnioViejo(texto, hoy) && DEBILES.some((re) => re.test(texto))) return "si";

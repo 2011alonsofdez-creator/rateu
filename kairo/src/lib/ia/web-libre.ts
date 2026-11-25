@@ -52,7 +52,8 @@ const limpio = (t: string) => t.replace(/\s+/g, " ").trim();
 
 /** ¿Hay algún buscador con clave puesto? */
 export function hayBuscadorLibre(): boolean {
-  return Boolean(process.env.TAVILY_API_KEY?.trim() || process.env.BRAVE_SEARCH_KEY?.trim());
+  // DuckDuckGo no necesita clave: siempre hay buscador, salvo que se apague.
+  return !(process.env.KAIRO_SIN_DUCKDUCKGO ?? "").trim() || Boolean(process.env.TAVILY_API_KEY?.trim() || process.env.BRAVE_SEARCH_KEY?.trim());
 }
 
 /* ---------- Tavily ---------- */
@@ -134,6 +135,74 @@ async function brave(consulta: string, plazo: number): Promise<Resultado[]> {
   }
 }
 
+/* ---------- DuckDuckGo (sin clave, siempre encendido) ---------- */
+
+/* Probado el 25-11 desde un servidor en la nube (GitHub Actions, como
+   Vercel): la versión HTML de DuckDuckGo contesta 200 con diez
+   resultados y su fragmento. Bing por RSS también, pero sus condiciones
+   no permiten usarlo en un producto; Google Noticias, ese día, 429. Esto
+   es lo que hace que Kairo busque aunque no quede cuota de ninguna IA. */
+
+const entidades = (t: string) =>
+  t
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+
+/** Lee la página de resultados de DuckDuckGo. Separado para probarlo sin red. */
+export function leerDuckDuckGo(html: string): Resultado[] {
+  const out: Resultado[] = [];
+  const bloques = html.split(/<div class="result results_links/).slice(1);
+  for (const b of bloques) {
+    if (/result--ad|y\.js\?/.test(b.slice(0, 400))) continue; // anuncios
+    const a = /class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/.exec(b);
+    if (!a) continue;
+    let url = entidades(a[1]);
+    const salto = /[?&]uddg=([^&]+)/.exec(url);
+    if (salto) url = decodeURIComponent(salto[1]);
+    if (url.startsWith("//")) url = "https:" + url;
+    if (!/^https?:\/\//.test(url)) continue;
+    const frag = /class="result__snippet"[^>]*>([\s\S]*?)<\/a>/.exec(b);
+    out.push({
+      titulo: limpio(entidades(a[2])),
+      url,
+      dominio: dominioDe(url),
+      texto: limpio(entidades(frag?.[1] ?? "")).slice(0, 600),
+      fecha: null,
+      leida: false,
+    });
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+async function duckduckgo(consulta: string, plazo: number): Promise<Resultado[]> {
+  if ((process.env.KAIRO_SIN_DUCKDUCKGO ?? "").trim()) return [];
+  try {
+    const r = await fetch("https://html.duckduckgo.com/html/", {
+      method: "POST",
+      signal: AbortSignal.timeout(plazo),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+        "accept-language": "es-ES,es;q=0.9",
+      },
+      body: new URLSearchParams({ q: consulta, kl: "es-es" }).toString(),
+      cache: "no-store",
+    });
+    if (!r.ok) return [];
+    return leerDuckDuckGo(await r.text());
+  } catch {
+    return [];
+  }
+}
+
 /* ---------- Leer una página ---------- */
 
 /** Los párrafos de un HTML que hablan del tema. Separado para probarlo sin red. */
@@ -207,12 +276,16 @@ export async function buscarYLeer(
   extrasALeer: string[] = [],
 ): Promise<Resultado[]> {
   const inicio = Date.now();
-  const [a, b] = await Promise.all([tavily(consulta, plazo - 1500), brave(consulta, plazo - 1500)]);
+  const [a, b, c] = await Promise.all([
+    tavily(consulta, plazo - 1500),
+    brave(consulta, plazo - 1500),
+    duckduckgo(consulta, Math.min(6000, plazo - 1500)),
+  ]);
 
   // Sin repetir página: la misma dirección por dos buscadores vale una vez.
   const vistas = new Set<string>();
   const todos: Resultado[] = [];
-  for (const r of [...a, ...b]) {
+  for (const r of [...a, ...b, ...c]) {
     const llave = r.url.replace(/[?#].*$/, "").replace(/\/$/, "");
     if (vistas.has(llave)) continue;
     vistas.add(llave);

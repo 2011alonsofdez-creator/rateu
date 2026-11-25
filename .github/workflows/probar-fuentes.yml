@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
+      - uses: actions/checkout@v4
       - name: Probar
         env:
           Q: ${{ inputs.q }}
@@ -32,6 +33,9 @@ jobs:
           probar "DDG html (POST)" -X POST --data "q=$q&kl=es-es" https://html.duckduckgo.com/html/
           grep -o 'class="result__a"[^>]*>[^<]*' out.txt | head -5
           grep -c 'result__snippet' out.txt || true
+          grep -o '<div class="result[^"]*"' out.txt | sort | uniq -c
+          grep -o 'class="result__snippet"[^>]*>.\{0,200\}' out.txt | head -2
+          cp out.txt ddg.html
           probar "DDG lite" "https://lite.duckduckgo.com/lite/?q=$q&kl=es-es"
           grep -o "class='result-link'[^>]*>[^<]*" out.txt | head -5
           probar "Bing RSS" "https://www.bing.com/search?q=$q&format=rss&setlang=es&cc=ES"
@@ -50,3 +54,7 @@ jobs:
           grep -o 'class="result-title[^"]*"[^>]*>' out.txt | head -3; grep -c 'result-title' out.txt || true
           probar "Mojeek" "https://www.mojeek.com/search?q=$q&lb=es"
           grep -o '<a class="ob"[^>]*href="[^"]*"' out.txt | head -5
+          echo "════ Parser de Kairo sobre la página de DuckDuckGo"
+          cd kairo && npm i --no-save tsx@4 >/dev/null 2>&1
+          printf 'import { readFileSync } from "fs";\nimport { leerDuckDuckGo } from "./src/lib/ia/web-libre";\nconsole.log(JSON.stringify(leerDuckDuckGo(readFileSync("../ddg.html","utf8")), null, 1).slice(0, 3000));\n' > p.ts
+          npx tsx p.ts
