@@ -68,19 +68,16 @@ jobs:
           })();
           TS
           npx tsx p.ts
-          echo "════ DDG desde Node, variantes"
-          cat > d.mjs <<'JS'
-          const q = process.env.Q;
-          const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
-          const vs = {
-            postKairo: () => fetch("https://html.duckduckgo.com/html/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, "accept-language": "es-ES,es;q=0.9" }, body: new URLSearchParams({ q, kl: "es-es" }).toString() }),
-            postMin: () => fetch("https://html.duckduckgo.com/html/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": "curl/8.5.0", accept: "*/*" }, body: new URLSearchParams({ q, kl: "es-es" }).toString() }),
-            postCurlUA: () => fetch("https://html.duckduckgo.com/html/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, accept: "*/*", "accept-language": "es-ES,es;q=0.9" }, body: "q=" + encodeURIComponent(q).replace(/%20/g, "+") + "&kl=es-es" }),
-            getHtml: () => fetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(q) + "&kl=es-es", { headers: { "user-agent": UA, accept: "text/html" } }),
-            postFull: () => fetch("https://html.duckduckgo.com/html/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "accept-language": "es-ES,es;q=0.9", origin: "https://html.duckduckgo.com", referer: "https://html.duckduckgo.com/" }, body: new URLSearchParams({ q, b: "", kl: "es-es" }).toString() }),
-          };
-          for (const [n, f] of Object.entries(vs)) {
-            try { const r = await f(); const t = await r.text(); console.log(n, r.status, t.length, (t.match(/result__a/g) || []).length, t.includes("anomaly") ? "ANOMALY" : ""); } catch (e) { console.log(n, "ERR", String(e)); }
-          }
+          echo "════ Desde Node: Fandom, Wikipedia aproximada, Google News"
+          cat > f.mjs <<'JS'
+          const UA = "Kairo/1.0 (+https://github.com/2011alonsofdez-creator/rateu)";
+          const j = async (u) => { const r = await fetch(u, { headers: { "user-agent": UA } }); return [r.status, await r.text()]; };
+          for (const u of [
+            "https://youtube.fandom.com/es/api.php?action=query&list=search&format=json&srlimit=3&srsearch=djmario",
+            "https://youtube.fandom.com/es/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&generator=search&gsrlimit=2&gsrsearch=djmario",
+            "https://es.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=3&srsearch=djmario~",
+            "https://es.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=3&srsearch=ibai",
+            "https://news.google.com/rss/search?q=djmario+when:30d&hl=es&gl=ES&ceid=ES:es",
+          ]) { try { const [c, t] = await j(u); console.log(c, u.slice(8, 60), t.slice(0, 500).replace(/\s+/g, " ")); } catch (e) { console.log("ERR", u, String(e)); } }
           JS
-          node d.mjs
+          node f.mjs
