@@ -203,6 +203,69 @@ async function duckduckgo(consulta: string, plazo: number): Promise<Resultado[]>
   }
 }
 
+/* ---------- Canales de YouTube (para youtubers y streamers) ---------- */
+
+/* "quién es djmario", "cuántos subs tiene X": lo que de verdad contesta
+   es el propio canal —nombre, @, suscriptores y de qué va—. La página de
+   búsqueda de YouTube lo trae dentro (probado el 25-11 desde la nube:
+   "DjMaRiiO · @DjMaRiiO · 10,4 millones de suscriptores"). Solo se usa
+   para preguntas sobre personas, y solo los canales cuyo nombre casa
+   con la persona preguntada. */
+
+/** Lee los canales de la página de búsqueda de YouTube. Sin red, para probarlo. */
+export function leerCanales(html: string, max = 3): Resultado[] {
+  const out: Resultado[] = [];
+  const trozos = html.split('"channelRenderer":{').slice(1);
+  for (const t of trozos) {
+    const b = t.slice(0, 6000);
+    const id = /"channelId":"([\w-]+)"/.exec(b)?.[1];
+    const nombre = /"title":\{"simpleText":"([^"]+)"/.exec(b)?.[1];
+    if (!id || !nombre) continue;
+    const arroba = /"subscriberCountText":\{"simpleText":"(@[^"]+)"/.exec(b)?.[1] ?? "";
+    // YouTube pone los suscriptores en un campo u otro según el día.
+    const subs =
+      /"label":"([^"]*suscriptores[^"]*)"/.exec(b)?.[1] ??
+      /"simpleText":"([^"]*(suscriptores|subscribers)[^"]*)"/.exec(b)?.[1] ??
+      "";
+    const desc = [...(/"descriptionSnippet":\{"runs":\[([\s\S]*?)\]\}/.exec(b)?.[1] ?? "").matchAll(/"text":"([^"]*)"/g)]
+      .map((m) => m[1])
+      .join("")
+      .replace(/\\n/g, " ");
+    const url = arroba ? `https://www.youtube.com/${arroba}` : `https://www.youtube.com/channel/${id}`;
+    out.push({
+      titulo: `${nombre} (canal de YouTube)`,
+      url,
+      dominio: "youtube.com",
+      texto: limpio([`Canal de YouTube «${nombre}»`, arroba, subs, desc].filter(Boolean).join(" · ")).slice(0, 500),
+      fecha: new Date().toISOString().slice(0, 10),
+      leida: true,
+    });
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+/** Busca canales de YouTube que casen con alguna palabra clave. Nunca lanza. */
+export async function canalesDe(consulta: string, clave: string[], plazo: number): Promise<Resultado[]> {
+  if ((process.env.KAIRO_SIN_YOUTUBE ?? "").trim()) return [];
+  try {
+    const q = encodeURIComponent(consulta);
+    const r = await fetch(`https://www.youtube.com/results?search_query=${q}&sp=EgIQAg%253D%253D&hl=es&gl=ES`, {
+      signal: AbortSignal.timeout(plazo),
+      headers: {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+        "accept-language": "es-ES,es;q=0.9",
+      },
+      cache: "no-store",
+    });
+    if (!r.ok) return [];
+    const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(.)\1+/g, "$1");
+    return leerCanales(await r.text()).filter((c) => clave.some((w) => norm(c.titulo + " " + c.url).includes(norm(w))));
+  } catch {
+    return [];
+  }
+}
+
 /* ---------- Leer una página ---------- */
 
 /** Los párrafos de un HTML que hablan del tema. Separado para probarlo sin red. */
@@ -226,8 +289,8 @@ export function parrafosDe(html: string, clave: string[], max = 1400): string {
     )
     .filter((t) => t.length >= 40 && !/cookies|suscr[ií]bete|newsletter|todos los derechos|inicia sesi[oó]n/i.test(t));
 
-  const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  const puntos = (t: string) => clave.filter((w) => norm(t).includes(w)).length;
+  const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(.)\1+/g, "$1");
+  const puntos = (t: string) => clave.filter((w) => norm(t).includes(norm(w))).length;
   // Los que nombran el tema, en el orden de la página; si ninguno, los primeros.
   const buenos = clave.length ? bloques.filter((b) => puntos(b) > 0) : bloques;
   const elegidos = (buenos.length ? buenos : bloques.slice(0, 4));

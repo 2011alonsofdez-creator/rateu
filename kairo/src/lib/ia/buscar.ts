@@ -10,7 +10,7 @@ import { partir } from "./proveedores";
 import { articulosDe, comoFuentes, comoHechos } from "./wikipedia";
 import { comoFuentes as noticiasComoFuentes, comoHechos as noticiasComoHechos, consultaDe, noticiasDe } from "./noticias";
 import { hayBuscadorPagado, modeloDeBusqueda, preguntarConBuscador } from "./buscar-web";
-import { buscarYLeer, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
+import { buscarYLeer, canalesDe, comoFuentes as webComoFuentes, comoHechos as webComoHechos, hayBuscadorLibre } from "./web-libre";
 import type { ModoEdad } from "@/lib/planes";
 import type { Fuente } from "@/lib/tipos";
 
@@ -144,6 +144,9 @@ export async function buscarHechos(
 
   const antes = Date.now();
   const quiereWiki = conWiki || corta || seguimiento;
+  const sobreAlguien =
+    /(qui[eé]n(es)? (es|son|era|fue)|youtuber|streamer|tiktoker|influencer|canal|subs\b|suscriptores|seguidores|sabes (de|qui[eé]n)|conoces a|cu[eé]ntame de|h[aá]blame de)/i.test(consulta) ||
+    (corta && Boolean(clave.length));
   const libres = Promise.all([
     noticiasDe(consulta, 5000).catch(() => []),
     /* Wikipedia en español y, si no tiene nada, en inglés: de muchos
@@ -157,11 +160,15 @@ export async function buscarHechos(
               : [...es, ...(await articulosDe(consulta, "en", 4000).catch(() => []))],
           )
       : Promise.resolve([]),
-    // Buscadores web con clave (Tavily/Brave) + leer las mejores páginas.
+    // Buscadores web (DuckDuckGo sin clave; Tavily/Brave si hay) + leer las mejores páginas.
     hayBuscadorLibre() ? buscarYLeer(consulta, clave, 9000).catch(() => []) : Promise.resolve([]),
+    /* Si es sobre una persona (o un creador), su canal de YouTube: nombre,
+       suscriptores y de qué va, que es lo que más se pregunta. */
+    sobreAlguien ? canalesDe(clave.join(" ") || consulta, clave, 5000).catch(() => []) : Promise.resolve([]),
   ]);
   const principal = await buscarConModelos(consulta, contexto, modoEdad, diario);
-  const [todasNoticias, todosArticulos, todasWeb] = await libres;
+  const [todasNoticias, todosArticulos, webSola, canales] = await libres;
+  const todasWeb = [...canales, ...webSola];
   /* Sin buscador con clave, al menos se LEEN las 2 primeras páginas que
      ha encontrado el buscador principal (3 s como mucho): un fragmento
      dice que hay algo; el párrafo dice qué. */
@@ -235,8 +242,16 @@ function palabrasClave(texto: string): string[] {
 /** ¿Habla este texto de alguna de las palabras clave? Sin claves, sí. */
 function habla(texto: string, clave: string[]): boolean {
   if (!clave.length) return true;
-  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  return clave.some((w) => t.includes(w));
+  /* Sin letras repetidas a los dos lados: "djmario" tiene que casar con
+     "DjMaRiiO", "auronplay" con "AuronPlayy". Antes no casaban y se
+     tiraban justo los resultados buenos. */
+  const t = suelto(texto);
+  return clave.some((w) => t.includes(suelto(w)));
+}
+
+/** Minúsculas, sin tildes y sin letras repetidas seguidas. */
+export function suelto(texto: string): string {
+  return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(.)\1+/g, "$1");
 }
 
 /** ¿Es una pregunta que se apoya en lo anterior? */

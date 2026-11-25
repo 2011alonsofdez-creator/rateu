@@ -54,7 +54,17 @@ jobs:
           grep -o 'class="result-title[^"]*"[^>]*>' out.txt | head -3; grep -c 'result-title' out.txt || true
           probar "Mojeek" "https://www.mojeek.com/search?q=$q&lb=es"
           grep -o '<a class="ob"[^>]*href="[^"]*"' out.txt | head -5
-          echo "════ Parser de Kairo sobre la página de DuckDuckGo"
+          echo "════ Kairo de verdad: buscarYLeer + canalesDe"
           cd kairo && npm i --no-save tsx@4 >/dev/null 2>&1
-          printf 'import { readFileSync } from "fs";\nimport { leerDuckDuckGo } from "./src/lib/ia/web-libre";\nconsole.log(JSON.stringify(leerDuckDuckGo(readFileSync("../ddg.html","utf8")), null, 1).slice(0, 3000));\n' > p.ts
+          cat > p.ts <<'TS'
+          import { buscarYLeer, canalesDe, comoHechos } from "./src/lib/ia/web-libre";
+          const q = process.env.Q || "quién es djmario";
+          const clave = q.toLowerCase().split(/\s+/).filter((w) => w.length >= 4 && !["quien","quién","youtuber","sabes"].includes(w));
+          (async () => {
+            const t = Date.now();
+            const [web, canales] = await Promise.all([buscarYLeer(q, clave, 9000), canalesDe(clave.join(" "), clave, 5000)]);
+            console.log("ms", Date.now() - t, "web", web.length, "leídas", web.filter((w) => w.leida).length, "canales", canales.length);
+            console.log(comoHechos([...canales, ...web], "hoy").slice(0, 4000));
+          })();
+          TS
           npx tsx p.ts
