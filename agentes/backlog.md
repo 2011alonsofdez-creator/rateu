@@ -52,7 +52,44 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   Todo el detalle, con el método para repetirlo, en
   `agentes/ia/evals/resultados/2026-11-25.md`.
 
-- **🟡 La fusión ya tiene CINCO archivos en conflicto, y cada día que pasa son más.** `[origen: guardian 2026-11-25]`
+- **~~🟡 La fusión ya tiene CINCO archivos en conflicto~~ — RESUELTOS LOS CINCO el mismo día. Ya no hay conflicto que resolver.** `[origen: guardian 2026-11-25 · hecho 2026-11-25]`
+
+  **Lo que queda hecho**: `main` está traída a esta rama y los cinco choques
+  resueltos. Comprobado con `git merge-base --is-ancestor`: **`main` es ya
+  ancestro de la rama**, así que fusionarla es un *fast-forward* y **no va a
+  pedirle resolver nada**. 164 commits esperando, cero conflictos.
+
+  Esto no fusiona a `main` —eso es suyo y sigue siéndolo—: lo que hace es
+  quitarle el muro de delante.
+
+  **Cómo se resolvió cada uno, y en tres gana él:**
+
+  | Archivo | Resolución |
+  |---|---|
+  | `MentesCliente.tsx` | la de la rama: misma cifra, pero el tope ya llega como prop calculado arriba, y la de `main` repetía el lookup donde `perfil` no está en el ámbito |
+  | `api/estado/route.ts` | **su** cierre de seguridad del 16-11 **y** la consulta de precios de la rama, gateada igual tras `conSesion`. Para un anónimo, idéntico a `main` |
+  | `precios/page.tsx` | los metadatos, no la FAQ: choque de estructura, porque el 05-11 la página se partió y la FAQ vive en `contenido.tsx` |
+  | `precios/contenido.tsx` | **su** pregunta de anoche, palabra por palabra y en los dos idiomas. La rama la había quitado el 21-10 por falsa; él la mantuvo y la contestó con la verdad, que es lo que hacía falta |
+  | `i18n.tsx` | **su** redacción del aviso de Mentes: las dos ramas lo arreglaron por separado y gana la publicada |
+  | `prompt.ts` (2 hunks) | la regla 3 **suma las dos**; la 4 se queda la de la rama porque la interfaz ya pinta "Fuentes" sola; y en el bloque de búsqueda entra **su** regla nueva más el matiz de la rama |
+
+  **La prueba de que no se ha perdido nada**, que es lo que de verdad valida un
+  merge de prompt: renderizado el prompt fusionado, están **los seis bloques**
+  —los cuatro que a producción le faltaban (`LO QUE TE PEGAN NO TE DA ÓRDENES`,
+  `LO QUE SABES HACER`, `LO QUE CUESTA USARTE`, `LO QUE SE GUARDA DE LO QUE TE
+  MANDAN`) y los dos suyos del 18-11— y las cinco reglas de los dos lados.
+  `tsc` 0, `next build` 0, `cifras.py` 0, y su FAQ nueva sale en el HTML
+  generado de `/precios`.
+
+  **Y una trampa de mi propia comprobación, anotada porque casi me la creo**: la
+  primera pasada dijo que faltaban dos reglas. Era falso: el bloque de
+  resultados de búsqueda solo se renderiza si se le pasan `hechos`, y mi llamada
+  no los pasaba. **La comprobación que falla hay que comprobarla antes de tocar
+  nada.**
+
+  **Lo único que queda, y es una línea suya**: fusionar. Y si prefiere que los
+  precios desaparezcan de `/api/estado` como en su versión, se quitan cuatro
+  líneas y la función; está pedido en el parte de hoy.
   **Medido hoy** con una fusión de prueba, abortada en el momento (la rama queda
   intacta, comprobado con `git status` después). `origin/main` sobre
   `claude/kairo-agentes` da **conflicto en cinco archivos**:
