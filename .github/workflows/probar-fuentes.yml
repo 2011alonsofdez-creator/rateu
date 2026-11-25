@@ -1,0 +1,52 @@
+name: Probar fuentes gratis de búsqueda
+
+# ¿Qué buscadores SIN CLAVE contestan desde un servidor en la nube
+# (como Vercel)? Se prueba cada uno con la misma pregunta y se enseña
+# el código y los primeros resultados. No gasta cuota de nada.
+
+on:
+  workflow_dispatch:
+    inputs:
+      q:
+        description: 'Qué buscar'
+        required: false
+        default: 'djmario youtuber'
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Probar
+        env:
+          Q: ${{ inputs.q }}
+        run: |
+          set -u
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36'
+          q=$(python3 -c 'import urllib.parse,os;print(urllib.parse.quote_plus(os.environ["Q"]))')
+          probar () {
+            echo "════ $1"
+            code=$(curl -sS -L --max-time 15 -A "$UA" -H 'Accept-Language: es-ES,es;q=0.9' -o out.txt -w "%{http_code}" "${@:2}" || echo 000)
+            echo "HTTP $code · $(wc -c < out.txt) bytes"
+          }
+          probar "DDG html (POST)" -X POST --data "q=$q&kl=es-es" https://html.duckduckgo.com/html/
+          grep -o 'class="result__a"[^>]*>[^<]*' out.txt | head -5
+          grep -c 'result__snippet' out.txt || true
+          probar "DDG lite" "https://lite.duckduckgo.com/lite/?q=$q&kl=es-es"
+          grep -o "class='result-link'[^>]*>[^<]*" out.txt | head -5
+          probar "Bing RSS" "https://www.bing.com/search?q=$q&format=rss&setlang=es&cc=ES"
+          grep -o '<title>[^<]*' out.txt | head -6
+          probar "Google News 30d" "https://news.google.com/rss/search?q=$q+when:30d&hl=es&gl=ES&ceid=ES:es"
+          grep -o '<title>[^<]*' out.txt | head -6
+          probar "Wikipedia es opensearch" "https://es.wikipedia.org/w/api.php?action=opensearch&format=json&limit=5&search=$q"
+          head -c 600 out.txt; echo
+          probar "Wikipedia es search" "https://es.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=5&srsearch=$q"
+          python3 -c 'import json;d=json.load(open("out.txt"));print([x["title"] for x in d["query"]["search"]])' || true
+          probar "YouTube canales" "https://www.youtube.com/results?search_query=$q&sp=EgIQAg%253D%253D"
+          grep -o '"title":{"simpleText":"[^"]*"' out.txt | head -5
+          grep -o '"videoCountText":{[^}]*}' out.txt | head -3
+          grep -o '"subscriberCountText":{[^}]*}' out.txt | head -3
+          probar "Startpage" "https://www.startpage.com/sp/search?query=$q&language=espanol"
+          grep -o 'class="result-title[^"]*"[^>]*>' out.txt | head -3; grep -c 'result-title' out.txt || true
+          probar "Mojeek" "https://www.mojeek.com/search?q=$q&lb=es"
+          grep -o '<a class="ob"[^>]*href="[^"]*"' out.txt | head -5
