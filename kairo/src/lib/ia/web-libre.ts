@@ -250,17 +250,24 @@ export async function canalesDe(consulta: string, clave: string[], plazo: number
   if ((process.env.KAIRO_SIN_YOUTUBE ?? "").trim()) return [];
   try {
     const q = encodeURIComponent(consulta);
-    const r = await fetch(`https://www.youtube.com/results?search_query=${q}&sp=EgIQAg%253D%253D&hl=es&gl=ES`, {
-      signal: AbortSignal.timeout(plazo),
-      headers: {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
-        "accept-language": "es-ES,es;q=0.9",
-      },
-      cache: "no-store",
-    });
-    if (!r.ok) return [];
+    const pedir = async (filtro: string) => {
+      const r = await fetch(`https://www.youtube.com/results?search_query=${q}${filtro}&hl=es&gl=ES`, {
+        signal: AbortSignal.timeout(plazo),
+        headers: {
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+          "accept-language": "es-ES,es;q=0.9",
+        },
+        cache: "no-store",
+      });
+      return r.ok ? leerCanales(await r.text()) : [];
+    };
+    /* Con el filtro "solo canales" salen mejor, pero a veces YouTube no
+       lo aplica y devuelve otra cosa: entonces, la búsqueda normal, que
+       también suele traer el canal arriba. */
+    let canales = await pedir("&sp=EgIQAg%253D%253D");
+    if (!canales.length) canales = await pedir("");
     const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(.)\1+/g, "$1");
-    return leerCanales(await r.text()).filter((c) => clave.some((w) => norm(c.titulo + " " + c.url).includes(norm(w))));
+    return canales.filter((c) => clave.some((w) => norm(c.titulo + " " + c.url).includes(norm(w))));
   } catch {
     return [];
   }
