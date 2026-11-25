@@ -27,6 +27,7 @@ import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memo
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
 import { buscarHechos, type Diario } from "@/lib/ia/buscar";
 import { correrMega } from "@/lib/ia/mega";
+import { tamanoFusion } from "@/lib/ia/fusion";
 import { clasificarError, segundosDeEspera } from "@/lib/ia/errores";
 import { apartar, disponible } from "@/lib/ia/cuarentena";
 import { construirPrompt } from "@/lib/ia/prompt";
@@ -644,7 +645,11 @@ export async function POST(req: Request) {
          * —incluida la de combinarlas, que la escribe alguno de los que sí
          * contestaron—. Solo si no contesta NINGUNO se lanza el fallo, y
          * entonces lo recoge el catch de abajo como cualquier otro. */
-        if (nivel === "mega") {
+        /* La fusión por modos (ver fusion.ts): Normal y Forja también
+           pueden juntar a 2 o 3 modelos. Apagada hasta que se encienda
+           en Vercel; MEGA va siempre. */
+        const fusion = nivel === "mega" ? 3 : tamanoFusion(nivel, perfil.plan);
+        if (fusion >= 2) {
           conversacion = await abriendo;
           avisarConversacion();
 
@@ -671,9 +676,11 @@ export async function POST(req: Request) {
                modelo sin cuota tiene que quedarse fuera del equipo en el
                mensaje siguiente en vez de llevarse un sitio otra vez. */
             alFallar: apartar,
+            tamano: fusion,
+            profundo: nivel !== "normal",
           })) {
             if (paso.t === "equipo") {
-              etiqueta = `Mega · ${paso.modelos.join(" + ")}`;
+              etiqueta = `${nivel === "mega" ? "Mega" : "Fusión"} · ${paso.modelos.join(" + ")}`;
               enviar({
                 t: "meta",
                 modelo: etiqueta,
