@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { seccionDeRuta, seccionVisible } from "@/lib/version";
 import { createServerClient } from "@supabase/ssr";
 import {
   SUPABASE_ANON_KEY,
@@ -16,6 +17,17 @@ import {
    2. Cortar el paso a las rutas privadas antes de renderizar nada. */
 
 export async function proxy(request: NextRequest) {
+  /* Secciones escondidas en esta versión (ver lib/version.ts): quien
+     llegue por un enlace viejo va al chat en vez de a una pantalla que
+     ya no está en el menú. */
+  const seccion = seccionDeRuta(request.nextUrl.pathname);
+  if (seccion && !seccionVisible(seccion)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/chat";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   // Modo demo: sin Supabase configurado, todo es público.
   if (!hasSupabase) return NextResponse.next();
 

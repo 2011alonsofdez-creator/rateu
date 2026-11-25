@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(CASA),
   title: "Kairo — La IA que trabaja cuando tú no",
   description:
-    "Kairo usa Claude, Gemini y GPT a la vez y elige el mejor modelo para cada tarea. Con Co-Works programados que trabajan mientras no estás.",
+    "Kairo usa Claude, Gemini y GPT a la vez y elige el mejor modelo para cada tarea. Lee tus papeles oficiales y crea aplicaciones.",
   openGraph: {
     title: "Kairo — La IA que trabaja cuando tú no",
     description:

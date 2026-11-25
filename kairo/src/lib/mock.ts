@@ -1,6 +1,7 @@
 import type { Lang } from "./i18n";
 import type { Adjunto, Fuente } from "./tipos";
 import { COWORKS_POR_PLAN, CREDITOS_NIVEL, MENTES_POR_PLAN } from "./planes";
+import { seccionVisible } from "./version";
 import type { Producto } from "./pagos/config";
 
 /* Datos de ejemplo para el Paso 1. Todo esto se sustituye por
@@ -191,7 +192,7 @@ export type Plan = {
  * tamaño del PDF da igual de verdad. Lo que sigue teniendo tope son las
  * fotos y los PDF escaneados, que son imágenes. Eso es lo que se dice.
  */
-export const plans: Plan[] = [
+const todosLosPlanes: Plan[] = [
   {
     id: "free",
     monthly: 0,
@@ -286,6 +287,15 @@ export const plans: Plan[] = [
  * Vercel. Lo que cambió es cuántos créditos abona, y eso vive en
  * pagos/config.ts. Aquí van separados a propósito: el día que vuelvan a
  * cambiar los créditos, el botón sigue apuntando a donde debe. */
+/* Sin las líneas de Co-Works y Mentes mientras estén escondidas
+   (lib/version.ts): no se vende lo que no se ve. */
+const sinOcultas = (b: string) =>
+  !(/co-work/i.test(b) && !seccionVisible("coworks")) && !(/mentes|minds/i.test(b) && !seccionVisible("mentes"));
+export const plans: Plan[] = todosLosPlanes.map((p) => ({
+  ...p,
+  bullets: { es: p.bullets.es.filter(sinOcultas), en: p.bullets.en.filter(sinOcultas) },
+}));
+
 export const creditPacks: { producto: Producto; credits: number; price: number }[] = [
   { producto: "pack_500", credits: 1000, price: 5.99 },
   { producto: "pack_2000", credits: 4000, price: 19.99 },

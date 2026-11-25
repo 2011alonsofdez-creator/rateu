@@ -1,5 +1,6 @@
 "use client";
 
+import { seccionDeRuta, seccionVisible } from "@/lib/version";
 import Link from "next/link";
 import { apuntar } from "@/lib/rastro";
 import { detectarEncargo } from "@/lib/coworks/detectar";
@@ -1242,7 +1243,7 @@ function Chat() {
                 Cinco columnas en el ordenador y tres en el móvil: con
                 dos, la quinta se queda sola colgando a un lado. */}
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {CARDS.map((c) => {
+              {CARDS.filter((c) => { const sec = c.href ? seccionDeRuta(c.href) : null; return !sec || seccionVisible(sec); }).map((c) => {
                 const Icon = c.icon;
                 const inner = (
                   <>
@@ -1543,7 +1544,7 @@ function KairoMessage({
 
         <Fuentes fuentes={m.fuentes} busquedas={m.busquedas} />
 
-        {encargo && pregunta && (
+        {encargo && pregunta && seccionVisible("coworks") && (
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-acento/35 bg-acento/5 px-3.5 py-2.5 text-[13px] leading-relaxed">
             <Clock className="h-4 w-4 shrink-0 text-acento" />
             <span className="min-w-0 flex-1 text-fg">

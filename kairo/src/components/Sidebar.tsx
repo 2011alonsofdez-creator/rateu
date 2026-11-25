@@ -14,6 +14,7 @@ import { borrarApp, renombrarApp, useAppsCode } from "@/lib/apps-code";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
 import { LangToggle, ThemeToggle } from "./Toggles";
+import { seccionDeRuta, seccionVisible } from "@/lib/version";
 import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plus, Settings, Team, Trash } from "./Icons";
 
 const NAV: { href: string; label: TKey; icon: typeof Chat }[] = [
@@ -273,7 +274,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Navegación */}
       <nav className="mt-4 space-y-0.5 px-3">
-        {NAV.map((item) => {
+        {NAV.filter((item) => { const sec = seccionDeRuta(item.href); return !sec || seccionVisible(sec); }).map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href && !(item.href === "/chat" && abierta);
           return (

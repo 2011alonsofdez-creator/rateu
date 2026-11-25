@@ -1,5 +1,6 @@
 "use client";
 
+import { seccionVisible } from "@/lib/version";
 import { useEffect, useRef, useState } from "react";
 import { useUi, type TKey } from "@/lib/i18n";
 import { LEVELS, type Level, type Nivel } from "@/lib/mock";
@@ -465,7 +466,7 @@ export function Composer({
             
                 {/* Selector de Mente. Compacto a propósito: al lado del de
                     nivel, y en el móvil solo el icono cuando no hay ninguna. */}
-                <div className="relative" ref={wrapMente}>
+                <div className={seccionVisible("mentes") ? "relative" : "hidden"} ref={wrapMente}>
                   <button
                     onClick={abrirMentes}
                     aria-expanded={menuMente}
@@ -796,7 +797,7 @@ export function Composer({
             
             {/* Selector de Mente. Compacto a propósito: al lado del de
                 nivel, y en el móvil solo el icono cuando no hay ninguna. */}
-            <div className="relative" ref={wrapMente}>
+            <div className={seccionVisible("mentes") ? "relative" : "hidden"} ref={wrapMente}>
               <button
                 onClick={abrirMentes}
                 aria-expanded={menuMente}

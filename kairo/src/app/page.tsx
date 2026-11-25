@@ -1,5 +1,6 @@
 "use client";
 
+import { seccionVisible } from "@/lib/version";
 import Link from "next/link";
 import { useUi, type TKey } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
@@ -143,7 +144,7 @@ export default function Landing() {
             </div>
 
             <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((f) => {
+              {FEATURES.filter((f) => (f.title !== "features.coworks" || seccionVisible("coworks")) && (f.title !== "features.team" || seccionVisible("team"))).map((f) => {
                 const Icon = f.icon;
                 return (
                   <div
