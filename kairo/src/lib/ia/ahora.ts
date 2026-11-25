@@ -240,6 +240,31 @@ const SOBRE_ALGUIEN: RegExp[] = [
   /\b(a que se dedica|por que es (famoso|famosa|conocido|conocida)|de que (va|trata) (su|el) canal)\b/,
 ];
 
+/* LO QUE SE CONTESTA AL MOMENTO, SIN BUSCAR (25-11).
+ *
+ * "5x5", "raíz de 144", "cómo se dice perro en inglés", "qué día es
+ * hoy", "capital de Francia": buscar aquí solo añade segundos. La fecha
+ * y la hora ya las tiene el prompt; lo demás es cálculo o conocimiento
+ * de siempre. Va ANTES que las pistas, porque "hoy" en "qué día es hoy"
+ * no pide noticias. */
+const AL_MOMENTO: RegExp[] = [
+  // Cuentas: "5x5", "12*7", "cuanto es 30/4", "15% de 240", "raiz de 144"
+  /^[\s\d.,+\-*/x×÷^()=%?¿]+$/,
+  /\b(cuanto|q|que) (es|son|da|sale)\s*[\d(]/,
+  /\b(raiz|potencia|cuadrado|cubo|factorial|logaritmo|porcentaje|por ciento|mitad|doble|triple) (de|del)\b/,
+  /\d+\s*(%|por ciento) de \d/,
+  /\b(calcula|calculame|resuelve|suma|resta|multiplica|divide|deriva|integra|simplifica)\b/,
+  // Idioma
+  /\b(como se dice|como se escribe|como se pronuncia|traduce|traduceme|traduccion de|en ingles|en frances|en aleman|en italiano|en portugues)\b/,
+  /\b(sinonimo|sinonimos|antonimo|antonimos|plural de|femenino de|conjuga|conjugacion|se escribe con)\b/,
+  // Fecha y hora (ya van en el prompt)
+  /^(y )?(q|que|k) (dia|fecha|hora|mes|ano|año) (es|son|estamos|tenemos)( hoy)?\b/,
+  /^(q|que|k) dia de la semana (es|cae|fue)\b/,
+  // Saber de siempre
+  /\b(capital de|cuantos dias tiene|cuantas patas|cuantos huesos|cuantos planetas|cuantos continentes|formula del|formula de la|tabla del)\b/,
+  /^(hola|holi|buenas|hey|ey|gracias|vale|ok|okey|perfecto|genial|jaja\w*|xd|adios|chao|buenas noches|buenos dias)\b/,
+];
+
 export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   const texto = sinTildes(pregunta.trim());
   if (texto.length < 3) return "no";
@@ -248,6 +273,7 @@ export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   if (texto.length > 2000) return "no";
 
   if (NUNCA.some((re) => re.test(texto))) return "no";
+  if (AL_MOMENTO.some((re) => re.test(texto.toLowerCase()))) return "no";
   if (llevaAnioReciente(texto, hoy)) return "si";
   if (PISTAS.some((re) => re.test(texto))) return "si";
   if (SOBRE_ALGUIEN.some((re) => re.test(texto.toLowerCase()))) return "si";

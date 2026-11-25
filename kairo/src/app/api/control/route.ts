@@ -30,6 +30,9 @@ const CONTROLES: Control[] = [
   { pregunta: "precio del euríbor hoy", busca: true, debe: /eur(í|i)bor/i },
   { pregunta: "escríbeme un poema corto sobre el otoño", busca: false },
   { pregunta: "calcula el 15% de 240", busca: false },
+  { pregunta: "5x5", busca: false },
+  { pregunta: "como se dice perro en ingles", busca: false },
+  { pregunta: "q dia es hoy", busca: false },
 ];
 
 function igual(a: string, b: string): boolean {
