@@ -252,7 +252,9 @@ const AL_MOMENTO: RegExp[] = [
   /^[\s\d.,+\-*/x×÷^()=%?¿]+$/,
   /\b(cuanto|q|que) (es|son|da|sale)\s*[\d(]/,
   /\b(raiz|potencia|cuadrado|cubo|factorial|logaritmo|porcentaje|por ciento|mitad|doble|triple) (de|del)\b/,
-  /\d+\s*(%|por ciento) de \d/,
+  /\d+\s*(%|por ciento) de [^\d]{0,20}\d/,
+  /\d\s*(por|entre|mas|más|menos|elevado a|x)\s*\d/,
+  /\b(raiz|raíz) (cuadrada|cubica|cúbica) de\b/,
   /\b(calcula|calculame|resuelve|suma|resta|multiplica|divide|deriva|integra|simplifica)\b/,
   // Idioma
   /\b(como se dice|como se escribe|como se pronuncia|traduce|traduceme|traduccion de|en ingles|en frances|en aleman|en italiano|en portugues)\b/,
