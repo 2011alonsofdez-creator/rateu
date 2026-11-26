@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Probar } from "@/components/Probar";
 import { creditPacks, plans } from "@/lib/mock";
 import { CREDITOS } from "@/lib/ia/config";
 import { CREDITOS_PLAN } from "@/lib/planes";
@@ -34,6 +35,9 @@ const T = {
       "Kairo te da créditos cada día sin pagar nada y sin pedirte la tarjeta. Si un mes necesitas más, compras un paquete que no caduca. Y si el mes siguiente no la usas, no pagas.",
     ctaPrincipal: "Probarla gratis",
     ctaSecundario: "Ver qué cuesta cada cosa",
+    pruebaTitulo: "Y esto es probarla gratis de verdad: aquí mismo.",
+    pruebaPie:
+      "Sin cuenta, sin tarjeta y sin salir de esta página. Escribe lo que quieras saber y te contesta. Es la forma más corta de comprobar lo que dice esta página: que para usar Kairo no hay que suscribirse a nada.",
     porQueTitulo: "Por qué esto importa más de lo que parece",
     porQueCuerpo: [
       "Casi todas las IA se cobran como el gimnasio: una cuota al mes, la uses o no. Y para la mayoría de la gente eso no encaja, porque no necesita una IA todos los días: necesita una el martes que le llega una multa y otra vez en marzo con la renta.",
@@ -78,6 +82,9 @@ const T = {
       "Kairo gives you credits every day without paying anything and without asking for your card. If one month you need more, you buy a pack that never expires. And if you do not use it the month after, you pay nothing.",
     ctaPrincipal: "Try it free",
     ctaSecundario: "See what each thing costs",
+    pruebaTitulo: "And this is trying it free for real: right here.",
+    pruebaPie:
+      "No account, no card and without leaving this page. Type whatever you want to know and it replies. It is the shortest way to check what this page says: that using Kairo does not mean subscribing to anything.",
     porQueTitulo: "Why this matters more than it looks",
     porQueCuerpo: [
       "Almost every AI charges like a gym: a monthly fee whether you use it or not. For most people that does not fit, because they do not need an AI every day: they need one on the Tuesday a fine arrives, and again in March with their tax return.",
@@ -202,6 +209,20 @@ export function SinSuscripcionContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* LA CAJA DE PROBAR (26-11), igual que en las tres de papeles.
+ 
+              Esta página era una de las dos últimas de intención que mandaban
+              al visitante detrás del registro sin dejarle probar nada. Lo pidió
+              el radar el 24-11 y hoy le toca. `<Probar />` no lleva ni una
+              propiedad: es un import y dos textos. */}
+          <div className="mt-14">
+            <p className="text-[15px] font-semibold">{c.pruebaTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.pruebaPie}</p>
+            <div className="mt-6">
+              <Probar />
+            </div>
           </div>
 
           <h2 className="mt-16 text-[24px] font-semibold tracking-tight">{c.porQueTitulo}</h2>

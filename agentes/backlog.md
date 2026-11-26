@@ -213,8 +213,41 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   —ayer dos más de 8 h: 9,85 y 9,2— eso puede pasar.
 
   **Así que la pregunta útil ya no es la gracia de los Co-Works, es esta**: ¿el
-  aviso del mismo día tiene red? No lo he medido todavía. Queda como lo primero
-  que mire el próximo guardián, y es más barato que lo que proponía ayer.
+  aviso del mismo día tiene red?
+
+  **CONTESTADA EL MISMO DÍA, por el constructor, y la respuesta es que sí —con
+  una condición que nadie ha comprobado nunca.**
+
+  El razonamiento, que se puede rebatir leyéndolo: el hito 0 se elige mientras
+  `dias between 0 and 7`, y `dias` es `fecha_limite - hora_local(zona)::date`.
+  El día del plazo `dias = 0`, así que la fila es **seleccionable todo el día
+  local**; al día siguiente `dias = -1` y se cae para siempre. O sea que el aviso
+  del mismo día se pierde **solo si el reloj no suena ni una vez en ese día
+  local entero**.
+
+  Y ahí entra el cron de Vercel: suena **una vez al día a hora fija UTC**. Los
+  toques a hora fija UTC van espaciados 24 h y un día local dura 24 h, así que
+  **cada día local contiene exactamente uno**, en cualquier zona. Conclusión:
+  **los huecos de GitHub, por grandes que sean, no pueden perder el aviso del
+  mismo día.** Lo que pueden es retrasarlo dentro del día.
+
+  **La condición, y es el hallazgo que sustituye al de ayer**: todo esto
+  descansa en que el cron de Vercel suene, y **nadie lo ha comprobado nunca**.
+  Lo único que lo menciona en todo el repositorio es un comentario dentro de
+  `kairo-coworks.yml`; `revisar.yml` no lo mira, `probar-portada` no lo mira, y
+  desde la sede no se ve el panel de Vercel. **Medimos el reloj de GitHub, que
+  es el que no hace falta, y damos por bueno el de Vercel, que es el que
+  sostiene los plazos.**
+
+  Dos rendijas más, dichas para no exagerar la calma: el día que el reloj local
+  dura 23 h (el cambio de hora de primavera) ese día podría no contener el
+  toque; y "no perderse" no es "llegar a tiempo" —un aviso de "vence HOY" que
+  sale a las 23:40 es tarde de hecho—.
+
+  **Lo que pido, y es una línea suya**: que alguna comprobación diaria vea
+  sonar el cron de Vercel. No sé hacerlo desde aquí sin tocar su panel ni la
+  base de datos, así que lo dejo pedido en el parte en vez de inventarme una
+  solución.
   Ayer medí las 265 ejecuciones y salieron 16 huecos mayores de 8 h en 38 días,
   12 de ellos en los últimos 14. **Hoy, en un solo día, van tres:**
 
@@ -2393,7 +2426,33 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   con abogados)—. La decisión lleva **nueve días**: o baja de 23 €, o la página
   explica qué da Supreme que no dan los otros cuatro.
 
-- **La caja de probar en las dos páginas que mandan al visitante detrás del registro.** `[origen: radar 2026-11-24]`
+- **~~La caja de probar en las dos páginas que mandan al visitante detrás del registro~~ — HECHO el 26-11. Las cinco de intención la tienen ya.** `[origen: radar 2026-11-24 · hecho 2026-11-26]`
+
+  **Lo que había, y la ironía medida en el código**: `/sin-suscripcion` —la
+  página que *vende* no tener suscripción— tenía como botón principal
+  *"Probarla gratis"* apuntando a **`/registro`**. Y `/crear-una-app` apuntaba a
+  `/code`, que está detrás del login. Las dos prometían probar y mandaban a un
+  formulario.
+
+  **Hecho**: `<Probar />` en las dos, justo debajo de los botones y encima del
+  primer apartado, igual que en las tres de papeles. Un import y dos textos, en
+  los dos idiomas.
+
+  **Y los pies dicen la frontera de cada una, que es lo que hace esto honesto en
+  vez de decorativo:**
+
+  - `/crear-una-app`: *"Para que te escriba la herramienta sí hace falta una
+    cuenta: hay que guardarla y descontar los créditos. Para preguntarle, no. Si
+    no sabes si lo que necesitas es de esto, descríbelo aquí y te lo dice antes
+    de que te registres."*
+  - `/sin-suscripcion`: *"Y esto es probarla gratis de verdad: aquí mismo. Sin
+    cuenta, sin tarjeta y sin salir de esta página… Es la forma más corta de
+    comprobar lo que dice esta página."*
+
+  **Comprobado en el HTML generado** de las dos: el título nuevo sale donde
+  toca, detrás de los botones, y el formulario de la caja viaja con él. `tsc` 0,
+  `next build` 0, `cifras` 0. Y comprobado que **las cinco** páginas de
+  intención tienen ya `<Probar />`.
   `/sin-suscripcion` y `/crear-una-app` son las dos únicas páginas de intención
   sin caja de probar. Las tres de papeles la tienen desde el 18-11 y el camino
   de "una búsqueda lleva a una respuesta" existe gracias a eso.

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUi } from "@/lib/i18n";
 import { CREDITOS_NIVEL } from "@/lib/planes";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Probar } from "@/components/Probar";
 
 /* El texto, en los dos idiomas y aquí dentro, como las tres páginas de
    intención anteriores.
@@ -42,6 +43,9 @@ const T = {
       "Un contador de gastos, una calculadora de notas, un cronómetro de estudio. Le dices qué necesitas, lo escribe delante de ti, lo ejecuta ahí mismo y te lo descargas. Se abre con doble clic, sin instalar nada y sin internet.",
     ctaPrincipal: "Pedirle una",
     ctaSecundario: "Ver qué cuesta",
+    pruebaTitulo: "O pregúntale algo ahora mismo, sin cuenta.",
+    pruebaPie:
+      "Para que te escriba la herramienta sí hace falta una cuenta: hay que guardarla y descontar los créditos. Para preguntarle, no. Si no sabes si lo que necesitas es de esto, descríbelo aquí y te lo dice antes de que te registres.",
     queEsTitulo: "Qué sale, exactamente",
     queEs: [
       {
@@ -90,6 +94,9 @@ const T = {
       "A spending tracker, a grade calculator, a study timer. You say what you need, it writes it in front of you, runs it right there, and you download it. It opens with a double click, with nothing to install and no internet.",
     ctaPrincipal: "Ask for one",
     ctaSecundario: "See what it costs",
+    pruebaTitulo: "Or ask it something right now, no account.",
+    pruebaPie:
+      "Writing the tool for you does need an account: it has to be saved and the credits charged. Asking does not. If you are not sure whether what you need is this kind of thing, describe it here and it will tell you before you sign up.",
     queEsTitulo: "What you actually get",
     queEs: [
       {
@@ -168,6 +175,20 @@ export function CrearUnaAppContenido() {
             >
               {c.ctaSecundario}
             </Link>
+          </div>
+
+          {/* LA CAJA DE PROBAR (26-11), igual que en las tres de papeles.
+ 
+              Esta página era una de las dos últimas de intención que mandaban
+              al visitante detrás del registro sin dejarle probar nada. Lo pidió
+              el radar el 24-11 y hoy le toca. `<Probar />` no lleva ni una
+              propiedad: es un import y dos textos. */}
+          <div className="mt-14">
+            <p className="text-[15px] font-semibold">{c.pruebaTitulo}</p>
+            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{c.pruebaPie}</p>
+            <div className="mt-6">
+              <Probar />
+            </div>
           </div>
 
           <h2 className="mt-16 text-[24px] font-semibold tracking-tight">{c.queEsTitulo}</h2>
