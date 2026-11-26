@@ -13,6 +13,34 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 El camino limpio de la fusión duró UN DÍA. Y eso ya no es un recado: es la forma del problema.** `[origen: guardian 2026-11-26]`
+  Ayer el constructor dejó `main` como ancestro de la rama: fusionar era un
+  *fast-forward*, cero conflictos. **Hoy ya hay dos archivos en conflicto otra
+  vez** —`prompt.ts` y `mock.ts`— medido con una fusión de prueba abortada en el
+  momento.
+
+  No porque nadie lo hiciera mal. Porque **él metió 14 commits ayer** —uno de
+  ellos de prompt: *"anti-sycophancy section, step-by-step, study quiz and
+  opinion formats"*— y la rama sigue sin fusionar. **166 commits, 26 días.**
+
+  | | 25-11 mañana | 25-11 tarde | 26-11 |
+  |---|---|---|---|
+  | Archivos en conflicto | 5 | **0** | **2** |
+
+  **Lo que esto demuestra, y conviene decirlo una sola vez y bien**: limpiar la
+  fusión desde este lado **no la mantiene limpia**. Mientras los dos lados
+  escriban y nadie fusione, el conflicto se regenera cada día que él trabaja. Y
+  él está trabajando: 14 commits ayer, 3 anteayer.
+
+  Así que esto no se arregla volviendo a limpiarlo cada mañana —eso es trabajo
+  que se borra solo—. Se arregla **fusionando**, y hoy sigue costando dos
+  archivos en vez de cinco.
+
+  **Lo que NO voy a hacer**: limpiarlo otra vez hoy por mi cuenta. Ayer tenía
+  sentido porque desbloqueaba una acción suya; repetirlo cada día sería fingir
+  que avanzo. Si me dice que lo limpie cuando vaya a fusionar, lo hago en ese
+  momento y en diez minutos.
+
 - **🔴 Su FAQ de `/precios` manda a una política de privacidad que en producción NO EXISTE.** `[origen: radar 2026-11-25]`
   **Y esto nace de algo que él hizo bien**, así que conviene leerlo entero antes
   de sacar conclusiones.
@@ -151,7 +179,42 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   **Lo que no voy a hacer en ningún caso**: fusionar a `main`. Eso es suyo.
 
-- **🟡 El reloj: TRES huecos por encima de la gracia en 24 horas, y dos sin cubrir ni con el cron de Vercel.** `[origen: guardian 2026-11-25 · el hallazgo es del 2026-11-24]`
+- **🟡 El reloj, RECALIFICADO el 26-11 por su decisión de alcance: apuntaba a la mitad que acaba de esconder.** `[origen: guardian 2026-11-25 · recalificado 2026-11-26]`
+  **Lo que cambió, y lo digo yo porque baja la prioridad de algo mío.** Anoche
+  decidió el alcance de la V1 (`kairo/src/lib/version.ts`, nuevo): se lanza con
+  **Chat, Paperwork, Gist y Code**, y **Co-Works, Team y Mentes se esconden**
+  tras `NEXT_PUBLIC_KAIRO_SECCIONES`, que viene vacía. Sus palabras: *"Las
+  tienen ChatGPT y Claude, así que no son lo que va a traer gente, y cada
+  apartado más es más cosas que pueden fallar el día del lanzamiento."*
+
+  Mi 🟡 de ayer medía los huecos del reloj y decía *"un Co-Work ahí dentro no
+  sale"*. **Los Co-Works ya no están en la V1**, así que ese argumento se cae, y
+  con él la urgencia de
+  `kairo/supabase/migrations/PROPUESTA_gracia_de_doce_horas.sql`, que arregla
+  justo la función de los Co-Works. **La propuesta se queda escrita y baja a
+  P3**: sigue siendo correcta para cuando vuelvan.
+
+  **Pero el reloj NO deja de importar, y esto es lo que hay que mirar de ahora
+  en adelante.** El mismo endpoint hace **los plazos de Paperwork ANTES que los
+  Co-Works** —lo dice su propio comentario: *"LOS PLAZOS, ANTES QUE LOS
+  CO-WORKS"*— y Paperwork **sí** se lanza. Así que el reloj sigue sosteniendo
+  V1, por otro motivo que el de ayer.
+
+  **Y comprobado hoy, los avisos de plazos aguantan los huecos mucho mejor que
+  los Co-Works**, que es una buena noticia que ayer no tenía: `papeles_para_avisar`
+  escoge los papeles que vencen **entre 0 y 7 días**, por hitos (7, 3, 1 y 0), y
+  cada hito se manda **una sola vez** (`not exists` contra `avisos_papel`). O
+  sea que un hueco de diez horas **retrasa** el aviso de los hitos de 7, 3 y 1
+  día; no lo pierde.
+
+  **Lo que sí queda frágil es el hito del mismo día** (`dias <= 0`): si el
+  reloj no suena entre que el papel entra en ese hito y que el plazo vence, ese
+  aviso **sí** se pierde, y es el que más falta hace. Con los huecos medidos
+  —ayer dos más de 8 h: 9,85 y 9,2— eso puede pasar.
+
+  **Así que la pregunta útil ya no es la gracia de los Co-Works, es esta**: ¿el
+  aviso del mismo día tiene red? No lo he medido todavía. Queda como lo primero
+  que mire el próximo guardián, y es más barato que lo que proponía ayer.
   Ayer medí las 265 ejecuciones y salieron 16 huecos mayores de 8 h en 38 días,
   12 de ellos en los últimos 14. **Hoy, en un solo día, van tres:**
 
