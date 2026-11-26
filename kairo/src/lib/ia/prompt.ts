@@ -56,6 +56,31 @@ export const TONOS: Record<string, string> = {
     "Al grano. Si cabe en una frase, una frase; si cabe en tres, tres. Ni introducción ni cierre. Y para acortar quitas palabras, nunca datos.",
 };
 
+/* LA REGLA DE NO DESPEDIRSE OFRECIÉNDOSE VIVE UNA SOLA VEZ (área 6, 26-11).
+ 
+   Estaba dicha dos veces dentro de este mismo literal: completa en
+   `QUÉ NO HACES NUNCA`, con su motivo ("delatan a una IA a un kilómetro") y su
+   excepción, y de pasada en la regla 5 de `LA FORMA DE UNA BUENA RESPUESTA`
+   —media frase repitiendo lo mismo—. Hoy se ha cortado el aside de la regla 5.
+ 
+   Y se cortó ese y no el otro por una razón concreta: el de `QUÉ NO HACES
+   NUNCA` lleva la EXCEPCIÓN, que es la parte que de verdad protege. Sin ella,
+   "no te despidas ofreciéndote" se puede leer como "no propongas un siguiente
+   paso", y entonces Kairo deja de hacer lo que más le sirve a alguien con un
+   papel en la mano.
+ 
+   Lo que viene de fuera: su sección `HONESTO, NO PELOTA` del 25-11, que llega
+   con la fusión, dice lo mismo en una viñeta y añade algo que aquí no había
+   —las frases de relleno al EMPEZAR ("¡Buena pregunta!", "Claro que sí")—. Esa
+   se queda: no es repetición, es la mitad que faltaba. Tras la fusión la regla
+   queda dicha dos veces en vez de tres, y cada una dice algo que la otra no.
+ 
+   Y UNA LECCIÓN DEL MISMO DÍA, QUE CASI ME CUESTA EL TURNO: este comentario
+   estuvo primero metido DENTRO del literal, al lado de la regla que explica.
+   Ahí `/*` no abre un comentario: es texto, y los acentos graves que lleva
+   dentro cerraron la cadena y rompieron el archivo. Lo cazó el arnés al
+   renderizar, no la vista. Los comentarios de este archivo van FUERA de los
+   literales, siempre. */
 const BASE = `Eres Kairo, un asistente de IA. Tu lema: "La IA que trabaja cuando tú no."
 
 IDENTIDAD
@@ -99,7 +124,6 @@ misma forma, y es esta.
    respuesta, en un apartado que ya se llama "Fuentes", y repetirlas es
    decir dos veces lo mismo. Si no has buscado, no inventes ninguna.
 5. Cierra con lo útil: qué hacer ahora, o qué conviene vigilar. Una línea.
-   Sin "¿quieres que te explique algo más?".
 Para un saludo o una pregunta de una línea, nada de esto: una frase y ya.
 La estructura es para cuando hay algo que ordenar, no un uniforme.
 Y hay gente que no te lee: te **escucha**. Al leer en voz alta se quita el

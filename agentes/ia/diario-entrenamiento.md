@@ -96,6 +96,80 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-26 — Tono (área 6): su sección nueva dice algo que faltaba, y deja una regla dicha tres veces
+
+**Qué cambié**: una línea. El aside de la regla 5 de `LA FORMA DE UNA BUENA
+RESPUESTA` —*"Sin «¿quieres que te explique algo más?»"*— fuera. Medido:
+**−1 línea** en cada modo de edad. Eso es todo lo que pesaba, y lo digo así
+antes de explicar por qué merecía el turno.
+
+**Por qué este tema.** Tocaba tono por rotación y anoche él escribió tono:
+`7a606c9`, *"anti-sycophancy section, step-by-step, study quiz and opinion
+formats (from market research)"*. 32 líneas nuevas, con un bloque
+`HONESTO, NO PELOTA` que es bueno:
+
+> *"Si te corrigen y tenías razón, mantenlo con educación… NUNCA «tienes toda
+> la razón» por inercia."*
+> *"Animar no es mentir: lo útil es lo que le ayuda a hacerlo mejor."*
+> *"Lo que sabes de la persona cambia el tono y los ejemplos, nunca los
+> hechos."*
+
+Cuando los dos lados escriben tono, el trabajo de área 6 no es escribir más:
+es mirar si lo nuevo choca con lo de casa. Y chocaba en un punto.
+
+**El solape, y después de la fusión habrían sido TRES.** La regla de no
+despedirse ofreciéndose estaba dicha dos veces dentro del mismo literal:
+
+| Dónde | Qué dice |
+|---|---|
+| `QUÉ NO HACES NUNCA` | la completa: *"No cierras ofreciéndote a seguir ayudando… delatan a una IA a un kilómetro"*, **con su excepción** |
+| regla 5 de `LA FORMA` | *"Sin «¿quieres que te explique algo más?»"*, media frase |
+| **su viñeta nueva** | *"Sin frases de relleno al empezar… ni al acabar"* |
+
+**Cuál se corta y por qué ese.** El aside de la regla 5. No por ser de nadie:
+porque la de `QUÉ NO HACES NUNCA` **lleva la excepción** —*"distinto es un
+siguiente paso concreto, que sí vale: «si me pasas el contrato, te digo qué
+cambió»"*— y esa es la parte que de verdad protege. Sin ella, "no te despidas
+ofreciéndote" se puede leer como "no propongas un siguiente paso", y entonces
+Kairo deja de hacer lo que más le sirve a alguien con un papel en la mano.
+
+**Y su viñeta se queda, porque no es repetición: es la mitad que faltaba.**
+Aquí no había nada sobre las frases de relleno **al empezar** —*"¡Buena
+pregunta!"*, *"Claro que sí"*—. Tras la fusión la regla queda dicha dos veces
+en vez de tres, y cada una dice algo que la otra no.
+
+**Comprobado renderizando los cuatro modos antes y después**: la versión
+completa y su excepción están en adulto, niño, adolescente y `null`; el aside
+ya no está en ninguno; la regla 5 sigue entera sin él. `tsc` 0, `next build` 0.
+
+**Y LA LECCIÓN DEL DÍA, QUE CASI ME CUESTA EL TURNO.**
+
+Escribí el comentario que explica todo esto **dentro del literal**, al lado de
+la regla. Ahí `/*` no abre un comentario: es texto. Y los acentos graves que
+llevaba dentro **cerraron la cadena y rompieron el archivo**. No lo vi leyendo:
+lo cazó el arnés al renderizar, con un `ERR_INVALID_TYPESCRIPT_SYNTAX`
+apuntando a mi propio comentario.
+
+Queda escrito en el archivo, fuera del literal, donde toca: **los comentarios
+de `prompt.ts` van fuera de los literales, siempre.** Es la quinta trampa de
+esta casa y la primera que no era de medir, sino de escribir.
+
+**Lo que vi de paso**, sin tocarlo:
+
+- **Dos solapes más que NO he cortado**, porque al mirarlos de cerca no son
+  repetición: su *"si te corrigen y tenías razón, mantenlo"* y el de casa *"que
+  alguien repita algo no lo hace cierto"* hablan de cosas distintas —una
+  corrección y una insistencia—; y su *"cuando un dato importa, di dónde
+  comprobarlo"* es más ancho que el de casa, que solo cubre lo que se sabe de
+  memoria cuando no se ha buscado. Los dos se quedan.
+- **Su `HONESTO, NO PELOTA` habla de lo que la persona le ha contado** —*"lo
+  que sabes de la persona cambia el tono… nunca los hechos"*—. Eso toca la
+  memoria, y la memoria tiene bloque propio. Nadie ha comprobado si los dos
+  dicen lo mismo. Candidato a la próxima área 7.
+- Y lo que el guardián ya dijo esta mañana: este cambio entra en la rama, y la
+  rama **no está fusionada**, así que **en producción la regla sigue dicha dos
+  veces**. Lo mío de hoy solo cuenta cuando él fusione.
+
 ### 2026-11-25 — Evaluación (área 5): el banco llevaba cinco pasadas puntuando un prompt que nadie usa
 
 **Qué cambié**: el **caso 15** del banco, que llevaba pendiente desde el 20-11.
