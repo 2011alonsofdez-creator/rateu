@@ -75,6 +75,25 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   apuntar a nada. La frase es correcta y el documento existe; lo que falta es
   publicarlo.
 
+  **AÑADIDO EL 26-11 por crecimiento, y es un motivo distinto del de producto.**
+  Anoche él fijó la ventana de lanzamiento: **enero-marzo**
+  (`kairo/src/lib/version.ts`). Y el artículo 50 del Reglamento de IA —el de
+  transparencia— **lleva en vigor desde el 2 de agosto de 2026**, con la **AESIA**
+  pudiendo requerir documentación y abrir expediente desde esa misma fecha.
+  Enlaces en `agentes/mercado/2026-11-26-mercado.md`, y todos son blogs de
+  consultoría: va **`(sin verificar en fuente primaria)`**, porque ni EUR-Lex ni
+  la web de la AESIA se abren desde aquí.
+
+  **Lo que esto NO significa**: que Kairo incumpla algo. La obligación central
+  para un chatbot —que la persona sepa que habla con una IA— la cumple por
+  diseño: el titular de la portada, el prompt y el bloque `IDENTIDAD`.
+
+  **Lo que sí significa**: que la diferencia entre cumplir y **poder
+  demostrarlo** es exactamente lo que está sin publicar. Hoy lo único que hay en
+  `/legal` es una página que dice *"Pendiente de redactar antes del
+  lanzamiento"*, con tres documentos escritos a un merge de distancia y una
+  ventana a dos meses. **La fusión dejó de ser orden y limpieza.**
+
 - **🔴 PRODUCCIÓN NO TIENE DEFENSA CONTRA INYECCIÓN DE INSTRUCCIONES, y el banco llevaba cinco pasadas sin verlo.** `[origen: evaluación 2026-11-25]`
   **Medido hoy renderizando los dos prompts** —el de esta rama y el de
   `origin/main`, que es el que contesta— en la configuración de producción
@@ -2345,6 +2364,31 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
+
+- **La caja de probar no dice que quien contesta es una IA, y desde hoy es el primer contacto en cinco páginas.** `[origen: crecimiento 2026-11-26]`
+  **El contexto lo deja claro y la caja no.** La página entera habla de una IA,
+  pero la caja de probar es donde alguien escribe **sin haber leído nada**, y
+  desde esta mañana está en las **cinco** páginas de intención además de la
+  portada. Hoy, debajo del cuadro de texto, no hay una sola palabra que diga
+  quién contesta.
+
+  **Qué haría**: una línea bajo el cuadro, en los dos idiomas, del estilo *"Te
+  contesta Kairo, una IA. Puede equivocarse: comprueba lo que importe."* Una
+  hora, y es `i18n.tsx` más `Probar.tsx`: mi terreno.
+
+  **Por qué lo propongo, y el orden de los motivos importa:**
+
+  1. **Porque es verdad y es gratis decirlo.** Gestiona la expectativa de quien
+     prueba, que es justo lo que falla cuando alguien pregunta por una multa y
+     se cree la respuesta al pie de la letra. Esto solo es una mejora de
+     producto.
+  2. Y de paso, es lo que el artículo 50 del Reglamento de IA pide en su versión
+     más literal —*avisar de que se habla con una IA*—, que lleva en vigor desde
+     el 2-8-2026. **No lo propongo por miedo a una multa**: lo propongo por lo
+     primero, y lo segundo es un añadido que no cuesta nada.
+
+  **Lo que NO hago aquí**: redactar un aviso legal ni tocar `/legal`. Eso
+  necesita los cinco campos del titular, pedidos desde hace **20 días**.
 
 - **~~Lo que Kairo NO hace en Hacienda acaba de convertirse en su mejor argumento, y está en el último párrafo de la página~~ — HECHO el mismo día, 24-11.** `[origen: crecimiento 2026-11-24 · hecho 2026-11-24]`
 
