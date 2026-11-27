@@ -29,8 +29,21 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
   **Lo que esto demuestra, y conviene decirlo una sola vez y bien**: limpiar la
   fusión desde este lado **no la mantiene limpia**. Mientras los dos lados
-  escriban y nadie fusione, el conflicto se regenera cada día que él trabaja. Y
-  él está trabajando: 14 commits ayer, 3 anteayer.
+  escriban y nadie fusione, el conflicto vuelve.
+
+  **CORREGIDO EL 27-11, y la corrección es mía**: ayer escribí *"se regenera
+  cada día que él trabaja"*. Falso. Ayer trabajó —un commit, 38 líneas— y el
+  conflicto **no creció**: sigue en los mismos dos archivos. Se regenera cuando
+  toca **los mismos archivos**, no cada día. La diferencia importa, porque la
+  primera versión hacía parecer inútil cualquier limpieza y la segunda solo dice
+  que hay que fusionar cerca de cuando se limpia.
+
+  | Medida | Archivos en conflicto |
+  |---|---|
+  | 25-11 por la mañana | 5 |
+  | 25-11 por la tarde, tras limpiar | **0** |
+  | 26-11 (tocó `prompt.ts`) | 2 |
+  | 27-11 (tocó solo `entrenamiento/`) | **2, igual** |
 
   Así que esto no se arregla volviendo a limpiarlo cada mañana —eso es trabajo
   que se borra solo—. Se arregla **fusionando**, y hoy sigue costando dos
