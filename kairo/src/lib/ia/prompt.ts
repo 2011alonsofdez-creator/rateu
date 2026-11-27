@@ -56,6 +56,56 @@ export const TONOS: Record<string, string> = {
     "Al grano. Si cabe en una frase, una frase; si cabe en tres, tres. Ni introducción ni cierre. Y para acortar quitas palabras, nunca datos.",
 };
 
+/* LO QUE KAIRO DICE QUE SABE HACER, SOLO SI EL USUARIO PUEDE VERLO (área 7, 27-11).
+ 
+   El 25-11 el dueño decidió el alcance de la primera versión: se lanza con
+   Chat, Paperwork, Gist y Code, y **Co-Works, Team y Mentes se esconden** tras
+   `NEXT_PUBLIC_KAIRO_SECCIONES` (vacía de fábrica). Su `proxy.ts` manda al chat
+   a quien entre por `/coworks`, `/team` o `/mentes`.
+ 
+   Y el prompt no se enteró. `LO QUE SABES HACER` seguía diciéndole a Kairo que
+   ofreciera las tres, así que alguien le pediría "hazme esto cada mañana",
+   Kairo contestaría "prepárate un Co-Work" y no habría ninguna pantalla de
+   Co-Works donde hacerlo. Eso no es grasa de prompt: es una promesa que el
+   producto ya no cumple, y de las que más enfadan, porque la hace la propia
+   IA del producto.
+ 
+   Así que estas tres viñetas entran solo si su sección está encendida, leyendo
+   LA MISMA variable que él. Con la variable vacía —producción hoy— no entran,
+   y el bloque de abajo ("lo que no esté en esa lista, no lo haces") hace el
+   resto: Kairo deja de ofrecer lo que no se puede tocar.
+ 
+   CUANDO LA FUSIÓN LLEGUE, ESTO SE SIMPLIFICA EN UNA LÍNEA: `lib/version.ts`
+   —que es suyo y vive en `main`— ya exporta `seccionVisible()` con esta misma
+   semántica. Entonces se importa de ahí y `seccion()` desaparece. No se hace
+   hoy porque ese archivo todavía no está en esta rama, y esta función es el
+   puente, no una segunda fuente de verdad.
+ 
+   Las tres NO se borran: vuelven solas el día que él encienda la variable. */
+const SECCIONES_ENCENDIDAS = new Set(
+  (process.env.NEXT_PUBLIC_KAIRO_SECCIONES ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+);
+const seccion = (s: "coworks" | "team" | "mentes"): boolean => SECCIONES_ENCENDIDAS.has(s);
+
+const COWORKS = `- **Co-Works**: encargos que se ejecutan solos a una hora. Tú los preparas;
+  se ejecutan aunque la persona no esté delante.
+`;
+const TEAM = `- **Team**: contratar a alguien para un trabajo que se repite —abogado,
+  contable, comercial, administrativo, o el puesto que se invente quien
+  contrata—. Un miembro del Team **es un Co-Work** con el encargo escrito por
+  su dueño: se ejecuta a su hora, deja el trabajo hecho en un chat y cuesta lo
+  mismo que cualquier Co-Work. De fábrica **no busca en internet**, y eso se
+  enciende con un interruptor al contratarlo: si el encargo pide datos de hoy
+  y está apagado, no los hay, y se dice. Todavía no puede abrir los archivos
+  de nadie —eso llega con Conectores—. Y **no es una Mente**: una Mente cambia
+  cómo hablas; un miembro del Team es un puesto.
+`;
+const MENTES = `- **Mentes**: asistentes con instrucciones propias que crea la persona.
+`;
+
 /* LA REGLA DE NO DESPEDIRSE OFRECIÉNDOSE VIVE UNA SOLA VEZ (área 6, 26-11).
  
    Estaba dicha dos veces dentro de este mismo literal: completa en
@@ -379,18 +429,7 @@ const CAPACIDADES = `
 LO QUE SABES HACER
 - Conversar y escribir, con cuatro niveles de esfuerzo: Rápido, Normal, Forja
   y MEGA. El Mega-Prompt lanza varios motores y junta las respuestas.
-- **Co-Works**: encargos que se ejecutan solos a una hora. Tú los preparas;
-  se ejecutan aunque la persona no esté delante.
-- **Team**: contratar a alguien para un trabajo que se repite —abogado,
-  contable, comercial, administrativo, o el puesto que se invente quien
-  contrata—. Un miembro del Team **es un Co-Work** con el encargo escrito por
-  su dueño: se ejecuta a su hora, deja el trabajo hecho en un chat y cuesta lo
-  mismo que cualquier Co-Work. De fábrica **no busca en internet**, y eso se
-  enciende con un interruptor al contratarlo: si el encargo pide datos de hoy
-  y está apagado, no los hay, y se dice. Todavía no puede abrir los archivos
-  de nadie —eso llega con Conectores—. Y **no es una Mente**: una Mente cambia
-  cómo hablas; un miembro del Team es un puesto.
-- **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
+${seccion('coworks') ? COWORKS : ''}${seccion('team') ? TEAM : ''}- **Paperwork**: leer un papel oficial —una multa, una carta, un contrato— y
   decir qué quieren, cuánto y para cuándo.
 - **Gist**: resumir un vídeo o una página.
 - **Código**: escribir una herramienta pequeña y **ejecutarla ahí mismo**, en
@@ -401,8 +440,7 @@ LO QUE SABES HACER
   Y lo que **no** es, que importa igual: no instala programas, no toca los
   archivos de nadie y no es un generador de escritorio. Es una app de un
   archivo, no un proyecto.
-- **Mentes**: asistentes con instrucciones propias que crea la persona.
-- **Memoria**: recordar de un día para otro lo que te hayan pedido recordar.
+${seccion('mentes') ? MENTES : ''}- **Memoria**: recordar de un día para otro lo que te hayan pedido recordar.
 - Leer los archivos que te adjunten: PDF, Word, Excel e imágenes.
 
 Y lo que eso implica: **lo que no esté en esa lista, no lo haces**. No

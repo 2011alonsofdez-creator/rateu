@@ -96,6 +96,93 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-27 — Recorte (área 7): el prompt seguía ofreciendo tres funciones que el usuario ya no puede abrir
+
+**Qué cambié**: las viñetas de **Co-Works, Team y Mentes** de `LO QUE SABES
+HACER` entran ahora solo si su sección está encendida, leyendo la misma
+variable que usa él. Y, de consecuencia, el **caso 5 del banco**, que pedía
+ofrecer un Co-Work. Medido: **−12 líneas** en la configuración de producción
+(338 → 326).
+
+**Cómo llegué aquí, porque el barrido no lo encontró.** Empecé por donde manda
+el área: el método del 18-11, todos los trozos contra todos. 164 trozos, 13.366
+pares, 30 candidatos. **Y los miré todos: ninguno era duplicación de verdad.**
+
+- Los parecidos de 0,76 y 0,51 son los *"Primera línea: …"* de **formatos
+  distintos** —una ficha, una reseña, una persona—. Son plantillas paralelas a
+  propósito, no repetición.
+- El único que merecía mirarse de cerca: *"**Memoria**: recordar de un día para
+  otro lo que te hayan pedido recordar"* (en `LO QUE SABES HACER`) contra *"**De
+  memoria solo guardas lo que te han pedido recordar**"* (en `LO QUE SE GUARDA`).
+  Solape de palabras 1,00. **No lo corto**: el primero dice una capacidad
+  —"de un día para otro"— y el segundo una garantía de privacidad —"no vas
+  apuntando"—. Mismo hecho, dos trabajos.
+- Y lo que encargué ayer: su viñeta *"lo que sabes de la persona cambia el tono
+  y los ejemplos, nunca los hechos"* contra el bloque de memoria. **Tampoco es
+  duplicación**: el bloque dice **cuándo** usar la memoria y cómo no lucirla; su
+  viñeta dice **qué puede cambiar y qué no**. Ejes distintos, los dos se quedan.
+
+**Cero cortes de los tres**, y eso es información: el área 7 del 18-11 encontró
+dos frases mías repetidas; la de hoy, ninguna. El prompt ha dejado de acumular
+grasa.
+
+**Así que fui a la tercera categoría de la ficha —"lo que no cambia nada"— y
+ahí estaba, y es peor que grasa.**
+
+El 25-11 él decidió el alcance de la V1: se lanza con Chat, Paperwork, Gist y
+Code, y **Co-Works, Team y Mentes se esconden** (`lib/version.ts`, y su
+`proxy.ts` manda al chat a quien entre por esas rutas). **El prompt no se
+enteró.** `LO QUE SABES HACER` seguía diciéndole a Kairo que ofreciera las tres.
+
+Lo que eso produce, dicho con una escena: alguien escribe *"¿puedes hacerme esto
+cada mañana?"*, Kairo contesta *"sí, prepárate un Co-Work"*, y **no hay ninguna
+pantalla de Co-Works donde hacerlo** —la ruta redirige al chat—. Eso no es una
+regla que no cambia nada: es **una promesa que el producto ya no cumple, hecha
+por la propia IA del producto**, que es la peor forma de romperla.
+
+**El arreglo, y por qué así**: las tres viñetas se condicionan a
+`NEXT_PUBLIC_KAIRO_SECCIONES`, **la misma variable que lee él**. Con la variable
+vacía —producción hoy— no entran, y la regla de cierre que ya existía hace el
+resto: *"lo que no esté en esa lista, no lo haces… y ofrece lo más parecido que
+sí"*. Kairo deja de ofrecer lo que no se puede tocar, sin que nadie le escriba
+una prohibición nueva.
+
+**Comprobado renderizando las dos caras:**
+
+| | Líneas | Co-Works | Team | Mentes | Paperwork/Gist/Código | Regla de cierre |
+|---|---|---|---|---|---|---|
+| Sin la variable (producción) | **326** | no | no | no | **sí** | **sí** |
+| Con `coworks,team,mentes` | **338** | sí | sí | sí | sí | sí |
+
+**Las tres no se borran**: vuelven solas el día que él encienda la variable.
+`tsc` 0, `next build` 0, `cifras` 0.
+
+**Y la consecuencia que había que atender, o el arreglo habría quedado a
+medias**: el **caso 5** del banco —*"resérvame mesa"*— pedía que Kairo ofreciera
+*"el Co-Work que le recuerde"*. Un banco que premia ofrecer una pantalla que el
+usuario no puede abrir **mide lo contrario de lo que quiere el producto**.
+Corregido, con el motivo escrito dentro y con la nota de que se revierte solo si
+él vuelve a encender la variable.
+
+**Una deuda que dejo dicha, no escondida**: `seccion()` duplica tres líneas de
+la lógica que su `lib/version.ts` ya tiene. Lo he hecho así porque ese archivo
+**está en `main` y no en esta rama**, así que no puedo importarlo todavía. El
+día de la fusión se importa `seccionVisible` y mi helper desaparece: una línea.
+Está escrito en el propio archivo para que no se quede ahí para siempre. Es
+irónico cerrar un día de recorte añadiendo una duplicación, y por eso lo digo
+en vez de callarlo.
+
+**Lo que vi de paso**, sin tocarlo:
+
+- `LO QUE SABES HACER` menciona **Conectores** como algo que "llega" dentro de
+  la viñeta de Team. Al esconderse Team, esa mención se va con ella; si algún
+  día se habla de Conectores fuera de Team, habrá que decirlo en otro sitio.
+- La regla de cierre del bloque enumera lo que Kairo **no** hace: *"no reservas
+  mesas, no mandas correos, no llamas por teléfono"*. Con los Co-Works
+  escondidos, "trabajar mientras no estás" **también** pasa a ser algo que no
+  hace, y eso **no** está dicho en ninguna parte. No lo añado hoy —un cambio al
+  día— pero es el candidato más claro para la próxima área 1.
+
 ### 2026-11-26 — Tono (área 6): su sección nueva dice algo que faltaba, y deja una regla dicha tres veces
 
 **Qué cambié**: una línea. El aside de la regla 5 de `LA FORMA DE UNA BUENA
