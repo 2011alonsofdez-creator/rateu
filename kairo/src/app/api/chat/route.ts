@@ -22,6 +22,8 @@ import {
 } from "@/lib/ia/proveedores";
 import { marcaDeArchivos, revisarAdjuntos } from "@/lib/ia/adjuntos";
 import { decidirBusqueda } from "@/lib/ia/decidir-busqueda";
+import { esReplica } from "@/lib/ia/replica";
+import { veredicto } from "@/lib/ia/ahora";
 import { hayQueBuscar, modoValido } from "@/lib/buscar-modo";
 import { detectarRecuerdo, RECUERDOS_EN_PROMPT, mismoRecuerdo } from "@/lib/memoria";
 import { elegirNivel, loQueCabe } from "@/lib/ia/nivel";
@@ -551,6 +553,7 @@ export async function POST(req: Request) {
            por eso "siempre" manda sobre todo lo demás, archivos
            incluidos, y "nunca" también. */
         // De qué venían hablando, para que "¿y el horario?" se entienda.
+        const replica = historial.some((m) => m.rol === "kairo") && esReplica(ultima);
         const contexto = historial
           .slice(-3, -1)
           .map((m) => `${m.rol === "kairo" ? "Kairo" : "Persona"}: ${m.texto.slice(0, 300)}`)
@@ -559,8 +562,16 @@ export async function POST(req: Request) {
         /* ¿Buscar en fuentes o pensarlo? Reglas primero (al instante) y,
            si no está claro, un modelo rápido (máx. 1,5 s). Ni se pregunta
            si Code ha dicho "nunca" o hay archivos delante. */
+        /* Si te están corrigiendo ("te equivocas", "eso no existe") y lo
+           de antes era de buscar, se vuelve a buscar: decidir quién tiene
+           razón se hace con datos, no con memoria. Ver replica.ts. */
+        const anteriorPregunta =
+          [...historial.slice(0, -1)].reverse().find((m) => m.rol === "user")?.texto ?? "";
         const pinta =
-          modoBusqueda === "nunca" || conArchivos ? false : await decidirBusqueda(ultima, contexto);
+          modoBusqueda === "nunca" || conArchivos
+            ? false
+            : (replica && Boolean(anteriorPregunta) && veredicto(anteriorPregunta) !== "no") ||
+              (await decidirBusqueda(ultima, contexto));
 
         if (hayQueBuscar(modoBusqueda, pinta, conArchivos)) {
           enviar({ t: "buscando" });
@@ -636,6 +647,7 @@ export async function POST(req: Request) {
             hechos,
             busquedaFallida,
             recuerdos,
+            replica,
           });
 
         /* El Mega-Prompt: varios cerebros a la vez.

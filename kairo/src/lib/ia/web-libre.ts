@@ -77,7 +77,13 @@ export function leerTavily(datos: unknown): Resultado[] {
   return out;
 }
 
-async function tavily(consulta: string, plazo: number): Promise<Resultado[]> {
+/* Trámites, leyes, impuestos: además de la búsqueda normal, una solo en
+   webs oficiales. Lo que diga el BOE o Hacienda manda sobre un blog. */
+const DE_TRAMITES =
+  /(tr[aá]mite|\bley\b|multa|hacienda|renta|irpf|\biva\b|aut[oó]nomo|seguridad social|\bparo\b|sepe|\bdgt\b|\bitv\b|\bdni\b|\bnie\b|pasaporte|empadron|cita previa|ayuda|subvenci|\bbono\b|pensi[oó]n|impuesto|\bboe\b|deducci|baja (laboral|por)|n[oó]mina|despido|finiquito|contrato|alquiler|herencia|vacaciones)/i;
+const WEBS_OFICIALES = ["boe.es", "agenciatributaria.gob.es", "seg-social.es", "sepe.es", "dgt.es", "administracion.gob.es", "mites.gob.es", "lamoncloa.gob.es", "ine.es", "bde.es"];
+
+async function tavily(consulta: string, plazo: number, soloOficial = false): Promise<Resultado[]> {
   const clave = process.env.TAVILY_API_KEY?.trim();
   if (!clave) return [];
   try {
@@ -85,7 +91,13 @@ async function tavily(consulta: string, plazo: number): Promise<Resultado[]> {
       method: "POST",
       signal: AbortSignal.timeout(plazo),
       headers: { "content-type": "application/json", authorization: `Bearer ${clave}` },
-      body: JSON.stringify({ query: consulta, search_depth: "basic", max_results: 6, include_answer: false }),
+      body: JSON.stringify({
+        query: consulta,
+        search_depth: "basic",
+        max_results: soloOficial ? 4 : 6,
+        include_answer: false,
+        ...(soloOficial ? { include_domains: WEBS_OFICIALES } : {}),
+      }),
       cache: "no-store",
     });
     if (!r.ok) return [];
@@ -385,7 +397,8 @@ export async function buscarYLeer(
   extrasALeer: string[] = [],
 ): Promise<Resultado[]> {
   const inicio = Date.now();
-  const [a, b, c] = await Promise.all([
+  const [o, a, b, c] = await Promise.all([
+    DE_TRAMITES.test(consulta) ? tavily(consulta, plazo - 1500, true) : Promise.resolve([]),
     tavily(consulta, plazo - 1500),
     brave(consulta, plazo - 1500),
     duckduckgo(consulta, Math.min(6000, plazo - 1500)),
@@ -394,7 +407,7 @@ export async function buscarYLeer(
   // Sin repetir página: la misma dirección por dos buscadores vale una vez.
   const vistas = new Set<string>();
   const todos: Resultado[] = [];
-  for (const r of [...a, ...b, ...c]) {
+  for (const r of [...o, ...a, ...b, ...c]) {
     const llave = r.url.replace(/[?#].*$/, "").replace(/\/$/, "");
     if (vistas.has(llave)) continue;
     vistas.add(llave);
@@ -426,20 +439,45 @@ export async function buscarYLeer(
   return todos.filter((r) => r.texto).slice(0, 8);
 }
 
+/* LO FIABLE PRIMERO (27-11).
+ *
+ * No todas las páginas valen lo mismo. Para "quién es DjMario" salen a
+ * la vez su canal, una wiki y webs de "patrimonio neto y edad" que
+ * copian e inventan. Se ordenan así: oficial > medios y referencias >
+ * el resto > las de dudosa fiabilidad, que además van marcadas para
+ * que el modelo no se fíe de ellas sin que otra lo confirme. */
+const OFICIAL = /(\.gob\.es|\.gov(\.[a-z]{2})?|boe\.es|europa\.eu|bde\.es|agenciatributaria\.(es|gob\.es)|seg-social\.(es|gob\.es)|sepe\.es|dgt\.es|ine\.es|\.edu|\.ac\.[a-z]{2}|who\.int|un\.org|aemet\.es|cnmc\.es)$/i;
+const BUENA =
+  /(^|\.)(wikipedia\.org|rtve\.es|elpais\.com|elmundo\.es|abc\.es|lavanguardia\.com|elconfidencial\.com|20minutos\.es|europapress\.es|efe\.com|eldiario\.es|elespanol\.com|xataka\.com|ign\.com|3djuegos\.com|vandal\.elespanol\.com|marca\.com|as\.com|mundodeportivo\.com|expansion\.com|cincodias\.elpais\.com|ocu\.org|bbc\.com|reuters\.com|apnews\.com|theverge\.com|youtube\.com|socialblade\.com|rockstargames\.com|metacritic\.com|opencritic\.com)$/i;
+const DUDOSA =
+  /(^|\.)(famousbirthdays\.com|ifann\.net|tunota\.com|biografiasyvidas\.com|celebsnetworth|networth|wikiwand|quora\.com|answers\.|brainly|pinterest\.|scribd\.com|medium\.com|blogspot\.|wordpress\.com)/i;
+
+/** 0 oficial · 1 medio o referencia · 2 normal · 3 dudosa. */
+export function confianza(dominio: string): number {
+  if (OFICIAL.test(dominio)) return 0;
+  if (BUENA.test(dominio)) return 1;
+  if (DUDOSA.test(dominio)) return 3;
+  return 2;
+}
+
 export function comoHechos(resultados: Resultado[], hoy: string): string {
   if (!resultados.length) return "";
+  resultados = [...resultados].sort((a, b) => confianza(a.dominio) - confianza(b.dominio));
+  const marca = (r: Resultado) =>
+    confianza(r.dominio) === 0 ? "[OFICIAL] " : confianza(r.dominio) === 3 ? "[POCO FIABLE] " : "";
   return (
     `ESTO ES LO QUE DICEN PÁGINAS WEB DE VERDAD (búsqueda de hoy, ${hoy}).\n` +
     "Las marcadas [LEÍDA] son párrafos sacados de la propia página; las demás, el fragmento del buscador.\n" +
     "- Úsalo como base de la respuesta y cita la web cuando des un dato.\n" +
     "- Si una página no habla de lo que te preguntan (otro juego, otra persona con el mismo nombre), ignórala.\n" +
+    "- Van ordenadas de más a menos fiables. [OFICIAL] manda sobre todo lo demás. Lo marcado [POCO FIABLE] (webs de biografías y 'patrimonio neto' que copian e inventan) NO lo uses salvo que otra fuente lo confirme.\n" +
     "- Si dos páginas se contradicen, dilo. Si es una tienda o una web de opinión, tenlo en cuenta.\n\n" +
     resultados
-      .map((r) => `- ${r.leida ? "[LEÍDA] " : ""}${r.titulo} (${r.dominio}${r.fecha ? `, ${r.fecha}` : ""}):\n  ${r.texto.replace(/\n/g, "\n  ")}`)
+      .map((r) => `- ${marca(r)}${r.leida ? "[LEÍDA] " : ""}${r.titulo} (${r.dominio}${r.fecha ? `, ${r.fecha}` : ""}):\n  ${r.texto.replace(/\n/g, "\n  ")}`)
       .join("\n")
   );
 }
 
 export function comoFuentes(resultados: Resultado[]): Fuente[] {
-  return resultados.map((r) => ({ titulo: r.titulo, url: r.url, dominio: r.dominio, tipo: "web" as const }));
+  return [...resultados].sort((a, b) => confianza(a.dominio) - confianza(b.dominio)).filter((r) => confianza(r.dominio) < 3).map((r) => ({ titulo: r.titulo, url: r.url, dominio: r.dominio, tipo: "web" as const }));
 }
