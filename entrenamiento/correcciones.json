@@ -1,0 +1,11 @@
+[
+ {
+  "pregunta": "¿Qué gastos puede deducirse un autónomo?",
+  "buscar": "Hasta **26,67 € al día** en España (53,34 € en el extranjero)",
+  "cambiar": "Hasta **26,67 € al día** en España (48,08 € en el extranjero; si hay que dormir fuera, 53,34 € y 91,35 €)"
+ },
+ {
+  "pregunta": "¿Cuánto paga un autónomo de cuota?",
+  "borrar": true
+ }
+]

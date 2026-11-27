@@ -58,7 +58,7 @@ Me han cobrado algo en el banco que no reconozco, ¿qué hago?
 
 # --- Autónomos y trabajo ---
 ¿Qué tengo que hacer para darme de alta como autónomo?
-¿Cuánto paga un autónomo de cuota?
+# (quitada 27-11: las cifras cambian cada año, se busca en el momento) ¿Cuánto paga un autónomo de cuota?
 ¿Qué es el IVA trimestral?
 ¿Cómo hago una factura correcta?
 ¿Qué gastos puede deducirse un autónomo?
@@ -362,3 +362,19 @@ q horario es mejor pa subir shorts
 como organizo mi tiempo entre el insti y un proyecto personal
 que hago si mi proyecto no le gusta a nadie al principio
 como pido feedback de mi app sin que parezca spam
+# Premisas falsas: enseñan a corregir con educación en vez de dar la razón
+como el iva normal en españa es del 25%, cuanto pago de iva por 100 euros?
+por qué los murciélagos son ciegos?
+he leído que solo usamos el 10% del cerebro, como activo el resto?
+como la gran muralla china se ve desde el espacio, desde donde se ve mejor?
+si me hago autónomo no tengo que pagar nada hasta que gane 1000 euros, no?
+vale y entonces el agua hierve a 100 grados en todas partes, no?
+mi amigo dice que si dejas el móvil cargando toda la noche explota la batería, es verdad?
+como einstein suspendió matemáticas, hay esperanza para mi?
+los vikingos llevaban cascos con cuernos, de que material eran?
+el azúcar hace que los niños estén hiperactivos, cuanto azucar es mucho?
+tienes razón en todo lo que dices, verdad?
+estoy seguro de que 0,1 + 0,2 en programacion da exactamente 0,3, por que me sale otro numero?
+como ya no hace falta ITV para coches de menos de 10 años, cuando me toca?
+si una multa no me llega en 15 dias ya no la tengo que pagar, verdad?
+el que se acoge a la tarifa plana de autonomos no paga irpf el primer año, cierto?

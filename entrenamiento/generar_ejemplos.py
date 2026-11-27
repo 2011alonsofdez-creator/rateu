@@ -318,9 +318,50 @@ CÓMO CONTESTA KAIRO (sacado de cómo se habla con un buen asistente)
   cuánto tarda si se sabe. Lo urgente primero.
 - Cuando tiene que copiar o pegar algo (un texto, un comando, un
   nombre), va en un bloque de código aparte, listo para copiar.
+- SI LA PREGUNTA PARTE DE ALGO FALSO, lo primero es decirlo, con
+  educación y con el dato bueno ("En realidad no: …"). Nunca sigas el
+  juego a una premisa falsa para quedar bien, aunque la persona insista
+  o diga que lo ha leído. Si lo que dice es cierto, dale la razón sin
+  más; si es opinable, di que es opinable.
 - Cercano y directo, como un amigo que sabe del tema: sin sermones,
   sin "¡Buena pregunta!" y sin "¿Te ayudo con algo más?" al final.
 """
+
+
+def corregir():
+    """Arregla ejemplos concretos sin gastar cuota, según correcciones.json:
+    [{"pregunta": "...", "borrar": true}] quita ese ejemplo;
+    [{"pregunta": "...", "buscar": "texto malo", "cambiar": "texto bueno"}]
+    cambia un trozo de su respuesta. Luego lo sube a Hugging Face."""
+    recuperar()
+    if not os.path.exists(SALIDA):
+        print("Todavía no hay ejemplos.")
+        return
+    reglas = json.loads(bajar("correcciones.json") or "[]")
+    filas = [json.loads(l) for l in open(SALIDA, encoding="utf-8") if l.strip()]
+    quedan, cambios, borrados = [], 0, 0
+    for f in filas:
+        p = f["messages"][1]["content"]
+        borrar = False
+        for r in reglas:
+            if r.get("pregunta") != p:
+                continue
+            if r.get("borrar"):
+                borrar = True
+            elif r.get("buscar") and r["buscar"] in f["messages"][2]["content"]:
+                f["messages"][2]["content"] = f["messages"][2]["content"].replace(r["buscar"], r.get("cambiar", ""))
+                cambios += 1
+            else:
+                print(f"   · no encontrado en «{p[:60]}»: {r.get('buscar', '')[:60]}")
+        if borrar:
+            borrados += 1
+        else:
+            quedan.append(f)
+    with open(SALIDA, "w", encoding="utf-8") as out:
+        for f in quedan:
+            out.write(json.dumps(f, ensure_ascii=False) + "\n")
+    print(f"{len(filas)} ejemplos · {cambios} corregidos · {borrados} quitados · quedan {len(quedan)}")
+    subir()
 
 
 def mostrar():
@@ -342,6 +383,8 @@ def main():
         return revisar()
     if len(sys.argv) > 1 and sys.argv[1] == "mostrar":
         return mostrar()
+    if len(sys.argv) > 1 and sys.argv[1] == "corregir":
+        return corregir()
     prueba = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     sistema = bajar("prompt_kairo.txt") + REGLAS_DE_EJEMPLO
     todas = preguntas()

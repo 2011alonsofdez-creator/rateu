@@ -16,7 +16,7 @@
 ¿Tengo que hacer la declaración de la renta si gano poco?
 ¿Cómo transfiero un coche de segunda mano?
 ¿Qué tengo que hacer para darme de alta como autónomo?
-¿Cuánto paga un autónomo de cuota?
+# ¿Cuánto paga un autónomo de cuota?
 ¿Puedes buscar en internet?
 ¿Qué gastos puede deducirse un autónomo?
 ¿Qué es el Euríbor?

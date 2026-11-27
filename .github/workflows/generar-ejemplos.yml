@@ -18,7 +18,7 @@ on:
       modo:
         description: "generar (lo normal) o mostrar (solo enseña los ejemplos guardados, sin gastar cuota)"
         type: choice
-        options: [generar, mostrar]
+        options: [generar, mostrar, corregir]
         default: generar
 
 jobs:
@@ -43,6 +43,10 @@ jobs:
         run: |
           if [ "${{ inputs.modo }}" = "mostrar" ]; then
             python -u generar_ejemplos.py mostrar
+            exit 0
+          fi
+          if [ "${{ inputs.modo }}" = "corregir" ]; then
+            python -u generar_ejemplos.py corregir
             exit 0
           fi
           if [ -z "${GEMINI_API_KEY}" ]; then
