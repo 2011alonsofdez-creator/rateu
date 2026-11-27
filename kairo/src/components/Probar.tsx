@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { apuntar } from "@/lib/rastro";
 import { REGALO_BIENVENIDA } from "@/lib/planes";
@@ -37,6 +37,10 @@ export function Probar() {
      el error sale aquí en vez de en la cara del visitante. */
   const [fallo, setFallo] = useState<"try.none" | "try.saturado" | "try.error">();
   const caja = useRef<HTMLTextAreaElement>(null);
+  /* `useId` y no un id fijo: si alguna página pone dos cajas, dos
+     elementos con el mismo id son HTML inválido y el lector de
+     pantalla lee uno de los dos. */
+  const idIa = useId();
 
   const sugerencias = [t("try.s1"), t("try.s2"), t("try.s3")];
   const agotado = quedan === 0;
@@ -164,6 +168,7 @@ export function Probar() {
                 }
               }}
               placeholder={t("app.placeholder")}
+              aria-describedby={idIa}
               className="flex-1 resize-none bg-transparent text-[14px] outline-none placeholder:text-faint disabled:opacity-50"
             />
             <button
@@ -175,6 +180,17 @@ export function Probar() {
               <Arrow className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          {/* Quien escribe aquí no ha leído la página: desde el 26-11 esta
+              caja es el primer contacto en las cinco páginas de intención
+              además de la portada. Debajo del cuadro y no encima, para que
+              se lea mientras se escribe y al leer la respuesta. */}
+          <p
+            id={idIa}
+            className="mt-2.5 text-center text-[12px] leading-snug text-faint"
+          >
+            {t("try.ia")}
+          </p>
         </div>
       </div>
 

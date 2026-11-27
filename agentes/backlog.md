@@ -2378,7 +2378,80 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **La caja de probar no dice que quien contesta es una IA, y desde hoy es el primer contacto en cinco páginas.** `[origen: crecimiento 2026-11-26]`
+- **El aviso de "soy una IA" del chat con cuenta está escondido en el móvil, y el móvil es donde se lee.** `[origen: constructor 2026-11-27]`
+  Encontrado hoy al poner la línea de la caja de probar, y conviene no
+  confundirlo con ella: son **dos cajas distintas**. La de probar es pública y
+  desde hoy lo dice. La del chat de dentro ya tenía su aviso —`app.disclaimer`,
+  *"Kairo es una IA y puede equivocarse. Comprueba lo importante."*—, y está
+  escrito desde hace tiempo. El problema es **cómo** se muestra.
+
+  **Medido en `components/Composer.tsx:557` y `:888`** (dos sitios, el mismo
+  bloque):
+
+  ```
+  <span className="hidden min-w-0 flex-1 truncate text-center
+                   text-[11.5px] text-faint sm:block">
+  ```
+
+  | | |
+  |---|---|
+  | `hidden … sm:block` | **no se ve en pantallas de móvil**, solo desde 640 px |
+  | `truncate` | en pantallas intermedias se corta con puntos suspensivos |
+  | `{!arranque && …}` | en la pantalla de inicio del chat **no sale** |
+
+  O sea: el aviso existe y está bien escrito, pero quien entra desde el
+  móvil —que es por donde llega casi todo el mundo desde una búsqueda— no lo
+  ve nunca.
+
+  **Qué haría**: que se vea también en móvil. **Y por qué no lo he hecho hoy**:
+  está escondido por sitio —esa barra lleva ya el selector de Mente y el menú, y
+  en 360 px no caben los tres—, así que no es cambiar dos palabras: es decidir
+  qué se mueve. Y el chat está detrás del login, así que **desde la sede no
+  puedo ver cómo queda**. Un cambio de maquetación que no puedo mirar no se
+  empuja a ciegas.
+
+  **Lo más probable es que la salida buena no sea la barra**: ponerlo en la
+  pantalla de arranque del chat, donde hoy se oculta a propósito y donde sí hay
+  sitio. Una línea, y se ve en el momento en que alguien escribe lo primero.
+  Pero eso ya es tocar la primera pantalla del producto de dentro, y eso sí
+  quiero que lo decida él.
+
+- **~~La caja de probar no dice que quien contesta es una IA~~ — HECHO el 27-11, en las seis cajas, y de paso lo oye un lector de pantalla.** `[origen: crecimiento 2026-11-26 · hecho 2026-11-27]`
+
+  **Hecho**: una línea nueva **debajo** del cuadro de escribir, en los dos
+  idiomas, en `lib/i18n.tsx` (clave `try.ia`) y `components/Probar.tsx`. Como la
+  caja es un solo componente, sale de una vez en la portada y en las **cinco**
+  páginas de intención.
+
+  > *"Te contesta Kairo, una IA. Puede equivocarse: comprueba lo que importe."*
+  > / *"You're talking to Kairo, an AI. It can get things wrong: check anything
+  > that matters."*
+
+  **Debajo y no encima, y el motivo es el del hallazgo**: encima está ya
+  `try.hint` —*"Pruébalo aquí mismo"*—, que se lee **antes** de escribir;
+  esta se lee mientras se escribe y, sobre todo, **mientras se lee la
+  respuesta**, que es el momento en que alguien se la cree.
+
+  **Y una cosa más que no estaba pedida y cuesta tres líneas**: la línea va
+  atada al cuadro con `aria-describedby` (con `useId`, para que dos cajas en una
+  misma página no compartan `id`). Sin eso, quien usa un lector de pantalla
+  escribe en un campo que no le ha dicho quién contesta: el aviso existía para
+  todos menos para quien más lo necesita.
+
+  **Comprobado**: el HTML generado de las **seis** páginas trae la frase una vez
+  y **después** del cuadro (`index`, `multas`, `contratos`,
+  `cartas-de-hacienda`, `crear-una-app`, `sin-suscripcion`); en el HTML el
+  `aria-describedby` del `textarea` y el `id` del párrafo **coinciden**; el
+  inglés viaja en el paquete de cliente; las dos lenguas tienen **566 claves
+  idénticas**, sin ninguna suelta. `tsc` 0, `next build` 0, `cifras` 0.
+
+  **Lo que NO he tocado, y es un hallazgo de hoy**: el aviso del chat con cuenta
+  (`app.disclaimer`) existe, pero está `hidden sm:block` y `truncate`. Entrada
+  nueva arriba.
+
+  **Lo que decía esta entrada cuando la abrió crecimiento el 26-11**, que es lo
+  que había que arreglar y queda como constancia:
+
   **El contexto lo deja claro y la caja no.** La página entera habla de una IA,
   pero la caja de probar es donde alguien escribe **sin haber leído nada**, y
   desde esta mañana está en las **cinco** páginas de intención además de la

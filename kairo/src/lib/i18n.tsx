@@ -33,6 +33,16 @@ const dict = {
     "hero.sub":
       "Claude, Gemini y GPT en el mismo sitio. Kairo elige el que toca para cada cosa, y cuando la pregunta es gorda les pregunta a los tres y te da una sola respuesta.",
     "try.hint": "Pruébalo aquí mismo. Sin cuenta y sin tarjeta.",
+    /* QUIEN ESCRIBE AQUÍ NO HA LEÍDO NADA DE LA PÁGINA.
+       La página entera habla de una IA, pero esta caja está desde el
+       26-11 en las cinco páginas de intención además de la portada, y
+       es el primer sitio donde alguien escribe: llega buscando "cómo
+       recurrir una multa", escribe y se cree la respuesta. Decir quién
+       contesta no cuesta nada y es verdad. Va debajo del cuadro, no
+       arriba, porque arriba se lee antes de escribir y aquí se lee
+       mientras se escribe y al leer la respuesta. */
+    "try.ia":
+      "Te contesta Kairo, una IA. Puede equivocarse: comprueba lo que importe.",
     "try.busy": "Pensando…",
     "try.left": "Te quedan {n} pruebas gratis.",
     "try.none":
@@ -707,6 +717,8 @@ const dict = {
     "hero.sub":
       "Claude, Gemini and GPT in one place. Kairo picks the right one for each job, and when the question really matters it asks all three and gives you a single answer.",
     "try.hint": "Try it right here. No account, no card.",
+    "try.ia":
+      "You're talking to Kairo, an AI. It can get things wrong: check anything that matters.",
     "try.busy": "Thinking…",
     "try.left": "You have {n} free goes left.",
     "try.none":
