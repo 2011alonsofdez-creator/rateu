@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { LangToggle, ThemeToggle } from "@/components/Toggles";
+import { LangToggle } from "@/components/Toggles";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,7 +13,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
         <div className="flex gap-2">
           <LangToggle />
-          <ThemeToggle />
         </div>
       </header>
 

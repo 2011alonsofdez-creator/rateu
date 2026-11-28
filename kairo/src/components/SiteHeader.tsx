@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useUi } from "@/lib/i18n";
 import { Logo } from "./Logo";
-import { LangToggle, ThemeToggle } from "./Toggles";
+import { LangToggle } from "./Toggles";
 import { Close, Menu } from "./Icons";
 
 export function SiteHeader() {
@@ -34,7 +34,6 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 sm:flex">
             <LangToggle />
-            <ThemeToggle />
           </div>
           <Link
             href="/chat"
@@ -65,7 +64,6 @@ export function SiteHeader() {
             {links}
             <div className="flex items-center gap-2 pt-1">
               <LangToggle />
-              <ThemeToggle />
             </div>
           </nav>
         </div>

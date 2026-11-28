@@ -13,7 +13,7 @@ import { useHistorial } from "@/lib/historial";
 import { borrarApp, renombrarApp, useAppsCode } from "@/lib/apps-code";
 import { borrarConversacion, renombrarConversacion } from "@/app/(app)/actions";
 import { Logo } from "./Logo";
-import { LangToggle, ThemeToggle } from "./Toggles";
+import { LangToggle } from "./Toggles";
 import { seccionDeRuta, seccionVisible } from "@/lib/version";
 import { Bolt, Brain, Chat, Clock, Close, Code, Credito, Fichas, Papel, Pencil, Plus, Settings, Team, Trash } from "./Icons";
 
@@ -446,7 +446,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
         <div className="mt-2 flex gap-2">
           <LangToggle />
-          <ThemeToggle />
         </div>
       </div>
     </div>
