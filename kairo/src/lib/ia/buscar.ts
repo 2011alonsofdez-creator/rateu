@@ -125,7 +125,7 @@ export async function buscarHechos(
   /* Wikipedia solo para "quién es / qué es" o cuando se nombra algo con
      mayúscula: para "huelga ferroviaria" traería un artículo genérico. */
   const conWiki =
-    /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a)/i.test(pregunta) ||
+    /(qui[eé]n(es)? (es|son|fue|fueron|era)|qu[eé] (es|son|era|fue)|historia de|biograf[ií]a|resum|cap[ií]tulo|sinopsis|argumento)/i.test(pregunta) ||
     /\s\p{Lu}\p{L}{2,}/u.test(pregunta);
 
   /* PREGUNTAS DE SEGUIMIENTO. "el youtuber", "¿y la fecha?", "pero se le

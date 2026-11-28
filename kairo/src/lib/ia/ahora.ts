@@ -267,6 +267,14 @@ const AL_MOMENTO: RegExp[] = [
   /^(hola|holi|buenas|hey|ey|gracias|vale|ok|okey|perfecto|genial|jaja\w*|xd|adios|chao|buenas noches|buenos dias)\b/,
 ];
 
+/* RESÚMENES POR CAPÍTULOS DE UNA OBRA CONCRETA: se busca (28-11), para
+   tener la lista real de capítulos y lo que pasa en cada uno en vez de
+   fiarse de la memoria. "Este libro / este texto" no: eso es un archivo
+   o algo pegado, y se trabaja con lo que viene. */
+const POR_CAPITULOS =
+  /\b(resumen|resume|resumeme|resúmeme|resumir|sinopsis|argumento)\b.*\b(por |cada )?(capitulos?|capítulos?|episodios?|temporadas?|actos|tratados|partes|cantos)\b/;
+const ESTE = /\b(este|esta|estos|el siguiente|lo siguiente|adjunto|que te paso|que te he pasado)\b/;
+
 export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   const texto = sinTildes(pregunta.trim());
   if (texto.length < 3) return "no";
@@ -275,6 +283,7 @@ export function veredicto(pregunta: string, hoy = new Date()): Veredicto {
   if (texto.length > 2000) return "no";
 
   if (NUNCA.some((re) => re.test(texto))) return "no";
+  if (POR_CAPITULOS.test(texto.toLowerCase()) && !ESTE.test(texto.toLowerCase())) return "si";
   if (AL_MOMENTO.some((re) => re.test(texto.toLowerCase()))) return "no";
   if (llevaAnioReciente(texto, hoy)) return "si";
   if (PISTAS.some((re) => re.test(texto))) return "si";
