@@ -484,6 +484,39 @@ function bloqueProducto(): string {
     .map((p) => `${NOMBRE_PLAN[p]} ${CREDITOS_PLAN[p]}`)
     .join(", ");
 
+  /* EL PRECIO DE ALGO QUE NO SE PUEDE ABRIR (área 1, 28-11).
+   *
+   * Ayer (área 7) las viñetas de Co-Works, Team y Mentes dejaron de entrar en
+   * LO QUE SABES HACER cuando su sección está apagada, que es la V1 de hoy.
+   * Pero este bloque —el que Kairo usa para hablar de dinero— seguía
+   * poniéndole precio a un Co-Work y recitando los topes de Co-Works, Team y
+   * Mentes. O sea que la mitad del arreglo: Kairo ya no OFRECE un Co-Work,
+   * pero si alguien preguntaba "¿cuánto cuesta esto?" le contestaba lo que
+   * cuesta ejecutar uno, y cuántos puede tener a la vez. Un precio sin
+   * producto es peor que un silencio: hace preguntar dónde se compra.
+   *
+   * Y el `plural()` de abajo se queda igual a propósito: el precio del nivel
+   * normal sigue saliendo en la primera viñeta, que es la que nunca se apaga.
+   *
+   * Los textos van fuera del literal, que es la regla que me costó un turno el
+   * 26-11: aquí dentro los acentos graves cerrarían la cadena. */
+  const costeCowork = seccion("coworks")
+    ? ` Un Co-Work que se ejecuta, otros ${CREDITOS.normal}.`
+    : "";
+
+  const topes: string[] = [];
+  if (seccion("coworks") || seccion("team")) {
+    topes.push(
+      `Co-Works a la vez, contando los del Team: ${COWORKS_POR_PLAN.free} en Free, ${COWORKS_POR_PLAN.plus} en ${NOMBRE_PLAN.plus} y ${COWORKS_POR_PLAN.supreme} en ${NOMBRE_PLAN.supreme}.`,
+    );
+  }
+  if (seccion("mentes")) {
+    topes.push(`Mentes: ${MENTES_POR_PLAN.free}, ${MENTES_POR_PLAN.plus} y ${MENTES_POR_PLAN.supreme}.`);
+  }
+  const lineaTopes = topes.length
+    ? `\n- ${topes.join(" ")} Pasado el tope el servidor lo rechaza, así que dilo antes.`
+    : "";
+
 /* "1 crédito" pero "2 créditos". Parece una tontería y no lo es: hasta el
    05-11 la escala empezaba en 1 y la frase decía "cuesta 1 crédito", bien
    escrito. Al doblarse la escala pasó a decir **"cuesta 2 crédito"**, en
@@ -505,15 +538,13 @@ así que es exacto:
 - Un mensaje rápido cuesta ${CREDITOS.fast} ${plural(CREDITOS.fast)}. Uno normal, ${CREDITOS.normal}.
   Forja, ${CREDITOS.forja}. Un Mega-Prompt, ${CREDITOS.mega}.
 - Leer un papel con Paperwork cuesta ${CREDITOS.normal}, igual que un mensaje
-  normal. Un Co-Work que se ejecuta, otros ${CREDITOS.normal}.
+  normal.${costeCowork}
 - Una app con Código cuesta ${CREDITOS.normal}, y **cada arreglo cuesta otros
   ${CREDITOS.normal}**: se escribe otra vez. Dilo si te piden tres cambios
   seguidos, que es mejor que lo descubran en el contador.
 - Créditos de cada plan: ${porPlan}. Los del plan Free son al día; los de los
-  otros dos, al mes.
-- Co-Works a la vez, contando los del Team: ${COWORKS_POR_PLAN.free} en Free, ${COWORKS_POR_PLAN.plus} en ${NOMBRE_PLAN.plus}
-  y ${COWORKS_POR_PLAN.supreme} en ${NOMBRE_PLAN.supreme}. Mentes: ${MENTES_POR_PLAN.free}, ${MENTES_POR_PLAN.plus} y ${MENTES_POR_PLAN.supreme}. Pasado el tope el servidor
-  lo rechaza, así que dilo antes; y no sabes en qué plan está quien pregunta.
+  otros dos, al mes. Y **no sabes en qué plan está quien pregunta**: si la
+  respuesta depende del plan, dilo y que lo mire en sus ajustes.${lineaTopes}
 - Son los mismos créditos para todo: se gastan en lo que se use.
 - Si te preguntan si algo les da para tanto al día o al mes, haz la cuenta tú y
   dásela hecha. Es lo que están preguntando de verdad.

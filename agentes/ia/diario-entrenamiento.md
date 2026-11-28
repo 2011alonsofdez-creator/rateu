@@ -96,6 +96,81 @@ cambiaría las respuestas:
 
 ## Entradas
 
+### 2026-11-28 — Prompt maestro (área 1): el arreglo de ayer estaba a medias, y la mitad que faltaba era la que habla de dinero
+
+**Qué cambié**: `kairo/src/lib/ia/prompt.ts`, bloque `LO QUE CUESTA USARTE`
+(`bloqueProducto()`). Tres cosas, todas de la misma pieza:
+
+1. El precio de un Co-Work —*"Un Co-Work que se ejecuta, otros 8"*— entra solo
+   si la sección de Co-Works está encendida.
+2. La viñeta de topes —*"Co-Works a la vez, contando los del Team: 1 / 5 / 25.
+   Mentes: 3 / 30 / 150"*— se parte en dos: la parte de Co-Works y Team entra si
+   alguna de las dos secciones está encendida, y la de Mentes si lo está la suya.
+   Si no hay ninguna, la viñeta entera desaparece.
+3. Y el aviso que colgaba del final de esa viñeta —**"no sabes en qué plan está
+   quien pregunta"**— se muda a la viñeta de los créditos por plan.
+
+**Por qué**: ayer (área 7) quité de `LO QUE SABES HACER` las tres funciones que
+el dueño escondió de la V1 el 25-11. **Hoy, leyendo el bloque que la decisión de
+ayer tocaba de refilón, estaba la otra mitad del problema**: Kairo ya no OFRECÍA
+un Co-Work, pero si alguien preguntaba *"¿y esto cuánto me cuesta?"* le
+contestaba lo que cuesta ejecutar uno y cuántos puede tener a la vez. **Un
+precio sin producto es peor que un silencio**: hace preguntar dónde se compra, y
+la respuesta es que no se puede comprar. Era mi propio cambio dejado a medias, y
+por eso es trabajo de área 1 y no un remiendo.
+
+**El punto 3 no es cosmética y es lo que me hizo mirar dos veces.** Ese aviso
+—no sabes en qué plan está quien pregunta— es la regla más útil de todo el
+bloque, porque califica **cualquier** cifra que dependa del plan. Estaba
+enganchado a la frase de los topes, así que al apagar los topes **se habría ido
+con ellos** y Kairo habría recitado "Free 40, Kairo+ 2.000, Supreme 6.000" sin
+decir que no sabe cuál es el de quien pregunta. Lo he mudado a la viñeta de los
+planes, que es su sitio: ahí sobrevive encendido y apagado. Una gata que se
+escapa por la puerta que abres para otra cosa.
+
+**Cómo lo comprobé**: con el arnés, renderizando **tres** configuraciones y no
+dos, porque las secciones son independientes y hasta hoy nunca se había probado
+una mezcla:
+
+| Configuración | Líneas | Precio del Co-Work | Topes Co-Works/Team | Topes Mentes | "no sabes el plan" | Paperwork y Código |
+|---|---|---|---|---|---|---|
+| Sin la variable (**producción hoy**) | **324** | fuera | fuera | fuera | **dentro** | dentro |
+| `coworks,team,mentes` | **337** | dentro | dentro | dentro | dentro | dentro |
+| **Solo `mentes`** | **326** | fuera | fuera | **dentro** | dentro | dentro |
+
+La fila de la mezcla es la que prueba que esto no es un interruptor global: con
+`mentes` sola entra el tope de Mentes y no el de Co-Works. Y el arnés se
+reconstruyó hoy desde cero —el stub de `planes.ts` con los valores **sacados con
+expresión regular del archivo real**, y el `prompt.ts` copiado comprobando que
+las únicas líneas distintas son las **seis de los `import`** (1, 7, 8, 9, 10,
+11)—, que es lo que hace que medir aquí valga para allí.
+
+`tsc --noEmit` 0, `next build` 0, `cifras.py` 0. Y **comprobada la consecuencia
+en el banco**, que ayer fue la mitad del trabajo: **ningún caso pregunta por el
+precio ni por el tope de un Co-Work**. El caso 7, que es el de dinero, pregunta
+por un Mega-Prompt (240) y por los créditos de Kairo+ (2.000), y las dos cifras
+siguen en el prompt en las dos configuraciones. **Hoy no hay nada que corregir
+en el banco**, y lo digo porque ayer sí lo hubo.
+
+**Qué necesito del dueño**: nada para esto. Y una cosa dicha por tercer día, sin
+insistir más: todo esto vive en la rama. En producción el bloque de coste sigue
+poniéndole precio a los Co-Works escondidos.
+
+**Un candidato para el día de tono o de recorte, apuntado hoy porque hoy se
+puede ver**: anoche metió en `main` un bloque nuevo, `TE ESTÁN CORRIGIENDO:
+COMPRUEBA ANTES DE CEDER`, con su `lib/ia/replica.ts` —un detector de réplicas
+que lo enciende solo cuando el último mensaje discute lo que Kairo dijo—. Es
+mejor que lo que teníamos, porque es **condicional y operativo** (qué hacer si
+te equivocaste, qué si no, qué si no se puede saber). Y se solapa con su propia
+viñeta de `HONESTO, NO PELOTA`, que **todavía no está en esta rama** y llega con
+la fusión. Cuando lleguen las dos, hay que mirar si la viñeta siempre-encendida
+sigue aportando algo que el bloque condicional no diga. **No lo toco hoy**: es
+área 6 o 7, y además las dos piezas son suyas.
+
+**Mañana toca**: área 2, **ejemplos**.
+
+---
+
 ### 2026-11-27 — Recorte (área 7): el prompt seguía ofreciendo tres funciones que el usuario ya no puede abrir
 
 **Qué cambié**: las viñetas de **Co-Works, Team y Mentes** de `LO QUE SABES
