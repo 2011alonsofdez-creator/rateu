@@ -71,8 +71,30 @@ export async function GET(req: Request) {
 
   const fallos = resultados.filter((r) => !r.ok).length;
   /* Qué buscadores con clave ve el servidor (solo si están, nunca el valor). */
+  const clave = process.env.TAVILY_API_KEY?.trim() ?? "";
+  let tavilyEstado: number | string = "sin_clave";
+  let tavilyResultados = 0;
+  if (clave) {
+    try {
+      const r = await fetch("https://api.tavily.com/search", {
+        method: "POST",
+        signal: AbortSignal.timeout(8000),
+        headers: { "content-type": "application/json", authorization: `Bearer ${clave}` },
+        body: JSON.stringify({ query: "plazo declaración de la renta", max_results: 2 }),
+        cache: "no-store",
+      });
+      tavilyEstado = r.status;
+      if (r.ok) tavilyResultados = (((await r.json()) as { results?: unknown[] }).results ?? []).length;
+    } catch (e) {
+      tavilyEstado = String(e).slice(0, 80);
+    }
+  }
   const buscadores = {
-    tavily: Boolean(process.env.TAVILY_API_KEY?.trim()),
+    tavily: Boolean(clave),
+    tavily_estado: tavilyEstado,
+    tavily_resultados: tavilyResultados,
+    // Solo el formato (empieza por "tvly-"), nunca la clave.
+    tavily_formato_ok: clave.startsWith("tvly-"),
     brave: Boolean(process.env.BRAVE_SEARCH_KEY?.trim()),
   };
   return Response.json({ ok: fallos === 0, fallos, total: resultados.length, buscadores, resultados });
