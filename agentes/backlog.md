@@ -13,6 +13,79 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🟡 Tres filas ✅ del checklist describían la rama y no producción. Y una lo llevaba escrito dentro de su propia celda desde el 18-10.** `[origen: guardian 2026-11-28]`
+  Hoy la web está en verde por cuarto día, el reloj suena y los tres agentes de
+  ayer entregaron, así que el hallazgo del día no es sobre Kairo: **es sobre
+  nuestro propio medidor**, y es la cuarta vez que esta casa se pilla midiendo
+  la rama y llamándolo producción (01-11 el enlace por el documento, 16-11 el
+  repositorio por la web, 25-11 el prompt de la rama por el que contesta).
+
+  **Medido hoy sobre `origin/main`, archivo por archivo:**
+
+  | Fila del checklist | Lo que decía | Lo que hay en producción |
+  |---|---|---|
+  | `robots.txt` ✅ **14-10** | *"el build los sirve en `/robots.txt` y `/sitemap.xml`"* | **no existe `robots.ts` ni `sitemap.ts`** en todo `kairo/` de `main`, y `vercel.json` no reescribe nada: los dos dan **404**. Escritos en la rama desde el 13-10: **46 días** |
+  | Los cuatro legales **enlazados en el pie** ✅ **01-11** | *"cada uno lleva a su propia tarjeta (`/legal#aviso`…)"* | `components/SiteHeader.tsx:94-97` pinta los cuatro con **el mismo `href="/legal"`**, y esa página dice *"Pendiente de redactar"*. **27 días** desde el arreglo, **47** desde el hallazgo del 12-10 |
+  | Cada página pública con su título ✅ **05-11** | ocho páginas | **cinco no existen en `main`**: `multas`, `contratos`, `cartas-de-hacienda`, `crear-una-app`, `sin-suscripcion`, ni `legal/cookies`. Las tres que hay —portada, `/precios`, `/legal`— **sí** tienen metadatos propios |
+
+  **Lo que sí es real en producción**, y hay que decirlo con la misma
+  precisión: `app/opengraph-image.png`, `app/icon.svg` y `app/apple-icon.png`
+  existen en `main`, y el `layout.tsx` de producción trae `metadataBase`,
+  `openGraph` y la tarjeta de X. **Imagen de tarjeta y favicon: sí.
+  `robots.txt` y `sitemap.xml`: no.** Las tres filas siguientes del checklist no
+  valían lo mismo y estaban todas en verde.
+
+  **Por qué esto importa más de lo que parece**: la estrategia entera de
+  crecimiento —cinco páginas escritas para que alguien que busca *"cómo
+  recurrir una multa"* encuentre a Kairo— lleva **46 días** sin que Google tenga
+  ni un sitemap que la guíe **ni las páginas que guiar**. No es que el SEO vaya
+  mal: es que no ha empezado.
+
+  **No hay nada que escribir: lo arregla la fusión**, igual que los tres
+  documentos legales y la defensa contra inyección. Lo que sí he arreglado hoy
+  es **el medidor**: esas tres filas bajan a 🟡 con la fecha y los días, para que
+  el checklist deje de decir en verde algo que producción no tiene.
+
+  **Lo que NO voy a hacer**: tocar `.github/workflows/` para comprobar
+  `/robots.txt` desde fuera. Los workflows son suyos (apartado 5). Si quiere la
+  comprobación desde la web, es una línea en `revisar.yml` y la pido, no la
+  hago.
+
+- **Lo bueno medido hoy, y una pregunta de tres días que se contesta sola a las 08:47.** `[origen: guardian 2026-11-28]`
+  No es un hallazgo roto, y va aquí porque cambia cómo se prioriza lo de Gemini.
+
+  **De su propio control de anoche** (`Control diario` 12, hoy a las 00:05, su
+  workflow y su endpoint):
+
+  - El bloque `buscadores` nuevo dice `tavily: true`, **estado 200, 2
+    resultados**, formato de clave correcto, y `brave: false`. O sea que **el
+    buscador con clave que montó anoche funciona en producción**. Ojo a no
+    confundirlo con la línea *"buscador web: no configurado"* del mismo log, que
+    es **otra cosa**: el buscador de pago vía OpenRouter, apagado a propósito.
+  - Y el diario de búsqueda dice que a esa hora **las tres claves de Gemini
+    estaban sin cuota en los diez modelos** —*"clave 1 sin cuota, probando con
+    la 2 · clave 2 sin cuota, probando con la 3 · ERROR · CUOTA AGOTADA
+    (429)"*— y el control **pasó igualmente**: Google Noticias dio 8 titulares y
+    se leyeron páginas web de verdad. **Su cambio de anoche hace exactamente lo
+    que promete**: la búsqueda ya no se cae cuando Gemini se agota.
+
+  **Y la tentación que no voy a tomar**: eso NO prueba todavía que las tres
+  claves compartan un proyecto de Google. Las líneas *"clave 1 sin cuota"* salen
+  a **0 ms**, o sea de la cuarentena —memoria de "esta clave estaba agotada hace
+  un rato"—, no de una llamada nueva. Simultaneidad cacheada no es
+  simultaneidad. Es coherente con el límite por proyecto que recoge
+  `agentes/ia/conocimiento/limites-y-cuotas.md`, y nada más por ahora.
+
+  **La prueba buena llega sola y no cuesta nada**: su `control-diario.yml` corre
+  **a las 08:47 UTC**, 47 minutos después de que la cuota se renueve (08:00), y
+  lo puso así a propósito. Si con cuota fresca las tres claves contestan, el
+  problema es consumo; si a las 08:47 ya hay 429, lo que falta es cupo del
+  proyecto, que es lo que se preguntaba el 25-11. **Queda dicho aquí para que lo
+  lea el primer agente que pase después de esa hora** —hoy el radar dispara a las
+  08:38, antes, así que o lo mira en su repaso o lo mira el guardián de
+  mañana—. No lanzo yo el control a mano: gastaría de la cuota recién renovada lo
+  que la prueba quiere medir.
+
 - **🟡 El camino limpio de la fusión duró UN DÍA. Y eso ya no es un recado: es la forma del problema.** `[origen: guardian 2026-11-26]`
   Ayer el constructor dejó `main` como ancestro de la rama: fusionar era un
   *fast-forward*, cero conflictos. **Hoy ya hay dos archivos en conflicto otra
@@ -44,6 +117,13 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   | 25-11 por la tarde, tras limpiar | **0** |
   | 26-11 (tocó `prompt.ts`) | 2 |
   | 27-11 (tocó solo `entrenamiento/`) | **2, igual** |
+  | 28-11 (tocó `prompt.ts` otra vez, 8 commits de noche) | **2, igual** |
+
+  **AÑADIDO EL 28-11, y confirma la corrección de ayer en vez de desmentirla**:
+  anoche volvió a tocar `prompt.ts` —su bloque nuevo `TE ESTÁN CORRIGIENDO:
+  COMPRUEBA ANTES DE CEDER`, con `lib/ia/replica.ts`— y el conflicto **sigue en
+  dos archivos**, no en tres. Porque son los mismos dos. **173 commits, 28
+  días.**
 
   Así que esto no se arregla volviendo a limpiarlo cada mañana —eso es trabajo
   que se borra solo—. Se arregla **fusionando**, y hoy sigue costando dos
