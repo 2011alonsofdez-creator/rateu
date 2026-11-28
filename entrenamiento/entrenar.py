@@ -225,10 +225,15 @@ def todo():
 
     import os
 
+    antes = None
     if os.path.exists("examen-antes.json"):
-        print("\n▶ 1/4 · Examen ANTES: ya estaba hecho, lo reutilizo")
-        antes = json.load(open("examen-antes.json", encoding="utf-8"))
-    else:
+        guardado = json.load(open("examen-antes.json", encoding="utf-8"))
+        # Solo vale si es del mismo examen: si se han añadido preguntas,
+        # se repite (si no, se compararían respuestas de preguntas distintas).
+        if len(guardado) == len(preguntas):
+            print("\n▶ 1/4 · Examen ANTES: ya estaba hecho, lo reutilizo")
+            antes = guardado
+    if antes is None:
         print("\n▶ 1/4 · Examen ANTES de entrenar (unos 10 minutos)…")
         FastModel.for_inference(modelo)
         antes = []
