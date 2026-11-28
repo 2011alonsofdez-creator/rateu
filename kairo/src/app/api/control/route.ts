@@ -70,5 +70,10 @@ export async function GET(req: Request) {
   );
 
   const fallos = resultados.filter((r) => !r.ok).length;
-  return Response.json({ ok: fallos === 0, fallos, total: resultados.length, resultados });
+  /* Qué buscadores con clave ve el servidor (solo si están, nunca el valor). */
+  const buscadores = {
+    tavily: Boolean(process.env.TAVILY_API_KEY?.trim()),
+    brave: Boolean(process.env.BRAVE_SEARCH_KEY?.trim()),
+  };
+  return Response.json({ ok: fallos === 0, fallos, total: resultados.length, buscadores, resultados });
 }
