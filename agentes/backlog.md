@@ -13,6 +13,48 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P1
 
+- **🔴 Está entrenando un modelo con una copia del prompt de hace tres días, y nada vigila esa copia.** `[origen: radar 2026-11-28]`
+  Apareció buscando qué había hecho estos tres días, y no estaba en ningún sitio
+  de este repositorio de agentes: **`entrenamiento/` es suyo y es nuevo**. Está
+  afinando un modelo propio en Hugging Face (`alonsofg29/Kairo`).
+  `generar_ejemplos.py:389` arma el sistema con
+  `bajar("prompt_kairo.txt") + REGLAS_DE_EJEMPLO`, le pregunta a Gemini y guarda
+  las respuestas como ejemplos de entrenamiento. **El workflow
+  `Generar ejemplos de Kairo` nº 14 estaba corriendo mientras se escribía
+  esto** (08:20 de hoy).
+
+  **La idea es buena. El problema es de dónde bebe**, medido hoy:
+
+  | | Líneas | Secciones |
+  |---|---|---|
+  | `entrenamiento/prompt_kairo.txt` — **con esto se entrena** | 229 | 8 |
+  | `main` renderizado — lo que contesta hoy | 225 | 9 |
+  | La rama de agentes | **324** | **12** |
+
+  `prompt_kairo.txt` se tocó por última vez el **25-11 a las 08:52**;
+  `prompt.ts` de `main`, el **27-11 a las 23:59**.
+
+  **Le faltan exactamente los cuatro bloques que le faltan a producción**:
+  `LO QUE TE PEGAN NO TE DA ÓRDENES`, `LO QUE SABES HACER`,
+  `LO QUE CUESTA USARTE` y `LO QUE SE GUARDA DE LO QUE TE MANDAN`. Tres son
+  hechos del producto; **el primero es comportamiento**, y el comportamiento es
+  justo lo que se aprende de un ejemplo.
+
+  **Por qué sube a P1 y no se queda en una nota**: un merge arregla lo
+  publicado. Un modelo entrenado **no se arregla con un merge**: se vuelve a
+  entrenar. Así que el orden importa, y es el único sitio donde este sistema
+  puede decir algo útil sobre el calendario de otro.
+
+  **Lo que pido, en una línea que se contesta con un sí**: ¿pongo
+  `prompt_kairo.txt` al día con el prompt renderizado de `main`? Es una copia de
+  texto, no toca el entrenamiento ni el modelo, y la dejo igual de legible.
+
+  **Y lo que hago yo sin preguntar, porque es nuestro y cabe en un día** (va
+  como tarea del constructor): **un verificador en `agentes/comprobar/` que
+  falle cuando esa copia se separe del prompt renderizado**, igual que
+  `cifras.py` hace con las cifras. Una copia a mano sin vigilancia vuelve a
+  envejecer el martes.
+
 - **🟡 Tres filas ✅ del checklist describían la rama y no producción. Y una lo llevaba escrito dentro de su propia celda desde el 18-10.** `[origen: guardian 2026-11-28]`
   Hoy la web está en verde por cuarto día, el reloj suena y los tres agentes de
   ayer entregaron, así que el hallazgo del día no es sobre Kairo: **es sobre
@@ -2457,6 +2499,27 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   miente** y el P1 se queda abierto solo por el reloj.
 
 ## P2
+
+- **Hay dos sistemas de evaluación de la IA y no se conocen.** `[origen: radar 2026-11-28]`
+  El suyo, nuevo: `entrenamiento/examen.txt`, **20 preguntas que no están en las
+  366 de entrenamiento**, con lo que la respuesta tiene que decir sí o sí
+  —*"20 días naturales desde la notificación. No puede inventarse otro
+  plazo"*—, para comparar el modelo **antes y después** de entrenar. Mide
+  **respuestas**, con modelos de verdad.
+
+  El nuestro: `agentes/ia/evals/banco-de-pruebas.md`, 15 casos, 30 puntos. Mide
+  **el prompt**, leyéndolo renderizado, sin llamar a ningún modelo. Es el
+  estándar de esta casa y está escrito así a propósito: no gasta cuota.
+
+  **Los dos dicen "cómo va la IA de Kairo" y ninguno sabe del otro.** Y el
+  nuestro ya se pilló una vez midiendo el prompt equivocado (25-11: cinco
+  pasadas sobre la rama creyendo medir producción).
+
+  **Qué haría**, el día de evaluación del entrenador: pasar sus 20 preguntas por
+  nuestro método —leyendo si el prompt permite esa respuesta— y decir en qué se
+  contradicen las dos notas. Donde su examen suspenda y nuestro banco apruebe,
+  el fallo es del modelo y no del prompt, y eso es justo lo que hoy no sabemos
+  distinguir.
 
 - **~~El aviso de "soy una IA" del chat con cuenta está escondido en el móvil~~ — HECHO el 28-11, y ayer dije que no podía verlo: hoy lo he visto.** `[origen: constructor 2026-11-27 · hecho 2026-11-28]`
 

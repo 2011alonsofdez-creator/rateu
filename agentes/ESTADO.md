@@ -3,14 +3,32 @@
 > Panel vivo. Lo actualiza `kairo-radar` cada 3 días. El histórico completo
 > está en `informes/`.
 
-**Última revisión**: 2026-11-25 ([informe](informes/2026-11-25-estado.md)),
-la decimoquinta
-**Semáforo general**: 🔴 **decimocuarto rojo, y por primera vez el motivo no son preguntas sin contestar sino UNA SOLA ACCIÓN sin hacer. El retroceso de ayer está deshecho —las puertas vuelven a 2 de 22 porque Kairo contesta otra vez— y lo más viejo del backlog quedó cerrado anoche. Lo que bloquea el lanzamiento es que producción no tiene ni un documento legal publicado, no tiene la defensa contra inyección, y su propia FAQ de anoche manda a una política de privacidad que en producción NO EXISTE. Las tres se arreglan con una fusión que desde hoy no tiene conflictos**
+**Última revisión**: 2026-11-28 ([informe](informes/2026-11-28-estado.md)),
+la decimosexta
+**Semáforo general**: 🔴 **decimoquinto rojo, y el motivo de hoy es nuevo: está entrenando un modelo con una copia del prompt de hace tres días. `entrenamiento/prompt_kairo.txt` —el sistema con el que `generar_ejemplos.py` fabrica los ejemplos— tiene 229 líneas y 8 secciones contra las 324 y 12 de la rama, y le faltan los cuatro bloques de siempre, uno de ellos la defensa contra inyección. El generador estaba corriendo mientras se escribía este informe. Fusionar ha dejado de ser orden y limpieza: un merge arregla lo publicado, pero un modelo entrenado solo se arregla volviéndolo a entrenar. Lo demás sigue: cero documentos legales publicados, sin `robots.txt` ni `sitemap.xml` en producción (46 días), cero de las cinco páginas de intención, y 176 commits sin fusionar en 28 días. Y lo bueno, que es mucho: 21 commits suyos en tres días —su récord—, Kairo contestando cuatro días seguidos y la búsqueda aguantando con las tres claves de Gemini sin cuota**
+Lo de antes: 🔴 **decimocuarto rojo, y por primera vez el motivo no son preguntas sin contestar sino UNA SOLA ACCIÓN sin hacer. El retroceso de ayer está deshecho —las puertas vuelven a 2 de 22 porque Kairo contesta otra vez— y lo más viejo del backlog quedó cerrado anoche. Lo que bloquea el lanzamiento es que producción no tiene ni un documento legal publicado, no tiene la defensa contra inyección, y su propia FAQ de anoche manda a una política de privacidad que en producción NO EXISTE. Las tres se arreglan con una fusión que desde hoy no tiene conflictos**
 Lo de antes: 🔴 decimotercer rojo, y por primera vez en catorce revisiones Kairo ha ido HACIA ATRÁS: una puerta de lanzamiento que estaba abierta se ha cerrado. Las puertas pasan de 2 a 1 de 22, porque la que medía que un desconocido recibe su primera respuesta —la única que mide lo que convierte— lleva cuatro días en rojo**
 Lo de antes: 🔴 duodécimo rojo, y el motivo ya no se puede decir más corto: no falta trabajo, falta él. Todo lo que los agentes pueden tocar se está arreglando; todo lo que necesita una decisión suya está congelado, y lo más viejo lleva diecinueve días**
 Lo de antes: 🔴 undécimo rojo, por tres documentos legales terminados y cero publicados (sigue igual, quince días la política de cookies)
 
-> **Lo que ha cambiado de verdad, y hoy sí es bueno**: volvió tras cinco días
+> **Lo que ha cambiado de verdad (28-11)**: tres días y **21 commits suyos**,
+> su récord. Buscador sin clave (DuckDuckGo, Fandom, YouTube), respuestas
+> instantáneas que no buscan, el dominio citado junto a cada dato, Tavily
+> funcionando en producción, y **un sistema de entrenamiento propio** que este
+> panel no sabía que existía. La búsqueda ya aguanta sin Gemini: a las 00:05 las
+> tres claves estaban sin cuota en los diez modelos y su control **pasó igual**.
+>
+> **Y el hallazgo que da el rojo de hoy**: ese sistema de entrenamiento bebe de
+> `entrenamiento/prompt_kairo.txt`, una **copia a mano** del prompt del 25-11.
+> Lo que se entrena hoy nace sin los cuatro bloques que la rama tiene y
+> producción no.
+>
+> **Y una corrección de medida, no del producto**: dos filas de métricas bajan
+> hoy porque el guardián descubrió que tres ✅ del checklist describían la rama
+> —`robots.txt`, los enlaces del pie y los títulos de las páginas—. Kairo no ha
+> empeorado; la estábamos midiendo mal.
+>
+> Lo de antes (25-11): volvió tras cinco días
 > sin empujar una línea y en **tres commits** cerró el 🔴 del desconocido, el
 > *"No."* de `/precios` (**19 días**), la contradicción sobre datos personales
 > (12) y el tope de Mentes (11). Kairo **contesta otra vez**: `probar-portada`
