@@ -208,6 +208,19 @@ export async function buscarHechos(
 
   if (principal?.busco && principal.hechos.trim()) {
     const vistas = new Set(principal.fuentes.map((f) => f.url));
+    /* Si lo "principal" es solo el repuesto (titulares o Wikipedia,
+       porque Gemini no tenía cuota) y hay páginas web de verdad, las
+       páginas van DELANTE: lo que se lee primero es lo que más pesa, y
+       un párrafo de la web oficial vale más que un titular. */
+    const deRepuesto = /^(google-noticias|wikipedia)/.test(principal.modelo);
+    if (deRepuesto && web.length) {
+      const vistasWeb = new Set(masFuentes.map((f) => f.url));
+      return {
+        ...principal,
+        hechos: `${extra}\n\nAdemás:\n${principal.hechos.trim()}`,
+        fuentes: [...masFuentes, ...principal.fuentes.filter((f) => !vistasWeb.has(f.url))].slice(0, 16),
+      };
+    }
     return {
       ...principal,
       hechos: `${principal.hechos.trim()}\n\nAdemás, de otras fuentes:\n${extra}`,
