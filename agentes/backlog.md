@@ -128,6 +128,20 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   mañana—. No lanzo yo el control a mano: gastaría de la cuota recién renovada lo
   que la prueba quiere medir.
 
+  **LEÍDO A LAS 09:16, Y LA RESPUESTA ES QUE NO HAY RESPUESTA: el control de las
+  08:47 NO SE HA EJECUTADO.** Comprobado con `gh api`: las últimas tres
+  ejecuciones de `control-diario.yml` son las tres **manuales** de anoche
+  (00:02, 00:03 y 00:05); **ninguna programada**. Así que la pregunta de las
+  tres claves de Gemini **sigue abierta**, y no por falta de ganas de mirarla.
+
+  **Y el motivo de que no se ejecutara es un hallazgo más gordo que la pregunta
+  que iba a contestar.** Ver la entrada nueva del reloj, aquí abajo: GitHub no
+  está ejecutando los `cron` de este repositorio ni de lejos a la hora. El
+  control que él puso **a propósito** a las 08:47 —*"con la cuota de Gemini
+  recién renovada"*— depende del mismo reloj que falla, así que **ni siquiera
+  está garantizado que mida lo que quiere medir**: si se ejecuta a las 11:00, ya
+  no es cuota fresca.
+
 - **🟡 El camino limpio de la fusión duró UN DÍA. Y eso ya no es un recado: es la forma del problema.** `[origen: guardian 2026-11-26]`
   Ayer el constructor dejó `main` como ancestro de la rama: fusionar era un
   *fast-forward*, cero conflictos. **Hoy ya hay dos archivos en conflicto otra
@@ -334,6 +348,47 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
   **Lo que no voy a hacer en ningún caso**: fusionar a `main`. Eso es suyo.
 
 - **🟡 El reloj, RECALIFICADO el 26-11 por su decisión de alcance: apuntaba a la mitad que acaba de esconder.** `[origen: guardian 2026-11-25 · recalificado 2026-11-26]`
+
+  **MEDIDO ENTERO EL 28-11 A LAS 09:16, Y EL NÚMERO ES OTRO DEL QUE VENÍAMOS
+  DANDO. El reloj pide 72 toques al día y recibe 3.**
+
+  Hasta hoy este sistema decía *"corre cada hora"* y contaba **huecos de más de
+  8 h** como si fueran la excepción. Leído el `cron` de verdad
+  (`kairo-coworks.yml:41`), lo que pide es `7,27,47 * * * *`: **tres veces por
+  hora, 72 al día**, y lo pide así desde el **16-10** (43 días). Contadas las
+  100 últimas ejecuciones con `gh api`:
+
+  | Día | Ejecuciones | El cron pide |
+  |---|---|---|
+  | 21-11 | 4 | 72 |
+  | 22-11 | 4 | 72 |
+  | 23-11 | **2** | 72 |
+  | 24-11 | 3 | 72 |
+  | 25-11 | 3 | 72 |
+  | 26-11 | 3 | 72 |
+  | 27-11 | 3 | 72 |
+  | 28-11 (hasta las 09:16) | **1** | 72 |
+
+  **Una entrega del 4 %.** Y hoy, ahora mismo, **4,3 h desde el último toque**
+  (04:58) sin que haya sonado ninguno de los **13** que tocaban.
+
+  **Lo que cambia esto, y no es poco**: los huecos no son averías, son **lo
+  normal**. No hay nada que arreglar en el workflow —está verde en las 30
+  últimas— ni en el `cron`, que ya pide el triple que en octubre sin que eso
+  cambie nada: **GitHub Actions sencillamente no ejecuta los programados de este
+  repositorio a su hora.** Pedir más veces no trae más toques.
+
+  **Y por qué sigue sin ser 🔴 hoy**: lo que la V1 necesita de este reloj son los
+  avisos de plazo de Paperwork, y esos van por hitos que se mandan una sola vez,
+  con el cron **de Vercel** —que es el de verdad diario y no depende de
+  GitHub— cubriendo un toque por día local. Lo que se pierde con una entrega del
+  4 % es la **puntualidad dentro del día**, no el aviso.
+
+  **Lo que sí cambia es a quién hay que creer**: cualquier comprobación que
+  dependa de un `cron` de GitHub —incluido su control diario de las 08:47, que
+  hoy **no se ha ejecutado**— hay que darla por *puede que no pase hoy*. Si
+  quiere una medición a una hora exacta, el sitio es el cron de Vercel, que es
+  suyo.
   **Lo que cambió, y lo digo yo porque baja la prioridad de algo mío.** Anoche
   decidió el alcance de la V1 (`kairo/src/lib/version.ts`, nuevo): se lanza con
   **Chat, Paperwork, Gist y Code**, y **Co-Works, Team y Mentes se esconden**
