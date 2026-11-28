@@ -2458,7 +2458,58 @@ Prioridades: `P1` lo que bloquea o está roto · `P2` lo siguiente ·
 
 ## P2
 
-- **El aviso de "soy una IA" del chat con cuenta está escondido en el móvil, y el móvil es donde se lee.** `[origen: constructor 2026-11-27]`
+- **~~El aviso de "soy una IA" del chat con cuenta está escondido en el móvil~~ — HECHO el 28-11, y ayer dije que no podía verlo: hoy lo he visto.** `[origen: constructor 2026-11-27 · hecho 2026-11-28]`
+
+  **Lo primero, porque cambia el resto**: ayer escribí que *"el chat está detrás
+  del login, así que desde la sede no puedo ver cómo queda"*. **Era verdad a
+  medias y me conformé demasiado pronto.** El contenedor tiene Chromium y
+  Playwright; lo que faltaba era una página donde montar el componente fuera del
+  login. La he hecho, he medido, y **la he borrado antes de commitear**: no
+  queda ni un archivo nuevo en el repositorio.
+
+  **Lo que se vio, que no es lo que yo suponía.** Mi propuesta de ayer era
+  mover el aviso a la pantalla de arranque *porque la barra no tenía sitio*. La
+  foto a 360 px dice otra cosa: **la barra tiene una fila entera libre debajo de
+  los iconos**. Así que no hacía falta mover nada ni quitar nada.
+
+  **Hecho** (`components/Composer.tsx`, tres cambios de una misma pieza):
+
+  1. La barra del chat admite que algo baje de línea (`flex-wrap`), y el aviso
+     pasa de `hidden … sm:block` a **ocupar su propia fila** debajo de los
+     iconos en pantallas estrechas (`order-last w-full`), volviendo a su sitio
+     dentro de la barra desde `md` (`md:order-none md:w-auto md:flex-1`).
+  2. **El corte de las pantallas intermedias, que también estaba y nadie había
+     medido**: entre 640 y 767 px el `truncate` cortaba la frase con puntos
+     suspensivos. El punto de corte sube de `sm` a `md`, y ahí deja de pasar.
+  3. **Fuera una copia muerta del aviso.** Había dos: la de la barra del chat
+     —la que se ve— y otra **dentro de la rama `arranque ? (…)` guardada por
+     `!arranque`**, o sea una condición que no puede cumplirse nunca. Llevaba
+     ahí sin pintarse una sola vez, y es la que me hizo leer ayer que el aviso
+     "existía" en la pantalla de arranque. Borrada.
+
+  **Medido en nueve anchos** con el navegador, no leyendo el CSS:
+
+  | Ancho | Antes | Después |
+  |---|---|---|
+  | 320 · 360 · 420 · 639 | **invisible** (`display:none`) | visible, en su fila, sin cortar |
+  | **640 · 700** | visible pero **cortada** | visible, sin cortar |
+  | 768 · 1024 · 1280 | visible, 395-475 px | **igual que antes**, dentro de la barra |
+
+  Y comprobado que no rompí nada por el camino: el primer intento puso
+  `flex-wrap` también en la caja de arranque y **la flecha de enviar se cayó a
+  una segunda línea** a 360 px. Lo vi en la captura, no en el diff. Revertido:
+  esa caja se queda exactamente como estaba. `tsc` 0, `next build` 0,
+  `cifras` 0.
+
+  **Lo que sigue siendo tuyo, y ahora con la foto delante**: en la **pantalla de
+  arranque** del chat —la primera, la del saludo, donde alguien escribe su primer
+  mensaje— **no hay aviso ninguno**, y ahí sí hay sitio de sobra. Es una línea.
+  Dime "ponlo" y va; es tu primera pantalla de dentro y no la toco sin que lo
+  digas.
+
+  **Lo que decía esta entrada cuando la abrí el 27-11:**
+
+  **El aviso de "soy una IA" del chat con cuenta está escondido en el móvil, y el móvil es donde se lee.**
   Encontrado hoy al poner la línea de la caja de probar, y conviene no
   confundirlo con ella: son **dos cajas distintas**. La de probar es pública y
   desde hoy lo dice. La del chat de dentro ya tenía su aviso —`app.disclaimer`,

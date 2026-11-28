@@ -553,11 +553,6 @@ export function Composer({
                   )}
                 </div>
 
-                {!arranque && (
-                  <span className="hidden min-w-0 flex-1 truncate text-center text-[11.5px] text-faint sm:block">
-                    {t("app.disclaimer")}
-                  </span>
-                )}
                 <div className="relative ml-auto" ref={wrap}>
                   <button
                     onClick={() => setMenu((v) => !v)}
@@ -755,7 +750,7 @@ export function Composer({
         </div>
 
         {!arranque && (
-          <div className="mt-1.5 flex items-center gap-1.5 px-1">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-1">
             <input
               ref={selector}
               type="file"
@@ -885,7 +880,7 @@ export function Composer({
             </div>
 
             {!arranque && (
-              <span className="hidden min-w-0 flex-1 truncate text-center text-[11.5px] text-faint sm:block">
+              <span className="order-last w-full min-w-0 text-center text-[11.5px] text-faint md:order-none md:w-auto md:flex-1 md:truncate">
                 {t("app.disclaimer")}
               </span>
             )}
