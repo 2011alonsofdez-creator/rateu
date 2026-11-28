@@ -29,6 +29,7 @@ const CONTROLES: Control[] = [
   { pregunta: "quién ganó el último gran premio de fórmula 1", busca: true, debe: /f(ó|o)rmula|gran premio|\bgp\b/i },
   { pregunta: "precio del euríbor hoy", busca: true, debe: /eur(í|i)bor/i },
   { pregunta: "plazo para presentar la declaración de la renta", busca: true, debe: /renta/i },
+  { pregunta: "resumen del principito por capitulos", busca: true, debe: /principito/i },
   { pregunta: "escríbeme un poema corto sobre el otoño", busca: false },
   { pregunta: "calcula el 15% de 240", busca: false },
   { pregunta: "5x5", busca: false },
