@@ -36,7 +36,7 @@ jobs:
           jq -r '.resultados[] | "\(if .ok then "✅" else "❌" end) \(.pregunta) · busca: \(.busca) (debería: \(.deberia_buscar)) · encontrado: \(.encontrado) · \(.ms) ms · \(.modelo) · \(.fuentes | join(", "))"' control.json
           echo
           echo "Tavily: $(jq -c '.buscadores' control.json)"
-          jq -r '.resultados[] | select(.ok | not) | "── \(.pregunta)\n" + ((.intentos // []) | map("   \(.modelo): \(.resultado) (\(.ms) ms)") | join("\n"))' control.json
+          jq -r '.resultados[] | select((.ok | not) or (.intentos | length > 0)) | "── \(.pregunta)\n" + ((.intentos // []) | map("   \(.modelo): \(.resultado) (\(.ms) ms)") | join("\n"))' control.json
           if [ "$(jq -r .ok control.json)" != "true" ]; then
             echo "::error::Han fallado $(jq -r .fallos control.json) de $(jq -r .total control.json) preguntas de control."
             exit 1
